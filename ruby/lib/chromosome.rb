@@ -1,14 +1,11 @@
-require_relative 'variations'
 require_relative 'chromosome_fragment'
 
 class Chromosome
   # type -> autosomal, sex
-  attr_reader :chromosome
+  attr_reader :chromosome, :type, :deleted_bands, :duplicated_bands
+
 
   class << self;
-    :type
-    :diploid_number
-    :deleted_bands
     :struct_var
     :ins
     :del
@@ -19,12 +16,10 @@ class Chromosome
     (@chromosome.match(/\d+/))? (@type = "autosomal"): (@type = "sex")
     @struct_var = []
     @deleted_bands = []
+    @duplicated_bands = []
 
     @ins = {}
     @del = []
-
-    @diploid_number = 2
-    @diploid_number = 1 if @chromosome.eql?'Y'
   end
 
   def gain
@@ -39,7 +34,12 @@ class Chromosome
 
   def delete_band(band)
     @deleted_bands.push(band)
-    puts "Band deletion #{band}"
+    puts "#{@chromosome} band deletion #{band}"
+  end
+
+  def duplicate_band(band)
+    @duplicated_bands.push(band)
+    puts "#{@chromosome} duplicated band #{band}"
   end
 
   def get_fragments
@@ -65,9 +65,7 @@ class Chromosome
   def add_fragment(from, to)
     frag = ChromosomeFragment.new(from, to)
     @struct_var.push(frag)
+    puts "#{@chromosome} a add fragment #{from} - #{to}"
   end
-
-
-
 
 end

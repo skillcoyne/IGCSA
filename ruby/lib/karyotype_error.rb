@@ -1,0 +1,2 @@
+class KaryotypeError < StandardError
+end
