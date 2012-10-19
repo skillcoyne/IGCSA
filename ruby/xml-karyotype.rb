@@ -1,6 +1,7 @@
 require 'yaml'
 require 'fileutils'
-require_relative 'lib/logging'
+require 'sanitize'
+#require_relative 'lib/logging'
 require_relative 'lib/sky_karyotype'
 
 
@@ -13,7 +14,6 @@ karyotypes = {}
 stage = {}
 cases = {}
 Dir.foreach(dir) do |entry|
-  Logging.configure({'logout' => "#{error_dir}/#{entry}.log"})
 
   karyotypes[entry] = 0
   stage[entry] = 0
@@ -21,23 +21,32 @@ Dir.foreach(dir) do |entry|
   fullpath = "#{dir}#{entry}"
   next if File.directory?(fullpath)
   next if File.basename(fullpath).start_with?(".")
+  current_case = ""
   File.open(fullpath, 'r').each_line do |line|
 
     line = line.chomp
     if line.match(/SkyCase/)
-      cases[entry] +=1
+      current_case = line.sub(/SkyCase/, "")
     end
     if line.match(/stage/)
       stage[entry] += 1
     end
     if line.match(/Karyotype/)
-      sk = SkyKaryotype.new
+      #Logging.configure({'logout' => "#{error_dir}/#{entry}.log"})
+      log = Logger.new("#{error_dir}/#{entry}.log")
+      sk = SkyKaryotype.new(log)
       line.sub!(/^\s*Karyotype\s*/, "")
+      line.gsub!(/\s*/, "")
+      line.gsub!(/&lt;/,"<")
+      line.gsub!(/&gt;/, ">")
+      line.gsub!(/&quot;/, '"')
+
+      # Sometimes includes multiple karyotypes under "Clone" headings
+      next if line.match(/Clone/)
       puts line
       sk.parse(line)
       #puts sk.karyotype
       karyotypes[entry] += 1
-      break
     end
   end
 end

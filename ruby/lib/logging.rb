@@ -7,7 +7,7 @@ module Logging
     Logging.log
   end
 
-  def Logging.configure(config)
+  def configure(config)
     logout = config['logout']
     if logout != 'STDOUT'
       @out = logout # should be a log path, like /tmp/log.txt

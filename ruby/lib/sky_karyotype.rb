@@ -7,10 +7,12 @@ require_relative 'karyotype_error'
 
 
 class SkyKaryotype
-  include Logging
-  attr_reader :modal, :karyotype
 
-  def initialize
+  attr_reader :modal, :karyotype, :log
+
+
+  def initialize(logger)
+    @log = logger
     @karyotype = {}
     (Array(1..23)).each { |c| @karyotype[c.to_s] = [Chromosome.new(c.to_s), Chromosome.new(c.to_s)] }
   end
@@ -21,7 +23,13 @@ class SkyKaryotype
       k = k.gsub(/\[\d+\]/, "")
       @modal = k if i == 0
       if i == 1
+        unless k.match(/X|Y/)
+          @log.error("Definition of gender incorrect, fix parser #{karyotype}")
+          return
+        end
+
         sex_chr = k.split(//)
+
         sex_chr.each { |c| @karyotype[c.to_s] = [Chromosome.new(c)] }
         # assume this was an XY karyotype that may have lost the Y, have only seen this in
         # severely affected karyotypes
@@ -85,9 +93,9 @@ class SkyKaryotype
         if chr.eql? primary_chr
           case
             when abn_type =~ /del/
-              cb[:band_i][:bands].split(/:|;/).each { |e| derivative_chr.delete_band(e) }
+              cb[:band_i][:bands].split(/:|;/).each { |e| derivative_chr.delete_band(e) } if cb[:band_i]
             when abn_type =~ /dup/
-              cb[:band_i][:bands].split(/:|;/).each { |e| derivative_chr.duplicate_band(e) }
+              cb[:band_i][:bands].split(/:|;/).each { |e| derivative_chr.duplicate_band(e) } if cb[:band_i]
             else
               raise KaryotypeError, "Derivative for #{abnormality} currently unhandled"
           end
@@ -105,8 +113,9 @@ class SkyKaryotype
     chr_band = find_chr_bands(abnormality)
     chrs = chr_band[:chr_i][:chr].split(/;|:/)
     bands = chr_band[:band_i][:bands].split(/;|:/)
-
     ins_chr = Chromosome.new(chrs[0])
+
+    raise KaryotypeError, "Insertion needs a breakpoint currently: #{abnormality}" if bands.length < 2
 
     fragment = []
     if bands[1].match(/((q|p)\d+){2,}/) # two or more bands
@@ -165,11 +174,12 @@ class SkyKaryotype
 
   def fragment_split(str, chr)
     fragments = str.scan(/([p|q]\d+[\.\d]?)/).flatten!
-    fragments.map! {|e| e.to_s.prepend(chr) }
+    fragments.map! { |e| e.to_s.prepend(chr) }
     return fragments
   end
 
   def find_chr_bands(str)
+    #puts str
     chr = find_chr(str)
     bands = find_bands(str, chr)
     return {:chr_i => chr, :band_i => bands}
@@ -215,10 +225,10 @@ class SkyKaryotype
         #when abn =~ /^\W?inv\(/
         #  find_inversion(abn)
         else
-          log.error("No method for parsing #{abn}")
+          @log.error("No method for parsing #{abn}")
       end
     rescue KaryotypeError => error
-      log.error("Cannot handle abnormality: '#{abn}'. #{error.message}")
+      @log.error("Cannot handle abnormality: '#{abn}'. #{error.message}")
     end
   end
 
