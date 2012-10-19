@@ -1,6 +1,6 @@
 class ChromosomeFragment
 
-  attr_accessor :from, :to
+  attr_accessor :from, :to, :gene
 
   def initialize(from_band, to_band)
     @from = from_band

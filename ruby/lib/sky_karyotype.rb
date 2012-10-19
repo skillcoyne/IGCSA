@@ -36,8 +36,8 @@ class SkyKaryotype
     abnormality.chars.each_with_index do |c, i|
       if c.match(/^\+|-/) and abnormality[i+1].match(/\d+|X|Y/)
         chr = abnormality[i+1..abnormality.length]
+        raise KaryotypeError, "#{abnormality} is not a known polyploidy or sex chromosome was not indicated in karyotype." unless @karyotype.has_key?(chr)
         polychr = Chromosome.new(chr)
-        #(c.eql?('-')) ? (polychr.loss) : (polychr.gain)
         (c.eql?('-')) ? (@karyotype[chr].delete_at(-1)) : (@karyotype[chr].push(Chromosome.new(chr)))
         parse_warning("find_polyploidy", abnormality) if abnormality.length.eql?(i+1)
       end
@@ -84,7 +84,7 @@ class SkyKaryotype
           case
             when abn_type =~ /del/
               cb[:band_i][:bands].split(/:|;/).each { |e| derivative_chr.delete_band(e) }
-            when abn_teyp =~ /dup/
+            when abn_type =~ /dup/
               cb[:band_i][:bands].split(/:|;/).each { |e| derivative_chr.duplicate_band(e) }
             else
               raise KaryotypeError, "Derivative for #{abnormality} currently unhandled"
@@ -94,6 +94,7 @@ class SkyKaryotype
         end
       end
     end
+    raise KaryotypeError, "#{primary_chr} is not defined in the karyotype." unless @karyotype.has_key?(primary_chr)
     @karyotype[primary_chr].push(derivative_chr)
   end
 

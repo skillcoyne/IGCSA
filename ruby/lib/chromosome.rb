@@ -24,22 +24,22 @@ class Chromosome
 
   def gain
     @diploid_number += 1
-    puts "Chr#{@chromosome} gaim: #{@diploid_number}"
+    #puts "Chr#{@chromosome} gaim: #{@diploid_number}"
   end
 
   def loss
     @diploid_number -= 1
-    puts "Chr#{@chromosome} loss: #{@diploid_number}"
+    #puts "Chr#{@chromosome} loss: #{@diploid_number}"
   end
 
   def delete_band(band)
     @deleted_bands.push(band)
-    puts "#{@chromosome} band deletion #{band}"
+    #puts "#{@chromosome} band deletion #{band}"
   end
 
   def duplicate_band(band)
     @duplicated_bands.push(band)
-    puts "#{@chromosome} duplicated band #{band}"
+    #puts "#{@chromosome} duplicated band #{band}"
   end
 
   def get_fragments
@@ -54,18 +54,18 @@ class Chromosome
 
   def add_insertion(fragment, band)
     @ins[band] = fragment
-    puts "Insert #{fragment} at #{@chromosome}#{band}"
+    #puts "Insert #{fragment} at #{@chromosome}#{band}"
   end
 
   def delete_fragment(range = [])
     @del.push(range)
-    puts "Delete #{range.join('-')} from #{@chromosome}"
+    #puts "Delete #{range.join('-')} from #{@chromosome}"
   end
 
   def add_fragment(from, to)
     frag = ChromosomeFragment.new(from, to)
     @struct_var.push(frag)
-    puts "#{@chromosome} a add fragment #{from} - #{to}"
+    #puts "#{@chromosome} a add fragment #{from} - #{to}"
   end
 
 end
