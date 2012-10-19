@@ -1,4 +1,5 @@
 require 'yaml'
+require_relative 'logging'
 require_relative 'chromosome'
 require_relative 'derivative_chromosome'
 require_relative 'chromosome_fragment'
@@ -6,6 +7,7 @@ require_relative 'karyotype_error'
 
 
 class SkyKaryotype
+  include Logging
   attr_reader :modal, :karyotype
 
   def initialize
@@ -213,10 +215,10 @@ class SkyKaryotype
         #when abn =~ /^\W?inv\(/
         #  find_inversion(abn)
         else
-          raise KaryotypeError, "No method for parsing: #{abn}"
+          log.error("No method for parsing #{abn}")
       end
     rescue KaryotypeError => error
-      puts "ERROR: Cannot handle abnormality: '#{abn}'. #{error.message}"
+      log.error("Cannot handle abnormality: '#{abn}'. #{error.message}")
     end
   end
 
