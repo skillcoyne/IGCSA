@@ -1,12 +1,10 @@
 require 'yaml'
 require 'fileutils'
-require 'sanitize'
-#require_relative 'lib/logging'
 require_relative 'lib/sky_karyotype'
 
 
-
-dir = "C:/Users/LCSB_Student/Desktop/Data/sky-cgh/ESI/"
+dir = "/Users/skillcoyne/Data/sky-cgh/ESI/"
+#dir = "C:/Users/LCSB_Student/Desktop/Data/sky-cgh/ESI/"
 error_dir = "#{dir}/logs"
 FileUtils.mkdir(error_dir) unless Dir.exists?error_dir
 
