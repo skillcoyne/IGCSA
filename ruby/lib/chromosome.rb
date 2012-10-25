@@ -2,43 +2,36 @@ require_relative 'chromosome_fragment'
 
 class Chromosome
   # type -> autosomal, sex
-  attr_reader :chromosome, :type, :deleted_bands, :duplicated_bands
-
+  attr_reader :chromosome, :type, :deletions, :duplications, :insertions, :inversions
 
   class << self;
     :struct_var
-    :ins
-    :del
+  end
+
+  def altered?
+    if (@deleted_bands.length > 0 or @duplicated_bands.length > 0 or @struct_var.length > 0 or @ins.length > 0)
+      return true
+    end
+  false
   end
 
   def initialize(chr)
     @chromosome = chr.to_s
     (@chromosome.match(/\d+/))? (@type = "autosomal"): (@type = "sex")
     @struct_var = []
-    @deleted_bands = []
-    @duplicated_bands = []
-
-    @ins = {}
-    @del = []
-  end
-
-  def gain
-    @diploid_number += 1
-    #puts "Chr#{@chromosome} gaim: #{@diploid_number}"
-  end
-
-  def loss
-    @diploid_number -= 1
-    #puts "Chr#{@chromosome} loss: #{@diploid_number}"
+    @deletions = []
+    @duplications = []
+    @inversion = []
+    @insertions = {}
   end
 
   def delete_band(band)
-    @deleted_bands.push(band)
+    @deletions.push(band)
     #puts "#{@chromosome} band deletion #{band}"
   end
 
-  def duplicate_band(band)
-    @duplicated_bands.push(band)
+  def duplicate_fragment(frag)
+    @duplications.push(frag)
     #puts "#{@chromosome} duplicated band #{band}"
   end
 
@@ -46,24 +39,27 @@ class Chromosome
     @struct_var
   end
 
-  def set_fragments(array)
-    array.each do |e|
-      add_fragment(e[0], e[1])
-    end
+  def isochromosome(duparm)
+
+  end
+
+  #def set_fragments(array)
+  #  array.each do |e|
+  #    add_fragment(e[0], e[1])
+  #  end
+  #end
+
+  def add_inversion(fragment)
+    @inversion.push(fragment)
   end
 
   def add_insertion(fragment, band)
-    @ins[band] = fragment
+    @insertions[band] = fragment
     #puts "Insert #{fragment} at #{@chromosome}#{band}"
   end
 
-  def delete_fragment(range = [])
-    @del.push(range)
-    #puts "Delete #{range.join('-')} from #{@chromosome}"
-  end
-
-  def add_fragment(from, to)
-    frag = ChromosomeFragment.new(from, to)
+  def add_fragment(parent, from, to)
+    frag = ChromosomeFragment.new(parent, from, to)
     @struct_var.push(frag)
     #puts "#{@chromosome} a add fragment #{from} - #{to}"
   end

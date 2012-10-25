@@ -3,7 +3,14 @@ require 'fileutils'
 require_relative 'lib/easy_sky_record'
 require_relative 'lib/chromosome_fragment'
 
-dir = "/Users/skillcoyne/Data/sky-cgh/ESI/"
+#dir = "/Users/skillcoyne/Data/sky-cgh/ESI/"
+
+if ARGV.length <= 0
+  puts "Requires a directory with sky ESI files."
+  exit
+end
+
+dir = ARGV[0]
 
 kdir = "#{dir}/karyotype"
 bpdir = "#{dir}/breakpoints"
@@ -18,7 +25,7 @@ FileUtils.mkdir(bpdir)
 records = {}
 karyotypes = {}
 Dir.foreach(dir) do |entry|
-  file = "#{dir}#{entry}"
+  file = "#{dir}/#{entry}"
   next if entry.start_with?(".")
   next if File.directory?(file)
   puts "Reading #{entry}..."
@@ -102,6 +109,7 @@ records.each_pair do |k, records|
   File.open("#{kdir}/#{File.basename(k, '.esi')}.karyotype", 'w') { |f|
     f.write("Case\tDiagnosis\tStage\tKaryotype\n")
     records.each do |r|
+      puts "#{r.case}\t#{r.diagnosis}\t#{r.stage}\t#{r.karyotype}\n"
       f.write "#{r.case}\t#{r.diagnosis}\t#{r.stage}\t#{r.karyotype}\n"
     end
   }
