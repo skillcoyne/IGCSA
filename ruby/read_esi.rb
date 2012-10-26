@@ -92,7 +92,7 @@ Dir.foreach(dir) do |entry|
       (parent_chr, band_start, band_end) = frag_info[1..3]
       gene = frag_info[-1] if frag_info.length.eql?(7)
 
-      fragment = ChromosomeFragment.new(parent_chr, band_start, band_end)
+      fragment = ChromosomeFragment.new({:parent => parent_chr, :from => band_start, :to => band_end})
       fragment.add_gene(gene) if gene
 
       esr.add_fragment(current_chr, fragment)

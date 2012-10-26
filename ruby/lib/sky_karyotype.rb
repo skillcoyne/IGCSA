@@ -7,7 +7,7 @@ require_relative 'karyotype_error'
 
 
 class SkyKaryotype
-  @@normal_haploidy = 23
+  @@haploid = 23
 
   attr_reader :ploidy, :karyotype, :log, :normal_chr, :abnormal_chr
 
@@ -15,10 +15,15 @@ class SkyKaryotype
   def initialize(logger)
     @log = logger
     @abnormal_chr = []
-    #@karyotype = {};
     @normal_chr = {}
 
     (Array(1..23)).each { |c| @normal_chr[c.to_s] = 0 }
+  end
+
+  def breakpoints
+    bp = []
+    @abnormal_chr.each { |c| bp = bp|c.breakpoints }
+    return bp.uniq
   end
 
   # Seen in several ways:
@@ -27,37 +32,42 @@ class SkyKaryotype
   # range: 65-71
   def calculate_ploidy(str)
     @log.info("#{__method__} #{str}")
-    diploid = @@normal_haploidy*2
-    triploid = @@normal_haploidy*3
-    quadraploid = @@normal_haploidy*4
+    diploid = @@haploid*2
+    triploid = @@haploid*3
+    quadraploid = @@haploid*4
 
     # typically see di- tri- quad- if more than that it should be noted
     min = diploid
     max = diploid
-    if str.match(/(\d+-\d+)/) # num and range or just range
-      (min, max) = $1.split(/-/).map {|e| e.to_i}
-    elsif str.match(/(\d+)/) # single num
+    if str.match(/<\+(\d)n>/)
+      @ploidy = 3
+    elsif str.match(/(\d+-\d+)/) # num and range or just range
+      (min, max) = $1.split(/-/).map { |e| e.to_i }
+    elsif str.match(/^(\d+)/) # single num
       min = $1.to_i
       max = $1.to_i
     end
 
-    case
-      when (min.eql?diploid and max.eql?diploid)
-        @log.info("Normal ploidy")
-        @ploidy = 2
-      when (min >= diploid and max <= diploid)
-        log.info("Relatively normal ploidy #{str}")
-        @ploidy = 2
-      when (min >= diploid and max < quadraploid)
-        @log.info("Triploid #{str}")
-        @ploidy = 3
-      when (min >= triploid and max >= quadraploid)
-        @log.info("Quadraploid #{str}")
-        @ploidy = 4
-      else
-        @log.error("Failed to determine ploidy from #{str}")
+    if @ploidy.nil?
+      case
+        when (min.eql? diploid and max.eql? diploid)
+          @log.info("Normal ploidy")
+          @ploidy = 2
+        when (min >= @@haploid and max <= diploid)
+          log.info("Relatively normal ploidy #{str}")
+          @ploidy = 2
+        when (min >= @@haploid and max < quadraploid)
+          @log.info("Triploid #{str}")
+          @ploidy = 3
+        when (min >= diploid and max >= quadraploid)
+          @log.info("Quadraploid #{str}")
+          @ploidy = 4
+        else
+          #@log.error("Failed to determine ploidy from #{str}")
+          raise KaryotypeError, "Failed to determine ploidy for #{@karyotype}"
+      end
     end
-    @normal_chr.each_key {|c| @normal_chr[c] = @ploidy } # sex chromosomes handled separately
+    @normal_chr.each_key { |c| @normal_chr[c] = @ploidy } # sex chromosomes handled separately
   end
 
   def determine_sex(str)
@@ -69,9 +79,9 @@ class SkyKaryotype
     end
 
     # ploidy number makes no difference since this string will tell us how many or at least what the gender should be
-    ['X', 'Y'].each {|c| @normal_chr[c] = 0}
+    ['X', 'Y'].each { |c| @normal_chr[c] = 0 }
 
-    sex_chr = str.split(//)
+    sex_chr = str.match(/([X|Y]+)/).to_s.split(//)
     sex_chr.each { |c| @normal_chr[c] += 1 }
 
     # assume this was an XY karyotype that may have lost the Y, have only seen this in
@@ -102,7 +112,7 @@ class SkyKaryotype
         chr = abnormality[i+1..abnormality.length]
         raise KaryotypeError, "#{abnormality} is not a known polyploidy or sex chromosome was not indicated in karyotype." unless @normal_chr.has_key?(chr)
         polychr = Chromosome.new(chr)
-        (c.eql?('-'))? (@normal_chr[chr] -= 1) : @normal_chr[chr] += 1
+        (c.eql?('-')) ? (@normal_chr[chr] -= 1) : @normal_chr[chr] += 1
         parse_warning("find_polyploidy", abnormality) if abnormality.length.eql?(i+1)
       end
     end
@@ -112,10 +122,10 @@ class SkyKaryotype
     @log.info("#{__method__} #{abnormality}")
     cbi = find_chr_bands(abnormality)
     bands = cbi[:band_i][:bands]
-    frag = fragment_split(bands, cbi[:chr_i][:chr])
+    frag = fragment_split(bands)
     dchr = Chromosome.new(cbi[:chr_i][:chr])
     dchr.add_inversion(ChromosomeFragment.new(cbi[:chr_i][:chr], frag[0], frag[1]))
-    @normal_chr[derivative_chr.chromosome] -= 1 unless abnormality.start_with?("+")
+    @normal_chr[dchr.chromosome] -= 1 unless abnormality.start_with?("+")
     @abnormal_chr.push(dchr)
   end
 
@@ -130,7 +140,14 @@ class SkyKaryotype
     @log.info("#{__method__} #{abnormality}")
 
     chr_i = find_chr(abnormality)
-    primary_chr = chr_i[:chr]
+    ## It is rare that multiple chromosomes are indicated, but primary derivative can be either so take first
+    primary_chr = chr_i[:chr].split(/;|:/)[0]
+
+    unless @normal_chr.has_key?(primary_chr)
+      @log.warn("No such chromosome #{primary_chr} for #{abnormality}, skipping.")
+      return
+    end
+
     derivative_chr = DerivativeChromosome.new(primary_chr)
 
     # translocation, dupilication, insertion, etc
@@ -156,9 +173,9 @@ class SkyKaryotype
           case
             when abn_type =~ /del/
               cb[:band_i][:bands].split(/:|;/).each { |e| derivative_chr.delete_band(e) } if cb[:band_i]
-            when abn_type =~ /dup/
-              fragments = fragment_split()
-              cb[:band_i][:bands].split(/:|;/).each { |e| derivative_chr.duplicate_band(e) } if cb[:band_i]
+            when (abn_type =~ /dup/ and cb[:band_i])
+              fragments = fragment_split(cb[:band_i][:bands])
+              derivative_chr.duplicate_fragment(ChromosomeFragment.new(cb[:chr_i][:chr], fragments[0], fragments[1]))
             else
               raise KaryotypeError, "Derivative for #{abnormality} currently unhandled"
           end
@@ -178,15 +195,17 @@ class SkyKaryotype
     bands = chr_band[:band_i][:bands].split(/;|:/)
     ins_chr = Chromosome.new(chrs[0])
 
-    raise KaryotypeError, "Insertion needs a breakpoint currently: #{abnormality}" if bands.length < 2
+    raise KaryotypeError, "Insertion syntax not handled: #{abnormality}" if (bands.length < 2 or chrs.length > 1)
 
-    fragment = []
+    fragments = []
     if bands[1].match(/((q|p)\d+){2,}/) # two or more bands
-      fragment = fragment_split(bands[1], chrs[1])
+      fragments = fragment_split(bands[1])
     else # one band
-      fragment.push("#{chrs[1]}#{bands[1]}")
+      fragments.push(bands[1])
     end
-    ins_chr.add_insertion(fragment.join('-'), bands[0])
+    # again not handled quite correctly, also won't handle more than 2 bands
+    ins_chr.add_insertion(ChromosomeFragment.new(chrs[0], fragments[0], fragments[1]))
+
     @abnormal_chr.push(ins_chr)
     parse_warning("find_insertions", abnormality) unless abnormality.length.eql?(chr_band[:band_i][:index_e]+1)
   end
@@ -199,13 +218,13 @@ class SkyKaryotype
     if chr_band[:band_i]
       bands = chr_band[:band_i][:bands]
 
-      fragment = []
+      fragments = []
       if bands.match(/((q|p)\d+){2,}/) # two or more bands
-        fragment = fragment_split(bands, "")
+        fragments = fragment_split(bands)
       else # one band
-        fragment.push(bands)
+        fragments.push(bands)
       end
-      del_chr.delete_band(fragment)
+      fragments.each { |f| del_chr.delete_band(f) }
       @abnormal_chr.push(del_chr)
     else # no bands
       raise KaryotypeError, "Deletion has no bands specified: #{abnormality}"
@@ -216,19 +235,23 @@ class SkyKaryotype
     @log.info("#{__method__} #{abnormality}")
     # dup(19)(q13.3q13.1)
     chr_band = find_chr_bands(abnormality)
+    if (chr_band[:chr_i].nil? or chr_band[:band_i].nil?)
+      log.error("Duplication cannot be parsed from #{abnormality}")
+      return
+    end
+
     chr = chr_band[:chr_i][:chr]
-    bands = chr_band[:band_i][:bands].split(/;|:/)
+    bands = chr_band[:band_i][:bands]
 
     dchr = Chromosome.new(chr)
-    if bands[1].match(/((q|p)\d+){2,}/) # two or more bands
-      fragment = fragment_split(bands[1], "")
-      @log.warn("Duplication had more than 2 bands, only the first two handled: #{abnormality}")
+    if bands.match(/([q|p]\d+){2,}/) # two or more bands
+      fragment = fragment_split(bands)
+      @log.warn("Duplication had more than 2 bands, only the first two handled: #{abnormality}") if fragment.length > 2
       dchr.duplicate_fragment(ChromosomeFragment.new(chr, fragment[0], fragment[1]))
     else # one band
       dchr.duplicate_fragment(ChromosomeFragment.new(chr, bands[1], "#{$1}ter"))
     end
-
-    @abnormal_chr.push(dup_chr)
+    @abnormal_chr.push(dchr)
     @normal_chr[dchr.chromosome] -= 1 unless abnormality.start_with?("+")
   end
 
@@ -237,7 +260,7 @@ class SkyKaryotype
     cb = find_chr_bands(abnormality)
 
     band = cb[:band_i][:bands]
-    frags = fragment_split(band, cb[:chr_i][:chr])
+    frags = fragment_split(band)
     if frags.length > 1
       @log.error("Isochromosome should not have multiple bands: #{abnormality}")
       return
@@ -252,9 +275,9 @@ class SkyKaryotype
 ### ---- PRIVATE METHODS ---- ###
   private
 
-  def fragment_split(str, chr)
-    fragments = str.scan(/([p|q]\d+[\.\d]?)/).flatten!
-    fragments.map! { |e| e.to_s.prepend(chr) }
+  def fragment_split(str)
+    str.scan(/[q|p](\?)\d+/).map { |e| str.sub!(e[0], "") } # if fragment includes band number and ? strip ?: q?13
+    fragments = str.scan(/([p|q][\d+|\?][\.\d]?)/).flatten! # allows for a fragment that may be unknown: q?
     return fragments
   end
 
@@ -278,6 +301,7 @@ class SkyKaryotype
     if str.match(/(q|p)(\d+|\?)/) and str[ei-1..ei].eql?(")(") # has bands and is not a translocation
       band_s = str.index(/\(/, chr[:index_e])
       band_e = str.index(/\)/, band_s)
+      band_e = str.length-1 if band_e.nil?
       return {:index_s => band_s, :index_e => band_e, :bands => str[band_s+1..band_e-1]}
     end
   end
@@ -291,21 +315,21 @@ class SkyKaryotype
       case
         when abn =~ /(\+|-)(\d+|X|Y)/ # polyploidy
           find_polyploidy(abn)
-        when abn =~ /^\W?ins\(/ # insertion
+        when abn =~ /^\+?ins\(/ # insertion
           find_insertions(abn)
-        when abn =~ /^\W?del\(/ # deletion
+        when abn =~ /^\+?del\(/ # deletion
           find_deletions(abn)
-        when abn =~ /^\W?dup\(/ # duplication
+        when abn =~ /^\+?dup\(/ # duplication
           find_duplications(abn)
-        when abn =~ /^\W?frag\(/ # fragment
+        when abn =~ /^\+?frag\(/ # fragment
           find_fragment(abn)
-        when abn =~ /^\W?der\(/ # derivative...this is a special case as it will contain other elements as well
+        when abn =~ /^\+?der\(/ # derivative...this is a special case as it will contain other elements as well
           find_derivatives(abn)
-        when abn =~ /^\W?inv\(/ # inversion
+        when abn =~ /^\+?inv\(/ # inversion
           find_inversion(abn)
-        #when abn =~ /^i\(/  # isochromosome, duplicate arm around centromere q10 or p10  (e.g. q10 means q arms are duplicated)
+        #when abn =~ /^\+?i\(/  # isochromosome, duplicate arm around centromere q10 or p10  (e.g. q10 means q arms are duplicated)
         #  find_isochromosome(abn)
-        #when abn =~ /^\W?ider\(/ # isoderivative, an isochromosome derivative around the centromere p10 or q10
+        #when abn =~ /^\+?ider\(/ # isoderivative, an isochromosome derivative around the centromere p10 or q10
         #  find_ider(abn)
         else
           @log.error("No method for parsing #{abn}")
@@ -317,7 +341,6 @@ class SkyKaryotype
 
   def parse_translocation(derivative_chr, abnormality, frag)
     (frag.nil?) ? (last_break = nil) : (last_break = frag[:last_break])
-
     cbi = find_chr_bands(abnormality)
     # in cases where the bands do not exist it is due to a separate issue of "unknown" translocations?
     raise KaryotypeError, "Translocation in #{abnormality} missing band information." if cbi[:band_i].nil?
@@ -326,9 +349,7 @@ class SkyKaryotype
     bands = cbi[:band_i][:bands].split(/;|:/)
 
     breaks = Hash.new
-    chrs.each_with_index do |c, i|
-      breaks[c] = bands[i]
-    end
+    chrs.each_with_index { |c, i| breaks[c] = bands[i] }
 
     # probably a cleaner way to do this but the basic rules to a translocation...
     # t(2;6)(q12;p12)t(1;6)(p22;q21) == 2pter-->2q12::6p12-->6q21::1p22-->1pter
@@ -337,23 +358,22 @@ class SkyKaryotype
     # final fragment needs to end on the terminal of an arm
     last_chr = derivative_chr.chromosome # not actually last chromosome, primary derivative chr
     if last_break
-      derivative_chr.add_fragment(last_break, "#{frag[:last_chr]}#{breaks[frag[:last_chr]]}")
+      derivative_chr.add_translocation(last_break, Band.new(last_break.chromosome, breaks[frag[:last_chr]]))
       chrs.delete_if { |e| e.eql?(frag[:last_chr]) }
-      last_break = "#{frag[:last_chr]}#{breaks[frag[:last_chr]]}"
+      last_break = Band.new(frag[:last_chr], breaks[frag[:last_chr]])
     end
 
     chrs.each_with_index do |c, i|
       from = last_break
-      from = "#{bands[i].match(/(q|p)/)}ter" if last_break.nil?
+      from = Band.new(c, "#{bands[i].match(/(q|p)/)}ter") if last_break.nil?
+      derivative_chr.add_translocation(from, Band.new(c, bands[i]))
 
-      derivative_chr.add_fragment(c, from, bands[i])
       last_chr = c
-      last_break = "#{c}#{bands[i]}"
+      last_break = Band.new(c, bands[i])
     end
 
     if chrs.length.eql?(1)
-      arm = "#{bands[0].match(/q|p/)}ter"
-      derivative_chr.add_fragment("#{chrs[0]}#{bands[0]}", "#{chrs[0]}#{arm}")
+      derivative_chr.add_translocation(Band.new(chrs[0], bands[0]), Band.new(chrs[0], "#{bands[0].match(/q|p/)}ter"))
     end
 
     return {:dchr => derivative_chr, :last_chr => last_chr, :last_break => last_break}

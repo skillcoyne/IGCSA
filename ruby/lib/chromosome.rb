@@ -1,15 +1,12 @@
 require_relative 'chromosome_fragment'
 
 class Chromosome
-  # type -> autosomal, sex
-  attr_reader :chromosome, :type, :deletions, :duplications, :insertions, :inversions
 
-  class << self;
-    :struct_var
-  end
+  # type -> autosomal, sex
+  attr_reader :chromosome, :type, :deletions, :duplications, :insertions, :inversions, :fragments, :breakpoints
 
   def altered?
-    if (@deleted_bands.length > 0 or @duplicated_bands.length > 0 or @struct_var.length > 0 or @ins.length > 0)
+    if (@deleted_bands.length > 0 or @duplicated_bands.length > 0 or @fragments.length > 0 or @insertions.length > 0)
       return true
     end
   false
@@ -18,50 +15,49 @@ class Chromosome
   def initialize(chr)
     @chromosome = chr.to_s
     (@chromosome.match(/\d+/))? (@type = "autosomal"): (@type = "sex")
-    @struct_var = []
+    @fragments = []
     @deletions = []
     @duplications = []
     @inversion = []
-    @insertions = {}
+    @insertions = []
+    @breakpoints = []
   end
 
   def delete_band(band)
     @deletions.push(band)
-    #puts "#{@chromosome} band deletion #{band}"
+    @breakpoints.push("#{@chromosome}#{band}")
   end
 
   def duplicate_fragment(frag)
+    raise ArgumentError, "#{__method__} requires object of type 'ChromosomeFragment'" unless frag.kind_of?ChromosomeFragment
     @duplications.push(frag)
-    #puts "#{@chromosome} duplicated band #{band}"
-  end
-
-  def get_fragments
-    @struct_var
+    @breakpoints.push(frag.start.to_s)
+    @breakpoints.push(frag.end.to_s)
   end
 
   def isochromosome(duparm)
 
   end
 
-  #def set_fragments(array)
-  #  array.each do |e|
-  #    add_fragment(e[0], e[1])
-  #  end
-  #end
-
-  def add_inversion(fragment)
-    @inversion.push(fragment)
+  def add_inversion(frag)
+    raise ArgumentError, "#{__method__} requires object of type 'ChromosomeFragment'" unless frag.kind_of?ChromosomeFragment
+    @inversion.push(frag)
+    @breakpoints.push(frag.start.to_s)
+    @breakpoints.push(frag.end.to_s)
   end
 
-  def add_insertion(fragment, band)
-    @insertions[band] = fragment
-    #puts "Insert #{fragment} at #{@chromosome}#{band}"
+  def add_insertion(fragment)
+    raise ArgumentError, "#{__method__} requires object of type 'Band'" unless fragment.kind_of?Band
+    @insertions.push(fragment)
+    @breakpoints.push(fragment.to_s)
   end
 
-  def add_fragment(parent, from, to)
-    frag = ChromosomeFragment.new(parent, from, to)
-    @struct_var.push(frag)
-    #puts "#{@chromosome} a add fragment #{from} - #{to}"
+
+  def add_fragment(from, to)
+    frag = ChromosomeFragment.new(from, to)
+    @fragments.push(frag)
+    [from, to].each { |e| @breakpoints.push(e) }
   end
+
 
 end
