@@ -28,6 +28,8 @@ Dir.foreach(dir) do |entry|
   file = "#{dir}/#{entry}"
   next if entry.start_with?(".")
   next if File.directory?(file)
+  next unless File.basename(entry).match(/\.esi/)
+
   puts "Reading #{entry}..."
 
   esr = nil #EasySkyRecord.new()
@@ -61,7 +63,6 @@ Dir.foreach(dir) do |entry|
       stage = line.sub(/stage/, "")
       esr.stage = stage
     end
-
 
     # not using these right now
     skycell = line.sub(/SkyCell/, "") if line.match(/SkyCell/)
@@ -97,7 +98,7 @@ Dir.foreach(dir) do |entry|
       esr.add_fragment(current_chr, fragment)
     end
   end
-
+  skycases.push(esr) # get last case
   records[entry] = skycases
 end
 
@@ -106,13 +107,15 @@ puts "Writing records..."
 
 # karyotypes
 records.each_pair do |k, records|
-  File.open("#{kdir}/#{File.basename(k, '.esi')}.karyotype", 'w') { |f|
-    f.write("Case\tDiagnosis\tStage\tKaryotype\n")
-    records.each do |r|
-      puts "#{r.case}\t#{r.diagnosis}\t#{r.stage}\t#{r.karyotype}\n"
-      f.write "#{r.case}\t#{r.diagnosis}\t#{r.stage}\t#{r.karyotype}\n"
-    end
-  }
+    File.open("#{kdir}/#{File.basename(k, '.esi')}.karyotype", 'w') { |f|
+      f.write("Case\tDiagnosis\tStage\tKaryotype\n")
+      records.each do |r|
+        if r.karyotype
+          puts "#{r.case}\t#{r.diagnosis}\t#{r.stage}\t#{r.karyotype}\n"
+          f.write "#{r.case}\t#{r.diagnosis}\t#{r.stage}\t#{r.karyotype}\n"
+        end
+      end
+    }
 end
 
 
