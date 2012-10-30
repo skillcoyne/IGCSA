@@ -2,7 +2,7 @@ require_relative 'band'
 
 class ChromosomeFragment
 
-  attr_accessor :start, :end, :gene, :parent
+  attr_reader :start, :end, :gene, :parent
 
   def initialize(*args)
     #def initialize(from, to)

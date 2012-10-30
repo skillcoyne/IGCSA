@@ -92,7 +92,7 @@ Dir.foreach(dir) do |entry|
       (parent_chr, band_start, band_end) = frag_info[1..3]
       gene = frag_info[-1] if frag_info.length.eql?(7)
 
-      fragment = ChromosomeFragment.new({:parent => parent_chr, :from => band_start, :to => band_end})
+      fragment = ChromosomeFragment.new(parent_chr, band_start, band_end)
       fragment.add_gene(gene) if gene
 
       esr.add_fragment(current_chr, fragment)
@@ -111,7 +111,6 @@ records.each_pair do |k, records|
       f.write("Case\tDiagnosis\tStage\tKaryotype\n")
       records.each do |r|
         if r.karyotype
-          puts "#{r.case}\t#{r.diagnosis}\t#{r.stage}\t#{r.karyotype}\n"
           f.write "#{r.case}\t#{r.diagnosis}\t#{r.stage}\t#{r.karyotype}\n"
         end
       end
@@ -128,7 +127,7 @@ records.each_pair do |k, records|
       next if r.fragments.empty?
       r.fragments.each_pair do |chr, frags|
         frags.each do |frag|
-          f.write "#{info}\t#{chr}\t#{frag.parent}\t#{frag.from}\t#{frag.to}\n"
+          f.write "#{info}\t#{chr}\t#{frag.start.to_s}\t#{frag.end.to_s}\n"
         end
       end
     end
@@ -145,7 +144,7 @@ File.open("#{bpdir}/breakpoints.txt", 'w') { |f|
       next if r.fragments.empty?
       r.fragments.each_pair do |chr, frags|
         frags.each do |frag|
-          f.write "#{info}\t#{chr}\t#{frag.parent}\t#{frag.from}\t#{frag.to}\n"
+          f.write "#{info}\t#{chr}\t#{frag.start.to_s}\t#{frag.end.to_s}\n"
         end
       end
     end

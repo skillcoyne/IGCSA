@@ -20,8 +20,8 @@ class EasySkyRecord
     @fragments[primary] = [] unless @fragments.has_key? primary
     @fragments[primary].push(fragment)
 
-    @breakpoints.push("#{fragment.parent}#{fragment.from}") if valid_breakpoint(fragment.from)
-    @breakpoints.push("#{fragment.parent}#{fragment.to}") if valid_breakpoint(fragment.to)
+    @breakpoints.push("#{fragment.parent}#{fragment.start}") if valid_breakpoint(fragment.start)
+    @breakpoints.push("#{fragment.parent}#{fragment.end}") if valid_breakpoint(fragment.end)
 
     if fragment.gene
       @genes[fragment.gene] = [] unless @genes.has_key?(fragment.gene)
@@ -46,7 +46,7 @@ class EasySkyRecord
 
   private
   def valid_breakpoint(bp)
-    return true unless bp.nil? or bp.eql?('?') or bp.eql?('0') or bp.match(/[q|p]ter/)
+    return true unless bp.nil? or bp.band.eql?('?') or bp.band.eql?('0') or bp.band.match(/[q|p]ter/)
     false
   end
 
