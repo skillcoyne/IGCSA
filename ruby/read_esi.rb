@@ -16,8 +16,8 @@ kdir = "#{dir}/karyotype"
 bpdir = "#{dir}/breakpoints"
 
 #output dirs
-FileUtils.rm_rf(kdir) if Dir.exists?(kdir)
-FileUtils.rm_rf(bpdir) if Dir.exists?(bpdir)
+FileUtils.rm_rf(kdir) if File.exists?(kdir)
+FileUtils.rm_rf(bpdir) if File.exists?(bpdir)
 
 FileUtils.mkdir(kdir)
 FileUtils.mkdir(bpdir)
@@ -118,33 +118,35 @@ records.each_pair do |k, records|
 end
 
 
-records.each_pair do |k, records|
-  File.open("#{bpdir}/#{File.basename(k, '.esi')}.txt", 'w') { |f|
-    f.write "Case\tDiagnosis\tStage\tDerivativeChr\tFragChr\tFrom\tTo\n"
-    records.each do |r|
-      next if r.case.match(/mouse/)
-      info = "#{r.case}\t#{r.diagnosis}\t#{r.stage}\t"
-      next if r.fragments.empty?
-      r.fragments.each_pair do |chr, frags|
-        frags.each do |frag|
-          f.write "#{info}\t#{chr}\t#{frag.start.to_s}\t#{frag.end.to_s}\n"
-        end
-      end
-    end
-  }
-end
+#records.each_pair do |k, records|
+#  File.open("#{bpdir}/#{File.basename(k, '.esi')}.txt", 'w') { |f|
+#    f.write "Case\tDiagnosis\tStage\tDerivativeChr\tFragChr\tFrom\tTo\n"
+#    records.each do |r|
+#      next if r.case.match(/mouse/)
+#      info = "#{r.case}\t#{r.diagnosis}\t#{r.stage}\t"
+#      next if r.fragments.empty?
+#      r.fragments.each_pair do |chr, frags|
+#        frags.each do |frag|
+#          f.write "#{info}\t#{chr}\t#{frag.start.to_s}\t#{frag.end.to_s}\n"
+#        end
+#      end
+#    end
+#  }
+#end
+
 
 
 File.open("#{bpdir}/breakpoints.txt", 'w') { |f|
-  f.write "Case\tDiagnosis\tStage\tDerivativeChr\tFragChr\tFrom\tTo\n"
+  f.write "Case\tDiagnosis\tStage\tDerivativeChr\tFromChr\tFromBand\tToChr\tToBand\n"
   records.each_pair do |k, records|
     records.each do |r|
       next if r.case.match(/mouse/)
-      info = "#{r.case}\t#{r.diagnosis}\t#{r.stage}\t"
+      info = "#{r.case}\t#{r.diagnosis}\t#{r.stage}"
       next if r.fragments.empty?
       r.fragments.each_pair do |chr, frags|
         frags.each do |frag|
-          f.write "#{info}\t#{chr}\t#{frag.start.to_s}\t#{frag.end.to_s}\n"
+          next if frag.start.band.match(/\?/) or frag.end.band.match(/\?/) # ignore anything that is unknown
+          f.write "#{info}\t#{chr}\t#{frag.start.chromosome}\t#{frag.start.band}\t#{frag.end.chromosome}\t#{frag.end.band}\n"
         end
       end
     end
