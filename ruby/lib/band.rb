@@ -4,6 +4,7 @@ class Band
 
   def initialize(chr, band)
     @chromosome = chr
+    band.gsub!(/\(|\)/, "")
     @band = band
   end
 
