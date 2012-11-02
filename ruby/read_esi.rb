@@ -118,24 +118,6 @@ records.each_pair do |k, records|
 end
 
 
-#records.each_pair do |k, records|
-#  File.open("#{bpdir}/#{File.basename(k, '.esi')}.txt", 'w') { |f|
-#    f.write "Case\tDiagnosis\tStage\tDerivativeChr\tFragChr\tFrom\tTo\n"
-#    records.each do |r|
-#      next if r.case.match(/mouse/)
-#      info = "#{r.case}\t#{r.diagnosis}\t#{r.stage}\t"
-#      next if r.fragments.empty?
-#      r.fragments.each_pair do |chr, frags|
-#        frags.each do |frag|
-#          f.write "#{info}\t#{chr}\t#{frag.start.to_s}\t#{frag.end.to_s}\n"
-#        end
-#      end
-#    end
-#  }
-#end
-
-
-
 File.open("#{bpdir}/breakpoints.txt", 'w') { |f|
   f.write "Case\tDiagnosis\tStage\tDerivativeChr\tFromChr\tFromBand\tToChr\tToBand\n"
   records.each_pair do |k, records|
