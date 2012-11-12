@@ -1,11 +1,10 @@
-#require 'mysql2'
 require 'yaml'
-require_relative 'lib/event_matrix'
+
+$EVENTS = {}
 
 
-def parse_events(karyotype, event_matrix)
+def parse_events(karyotype, events)
   aberrations = karyotype.split(",")
-  events = []
 
   aberrations.each_with_index do |a, i|
     next if i <= 1
@@ -20,41 +19,42 @@ def parse_events(karyotype, event_matrix)
       chr = $1; dups = $2.to_i
       if dups.eql? 0
         a = "-#{chr}"
-        event_matrix.add_event(a, 2)
-        events.push(a)
+        events[a] = 0 unless events.has_key? a
+        events[a] += 2
       elsif dups > 2
         dups -= 2
         a = "+#{chr}"
-        event_matrix.add_event(a, dups)
-        events.push(a)
+        events[a] = 0 unless events.has_key? a
+        events[a] += dups
       end
       # add(7)x2 should read +7, presume 'add' does not indicate normal diploid even when x2
     elsif a.match(/^add\(([\d|X|Y]+)\)x(\d+)/)
       chr = $1; dups = $2.to_i
       a = "+#{chr}"
-      event_matrix.add_event(a, dups)
-      events.push(a)
+      events[a] = 0 unless events.has_key? a
+      events[a] += dups
       # add(9)(p21)x2 should indicate that this happened twice
     elsif a.match(/(.*)x(\d+)$/)
       a = $1; dups = $2.to_i
-      event_matrix.add_event(a, dups)
-      events.push(a)
+      events[a] = 0 unless events.has_key? a
+      events[a] += dups
       # del(7) should be -7  but not del(7)(q12)
     elsif a.match(/^del\(([\d|X|Y]+)\)$/)
       chr = $1
       a = "-#{chr}"
-      event_matrix.add_event(a)
-      events.push(a)
+      events[a] = 0 unless events.has_key? a
+      events[a] += 1
     else # everything else
-      event_matrix.add_event(a)
-      events.push(a)
+      events[a] = 0 unless events.has_key? a
+      events[a] += 1
     end
   end
+  #k_to_a =
 
-  event_matrix.link_events(events)
-
-  return event_matrix
+  return events
 end
+
+
 
 
 if ARGV.length <= 0
@@ -64,27 +64,15 @@ end
 dir = ARGV[0]
 
 
-em = EventMatrix.new()
 
-#em.add_event('a')
-#em.add_event('b', 5)
-#em.add_event('c')
-#
-#em.add_event('b')
-#
-##
-##em.link_events(['a', 'c'])
-##em.link_events(['a', 'b'])
-#events = em.events
-#puts "\t" + events.join("\t")
-#em.matrix.each_with_index do |column, i|
-#  puts "#{events[i]}\t" + column.join("\t")
-#end
-#
-#em.output(File.new("testmatrix.txt", 'w'))
-#
-#exit
-#
+
+#db = Mysql2::Client.new(:host => "localhost", :username => "root", :database => "cancer_karyotypes")
+
+
+
+matrix = []
+
+
 
 ktsql = File.open("#{dir}/sql/karyotypes.txt", 'w')
 src = 'mitelman'
@@ -93,10 +81,13 @@ uid_kt = 1
 File.open("#{dir}/mm-karyotypes.txt").each_line do |karyotype|
   karyotype.chomp!
   next if karyotype.start_with? "#"
-  em = parse_events(karyotype, em)
-  #ktsql.write("#{uid_kt}\t#{src}\t#{karyotype}\n")
+  events = parse_events(karyotype, events)
+  ktsql.write("#{uid_kt}\t#{src}\t#{karyotype}\n")
   uid_kt += 1
 end
+
+exit
+
 
 ## NCBI sky-fish karyotypes
 esidir = "#{dir}/ESI/karyotype"
@@ -111,8 +102,6 @@ Dir.foreach(esidir) do |entry|
     next
   end
 
-  puts "#{file}"
-
   kts = 0
   File.open(file, 'r').each_line do |line|
     line.chomp
@@ -121,14 +110,14 @@ Dir.foreach(esidir) do |entry|
     next if line.match(/Case/) # column names
     karyotype = line.split(/\t/)[-1].gsub!(/\s/, "")
 
-    em = parse_events(karyotype, em)
+    events = parse_events(karyotype, events)
 
-    #ktsql.write("#{uid_kt}\t#{src}\t#{karyotype}\n")
-    kts += 1
+    ktsql.write("#{uid_kt}\t#{src}\t#{karyotype}\n")
+    uid_kt += 1
   end
-  puts "#{entry}: #{kts}"
-
 end
+
+puts events.keys.length
 
 ## Cambridge karyotypes
 camdir = "#{dir}/path.cam.ac.uk"
@@ -149,34 +138,23 @@ Dir.foreach(camdir) do |cd|
 
     File.open(file, 'r').each_line do |karyotype|
       karyotype.chomp!
-      em = parse_events(karyotype, em)
-      #ktsql.write("#{uid_kt}\t#{src}\t#{karyotype}\n")
+      events = parse_events(karyotype, events)
+      ktsql.write("#{uid_kt}\t#{src}\t#{karyotype}\n")
       uid_kt += 1
     end
   end
 end
 
-#ktsql.close
+ktsql.close
+
+#puts events.keys.join("\n")
+puts events.keys.length
 
 
-puts em.events.length
-
-em.output(File.new("#{dir}/events.txt", 'w'))
-
-File.new("#{dir}/codes.txt", 'w') { |f|
-  f.write(em.events.join("\n"))
+File.open("#{dir}/events.txt", 'w') { |f|
+  f.write("event\tfrequency\n")
+  events.each_pair { |k, v| f.write("#{k}\t#{v}\n") }
 }
-
-File.new("#{dir}/events-coded.txt", 'w') { |f|
-  em.matrix.each_with_index do |column, i|
-    f.write(column.join("\t") + "\n")
-  end
-}
-
-#File.open("#{dir}/events.txt", 'w') { |f|
-#  f.write("event\tfrequency\n")
-#  events.each_pair { |k, v| f.write("#{k}\t#{v}\n") }
-#}
 
 
 
