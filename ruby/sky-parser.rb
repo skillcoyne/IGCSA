@@ -11,25 +11,43 @@ end
 dir = ARGV[0]
 logger = Logger.new(File.new("#{dir}/log.txt", 'w'))
 
-esidir = "#{dir}/ESI/karyotype"
-camdir = "#{dir}/path.cam.ac.uk/Lung/"
+#esidir = "#{dir}/ESI/karyotype"
+#camdir = "#{dir}/path.cam.ac.uk/Lung/"
 
-Dir.foreach(esidir) do |entry|
-  file = "#{esidir}/#{entry}"
+events = {}
+
+Dir.foreach(dir) do |entry|
+  file = "#{dir}/#{entry}"
   next if entry.start_with?(".")
   next if File.directory?(file)
 
   puts "Reading #{entry}..."
+
+  unless (File.basename(entry).match(/\.karyotype/) or File.basename(entry).match(/\.kt/))
+    puts "#{entry} is not a karyotype file"
+    next
+  end
+
+  kts = 0
   File.open(file, 'r').each_line do |line|
     line.chomp
     next if line.length <= 0
     next if line.match(/mouse/)
+    next if line.match(/Case/) # column names
     karyotype = line.split(/\t/)[-1].gsub!(/\s/, "")
 
-    sk = SkyKaryotype.new(logger)
-    sk.parse(karyotype)
+    aberrations = karyotype.split(",")
 
-    puts sk.breakpoints
+    aberrations.each do |a|
+      events[a] = 0 unless events.has_key? a
+      events[a] += 1
+    end
+
+    kts+=1
+    #sk = SkyKaryotype.new(logger)
+    #sk.parse(karyotype)
+    #
+    #puts sk.breakpoints
 
     #sk.abnormal_chr.each do |chr|
     #  sk.normal_chr[chr.chromosome] += 1
@@ -54,6 +72,10 @@ Dir.foreach(esidir) do |entry|
     #  end
     #end
   end
+  puts "Karyotypes: #{kts}"
 end
+
+puts events.keys.length
+
 #sk.normal_chr.each_pair {|k,v| puts "#{k} = #{v}"}
 
