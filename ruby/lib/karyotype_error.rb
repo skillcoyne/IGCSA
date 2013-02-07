@@ -1,2 +1,0 @@
-class KaryotypeError < StandardError
-end
