@@ -2,9 +2,9 @@ package org.lcsb.lu.igcsa.prob;
 
 /**
  * org.lcsb.lu.igcsa.prob
- * User: skillcoyne
+ * Author: skillcoyne
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
- * Open source License Apache 2
+ * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
 
 public class Probability

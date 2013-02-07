@@ -6,9 +6,9 @@ import org.lcsb.lu.igcsa.prob.Probability;
 
 /**
  * org.lcsb.lu.igcsa.variation
- * User: skillcoyne
+ * Author: skillcoyne
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
- * Open source License Apache 2
+ * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
 public class SNP extends Variation
     {
