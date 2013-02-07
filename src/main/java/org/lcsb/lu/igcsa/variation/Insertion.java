@@ -10,18 +10,16 @@ import org.lcsb.lu.igcsa.prob.Probability;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open source License Apache 2
  */
-public class SNP extends Variation
+public class Insertion extends Variation
+  {
+
+  public Insertion(Location loc, Probability prob, Sequence seq)
     {
-
-    public SNP (Location l, Probability p, Sequence seq)
-        {
-        super(l,p,seq);
-        }
-
-
-    public Sequence mutateSequence()
-      {
-      return null;
-      }
-
+    super(loc, prob, seq);
     }
+
+  public Sequence mutateSequence()
+    {
+    return null;
+    }
+  }

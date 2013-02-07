@@ -10,18 +10,17 @@ import org.lcsb.lu.igcsa.prob.Probability;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open source License Apache 2
  */
-public class SNP extends Variation
+public class Deletion extends Variation
+  {
+
+  public Deletion(Location loc, Probability prob, org.lcsb.lu.igcsa.genome.Sequence seq)
     {
-
-    public SNP (Location l, Probability p, Sequence seq)
-        {
-        super(l,p,seq);
-        }
-
-
-    public Sequence mutateSequence()
-      {
-      return null;
-      }
-
+    super(loc, prob, seq);
     }
+
+  public Sequence mutateSequence()
+    {
+    return null;
+    }
+
+  }

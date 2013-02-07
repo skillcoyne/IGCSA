@@ -1,12 +1,12 @@
 package org.lcsb.lu.igcsa.prob;
 
 /**
- * Created with IntelliJ IDEA.
+ * org.lcsb.lu.igcsa.prob
  * User: skillcoyne
- * Date: 9/16/12
- * Time: 1:27 PM
- * To change this template use File | Settings | File Templates.
+ * Copyright Luxembourg Centre for Systems Biomedicine 2013
+ * Open source License Apache 2
  */
+
 public class Probability
     {
     private String name;
