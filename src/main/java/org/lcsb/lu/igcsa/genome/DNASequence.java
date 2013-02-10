@@ -11,10 +11,10 @@ import java.util.regex.Pattern;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class Sequence
+public class DNASequence
   {
   private String Sequence;
-  private final Pattern nucleotides = Pattern.compile("([actgN]+)");
+  private final Pattern nucleotides = Pattern.compile("([ACTGNactgn]+)");
 
   private void testNucleotides(String sequence) throws Exception
     {
@@ -27,7 +27,7 @@ public class Sequence
 
     }
 
-  public Sequence(String seq) throws Exception
+  public DNASequence(String seq) throws Exception
     {
     testNucleotides(seq);
     this.Sequence = seq;

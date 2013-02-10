@@ -5,6 +5,7 @@ import org.lcsb.lu.igcsa.genome.Chromosome;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
+import java.util.Set;
 
 /**
  * org.lcsb.lu.igcsa.utils
@@ -14,6 +15,9 @@ import java.io.FilenameFilter;
  */
 public class FileUtils
   {
+
+
+
 
   public static File[] listFASTAFiles(File fastaDir) throws FileNotFoundException
     {

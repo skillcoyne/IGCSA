@@ -12,7 +12,7 @@ import java.util.HashMap;
 
 public class Genome
     {
-    private HashMap<String, Chromosome> Chromosomes;
+    protected HashMap<String, Chromosome> Chromosomes;
 
     public Genome()
       {
@@ -40,9 +40,9 @@ public class Genome
       return Chromosomes.values();
       }
 
-
-
     /* TODO Not really sure how this should work in the actual code yet. */
+    // one thing, each chromosome can be mutated concurrently in the reference genome as theere will
+    // not be any translocations.  I don't actually think I know how to do that...
     public void mutateChromosome(String chr, Location loc)
       {
 

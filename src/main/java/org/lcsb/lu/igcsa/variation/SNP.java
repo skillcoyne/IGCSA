@@ -1,7 +1,7 @@
 package org.lcsb.lu.igcsa.variation;
 
 import org.lcsb.lu.igcsa.genome.Location;
-import org.lcsb.lu.igcsa.genome.Sequence;
+import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.prob.Probability;
 
 /**
@@ -11,17 +11,18 @@ import org.lcsb.lu.igcsa.prob.Probability;
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
 public class SNP extends Variation
+  {
+  public SNP(Location l, Probability p, DNASequence seq)
+    {
+    super(l, p, seq);
+    }
+
+  public DNASequence mutateSequence()
     {
 
-    public SNP (Location l, Probability p, Sequence seq)
-        {
-        super(l,p,seq);
-        }
 
 
-    public Sequence mutateSequence()
-      {
-      return null;
-      }
-
+    return null;
     }
+
+  }

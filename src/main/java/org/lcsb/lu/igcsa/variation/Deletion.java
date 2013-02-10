@@ -1,7 +1,7 @@
 package org.lcsb.lu.igcsa.variation;
 
 import org.lcsb.lu.igcsa.genome.Location;
-import org.lcsb.lu.igcsa.genome.Sequence;
+import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.prob.Probability;
 
 /**
@@ -13,12 +13,12 @@ import org.lcsb.lu.igcsa.prob.Probability;
 public class Deletion extends Variation
   {
 
-  public Deletion(Location loc, Probability prob, org.lcsb.lu.igcsa.genome.Sequence seq)
+  public Deletion(Location loc, Probability prob, DNASequence seq)
     {
     super(loc, prob, seq);
     }
 
-  public Sequence mutateSequence()
+  public DNASequence mutateSequence()
     {
     return null;
     }

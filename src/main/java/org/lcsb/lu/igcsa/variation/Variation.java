@@ -2,7 +2,7 @@ package org.lcsb.lu.igcsa.variation;
 
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.genome.Location;
-import org.lcsb.lu.igcsa.genome.Sequence;
+import org.lcsb.lu.igcsa.genome.DNASequence;
 
 /**
  * org.lcsb.lu.igcsa.variation
@@ -14,13 +14,13 @@ public abstract class Variation
     {
     protected Location Location;
     protected Probability Probability;
-    protected Sequence Sequence;
+    protected DNASequence DNASequence;
 
-    protected Variation(Location loc, Probability prob, Sequence seq)
+    protected Variation(Location loc, Probability prob, DNASequence seq)
         {
         this.Location = loc;
         this.Probability = prob;
-        this.Sequence = seq;
+        this.DNASequence = seq;
         }
 
     public Probability getProbability()
@@ -33,11 +33,11 @@ public abstract class Variation
         return this.Location;
         }
 
-    public Sequence getSequence()
+    public DNASequence getDNASequence()
         {
-        return this.Sequence;
+        return this.DNASequence;
         }
 
-    public abstract Sequence mutateSequence();
+    public abstract DNASequence mutateSequence();
 
     }

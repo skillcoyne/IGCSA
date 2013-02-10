@@ -3,7 +3,7 @@ package org.lcsb.lu.igcsa;
 
 import org.lcsb.lu.igcsa.utils.GenomeProperties;
 import org.lcsb.lu.igcsa.utils.PropertiesUtil;
-import org.lcsb.lu.igcsa.utils.ReferenceGenome;
+import org.lcsb.lu.igcsa.genome.ReferenceGenome;
 
 import java.io.IOException;
 import java.util.Properties;

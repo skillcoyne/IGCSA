@@ -9,12 +9,11 @@ package org.lcsb.lu.igcsa.prob;
 
 public class Probability
     {
-    private String name;
     private double probability;
+    private double frequency; // not sure about this one
 
-    public Probability(String name, double prob)
+    public Probability(double prob)
         {
-        this.name = name;
         this.probability = prob;
         }
 
@@ -23,10 +22,6 @@ public class Probability
         return this.probability;
         }
 
-    public String getName()
-        {
-        return this.name;
-        }
 
 
     }

@@ -1,7 +1,7 @@
 package org.lcsb.lu.igcsa.variation;
 
 import org.lcsb.lu.igcsa.genome.Location;
-import org.lcsb.lu.igcsa.genome.Sequence;
+import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.prob.Probability;
 
 /**
@@ -13,12 +13,12 @@ import org.lcsb.lu.igcsa.prob.Probability;
 public class Translocation extends Variation
   {
 
-  public Translocation(Location l, Probability p, Sequence seq)
+  public Translocation(Location l, Probability p, DNASequence seq)
     {
     super(l, p, seq);
     }
 
-  public Sequence mutateSequence()
+  public DNASequence mutateSequence()
     {
     return null;
     }

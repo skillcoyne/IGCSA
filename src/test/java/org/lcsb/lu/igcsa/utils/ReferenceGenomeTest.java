@@ -3,10 +3,9 @@ package org.lcsb.lu.igcsa.utils;
 import org.junit.Before;
 import org.junit.Test;
 import org.lcsb.lu.igcsa.genome.Chromosome;
+import org.lcsb.lu.igcsa.genome.ReferenceGenome;
 
 import static org.junit.Assert.*;
-
-import java.util.Properties;
 
 /**
  * org.lcsb.lu.igcsa.utils

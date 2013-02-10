@@ -30,7 +30,7 @@ public class ChromosomeTest extends TestCase
   @Test
   public void testGetSequence() throws Exception
     {
-    assertEquals(chr.getSequence(), sequence);
+    assertEquals(chr.getDNASequence(), sequence);
     }
 
   public void testGetName() throws Exception
