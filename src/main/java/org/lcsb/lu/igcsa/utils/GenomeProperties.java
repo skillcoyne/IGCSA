@@ -20,29 +20,42 @@ public class GenomeProperties extends Properties
     private String name;
 
     private GenomeType(String s)
-      { name = s; }
+      {
+      name = s;
+      }
 
     public String getName()
-      { return name; }
+      {
+      return name;
+      }
     }
 
   private GenomeType type;
 
   public GenomeProperties(Properties props, GenomeType var)
     {
-    super(props); type = var;
+    super(props);
+    type = var;
 
-    try { loadVariationProperties(); }
-    catch (IOException e) { e.printStackTrace(); System.exit(-1); }
+    try
+      { loadVariationProperties(); }
+    catch (IOException e)
+      {
+      e.printStackTrace();
+      System.exit(-1);
+      }
     }
 
   public Properties getPropertySet(String prefix)
     {
-    Properties p = new Properties(); for (Object k : this.keySet())
+    Properties p = new Properties();
+    for (Object k : this.keySet())
       {
-      String key = k.toString(); if (key.startsWith(prefix))
+      String key = k.toString();
+      if (key.startsWith(prefix))
         {
-        String newKey = key.replace(prefix + ".", ""); p.setProperty(newKey, this.getProperty(key));
+        String newKey = key.replace(prefix + ".", "");
+        p.setProperty(newKey, this.getProperty(key));
         }
       }
     return p;
@@ -51,20 +64,24 @@ public class GenomeProperties extends Properties
 
   private void loadVariationProperties() throws IOException
     {
-    String variationProperty = this.getProperty("variation." + type.getName());
-    String[] variationList = variationProperty.split(";");
-
-    for (String s : variationList)
+    if (this.getProperty("variation." + type.getName()) != null )
       {
-      String fileName = type.getName() + File.separator + s + ".properties"; try
-        {
-        Properties varProp = PropertiesUtil.readPropsFile(fileName); this.putAll(varProp);
-        }
-      catch (FileNotFoundException fne)
-        {
-        System.out.println(fne.getMessage());
-        }
+      String variationProperty = this.getProperty("variation." + type.getName());
+      String[] variationList = variationProperty.split(";");
 
+      for (String s : variationList)
+        {
+        String fileName = type.getName() + File.separator + s + ".properties";
+        try
+          {
+          Properties varProp = PropertiesUtil.readPropsFile(fileName);
+          this.putAll(varProp);
+          }
+        catch (FileNotFoundException fne)
+          {
+          System.out.println(fne.getMessage());
+          }
+        }
       }
     }
 

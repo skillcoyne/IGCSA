@@ -12,7 +12,7 @@ public class Location
   private int End;
   private int Length;
 
-  public Location(int s, int e, Chromosome chr) throws Exception
+  public Location(int s, int e) throws Exception
     {
     this.Start = s; this.End = e;
 

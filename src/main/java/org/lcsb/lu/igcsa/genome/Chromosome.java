@@ -2,6 +2,7 @@ package org.lcsb.lu.igcsa.genome;
 
 import org.lcsb.lu.igcsa.variation.Variation;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -17,21 +18,30 @@ public class Chromosome
   private int Length;
   private String Name;
   private Collection<Variation> Variations;
+  private File fasta;
 
-  public Chromosome(String name, String sequence) throws Exception
+  protected Chromosome(String name, int length)
     {
-    this.Name = name; this.Sequence = new Sequence(sequence); this.Length = sequence.length();
+    this.Name = name;
+    this.Length = length;
     this.Variations = new ArrayList<Variation>();
     }
 
-  public String getSequence()
+  public Chromosome(String name, File chrFastaFile)
     {
-    return Sequence.toString();
+    this(name, 0);
+    this.fasta = chrFastaFile;
     }
 
-  public int getLength()
+  public Chromosome(String name, String sequence) throws Exception
     {
-    return Length;
+    this(name, sequence.length());
+    this.Sequence = new Sequence(sequence);
+    }
+
+  public Sequence getSequence()
+    {
+    return Sequence;
     }
 
   public String getName()
@@ -39,9 +49,19 @@ public class Chromosome
     return Name;
     }
 
+  public File getFASTAFile()
+    {
+    return fasta;
+    }
+
   public void addVariation(Variation var)
     {
     Variations.add(var); if (var.getLocation().getEnd() > Length) { Length += Length - var.getLocation().getEnd(); }
+    }
+
+  public String toString()
+    {
+    return Name;
     }
 
   }

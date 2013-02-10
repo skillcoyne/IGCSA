@@ -3,6 +3,7 @@ package org.lcsb.lu.igcsa;
 
 import org.lcsb.lu.igcsa.utils.GenomeProperties;
 import org.lcsb.lu.igcsa.utils.PropertiesUtil;
+import org.lcsb.lu.igcsa.utils.ReferenceGenome;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -18,6 +19,7 @@ public class InsilicoGenome
   private static final String propertyFile = "genome.properties";
   protected GenomeProperties normalProperties;
   protected GenomeProperties cancerProperties;
+  protected ReferenceGenome referenceGenome;
 
   public static void main(String[] args) throws Exception
     {
@@ -28,6 +30,13 @@ public class InsilicoGenome
     {
     initProperties();
     }
+
+
+  protected void setupReferenceGenome()
+    {
+    referenceGenome = new ReferenceGenome( normalProperties.getProperty("assembly"), normalProperties.getProperty("dir.assembly") );
+    }
+
 
   protected void initProperties() throws IOException
     {

@@ -33,11 +33,6 @@ public class ChromosomeTest extends TestCase
     assertEquals(chr.getSequence(), sequence);
     }
 
-  public void testGetLength() throws Exception
-    {
-    assertEquals(sequence.length(), chr.getLength());
-    }
-
   public void testGetName() throws Exception
     {
     assertEquals(name, chr.getName());
