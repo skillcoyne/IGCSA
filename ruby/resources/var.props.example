@@ -1,0 +1,25 @@
+## -- DO NOT DELETE THIS FILE --##
+## The example file is used by the scripts to ensure that all
+## configuration is correctly done.  Copy this to another file
+## then alter it for your own configuration
+
+# This data file should include each chromosome with base pair length, the file in the resources directory can be used.
+chromosome.data: /path/to/data/file
+
+# Directories with variation files. e.g. 1000genomes VCF files. If using multiple sources separate directories with a ;
+variation.dir: /path/to/var/files
+
+# Output directory for frequency distribution files
+output.dir: /path/to/output/dir
+
+# Tool paths - These are optional. If the tool is pathed on the system these should be
+# removed from the configuration file.
+tabix.path: /path/to/tabix/script
+
+# base pair window to generate variation frequencies within. 100 should be the minimum.
+window: 100
+
+
+
+
+
