@@ -8,20 +8,29 @@ package org.lcsb.lu.igcsa.prob;
  */
 
 public class Probability
+  {
+  private String name; // mostly useful for SNPs
+  private double probability;
+  private double frequency; // not sure about this one
+
+  public Probability(String n, double prob)
     {
-    private double probability;
-    private double frequency; // not sure about this one
-
-    public Probability(double prob)
-        {
-        this.probability = prob;
-        }
-
-    public double getProbability()
-        {
-        return this.probability;
-        }
-
-
-
+    this.name = n; this.probability = prob;
     }
+
+  public Probability(double prob)
+    {
+    this.probability = prob;
+    }
+
+  public String getName()
+    {
+    return this.name;
+    }
+
+  public double getProbability()
+    {
+    return this.probability;
+    }
+
+  }

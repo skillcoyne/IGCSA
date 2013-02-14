@@ -16,25 +16,23 @@ public class DNASequence
   private String Sequence;
   private final Pattern nucleotides = Pattern.compile("([ACTGNactgn]+)");
 
-  private void testNucleotides(String sequence) throws Exception
+  private void testNucleotides(String sequence) throws IllegalArgumentException
     {
     Matcher match = nucleotides.matcher(sequence);
     if (!match.matches())
-      {
-      throw new Exception("The sequence contains incorrect nucleotides, expected " + nucleotides + " provided: " +
-                      sequence);
-      }
-
+      throw new IllegalArgumentException("The sequence contains incorrect nucleotides, expected " + nucleotides + " provided: " + sequence);
     }
 
-  public DNASequence(String seq) throws Exception
+  public DNASequence(String seq) throws IllegalArgumentException
     {
+    seq = seq.toUpperCase();
     testNucleotides(seq);
     this.Sequence = seq;
     }
 
-  public void addNucleotides(String nuc) throws Exception
+  public void addNucleotides(String nuc) throws IllegalArgumentException
     {
+    nuc = nuc.toUpperCase();
     testNucleotides(nuc);
     this.Sequence = Sequence + nuc;
     }

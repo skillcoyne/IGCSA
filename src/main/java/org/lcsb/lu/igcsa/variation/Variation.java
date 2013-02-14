@@ -12,30 +12,30 @@ import org.lcsb.lu.igcsa.genome.DNASequence;
  */
 public abstract class Variation
     {
-    protected Location Location;
-    protected Probability Probability;
-    protected DNASequence DNASequence;
+    protected Location location;
+    protected Probability probability;
+    protected DNASequence sequence;
 
     protected Variation(Location loc, Probability prob, DNASequence seq)
         {
-        this.Location = loc;
-        this.Probability = prob;
-        this.DNASequence = seq;
+        this.location = loc;
+        this.probability = prob;
+        this.sequence = seq;
         }
 
     public Probability getProbability()
         {
-        return this.Probability;
+        return this.probability;
         }
 
     public Location getLocation()
         {
-        return this.Location;
+        return this.location;
         }
 
     public DNASequence getDNASequence()
         {
-        return this.DNASequence;
+        return this.sequence;
         }
 
     public abstract DNASequence mutateSequence();

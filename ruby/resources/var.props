@@ -1,0 +1,20 @@
+
+
+
+# Directories with variation files. e.g. 1000genomes VCF files. If using multiple sources separate directories with a ;
+variation.dir: /Users/sarah.killcoyne/Data/1000Genomes/VCF
+
+# Output directory for frequency distribution files
+output.dir: /Users/sarah.killcoyne/Data/variation/frequencies
+
+# Tool paths - These are optional. If the tool is pathed on the system these should be
+# removed from the configuration file.
+# tabix.path: /path/to/tabix/script
+
+# base pair window to generate variation frequencies within. 100 should be the minimum.
+window: 1000
+
+
+
+
+

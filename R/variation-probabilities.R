@@ -1,6 +1,10 @@
 # http://cran.r-project.org/doc/contrib/Ricci-distributions-en.pdf
+# clear workspace
+rm(list = ls())
 
-funplot<-function(scores)
+
+# --------------Functions---------------------- #
+normplot<-function(scores)
   {
   #and now a (vaguely) pretty pic just for ewe
   plot(function(x) dnorm(x,mean(scores),sd(scores)), min(scores)-sd(scores)*1,max(scores)+sd(scores)*1,
@@ -9,86 +13,127 @@ funplot<-function(scores)
   ypos=vector("numeric",2)
   ypos[1]=0
   density_pos=dnorm(scores,mean(scores),sd(scores))
+  labels = names(scores)
   for(i in 1:length(scores))
     {
     xpos[1]=scores[i]
     xpos[2]=scores[i]
     ypos[2]=density_pos[i]
     lines(xpos,ypos)
-    text(xpos[2],ypos[2],labels=i,pos=3)
+    text(xpos[2],ypos[2],labels=labels[i],pos=3)
     }
   }
 
-
-setwd("~/Data/variation/frequencies")
-
-files = list.files()
-
-#for (f in files)
+histp<-function(expected)
   {
-  f = "chr1-counts.txt"
-  print(f)
-  
-  d = read.table(f, header=T, sep="\t")
-  nrow(d)
-  plot(d$SNP)
-  
-  snp_e = unique(d$SNP)
-
-  indel_e = unique(d$INDEL)
-
-  snp_f = table(d$SNP)
-  #indel_f = table(d$INDEL)
-
-  
-  # poisson does give a good pvalue
-  pt = poisson.test(length(snp_e), mean(snp_e))
-  
-  probability_list=ppois(snp_e,mean(snp_e),sd(snp_e))
-  funplot(probability_list)
-  
-  library(vcd) ## loading vcd package
-  gf <- goodfit(snp_e,type= "poisson",method= "MinChisq")
-  summary(gf)
-  plot(gf,main="Count data vs Poisson distribution")  
-  
-  
-  
-  # Estimate poisson distribution?  
-  #expected=rpois(n=100, lambda=mean(snp_e))
-  pn = 200
-  expected=rpois(n=pn, lambda=pt$estimate)
-  hist(expected, main="Poisson Distribution?")
-  lambda.est = mean(expected) ## estimate of parameter lambda...why???
-  tab.os = table(expected) ## table with empirical frequencies  
-  freq.os<-vector()
-  for(i in 1: length(tab.os)) freq.os[i]<-tab.os[[i]]  ## vector of emprical frequencies
-
-  freq.ex<-(dpois(0:max(expected),lambda=lambda.est)*pn) ## vector of fitted (expected) frequencies
-  acc <- mean(abs(freq.os-trunc(freq.ex))) ## absolute goodness of fit index acc
-  acc/mean(freq.os)*100 ## relative (percent) goodness of fit index
-  
-  h <- hist(expected,breaks=length(tab.os))
+  h <- hist(expected,breaks=length(table(expected)))
   xhist <- c(min(h$breaks),h$breaks)
   yhist <- c(0,h$density,0)
   xfit <- min(expected):max(expected)
   yfit <- dpois(xfit,lambda=lambda.est)
   plot(xhist,yhist,type="s",ylim=c(0,max(yhist,yfit)), main="Poison density and histogram")
   lines(xfit,yfit, col="red")
-  
-  
-  library(vcd) ## loading vcd package
-  gf <- goodfit(expected,type= "poisson",method= "MinChisq")
-  summary(gf)
-  plot(gf,main="Count data vs Poisson distribution")  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   }
+# --------------/Functions---------------------- #
+
+#par(mfrow=c(5,5))
+setwd("~/Data/variation/frequencies")
+files = list.files(pattern=".txt")  
+#files = c('chr3-counts.txt')
+for (f in files)
+  {
+  d = read.table(f, header=T, sep="\t") 
+  # just interesting to note that many variations (not all) would appear to occur middle->end of the chromosome. Also that a few of the shorter chromosomes have none
+  #plot(d$SNP, main=f, xlab="Chr Location", ylab="SNPs in bin") 
+  if(!exists("var_data"))   var_data = d
+  else var_data = rbind(var_data, d)
+  rm(d)
+  }
+
+max_snps = max(var_data$SNP)
+raw = var_data$SNP
+
+# set up vector for all counts
+snp_c = vector('numeric', max_snps+1)
+# just useful to keep in mind
+snps_in_bin = 0:max_snps
+names(snp_c) = snps_in_bin
+
+# Count all bins such that snp counts not found have a 0 count
+snp_f = table(var_data$SNP)
+for (n in names(snp_f)) snp_c[[n]] = snp_c[[n]] + snp_f[[n]]
+
+# Just for reference. The number of bins is equal to sum of observations
+total_bins = sum(snp_c)
+
+# doubt this makes a difference but since the observations start at 0 lets just start them at 1 in case 0 screws things up
+# names(snp_c) = 1:(max_snps+1)
+
+# not useful but what the hell
+#plot(log(snp_c), xlab="1kb bins", ylab="log(freq)") 
+
+# Ok, so looking around using a generalized linear model to look into possible fit?
+# Pretty sure this tells me poisson isn't appropriate. deviance/df should be ~ 1 but is not
+model = glm(snp_c~1, family="poisson")
+summary(model)
+
+# I'm presuming number of events is total number of bins.  Anyhow, this is just the same as the glm really 
+poisson.test(sum(snp_c), mean(snp_c))
+
+# The pvalue is too extreme, so either I'm doing the test wrong (very possible) or...the number of bins per number of snps is not independent? 
+chisq.test(snp_c)
+
+# ks complains about ties...
+# however, it would see to be normal?
+ks.test(snp_c,pnorm,mean(snp_c),sd(snp_c))
+#probability_list=pnorm(snp_c,mean(snp_c),sd(snp_c))
+#normplot(log(probability_list)) # again, is this useful? I'm thinking not so much
+
+# Example poisson distribution with generated data (generates warnings)
+n = 100
+x.poi = rpois(n=n, lambda=2.5)
+lambda.est = mean(x.poi)
+tab.os = table(x.poi)
+freq.os = vector()
+for(i in 1: length(tab.os)) freq.os[i]<-tab.os[[i]]  ## vector of emprical frequencies
+freq.ex = (dpois(0:max(x.poi),lambda=lambda.est)*length(x.poi)) ## vector of fitted (expected) frequencies
+acc = mean(abs(freq.os-trunc(freq.ex))) ## absolute goodness of fit index acc
+acc/mean(freq.os)*100 ## relative (percent) goodness of fit index
+histp(x.poi)
+
+# So real data? Using the "by the book" example it looks sort of poisson...I'm lost 
+x.poi = var_data$SNP
+lambda.est = mean(x.poi)
+tab.os = table(x.poi) # this is snp_c
+freq.os = vector()
+for(i in 1: length(tab.os)) freq.os[i]<-tab.os[[i]]  ## vector of emprical frequencies
+freq.ex = (dpois(0:max(x.poi),lambda=lambda.est)*length(x.poi)) ## vector of fitted (expected) frequencies
+acc = mean(abs(freq.os-trunc(freq.ex))) ## absolute goodness of fit index acc
+acc/mean(freq.os)*100 ## relative (percent) goodness of fit index
+histp(x.poi)
+
+# Again, I just found this.  It seems to suggest that it fits a negative binomial?  
+# No matter what data I use (real or generated) I get a warning
+library(vcd) ## loading vcd package
+gf = goodfit(log(snp_c+1),type= "nbinomial",method= "MinChisq")
+summary(gf)
+plot(gf,main=paste("Count data vs ", gf$type, " distribution"))  
+
+# but not poisson (I think)
+gf = goodfit(log(snp_c+1),type= "poisson",method= "MinChisq")
+summary(gf)
+plot(gf,main=paste("Count data vs ", gf$type, " distribution"))  
+
+# But...a ks test for a negative binomial doesn't work!
+ks.test(snp_c,pnbinom,mean(snp_c),sd(snp_c))
+
+
+
+  
+  
+  
+  
+  
+  
+  
+  
