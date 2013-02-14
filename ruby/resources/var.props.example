@@ -3,11 +3,14 @@
 ## configuration is correctly done.  Copy this to another file
 ## then alter it for your own configuration
 
+
+
 # This data file should include each chromosome with base pair length, the file in the resources directory can be used.
 chromosome.data: /path/to/data/file
 
 # Directories with variation files. e.g. 1000genomes VCF files. If using multiple sources separate directories with a ;
 variation.dir: /path/to/var/files
+fasta.dir: /path/to/fasta/files
 
 # Output directory for frequency distribution files
 output.dir: /path/to/output/dir
