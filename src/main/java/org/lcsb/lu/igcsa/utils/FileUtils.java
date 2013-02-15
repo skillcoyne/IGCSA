@@ -16,9 +16,6 @@ import java.util.Set;
 public class FileUtils
   {
 
-
-
-
   public static File[] listFASTAFiles(File fastaDir) throws FileNotFoundException
     {
     FilenameFilter fastaFilter = new FilenameFilter()
@@ -26,7 +23,7 @@ public class FileUtils
       public boolean accept(File dir, String name)
         {
         String lowercaseName = name.toLowerCase();
-        if (lowercaseName.endsWith(".fa")) return true;
+        if (lowercaseName.endsWith(".fa") || lowercaseName.endsWith(".fasta")) return true;
         else return false;
         }
       };

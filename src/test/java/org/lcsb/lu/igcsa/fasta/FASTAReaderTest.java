@@ -21,7 +21,7 @@ public class FASTAReaderTest
   @Before
   public void setUp() throws Exception
     {
-    URL testUrl = ClassLoader.getSystemResource("test.fasta");
+    URL testUrl = ClassLoader.getSystemResource("fasta/test.fa");
     file = new File(testUrl.toURI());
     reader = new FASTAReader(file);
     assertNotNull(reader);

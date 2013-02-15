@@ -3,6 +3,8 @@ package org.lcsb.lu.igcsa.utils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -30,29 +32,46 @@ public class GenomeProperties extends Properties
       }
     }
 
-  private GenomeType type;
+  //private GenomeType type;
 
-  public GenomeProperties(Properties props, GenomeType var)
+  private Map<String, GenomeProperties> variationProps = new HashMap<String, GenomeProperties>();
+
+
+  public static GenomeProperties readPropertiesFile(String fileName, GenomeType type) throws IOException
     {
-    super(props);
-    type = var;
-
-    try
-      { loadVariationProperties(); }
-    catch (IOException e)
-      {
-      e.printStackTrace();
-      System.exit(-1);
-      }
+    GenomeProperties props = readPropertiesFile(fileName);
+    props.loadVariationProperties(type);
+    return props;
     }
 
-  public Properties getPropertySet(String prefix)
+  public static GenomeProperties readPropertiesFile(String fileName) throws IOException
     {
-    Properties p = new Properties();
+    GenomeProperties props = new GenomeProperties();
+    ClassLoader cl = ClassLoader.getSystemClassLoader(); // not sure this is the best way to do it, but it works
+
+    try { props.load(cl.getResourceAsStream(fileName)); }
+    catch (NullPointerException npe)
+      { throw new FileNotFoundException(fileName + " not found"); }
+    return props;
+    }
+
+
+  public GenomeProperties()
+    { super(); }
+
+  /**
+   * Returns a new Properties object containing only properties with the given prefix.
+   * The prefix string is removed from the keys.
+   * @param prefix
+   * @return Properties
+   */
+  public GenomeProperties getPropertySet(String prefix)
+    {
+    GenomeProperties p = new GenomeProperties();
     for (Object k : this.keySet())
       {
       String key = k.toString();
-      if (key.startsWith(prefix))
+      if (key.startsWith(prefix + "."))
         {
         String newKey = key.replace(prefix + ".", "");
         p.setProperty(newKey, this.getProperty(key));
@@ -62,20 +81,37 @@ public class GenomeProperties extends Properties
     }
 
 
-  private void loadVariationProperties() throws IOException
+  /**
+   * Get namespaced property, this will only be the properties named by the variation.normal or variation.cancer properties.
+   * @param key
+   * @return
+   */
+  public GenomeProperties getVariationProperty(String key)
+    {
+    return this.variationProps.get(key);
+    }
+
+
+  /**
+   * Loads all property files in the named variation folder.
+   * @throws IOException
+   */
+  public void loadVariationProperties(GenomeType type) throws IOException
     {
     if (this.getProperty("variation." + type.getName()) != null )
       {
       String variationProperty = this.getProperty("variation." + type.getName());
       String[] variationList = variationProperty.split(";");
 
-      for (String s : variationList)
+      this.setProperty("variations", variationProperty);
+
+      for (String var : variationList)
         {
-        String fileName = type.getName() + File.separator + s + ".properties";
+        String fileName = type.getName() + File.separator + var + ".properties";
         try
           {
-          Properties varProp = PropertiesUtil.readPropsFile(fileName);
-          this.putAll(varProp);
+          GenomeProperties varProp = GenomeProperties.readPropertiesFile(fileName);
+          this.variationProps.put(var, varProp);
           }
         catch (FileNotFoundException fne)
           {
@@ -84,6 +120,5 @@ public class GenomeProperties extends Properties
         }
       }
     }
-
 
   }

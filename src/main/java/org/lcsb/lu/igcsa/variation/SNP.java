@@ -22,6 +22,11 @@ public class SNP extends Variation
 
   private HashMap<Character, Nucleotide> nucleotideProbabilities = new HashMap<Character, Nucleotide>();
 
+  public SNP(DNASequence seq)
+    {
+    super(seq);
+    }
+
   public SNP(Location l, Probability p, DNASequence seq, Nucleotide[] nucleotides)
     {
     super(l, p, seq);

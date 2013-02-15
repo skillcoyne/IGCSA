@@ -1,12 +1,16 @@
 package org.lcsb.lu.igcsa;
 
 
+import org.lcsb.lu.igcsa.genome.DNASequence;
+import org.lcsb.lu.igcsa.genome.Genome;
+import org.lcsb.lu.igcsa.prob.Probability;
+import org.lcsb.lu.igcsa.prob.ProbabilityList;
 import org.lcsb.lu.igcsa.utils.GenomeProperties;
-import org.lcsb.lu.igcsa.utils.PropertiesUtil;
 import org.lcsb.lu.igcsa.genome.ReferenceGenome;
+import org.lcsb.lu.igcsa.variation.SNP;
 
 import java.io.IOException;
-import java.util.Properties;
+
 
 /**
  * org.lcsb.lu.igcsa
@@ -35,14 +39,41 @@ public class InsilicoGenome
   protected void setupReferenceGenome()
     {
     referenceGenome = new ReferenceGenome( normalProperties.getProperty("assembly"), normalProperties.getProperty("dir.assembly") );
+
+    // this would probably be a good candidate for spring injection of classes...
+    for (String variation: normalProperties.getProperty("variations").split(";"))
+      {
+      if (variation == "snp") setupSNPs(normalProperties.getVariationProperty("snp").getPropertySet("base"), this.referenceGenome);
+      else
+        {
+
+        }
+
+      }
+
+
     }
 
 
   protected void initProperties() throws IOException
     {
-    Properties generalProps = PropertiesUtil.readPropsFile(propertyFile);
-    normalProperties = new GenomeProperties(generalProps, GenomeProperties.GenomeType.NORMAL);
-    cancerProperties = new GenomeProperties(generalProps, GenomeProperties.GenomeType.CANCER);
+    normalProperties = GenomeProperties.readPropertiesFile(propertyFile, GenomeProperties.GenomeType.NORMAL);
+    cancerProperties = GenomeProperties.readPropertiesFile(propertyFile, GenomeProperties.GenomeType.CANCER);
     }
+
+  private void setupSNPs(Genome genome, GenomeProperties props)
+    {
+    for (String baseFrom: "ACTG".split(""))
+      {
+      // ProbabilityList per base, e.g. A has a list that encompasses A->G, A->C, A->T, A->A
+      ProbabilityList pList = new ProbabilityList();
+      for (String baseTo: props.getPropertySet(baseFrom).stringPropertyNames())
+        {
+        pList.add( new Probability(baseTo, Double.valueOf( props.getProperty(baseFrom + "." + baseTo) )) );
+        }
+      genome.addVariationType(new SNP(new DNASequence(baseFrom)), pList);
+      }
+    }
+
 
   }

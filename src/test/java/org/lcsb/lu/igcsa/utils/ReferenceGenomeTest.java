@@ -5,6 +5,10 @@ import org.junit.Test;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.ReferenceGenome;
 
+import java.io.File;
+import java.net.URL;
+import java.util.Properties;
+
 import static org.junit.Assert.*;
 
 /**
@@ -21,8 +25,12 @@ public class ReferenceGenomeTest
   @Before
   public void setUp() throws Exception
     {
-    props = new GenomeProperties(PropertiesUtil.readPropsFile("test.properties"), GenomeProperties.GenomeType.NORMAL);
-    rg = new ReferenceGenome( props.getProperty("assembly", "test")  , props.getProperty("dir.assembly") );
+    props = GenomeProperties.readPropertiesFile("test.properties", GenomeProperties.GenomeType.NORMAL);
+
+    URL testUrl = ClassLoader.getSystemResource("fasta/test.fa");
+
+    rg = new ReferenceGenome( props.getProperty("assembly", "test"), props.getProperty("dir.assembly") );
+    rg.addChromosomeFromFASTA(new File(testUrl.toURI()));
     }
 
   @Test
@@ -30,7 +38,7 @@ public class ReferenceGenomeTest
     {
     Chromosome[] chrArray = rg.getChromosomes().toArray( new Chromosome[rg.getChromosomes().size()] );
     assertEquals(rg.getChromosomes().size(), 1);
-    assertEquals(chrArray[0].getName(), "19");
+    assertEquals(chrArray[0].getName(), "test");
     assertTrue(chrArray[0].getFASTAFile().isFile());
     }
 

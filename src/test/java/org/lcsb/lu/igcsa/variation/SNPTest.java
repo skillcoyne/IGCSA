@@ -3,15 +3,10 @@ package org.lcsb.lu.igcsa.variation;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.lcsb.lu.igcsa.fasta.FASTAReader;
 import org.lcsb.lu.igcsa.genome.DNASequence;
-import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.utils.GenomeProperties;
-import org.lcsb.lu.igcsa.utils.PropertiesUtil;
 
-import java.io.File;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Properties;
@@ -35,7 +30,7 @@ public class SNPTest
     @Before
     public void setUp() throws Exception
       {
-      GenomeProperties props = new GenomeProperties(PropertiesUtil.readPropsFile("test.properties"), GenomeProperties.GenomeType.NORMAL);
+      GenomeProperties props = GenomeProperties.readPropertiesFile("test.properties", GenomeProperties.GenomeType.NORMAL);
       Properties baseProps = props.getPropertySet("base");
 
       Collection<Probability> probabilities = new ArrayList<Probability>();
@@ -46,7 +41,7 @@ public class SNPTest
 
 
       sequence = new DNASequence("actgcttagcgc");
-      snp = new SNP( new Location(1,100), new Probability(0.7/sequence.getLength()), sequence, probabilities.toArray( new Probability[probabilities.size()] ));
+      //snp = new SNP( new Location(1,100), new Probability(0.7/sequence.getLength()), sequence, probabilities.toArray( new Probability[probabilities.size()] ));
       assertNotNull("SNP object wasn't created", snp);
       }
 

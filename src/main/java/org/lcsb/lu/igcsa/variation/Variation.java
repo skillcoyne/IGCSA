@@ -16,12 +16,32 @@ public abstract class Variation
     protected Probability probability;
     protected DNASequence sequence;
 
+    protected Variation(DNASequence seq)
+      {
+      this.sequence = seq;
+      }
+
     protected Variation(Location loc, Probability prob, DNASequence seq)
         {
         this.location = loc;
         this.probability = prob;
         this.sequence = seq;
         }
+
+    public void setLocation(Location location)
+      {
+      this.location = location;
+      }
+
+    public void setProbability(Probability probability)
+      {
+      this.probability = probability;
+      }
+
+    public void setSequence(DNASequence sequence)
+      {
+      this.sequence = sequence;
+      }
 
     public Probability getProbability()
         {
