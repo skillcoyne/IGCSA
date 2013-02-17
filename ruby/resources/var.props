@@ -1,11 +1,11 @@
 
-fasta.dir: /Users/sarah.killcoyne/Data/FASTA
+fasta.dir: /Users/skillcoyne/Data/FASTA
 
 # Directories with variation files. e.g. 1000genomes VCF files. If using multiple sources separate directories with a ;
 variation.dir: /Users/sarah.killcoyne/Data/1000Genomes/VCF
 
 # Output directory for frequency distribution files
-output.dir: /Users/sarah.killcoyne/Data/variation;/Users/sarah.killcoyne/Data/variation/gc
+output.dir: /Users/skillcoyne/Data/variation
 
 # Tool paths - These are optional. If the tool is pathed on the system these should be
 # removed from the configuration file.
@@ -13,6 +13,7 @@ output.dir: /Users/sarah.killcoyne/Data/variation;/Users/sarah.killcoyne/Data/va
 
 # base pair window to generate variation frequencies within. 100 should be the minimum.
 window: 1000
+
 
 
 
