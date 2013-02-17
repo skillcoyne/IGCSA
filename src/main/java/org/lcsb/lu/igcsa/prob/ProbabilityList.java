@@ -46,7 +46,12 @@ public class ProbabilityList extends ArrayList<Probability>
     return added;
     }
 
-  private void sumProbabilities() throws ProbabilityError
+  public boolean isSumOne()
+    {
+    return (sum != 1.0)? (false): (true);
+    }
+
+  private void sumProbabilities() //throws ProbabilitySumException
     {
     sum = 0;
     Iterator<Probability> ip = this.iterator();
@@ -55,7 +60,7 @@ public class ProbabilityList extends ArrayList<Probability>
       Probability p = ip.next();
       sum += p.getProbability();
       }
-    if (sum != 1.0) throw new ProbabilityError("Probabilities must sum to 1 (" + sum + ")");
+    //if (sum != 1.0) throw new ProbabilitySumException("Probabilities must sum to 1 (" + sum + ")");
     }
   }
 

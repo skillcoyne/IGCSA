@@ -10,16 +10,22 @@ import org.lcsb.lu.igcsa.prob.Probability;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class Insertion extends Variation
+public class Insertion extends AbstractVariation
   {
 
-  public Insertion(Location loc, Probability prob, DNASequence seq)
+  public Insertion()
     {
-    super(loc, prob, seq);
     }
 
-  public DNASequence mutateSequence()
+  public Insertion(Probability p)
+    {
+    super(p);
+    }
+
+  public DNASequence mutateSequence(DNASequence sequence)
     {
     return null;
     }
+
+
   }

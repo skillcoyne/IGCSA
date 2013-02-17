@@ -15,40 +15,56 @@ import java.util.Random;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class SNP extends Variation
+public class SNP extends AbstractVariation
   {
   private PoissonDistribution poissonDistribution;
-//  private Nucleotide[] nucleotideProbabilities;
-
+  private DNASequence snpSeq;
   private HashMap<Character, Nucleotide> nucleotideProbabilities = new HashMap<Character, Nucleotide>();
 
-  public SNP(DNASequence seq)
+  public SNP()
     {
-    super(seq);
+    super();
     }
 
-  public SNP(Location l, Probability p, DNASequence seq, Nucleotide[] nucleotides)
+  public SNP(Probability p)
     {
-    super(l, p, seq);
-    poissonDistribution  = new PoissonDistribution( this.probability.getProbability() );
-    for(Nucleotide n: nucleotides) nucleotideProbabilities.put(n.getNucleotide(), n);
+    super(p);
+    this.poissonDistribution  = new PoissonDistribution( this.probability.getProbability() );
     }
 
-  public DNASequence mutateSequence()
+  public SNP(DNASequence s)
     {
+    super();
+    this.snpSeq = s;
+    }
 
-    int s = poissonDistribution.sample();
-    System.out.println(poissonDistribution.getMean());
+  public SNP(DNASequence s, Probability p)
+    {
+    this(p);
+    this.snpSeq = s;
+    }
+
+  public void setProbability(Probability p)
+    {
+    super.setProbability(p);
+    this.poissonDistribution  = new PoissonDistribution( this.probability.getProbability() );
+    }
+
+  public DNASequence mutateSequence(DNASequence sequence)
+    {
+    if (this.probability == null) throw new IllegalStateException("Probability has not been set, cannot mutate sequence.");
+    int s = this.poissonDistribution.sample();
+
+    System.out.println(this.poissonDistribution.getMean());
     System.out.println(s);
 
-    char[] nucleotides = this.sequence.getSequence().toCharArray();
+    char[] nucleotides = sequence.getSequence().toCharArray();
     for(int i=0; i<nucleotides.length; i++)
       {
-      if (poissonDistribution.sample() > 0) nucleotides[i] = alterNucleotide(nucleotides[i]);
+      if (this.poissonDistribution.sample() > 0) nucleotides[i] = alterNucleotide(nucleotides[i]);
       }
 
-
-    System.out.println(this.sequence.getSequence() + " : " + new String(nucleotides) );
+    System.out.println(sequence.getSequence() + " : " + new String(nucleotides) );
 
     return new DNASequence( new String(nucleotides) );
     }

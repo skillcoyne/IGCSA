@@ -10,17 +10,22 @@ import org.lcsb.lu.igcsa.prob.Probability;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class Deletion extends Variation
+public class Deletion extends AbstractVariation
   {
 
-  public Deletion(Location loc, Probability prob, DNASequence seq)
+  public Deletion()
     {
-    super(loc, prob, seq);
     }
 
-  public DNASequence mutateSequence()
+  public Deletion(Probability p)
+    {
+    super(p);
+    }
+
+  public DNASequence mutateSequence(DNASequence sequence)
     {
     return null;
     }
+
 
   }

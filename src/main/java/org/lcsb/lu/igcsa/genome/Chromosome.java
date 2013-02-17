@@ -66,12 +66,6 @@ public class Chromosome
     return fasta;
     }
 
-  public void addVariation(Variation var)
-    {
-    Variations.add(var);
-    if (var.getLocation().getEnd() > Length) { Length += Length - var.getLocation().getEnd(); }
-    }
-
   public String toString()
     {
     return Name;

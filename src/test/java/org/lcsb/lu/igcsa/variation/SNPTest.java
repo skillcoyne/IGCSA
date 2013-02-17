@@ -3,6 +3,7 @@ package org.lcsb.lu.igcsa.variation;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.lcsb.lu.igcsa.variation.SNP;
 import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.utils.GenomeProperties;
@@ -41,6 +42,7 @@ public class SNPTest
 
 
       sequence = new DNASequence("actgcttagcgc");
+      this.snp = new SNP( new Probability(0.7/sequence.getLength()) );
       //snp = new SNP( new Location(1,100), new Probability(0.7/sequence.getLength()), sequence, probabilities.toArray( new Probability[probabilities.size()] ));
       assertNotNull("SNP object wasn't created", snp);
       }
@@ -49,7 +51,7 @@ public class SNPTest
     @Test
     public void testMutate() throws Exception
       {
-      assertNotSame("Original sequence should not match mutated sequence (maybe)", snp.mutateSequence(), sequence);
+      assertNotSame("Original sequence should not match mutated sequence (maybe)", snp.mutateSequence(sequence), sequence);
       }
 
     }

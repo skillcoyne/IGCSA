@@ -10,15 +10,19 @@ import org.lcsb.lu.igcsa.prob.Probability;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class Translocation extends Variation
+public class Translocation extends AbstractVariation
   {
-
-  public Translocation(Location l, Probability p, DNASequence seq)
+  public Translocation()
     {
-    super(l, p, seq);
     }
 
-  public DNASequence mutateSequence()
+  public Translocation(Probability p)
+    {
+    super(p);
+    }
+
+  //TODO  this may not work for translocations...
+  public DNASequence mutateSequence(DNASequence sequence)
     {
     return null;
     }
