@@ -46,7 +46,7 @@ public class ReferenceGenome extends AbstractGenome
         if (sequence.length() < window) break;
         }
       }
-
+    return mutated;
     }
 
 
