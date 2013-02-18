@@ -1,8 +1,6 @@
 package org.lcsb.lu.igcsa.fasta;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 /**
  * org.lcsb.lu.igcsa.fasta
@@ -13,16 +11,35 @@ import java.io.InputStream;
 public class FastaWriter
   {
   private File fasta;
-  private FASTAHeader header;
+  private FileWriter fileWriter;
+  private BufferedWriter bufferedWriter;
 
-  public FastaWriter(File fasta) throws IOException
-    {
-    this.fasta = fasta;
-    }
+  private FASTAHeader header;
 
   public FastaWriter(File fasta, FASTAHeader header) throws IOException
     {
-    this.fasta = fasta;
+    this.fasta = createFile(fasta);
     this.header = header;
+    write(">" + header.getAccession() + "|" + header.getLocus() + "|" + header.getDescription());
     }
+
+  public void write(String str) throws IOException
+    {
+    bufferedWriter.write(str);
+    }
+
+  public void close() throws IOException
+    {
+    bufferedWriter.close();
+    fileWriter.close();
+    }
+
+  private File createFile(File file) throws IOException
+    {
+    if (!file.exists()) file.createNewFile();
+    fileWriter = new FileWriter(file.getAbsoluteFile());
+    bufferedWriter = new BufferedWriter(fileWriter);
+    return file;
+    }
+
   }
