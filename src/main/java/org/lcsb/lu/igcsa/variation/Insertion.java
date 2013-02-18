@@ -3,6 +3,7 @@ package org.lcsb.lu.igcsa.variation;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.prob.Probability;
+import org.lcsb.lu.igcsa.prob.ProbabilityException;
 
 /**
  * org.lcsb.lu.igcsa.variation
@@ -17,7 +18,7 @@ public class Insertion extends AbstractVariation
     {
     }
 
-  public Insertion(Probability p)
+  public Insertion(Probability p) throws ProbabilityException
     {
     super(p);
     }

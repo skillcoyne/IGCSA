@@ -3,6 +3,8 @@ package org.lcsb.lu.igcsa.variation;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.genome.DNASequence;
+import org.lcsb.lu.igcsa.prob.ProbabilityException;
+import org.lcsb.lu.igcsa.prob.ProbabilityList;
 
 /**
  * org.lcsb.lu.igcsa.variation
@@ -12,9 +14,13 @@ import org.lcsb.lu.igcsa.genome.DNASequence;
  */
 public interface Variation
     {
-    public void setProbability(Probability p);
+    public void setProbability(Probability p) throws ProbabilityException;
+
+    public void setProbabilityList(ProbabilityList pl) throws ProbabilityException;
 
     public Probability getProbability();
+
+    public DNASequence mutateSequence(String s);
 
     public DNASequence mutateSequence(DNASequence s);
     }

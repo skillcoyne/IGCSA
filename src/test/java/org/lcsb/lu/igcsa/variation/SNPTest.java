@@ -3,14 +3,13 @@ package org.lcsb.lu.igcsa.variation;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.lcsb.lu.igcsa.prob.ProbabilityList;
 import org.lcsb.lu.igcsa.variation.SNP;
 import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.utils.GenomeProperties;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Properties;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -25,25 +24,34 @@ import static org.junit.Assert.*;
 public class SNPTest
     {
     private SNP snp;
-    private DNASequence sequence;
-
+    private Map<Character, ProbabilityList> probabilityList;
+    private String sequence = "ACTGCTTAGCG";
 
     @Before
     public void setUp() throws Exception
       {
       GenomeProperties props = GenomeProperties.readPropertiesFile("test.properties", GenomeProperties.GenomeType.NORMAL);
-      Properties baseProps = props.getPropertySet("base");
+      GenomeProperties snpPropertySet = props.getVariationProperty("snp");
 
-      Collection<Probability> probabilities = new ArrayList<Probability>();
-      for(String bp: baseProps.stringPropertyNames())
+      double frequency = 1.0; // ensures that something will mutate
+
+      probabilityList = new HashMap<Character, ProbabilityList>();
+      for (char base : "ACTG".toCharArray())
         {
-        probabilities.add( new Probability(bp, Double.valueOf(baseProps.getProperty(bp)) ) );
+        String baseFrom = Character.toString(base);
+        GenomeProperties baseProps = snpPropertySet.getPropertySet("base").getPropertySet(baseFrom);
+
+        ProbabilityList pList = new ProbabilityList();
+        for (String baseTo : baseProps.stringPropertyNames())
+          {
+          pList.add(new Probability(baseTo, Double.valueOf(baseProps.getProperty(baseTo)), frequency));
+          }
+        assertTrue(pList.isSumOne());
+        probabilityList.put(base, pList);
         }
+      assertEquals(probabilityList.size(), 4);
 
-
-      sequence = new DNASequence("actgcttagcgc");
-      this.snp = new SNP( new Probability(0.7/sequence.getLength()) );
-      //snp = new SNP( new Location(1,100), new Probability(0.7/sequence.getLength()), sequence, probabilities.toArray( new Probability[probabilities.size()] ));
+      this.snp = new SNP();
       assertNotNull("SNP object wasn't created", snp);
       }
 
@@ -51,7 +59,15 @@ public class SNPTest
     @Test
     public void testMutate() throws Exception
       {
-      assertNotSame("Original sequence should not match mutated sequence (maybe)", snp.mutateSequence(sequence), sequence);
+      String mutatedSeq = "";
+      for (char nucleotide: sequence.toCharArray())
+        {
+        String currentNucleotide = Character.toString(nucleotide);
+        snp.setProbabilityList(probabilityList.get(nucleotide));
+        mutatedSeq = mutatedSeq + snp.mutateSequence(currentNucleotide).getSequence();
+        }
+      assertEquals(mutatedSeq.length(), sequence.length());
+      assertFalse("Mutated sequence should have at least 1bp change: " + sequence + "-->" + mutatedSeq, mutatedSeq.equals(sequence));
       }
 
     }

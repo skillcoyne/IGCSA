@@ -29,6 +29,27 @@ public class ReferenceGenome extends AbstractGenome
     {
     super(build);
     }
+
+  @Override
+  public Genome mutate(int window)
+    {
+    /* loop through the sequence of each chromosome, broken into window sizes and apply the variation objects. */
+    Genome mutated = new ReferenceGenome();
+    for (Chromosome chr: this.getChromosomes())
+      {
+      String sequence;
+      while(true)
+        {
+        sequence = chr.getDNASequence(window);
+        // mutate...how do I decide?
+
+        if (sequence.length() < window) break;
+        }
+      }
+
+    }
+
+
   }
 
 

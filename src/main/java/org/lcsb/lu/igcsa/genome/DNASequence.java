@@ -47,4 +47,9 @@ public class DNASequence
     return Sequence;
     }
 
+  @Override
+  public String toString()
+    {
+    return this.getSequence();
+    }
   }

@@ -13,6 +13,7 @@ import java.util.Iterator;
 public class ProbabilityList extends ArrayList<Probability>
   {
   private double sum;
+  private double frequency = 0;
 
   public ProbabilityList()
     {
@@ -29,6 +30,10 @@ public class ProbabilityList extends ArrayList<Probability>
     {
     boolean added = super.add(probability);
     sumProbabilities();
+    try
+      { testFrequency(); }
+    catch (ProbabilityException pe)
+      { pe.printStackTrace(); }
     return added;
     }
 
@@ -36,6 +41,10 @@ public class ProbabilityList extends ArrayList<Probability>
     {
     boolean added = super.addAll(i, probabilities);
     sumProbabilities();
+    try
+      { testFrequency(); }
+    catch (ProbabilityException pe)
+      { pe.printStackTrace(); }
     return added;
     }
 
@@ -43,25 +52,47 @@ public class ProbabilityList extends ArrayList<Probability>
     {
     boolean added = super.addAll(probabilities);
     sumProbabilities();
+    try
+      { testFrequency(); }
+    catch (ProbabilityException pe)
+      { pe.printStackTrace(); }
     return added;
     }
 
-  public boolean isSumOne()
+  public double getFrequency() throws ProbabilityException
     {
-    return (sum != 1.0)? (false): (true);
+    return this.frequency;
     }
 
-  private void sumProbabilities() //throws ProbabilitySumException
+  @Override
+  public Probability[] toArray() {
+  return super.toArray(new Probability[this.size()]);    //To change body of overridden methods use File | Settings | File Templates.
+  }
+
+  public boolean isSumOne()
     {
-    sum = 0;
-    Iterator<Probability> ip = this.iterator();
-    while (ip.hasNext())
-      {
-      Probability p = ip.next();
-      sum += p.getProbability();
-      }
-    //if (sum != 1.0) throw new ProbabilitySumException("Probabilities must sum to 1 (" + sum + ")");
+    return (sum != 1.0) ? (false) : (true);
     }
+
+  private void testFrequency() throws ProbabilityException
+    {
+    for (Probability p : this.toArray())
+      {
+      if (this.frequency == 0) this.frequency = p.getFrequency();
+      if (this.frequency != p.getFrequency()) throw new ProbabilityException("Frequency of Probabilites must all be the same.");
+      }
+    }
+
+  private void sumProbabilities() //throws ProbabilityException
+  {
+  sum = 0;
+  Iterator<Probability> ip = this.iterator();
+  while (ip.hasNext())
+    {
+    Probability p = ip.next();
+    sum += p.getProbability();
+    }
+  }
   }
 
 

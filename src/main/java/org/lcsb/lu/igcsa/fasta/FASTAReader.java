@@ -1,9 +1,11 @@
 package org.lcsb.lu.igcsa.fasta;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.lcsb.lu.igcsa.genome.Location;
 
 import java.io.*;
 import java.util.*;
+import java.util.zip.GZIPInputStream;
 
 import static org.lcsb.lu.igcsa.fasta.NucleotideCodes.*;
 import static org.lcsb.lu.igcsa.fasta.NucleotideCodes.getNucleotideCodesMap;
@@ -47,24 +49,36 @@ public class FASTAReader
   public FASTAReader(File file) throws FileNotFoundException, IOException, Exception
     {
     fasta = file;
-    stream = new FileInputStream(fasta);
-    readHeader();
-    markRegions();
-    stream.close();
+    if (!fasta.exists()) throw new FileNotFoundException("No such file: " + file.getAbsolutePath());
+    if (!fasta.canRead()) throw new IOException("Cannot read file " + file.getAbsolutePath());
     }
 
-  private void readHeader()
+  public void open() throws IOException
     {
-    try
-      { // there may not always be a header, though with chromosome files there really should be
+    this.fileloc = 0L;
+    this.stream = new FileInputStream(this.fasta);
+    if (this.fasta.getName().endsWith("gz"))
+      {
+      stream = new GZIPInputStream(stream);
+      }
+    }
+
+  public FASTAHeader getHeader() throws IOException
+    {
+    if (header == null)
+      {
+      // there may not always be a header, though with chromosome files there really should be
       header = new FASTAHeader(this.readline());
       this.headerloc = this.fileloc;
       }
-    catch (IOException ioe)
-      {
-      ioe.printStackTrace();
-      }
+    return header;
     }
+
+  public void close() throws IOException
+    {
+    stream.close();
+    }
+
 
   /**
    * This method is primarily used to pull sections of sequence, for instance from specific bands
@@ -75,26 +89,61 @@ public class FASTAReader
    * @return
    * @throws IOException
    */
-  public String readSequence(long start, long end) throws IOException
-    {
-    if (end < start) throw new IOException("End location comes before start location.");
-    long length = end - start;
-    byte[] buf = new byte[(int) length];
-    RandomAccessFile ra = new RandomAccessFile(fasta, "r");
-    ra.seek(start);
-    ra.read(buf);
-    ra.close();
-    return new String(buf);
-    }
+  //  public String readSequence(long start, long end) throws IOException
+  //    {
+  //    if (end < start) throw new IOException("End location comes before start location.");
+  //    long length = end - start;
+  //    byte[] buf = new byte[(int) length];
+  //    RandomAccessFile ra = new RandomAccessFile(fasta, "r");
+  //    ra.seek(start);
+  //    int bytesRead = ra.read(buf);
+  //    //System.out.println("" + bytesRead);
+  //    //buf = ArrayUtils.subarray(buf, 0, bytesRead);
+  //    this.fileloc = ra.getChannel().position();
+  //    ra.close();
+  //    return new String(ArrayUtils.subarray(buf, 0, bytesRead));
+  //    }
+  //
+  //  public String readSequence(long start, long end, boolean headerOffset) throws IOException
+  //    {
+  //    if (headerOffset)
+  //      {
+  //      start += headerloc;
+  //      end += headerloc;
+  //      }
+  //    return readSequence(start, end);
+  //    }
 
-  public String readSequence(long start, long end, boolean headerOffset) throws IOException
+
+  /**
+   * Read and return chunks from the file. Each call will advance the read.
+   *
+   * @param window
+   * @return
+   * @throws IOException
+   */
+  public String readSequence(int window) throws IOException
     {
-    if (headerOffset)
+    if (stream == null) open();
+    StringBuffer buf = new StringBuffer(window);
+    char c;
+    while ((c = this.read()) != EOF)
       {
-      start += headerloc;
-      end += headerloc;
+      // header has already been read
+      if (c == HEADER_IDENTIFIER)
+        {
+        if (this.header == null) getHeader();
+        else this.skipline();
+        continue;
+        }
+      // don't want the line separators
+      if (c == CARRIAGE_RETURN || c == LINE_FEED) continue;
+      // shouldn't be an issue but it would mean we're done reading
+      if (c == RECORD_SEPARATOR) break;
+      buf.append(Character.toString(c));
+      if (buf.length() == window) break;
       }
-    return readSequence(start, end);
+    return buf.toString();
     }
 
 
@@ -104,8 +153,9 @@ public class FASTAReader
    * @return
    * @throws IOException
    */
-  private void markRegions() throws IOException, Exception
+  public void markRegions() throws IOException, Exception
     {
+    open();
     int repeatStart = 0;
     int gapStart = 0;
     char lastChar = '&'; // unlikely to be found in a fasta file that I am aware of
@@ -113,7 +163,11 @@ public class FASTAReader
     while ((c = this.read()) != EOF)
       {
       // header has already been read
-      if (c == HEADER_IDENTIFIER) this.skipline();
+      if (c == HEADER_IDENTIFIER)
+        {
+        if (this.header == null) getHeader();
+        else this.skipline();
+        }
 
       if (c == N.getNucleotide() && c != lastChar)
         {
@@ -121,7 +175,7 @@ public class FASTAReader
         }
       else if (lastChar == N.getNucleotide() && c != lastChar)
         {
-        this.repeatRegions.add(new Location(repeatStart, (int)this.fileloc));
+        this.repeatRegions.add(new Location(repeatStart, (int) this.fileloc));
         repeatStart = 0;
         }
       else if (c == GAP.getNucleotide() && c != lastChar)
@@ -130,11 +184,28 @@ public class FASTAReader
         }
       else if (lastChar == GAP.getNucleotide() && c != lastChar)
         {
-        this.gapRegions.add(new Location(gapStart, (int)this.fileloc));
+        this.gapRegions.add(new Location(gapStart, (int) this.fileloc));
         gapStart = 0;
         }
       lastChar = c;
       }
+    stream.close();
+    open();
+    }
+
+  public long getLastLocation()
+    {
+    return this.fileloc;
+    }
+
+  public Location[] getRepeatRegions()
+    {
+    return repeatRegions.toArray(new Location[repeatRegions.size()]);
+    }
+
+  public Location[] getGapRegions()
+    {
+    return gapRegions.toArray(new Location[gapRegions.size()]);
     }
 
 
@@ -158,7 +229,6 @@ public class FASTAReader
     // Read until a terminator or EOF are reached
     while (true)
       {
-      ++this.fileloc;
       char last = this.read();
       if (last == CARRIAGE_RETURN || last == LINE_FEED || last == RECORD_SEPARATOR || last == EOF) break;
       }
@@ -186,28 +256,4 @@ public class FASTAReader
     return (c < 0x40 || c > 0x7E);
     }
 
-  public int sequenceLength()
-    {
-    return (int)this.fileloc - (int)this.headerloc;
-    }
-
-  public long getLastLocation()
-    {
-    return this.fileloc;
-    }
-
-  public FASTAHeader getHeader()
-    {
-    return this.header;
-    }
-
-  public Location[] getRepeatRegions()
-    {
-    return repeatRegions.toArray( new Location[repeatRegions.size()] );
-    }
-
-  public Location[] getGapRegions()
-    {
-    return gapRegions.toArray( new Location[gapRegions.size()] );
-    }
   }

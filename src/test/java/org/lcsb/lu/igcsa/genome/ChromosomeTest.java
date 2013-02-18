@@ -4,6 +4,13 @@ import junit.framework.TestCase;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.lcsb.lu.igcsa.fasta.FASTAReader;
+
+import java.io.File;
+import java.net.URL;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * org.lcsb.lu.igcsa.genome
@@ -13,28 +20,34 @@ import org.junit.Test;
  */
 public class ChromosomeTest extends TestCase
   {
-  private Chromosome chr;
-  private String sequence = "actgccatg";
-  private String name = "1";
+  private Chromosome chromosome;
 
   @Before
   public void setUp() throws Exception
     {
-    chr = new Chromosome(name, sequence);
+    URL testUrl = ClassLoader.getSystemResource("fasta/test.fa");
+    File file = new File(testUrl.toURI());
+
+    chromosome = new Chromosome("test", file);
     }
 
-  @After
-  public void tearDown() throws Exception
-    {}
+  public void testSequenceByWindow() throws Exception
+    {
+    int window = 100;
+    String seq = chromosome.getDNASequence(window);
+    assertNotNull(seq);
+    assertEquals(seq.length(), window);
+    assertNotSame(chromosome.getDNASequence(window), seq);
+    }
 
   @Test
-  public void testGetSequence() throws Exception
+  public void testSimpleCreate() throws Exception
     {
-    assertEquals(chr.getDNASequence(), sequence);
+    String name = "1";
+    String sequence = "actgccatg";
+    Chromosome chr = new Chromosome(name, sequence);
+    assertEquals(name, chr.getName());
+    assertEquals(chr.getDNASequence().toString(), sequence.toUpperCase());
     }
 
-  public void testGetName() throws Exception
-    {
-    assertEquals(name, chr.getName());
-    }
   }

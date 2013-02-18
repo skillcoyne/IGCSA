@@ -13,9 +13,13 @@ public class Probability
   private double probability;
   private double frequency; // not sure about this one
 
-  public Probability(String n, double prob)
+  public Probability(String n, double prob, double freq) throws ProbabilityException
     {
-    this.name = n; this.probability = prob;
+    this.name = n;
+    this.probability = prob;
+    this.frequency = freq;
+    if (frequency <= 0)
+      throw new ProbabilityException("Frequency must be greater than 0.");
     }
 
   public Probability(double prob)
@@ -31,6 +35,11 @@ public class Probability
   public double getProbability()
     {
     return this.probability;
+    }
+
+  public double getFrequency()
+    {
+    return this.frequency;
     }
 
   }

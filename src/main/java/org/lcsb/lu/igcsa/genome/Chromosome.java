@@ -5,6 +5,7 @@ import org.lcsb.lu.igcsa.variation.Variation;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -20,6 +21,7 @@ public class Chromosome
   private int Length;
   private String Name;
   private File fasta;
+  private FASTAReader reader;
 
   private Collection<Variation> Variations = new ArrayList<Variation>();
 
@@ -36,8 +38,7 @@ public class Chromosome
     this.fasta = chrFastaFile;
     try
       {
-      FASTAReader reader = new FASTAReader(this.fasta);
-      this.Length = reader.sequenceLength();
+      this.reader = new FASTAReader(this.fasta);
       }
     catch (Exception e)
       {
@@ -51,9 +52,34 @@ public class Chromosome
     this.DNASequence = new DNASequence(sequence);
     }
 
-  public String getDNASequence()
+
+  public DNASequence getDNASequence()
     {
-    return DNASequence.getSequence();
+    return DNASequence;
+    }
+
+  /**
+   * Get sequence in chunks.  Each call will read from the end point of the last call to the method.
+   * @param window
+   * @return
+   */
+  public String getDNASequence(int window)
+    {
+    String sequenceChunk = "";
+    if (DNASequence != null)
+      {
+      // loop through and return it in chunks
+      }
+    else
+      {
+      //if I"m getting the sequence from the FASTAreader I'm not so sure I want to keep it all in memory...
+      try
+        { sequenceChunk = reader.readSequence(window); }
+      catch (IOException ioe)
+        { ioe.printStackTrace(); }
+      return sequenceChunk;
+      }
+    return sequenceChunk;
     }
 
   public String getName()

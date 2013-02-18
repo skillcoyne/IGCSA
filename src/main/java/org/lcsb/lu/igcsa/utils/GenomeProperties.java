@@ -41,6 +41,7 @@ public class GenomeProperties extends Properties
     {
     GenomeProperties props = readPropertiesFile(fileName);
     props.loadVariationProperties(type);
+    props.checkDefaultValues();
     return props;
     }
 
@@ -50,8 +51,7 @@ public class GenomeProperties extends Properties
     ClassLoader cl = ClassLoader.getSystemClassLoader(); // not sure this is the best way to do it, but it works
 
     try { props.load(cl.getResourceAsStream(fileName)); }
-    catch (NullPointerException npe)
-      { throw new FileNotFoundException(fileName + " not found"); }
+    catch (NullPointerException npe) { throw new FileNotFoundException(fileName + " not found"); }
     return props;
     }
 
@@ -110,15 +110,40 @@ public class GenomeProperties extends Properties
         String fileName = type.getName() + File.separator + var + ".properties";
         try
           {
-          GenomeProperties varProp = GenomeProperties.readPropertiesFile(fileName);
+          GenomeProperties varProp = readPropertiesFile(fileName);
+          varProp.checkVariationDefaults();
           this.variationProps.put(var, varProp);
           }
-        catch (FileNotFoundException fne)
+//        catch (FileNotFoundException fne)
+//          { // There may not be a properties file defined for one of the variations.
+//          System.out.println(fne.getMessage());
+//          }
+        catch (IOException ioe)
           {
-          System.out.println(fne.getMessage());
+          throw new IOException(type.getName() + "/" + var + ".properties file. " + ioe.getMessage());
           }
         }
       }
+    }
+
+  protected void checkVariationDefaults() throws IOException
+    {
+    if (!this.containsKey("freq")) throw new IOException("Missing required property: freq");
+    }
+
+  // I'd presume Spring is the best way to do this stuff but this is fine for now
+  protected void checkDefaultValues() throws IOException
+    {
+    if (!this.containsKey("dir.assembly") || !this.containsKey("dir.insilico")) throw new IOException("Missing required properties: dir.assmebly or dir.insilico");
+    if (!this.containsKey("variation.normal") || !this.containsKey("variation.cancer")) throw new IOException("Missing required properties: variation.normal or variation.cancer");
+
+    if (!this.containsKey("generations")) this.setProperty("generations", "5");
+    if (!this.containsKey("assembly"))  this.setProperty("assembly", "unknown");
+    if (!this.containsKey("window")) this.setProperty("window", "100");
+    if (!this.containsKey("kmer")) this.setProperty("kmer", "2");
+    if (!this.containsKey("noise")) this.setProperty("noise", "100");
+    if (!this.containsKey("zygosity")) this.setProperty("zygosity", "0.7");
+    if (!this.containsKey("deviation")) this.setProperty("deviation", "0.8");
     }
 
   }

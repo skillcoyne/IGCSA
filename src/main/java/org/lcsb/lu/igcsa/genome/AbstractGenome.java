@@ -62,7 +62,7 @@ public abstract class AbstractGenome implements Genome
       this.variationProbabilities.put(v, pl);
       }
 
-
+    public abstract Genome mutate(int window);
     /* TODO Not really sure how this should work in the actual code yet. */
     // one thing, each chromosome can be mutated concurrently in the reference genome as theere will
     // not be any translocations.  I don't actually think I know how to do that...
