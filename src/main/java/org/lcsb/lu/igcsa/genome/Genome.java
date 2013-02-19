@@ -4,6 +4,7 @@ import org.lcsb.lu.igcsa.prob.ProbabilityList;
 import org.lcsb.lu.igcsa.variation.Variation;
 
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * org.lcsb.lu.igcsa.genome
@@ -22,9 +23,38 @@ public interface Genome
 
   public boolean hasChromosome(String name);
 
+  /**
+   * Exactly what it sounds like.
+   * @return
+   */
   public Chromosome[] getChromosomes();
 
+  /**
+   * Add variation with corresponding probabilities.
+   * @param variation
+   * @param probabilityList
+   */
   public void addVariationType(Variation variation, ProbabilityList probabilityList);
 
-  public abstract Genome mutate(int window);
+  /**
+   * @return Map with key-value pairs sorted by the frequency of the ProbabilityLists
+   */
+  public Map<Variation, ProbabilityList> getVariations();
+
+  /**
+   * Not recommended for general use unless you have very small chromosomes as this holds the entire
+   * genome in memory. Better use is to call #mutate(Chromosome chr, int window) and output the new
+   * chromosome.
+   * @param window
+   */
+  public abstract void mutate(int window);
+
+  /**
+   *
+   * @param chromosome
+   * @param window
+   * @return Chromosome object with entire new sequence.  Might be more efficient to just keep the mutated
+   * sequences with locations but...
+   */
+  public abstract Chromosome mutate(Chromosome chromosome, int window);
   }

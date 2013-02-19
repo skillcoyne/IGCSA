@@ -12,8 +12,9 @@ chromosome.data: /path/to/data/file
 variation.dir: /path/to/var/files
 fasta.dir: /path/to/fasta/files
 
-# Output directory for frequency distribution files
-output.dir: /path/to/output/dir
+# Output directories for frequency/gc distribution files
+freq.output.dir: /path/to/output/freq/files
+gc.output.dir: /path/to/output/gc/files
 
 # Tool paths - These are optional. If the tool is pathed on the system these should be
 # removed from the configuration file.

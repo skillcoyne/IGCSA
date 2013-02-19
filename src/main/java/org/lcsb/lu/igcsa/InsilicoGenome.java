@@ -1,6 +1,7 @@
 package org.lcsb.lu.igcsa;
 
 
+import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.genome.Genome;
 import org.lcsb.lu.igcsa.prob.Probability;
@@ -13,9 +14,14 @@ import org.lcsb.lu.igcsa.variation.SNP;
 import org.lcsb.lu.igcsa.variation.VariantType;
 import org.lcsb.lu.igcsa.variation.Variation;
 
+import static org.lcsb.lu.igcsa.utils.GenomeUtils.*;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
 
 
 /**
@@ -49,15 +55,32 @@ public class InsilicoGenome
     initProperties();
     setupReferenceGenome();
 
-    int generations = Integer.valueOf(normalProperties.getProperty("generations"));
 
+    createGenomeGenerations(GenomeProperties.GenomeType.NORMAL);
     }
 
-  public void createGenomeGenerations(GenomeProperties.GenomeType type)
+  public void createGenomeGenerations(GenomeProperties.GenomeType type) throws IOException
     {
-    Genome genome = referenceGenome;
-    if (type.equals(GenomeProperties.GenomeType.CANCER)) genome = cancerGenome;
+    File[] directories = setupDirectories(type);
 
+    // TODO spring injection for the properties files?  might be simpler than what I'm doing...
+    int generations = Integer.valueOf(normalProperties.getProperty("generations"));
+    int individuals = Integer.valueOf(normalProperties.getProperty("individuals"));
+    int window = Integer.valueOf(normalProperties.getProperty("window"));
+
+
+
+
+    Map<Variation, ProbabilityList> rgVariations = referenceGenome.getVariations();
+    for (int i = 0; i <= generations; i++)
+      {
+      //TODO this could be done in threads
+      for (Chromosome chr : referenceGenome.getChromosomes())
+        {
+        //referenceGenome.mutate(chr, window);
+
+        }
+      }
 
 
     }
@@ -79,7 +102,7 @@ public class InsilicoGenome
       // TODO I know there's a more general method for this but at the moment I don't know what that is
       if (variation.equals(VariantType.SNP.getShortName()))
         {
-        setupSNPs(normalProperties.getVariationProperty("snp"), this.referenceGenome);
+        referenceGenome = setupSNPs(normalProperties.getVariationProperty("snp"), this.referenceGenome);
         }
       else
         {
@@ -89,7 +112,7 @@ public class InsilicoGenome
         else
           {
           Class<Variation> var = vt.getVariation();
-          setupSizeVariation(normalProperties.getVariationProperty(variation), this.referenceGenome, var.newInstance());
+          referenceGenome = setupSizeVariation(normalProperties.getVariationProperty(variation), this.referenceGenome, var.newInstance());
           }
         }
       }
@@ -101,45 +124,25 @@ public class InsilicoGenome
     cancerProperties = GenomeProperties.readPropertiesFile(propertyFile, GenomeProperties.GenomeType.CANCER);
     }
 
-  /*
-  Deletions/insertions/inversions all have a size related probability.
-   */
-  private void setupSizeVariation(GenomeProperties varPropertySet, Genome genome, Variation variation) throws ProbabilityException
+  private File[] setupDirectories(GenomeProperties.GenomeType type) throws IOException
     {
-    ProbabilityList pList = new ProbabilityList();
+    int generations = Integer.valueOf(normalProperties.getProperty("generations"));
+    int individuals = Integer.valueOf(normalProperties.getProperty("individuals"));
+    ArrayList<File> directories = new ArrayList<File>();
 
-    GenomeProperties sizeProps = varPropertySet.getPropertySet("size");
-    for (String size : sizeProps.stringPropertyNames())
+    // Directories for the generations
+    String[] genomeDirs = new String[generations];
+    String[] orderedSubDirs = {type.getName(), "generations"};
+    for (int i=0; i<generations; i++) genomeDirs[i] =  FileUtils.directory(orderedSubDirs, i+1);
+    Collection<File> generationDirs = FileUtils.createDirectories(new File(normalProperties.getProperty("dir.insilico")), genomeDirs);
+    // Directories for individuals
+    for (File generation: generationDirs)
       {
-      pList.add(new Probability(size, Double.valueOf(sizeProps.getProperty(size)), Double.valueOf(varPropertySet.getProperty("freq"))  ));
+      genomeDirs = new String[individuals];
+      for (int i=0; i<individuals; i++) genomeDirs[i] =  FileUtils.directory("individual", i+1);
+      directories.addAll(FileUtils.createDirectories(generation, genomeDirs));
       }
-    if (!pList.isSumOne()) throw new ProbabilityException(variation.getClass().toString() + " size probabilities do not sum to 1");
-
-    genome.addVariationType(variation, pList);
-    }
-
-  /*
-  For SNPs there is a probability for each nucleotide being any one of the others
-  ProbabilityList per base, e.g. A has a list that encompasses A->G, A->C, A->T, A->A
-   */
-  private void setupSNPs(GenomeProperties snpPropertySet, Genome genome) throws ProbabilityException
-    {
-    double frequency = Double.valueOf(snpPropertySet.getProperty("freq"));
-
-    for (char base : "ACTG".toCharArray())
-      {
-      String baseFrom = Character.toString(base);
-      GenomeProperties baseProps = snpPropertySet.getPropertySet("base").getPropertySet(baseFrom);
-
-      ProbabilityList pList = new ProbabilityList();
-      for (String baseTo : baseProps.stringPropertyNames())
-        {
-        pList.add(new Probability(baseTo, Double.valueOf(baseProps.getProperty(baseTo)), frequency));
-        }
-      if (!pList.isSumOne()) throw new ProbabilityException("SNP probabilities for " + baseFrom + " do not sum to 1");
-
-      genome.addVariationType(new SNP(new DNASequence(baseFrom)), pList);
-      }
+    return directories.toArray(new File[directories.size()]);
     }
 
 

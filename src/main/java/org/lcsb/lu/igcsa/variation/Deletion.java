@@ -26,7 +26,7 @@ public class Deletion extends AbstractVariation
 
   public DNASequence mutateSequence(DNASequence sequence)
     {
-    return null;
+    return sequence;
     }
 
 

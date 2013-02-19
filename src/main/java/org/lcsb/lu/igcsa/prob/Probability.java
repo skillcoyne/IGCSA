@@ -1,5 +1,7 @@
 package org.lcsb.lu.igcsa.prob;
 
+import java.util.Comparator;
+
 /**
  * org.lcsb.lu.igcsa.prob
  * Author: skillcoyne
@@ -11,8 +13,25 @@ public class Probability
   {
   private String name; // mostly useful for SNPs
   private double probability;
-  private double frequency; // not sure about this one
+  private double frequency;
 
+  // These are used by size based variations (not SNPs)
+  private int minimum = 1;
+  private int maximum = 1;
+
+
+  public Probability(double prob, double freq) throws ProbabilityException
+    {
+    this(null, prob, freq);
+    }
+
+  /**
+   *
+   * @param Name (String)
+   * @param Probability (Double)
+   * @param Frequency (Double)
+   * @throws ProbabilityException
+   */
   public Probability(String n, double prob, double freq) throws ProbabilityException
     {
     this.name = n;

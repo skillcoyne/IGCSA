@@ -46,7 +46,13 @@ public class Chromosome
       }
     }
 
-  public Chromosome(String name, String sequence) throws Exception
+
+  public Chromosome(String name, DNASequence sequence)
+    {
+    this.DNASequence = sequence;
+    }
+
+  public Chromosome(String name, String sequence)
     {
     this(name, sequence.length());
     this.DNASequence = new DNASequence(sequence);

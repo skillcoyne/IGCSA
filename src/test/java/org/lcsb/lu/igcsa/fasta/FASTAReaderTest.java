@@ -98,7 +98,6 @@ public class FASTAReaderTest
     while(true)
       {
       seq = reader.readSequence(window);
-
       buf.append(seq);
       if (seq.length() < window) break;
       }

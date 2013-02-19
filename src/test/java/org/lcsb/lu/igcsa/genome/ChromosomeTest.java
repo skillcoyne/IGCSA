@@ -31,6 +31,7 @@ public class ChromosomeTest extends TestCase
     chromosome = new Chromosome("test", file);
     }
 
+  @Test
   public void testSequenceByWindow() throws Exception
     {
     int window = 100;
@@ -38,6 +39,21 @@ public class ChromosomeTest extends TestCase
     assertNotNull(seq);
     assertEquals(seq.length(), window);
     assertNotSame(chromosome.getDNASequence(window), seq);
+    }
+
+  @Test
+  public void testGetAllSequenceByWindow() throws Exception
+    {
+    int window = 50;
+    String currentSeq;
+    String all = "";
+    while(true)
+      {
+      currentSeq = chromosome.getDNASequence(window);
+      all = all + currentSeq;
+      if (currentSeq.length() < window) break;
+      }
+    assertEquals(all.length(), 644);
     }
 
   @Test

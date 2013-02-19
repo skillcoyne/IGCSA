@@ -28,6 +28,7 @@ class Utils
       FileUtils.rm_f(dir) if (regen and File.exists?dir)
       FileUtils.mkpath(dir)
     end
+    return dirs
   end
 
 

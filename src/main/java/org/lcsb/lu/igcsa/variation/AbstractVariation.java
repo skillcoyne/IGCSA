@@ -1,10 +1,13 @@
 package org.lcsb.lu.igcsa.variation;
 
+import org.lcsb.lu.igcsa.fasta.NucleotideCodes;
 import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.lcsb.lu.igcsa.prob.ProbabilityList;
+
+import static org.lcsb.lu.igcsa.fasta.NucleotideCodes.*;
 
 /**
  * org.lcsb.lu.igcsa.variation
@@ -16,6 +19,10 @@ public abstract class AbstractVariation implements Variation
   {
   protected Probability probability;
   protected ProbabilityList probabilityList;
+
+  protected static final char GAP = NucleotideCodes.GAP.getNucleotide();
+  protected static final char UNKNOWN = NucleotideCodes.N.getNucleotide();
+
 
   protected AbstractVariation()
     {
@@ -48,6 +55,16 @@ public abstract class AbstractVariation implements Variation
     DNASequence ds = new DNASequence(s);
     return this.mutateSequence(ds);
     }
+
+  /**
+   * Masks unknown sequences or gaps from the mutation
+   * @param sequence
+   * @return
+   */
+//  protected boolean isSequenceValid(DNASequence sequence)
+//    { // TODO
+//    return true;
+//    }
 
   public abstract DNASequence mutateSequence(DNASequence sequence);
   }

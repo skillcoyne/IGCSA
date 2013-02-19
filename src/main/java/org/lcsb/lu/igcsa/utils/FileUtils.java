@@ -5,7 +5,9 @@ import org.lcsb.lu.igcsa.genome.Chromosome;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -16,6 +18,46 @@ import java.util.Set;
  */
 public class FileUtils
   {
+  public static String directory(String s, int number)
+    {
+    String[] dir = {s};
+    return directory(dir, number);
+    }
+
+  public static String directory(String[] orderedSubDir, int number)
+    {
+    String dirName = "";
+    for (String s: orderedSubDir)
+      {
+      if (dirName.equals("")) dirName = s;
+      else dirName = dirName + File.separator + s;
+      }
+    dirName = dirName + "-" + number;
+    return dirName;
+    }
+
+
+  public static Collection<File> createDirectories(File parent, String[] children) throws IOException
+    {
+    ArrayList<File> dirs = new ArrayList<File>();
+    parent.mkdirs();
+    boolean created = true;
+    if (parent.isDirectory())
+      {
+      for (String child: children)
+        {
+        File childDir = new File(parent, child);
+        if (childDir.mkdirs()) dirs.add(childDir);
+        }
+      }
+    else
+      {
+      throw new IOException("Parent file is not a directory: " + parent.getAbsolutePath());
+      }
+    if (dirs.size()!=children.length) throw new IOException("Failed to create all child directories");
+
+    return dirs;
+    }
 
   public static String getChromosomeFromFASTA(File file)
     {

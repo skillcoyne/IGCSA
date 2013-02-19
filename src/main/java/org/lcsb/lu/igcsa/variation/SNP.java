@@ -1,10 +1,12 @@
 package org.lcsb.lu.igcsa.variation;
 
 import org.apache.commons.math3.distribution.PoissonDistribution;
+import org.lcsb.lu.igcsa.fasta.NucleotideCodes;
 import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.lcsb.lu.igcsa.prob.ProbabilityList;
+import sun.plugin2.message.GetAppletMessage;
 
 /**
  * org.lcsb.lu.igcsa.variation
@@ -17,6 +19,7 @@ public class SNP extends AbstractVariation
   private ProbabilityList probabilityList;
   private PoissonDistribution poissonDistribution;
   private DNASequence snpSeq;
+
 
   public SNP()
     {
@@ -62,6 +65,8 @@ public class SNP extends AbstractVariation
     char[] nucleotides = sequence.getSequence().toCharArray();
     for (int i = 0; i < nucleotides.length; i++)
       {
+      if (nucleotides[i] == GAP || nucleotides[i] == UNKNOWN) continue;
+
       if (this.poissonDistribution.sample() > 0) nucleotides[i] = alterNucleotide(nucleotides[i]);
       }
 

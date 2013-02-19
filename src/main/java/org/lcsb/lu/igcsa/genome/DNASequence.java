@@ -13,8 +13,11 @@ import java.util.regex.Pattern;
  */
 public class DNASequence
   {
-  private String Sequence;
-  private final Pattern nucleotides = Pattern.compile("([ACTGNactgn]+)");
+  private String sequence = "";
+  private final Pattern nucleotides = Pattern.compile("([ACTGNactgn-]+)");
+  private final Pattern unknown = Pattern.compile("[Nn]+");
+  private final Pattern gap = Pattern.compile("[-]+");
+
 
   private void testNucleotides(String sequence) throws IllegalArgumentException
     {
@@ -23,29 +26,49 @@ public class DNASequence
       throw new IllegalArgumentException("The sequence contains incorrect nucleotides, expected " + nucleotides + " provided: " + sequence);
     }
 
+  public DNASequence()
+    {}
+
   public DNASequence(String seq) throws IllegalArgumentException
     {
     seq = seq.toUpperCase();
     testNucleotides(seq);
-    this.Sequence = seq;
+    this.sequence = seq;
     }
 
   public void addNucleotides(String nuc) throws IllegalArgumentException
     {
     nuc = nuc.toUpperCase();
     testNucleotides(nuc);
-    this.Sequence = Sequence + nuc;
+    this.sequence = sequence + nuc;
+    }
+
+  public void merge(DNASequence seq)
+    {
+    this.sequence = this.sequence + seq;
     }
 
   public int getLength()
     {
-    return Sequence.length();
+    return sequence.length();
     }
 
   public String getSequence()
     {
-    return Sequence;
+    return sequence;
     }
+
+//  public boolean hasUnknownNucleotides()
+//    {
+//    Matcher match = unknown.matcher(sequence);
+//    return match.matches();
+//    }
+//
+//  public boolean hasGaps()
+//    {
+//    Matcher match = gap.matcher(sequence);
+//    return match.matches();
+//    }
 
   @Override
   public String toString()
