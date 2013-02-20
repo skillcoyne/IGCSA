@@ -1,6 +1,5 @@
 # http://cran.r-project.org/doc/contrib/Ricci-distributions-en.pdf
 # clear workspace
-rm(list = ls())
 
 
 # --------------Functions---------------------- #
@@ -36,23 +35,19 @@ histp<-function(expected)
   }
 # --------------/Functions---------------------- #
 
-#par(mfrow=c(5,5))
-setwd("~/Data/variation/frequencies")
+rm(list = ls())
+setwd("~/Data/VariationNormal/Frequencies/100")
 files = list.files(pattern=".txt")  
-#files = c('chr3-counts.txt')
+
 for (f in files)
   {
   d = read.table(f, header=T, sep="\t") 
   # just interesting to note that many variations (not all) would appear to occur middle->end of the chromosome. Also that a few of the shorter chromosomes have none
-  #plot(d$SNP, main=f, xlab="Chr Location", ylab="SNPs in bin") 
   if(!exists("var_data"))   var_data = d
   else var_data = rbind(var_data, d)
   rm(d)
   }
-
 max_snps = max(var_data$SNP)
-raw = var_data$SNP
-
 # set up vector for all counts
 snp_c = vector('numeric', max_snps+1)
 # just useful to keep in mind
@@ -69,8 +64,6 @@ total_bins = sum(snp_c)
 # doubt this makes a difference but since the observations start at 0 lets just start them at 1 in case 0 screws things up
 # names(snp_c) = 1:(max_snps+1)
 
-# not useful but what the hell
-#plot(log(snp_c), xlab="1kb bins", ylab="log(freq)") 
 
 # Ok, so looking around using a generalized linear model to look into possible fit?
 # Pretty sure this tells me poisson isn't appropriate. deviance/df should be ~ 1 but is not

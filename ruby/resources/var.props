@@ -13,7 +13,7 @@ gc.output.dir: /Users/sarah.killcoyne/Data/VariationNormal/GC
 # tabix.path: /path/to/tabix/script
 
 # base pair window to generate variation frequencies within. 100 should be the minimum.
-window: 100
+window: 1000
 
 
 
