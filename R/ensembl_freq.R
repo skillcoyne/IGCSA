@@ -1,7 +1,7 @@
 args = commandArgs(trailingOnly = TRUE)
 filein = args[1]
 fileout = args[2]
-window = args[3]
+window = as.numeric(args[3])
 
 #window = 1000
 
