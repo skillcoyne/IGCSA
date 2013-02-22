@@ -3,6 +3,10 @@ filein = args[1]
 fileout = args[2]
 window = as.numeric(args[3])
 
+print(filein)
+print(fileout)
+print(as.character(window))
+
 #window = 1000
 
 chr_info = read.table("~/workspace/IGCSA/ruby/resources/chromosome_gene_info_2012.txt", header=T, sep="\t")
@@ -11,16 +15,19 @@ d = read.table(filein, header=T, sep="\t")
 chr = d[1,1];
 
 maxlength = chr_info[ chr_info$Chromosome == chr, 'Base.pairs']
+
 bins = ceiling(maxlength/window)
 
-min = 0; max = 0; rm(all_freq);
+print( paste("Chr length:", as.character(maxlength), " bins:", as.character(bins) )
+
+min = 0; max = 0; 
 for (i in 1:bins)
   {
   max = max + window;
-
+  #print(paste(min, "-", max))
   chunk = d[ d$start >= min & d$end <= max,  ]  
   freq = t(table(chunk$var.type))
-  rownames(freq) = paste(min, "-", max)
+  rownames(freq) = as.character(max)
   
   if(!exists("all_freq"))   all_freq = freq
   else all_freq = rbind(all_freq, freq)
