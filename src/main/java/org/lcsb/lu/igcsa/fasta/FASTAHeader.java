@@ -10,9 +10,10 @@ import java.io.IOException;
  */
 public class FASTAHeader
   {
-  private String Accession;
+  private String accession;
   private String locus = "";
   private String description;
+  private String asString;
 
   private static final int MIN_ENTRIES = 3;
 
@@ -31,18 +32,19 @@ public class FASTAHeader
       throw new IOException("Missing parameters in header, expected " + MIN_ENTRIES + " found " + entries.length + " :" + line);
       }
 
-    this.Accession = entries[0].replace(">", "") + entries[1];
+    this.accession = entries[0].replace(">", "") + entries[1];
     if (entries.length > MIN_ENTRIES)
       {
       this.locus = entries[3];
       this.description = entries[entries.length-1];
       }
     else this.description = entries[entries.length-1];
+    asString = line;
     }
 
   public String getAccession()
     {
-    return Accession;
+    return accession;
     }
 
   public String getLocus()
@@ -54,4 +56,10 @@ public class FASTAHeader
     {
     return description;
     }
+
+  public String toString()
+    {
+    return asString;
+    }
+
   }

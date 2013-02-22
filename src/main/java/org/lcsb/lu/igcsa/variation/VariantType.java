@@ -13,8 +13,8 @@ public enum VariantType
   SNP("snp", org.lcsb.lu.igcsa.variation.SNP.class),
   DELETION("del", Deletion.class),
   INSERTION("ins", Insertion.class),
+  INVERSION("inv", Inversion.class),
   TRANSLOCATION("trans", Translocation.class);
-
 
   private String shortName;
   private Class<Variation> variantClass;

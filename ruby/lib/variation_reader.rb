@@ -3,7 +3,6 @@ require 'yaml'
 class VariationReader
     @tabix = 'tabix'
 
-
   def initialize(chromosome, vcf, output_dir)
     @chr = chromosome
     @file = vcf
@@ -44,8 +43,6 @@ class VariationReader
           indel_count += 1 if vcf.info['VT'].eql? 'INDEL'
         end
         vout.write(["#{min}-#{max}", snp_count, indel_count].join("\t") + "\n")
-
-        FileUtils.rm_f(vcf_file)
       rescue Errno::ENOENT => e
         warnings << "File not found: #{vcf_file}. #{e.message}"
       end

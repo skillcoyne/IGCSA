@@ -72,7 +72,6 @@ Utils.setup_dirs([$OUTDIR], false)
 #fout = File.new("#{$OUTDIR}/gc-content.txt", 'w')
 #fout.write(['Chr', 'GC', 'Unk' 'TotalBP'].join("\t") + "\n")
 
-
 fasta = $CFG['fasta.dir']
 fastaFiles = Dir["#{fasta}/*.fa.*"]
 
@@ -80,7 +79,6 @@ threads = []
 fastaFiles.each do |entry|
   if entry.match(/chr(\d+|X|Y)/)
     chr = $1
-
     threads << Thread.new(chr) {
       Thread.current['chr'] = "#{chr} : #{entry}"
       if File.basename(entry, ".gz") # unzip

@@ -1,6 +1,8 @@
 package org.lcsb.lu.igcsa;
 
 
+import org.lcsb.lu.igcsa.fasta.FASTAHeader;
+import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.genome.Genome;
@@ -20,6 +22,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
@@ -55,34 +58,45 @@ public class InsilicoGenome
     initProperties();
     setupReferenceGenome();
 
-
     createGenomeGenerations(GenomeProperties.GenomeType.NORMAL);
     }
 
   public void createGenomeGenerations(GenomeProperties.GenomeType type) throws IOException
     {
     File[] directories = setupDirectories(type);
+//    for (File f : directories)
+//      print(f.getAbsolutePath());
+
 
     // TODO spring injection for the properties files?  might be simpler than what I'm doing...
     int generations = Integer.valueOf(normalProperties.getProperty("generations"));
     int individuals = Integer.valueOf(normalProperties.getProperty("individuals"));
     int window = Integer.valueOf(normalProperties.getProperty("window"));
 
-
-
-
     Map<Variation, ProbabilityList> rgVariations = referenceGenome.getVariations();
-    for (int i = 0; i <= generations; i++)
+    int genFileIndex = 0;
+    for (int g = 1; g <= generations; g++)
       {
+      if (g > 1) genFileIndex += individuals;
+      int length = (genFileIndex + individuals >= directories.length)? directories.length: individuals;
+
+      File[] generationDirs = Arrays.copyOfRange(directories, genFileIndex, length);
       //TODO this could be done in threads
       for (Chromosome chr : referenceGenome.getChromosomes())
         {
-        //referenceGenome.mutate(chr, window);
-
+        for (int i = 1; i <= individuals; i++)
+          {
+          //referenceGenome.mutate(chr, window);
+          print("Generation " + g + " individual " + i + " chromosome " + chr.getName());
+          FASTAHeader header = new FASTAHeader(">chromosome|" + chr.getName() + "|Generation " + g + " individual " + i);
+          FASTAWriter writer = new FASTAWriter(new File(generationDirs[i-1], "chr" + chr.getName() + ".fa"),  header);
+          referenceGenome.mutate(chr, window, writer);
+          writer.close();
+          }
+        break;
         }
+      break;
       }
-
-
     }
 
 
@@ -91,6 +105,9 @@ public class InsilicoGenome
     //cancerGenome = new Genome()
     }
 
+  /*
+   * Sets up the reference genome based on the fasta files for the current build.
+   */
   protected void setupReferenceGenome() throws FileNotFoundException, ProbabilityException, IllegalAccessException, InstantiationException
     {
     referenceGenome = new ReferenceGenome(normalProperties.getProperty("assembly"));
@@ -124,6 +141,9 @@ public class InsilicoGenome
     cancerProperties = GenomeProperties.readPropertiesFile(propertyFile, GenomeProperties.GenomeType.CANCER);
     }
 
+  /*
+   * Creates the directories where the generated fasta files will be written
+   */
   private File[] setupDirectories(GenomeProperties.GenomeType type) throws IOException
     {
     int generations = Integer.valueOf(normalProperties.getProperty("generations"));
@@ -133,13 +153,13 @@ public class InsilicoGenome
     // Directories for the generations
     String[] genomeDirs = new String[generations];
     String[] orderedSubDirs = {type.getName(), "generations"};
-    for (int i=0; i<generations; i++) genomeDirs[i] =  FileUtils.directory(orderedSubDirs, i+1);
+    for (int i = 0; i < generations; i++) genomeDirs[i] = FileUtils.directory(orderedSubDirs, i + 1);
     Collection<File> generationDirs = FileUtils.createDirectories(new File(normalProperties.getProperty("dir.insilico")), genomeDirs);
     // Directories for individuals
-    for (File generation: generationDirs)
+    for (File generation : generationDirs)
       {
       genomeDirs = new String[individuals];
-      for (int i=0; i<individuals; i++) genomeDirs[i] =  FileUtils.directory("individual", i+1);
+      for (int i = 0; i < individuals; i++) genomeDirs[i] = FileUtils.directory("individual", i + 1);
       directories.addAll(FileUtils.createDirectories(generation, genomeDirs));
       }
     return directories.toArray(new File[directories.size()]);

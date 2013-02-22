@@ -1,8 +1,10 @@
 package org.lcsb.lu.igcsa.genome;
 
+import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.prob.ProbabilityList;
 import org.lcsb.lu.igcsa.variation.Variation;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 
@@ -57,4 +59,6 @@ public interface Genome
    * sequences with locations but...
    */
   public abstract Chromosome mutate(Chromosome chromosome, int window);
+
+  public abstract void mutate(Chromosome chr, int window, FASTAWriter writer) throws IOException;
   }

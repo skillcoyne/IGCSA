@@ -1,5 +1,6 @@
 package org.lcsb.lu.igcsa.utils;
 
+import org.lcsb.lu.igcsa.InsilicoGenome;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 
 import java.io.File;
@@ -8,7 +9,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Set;
 
 /**
  * org.lcsb.lu.igcsa.utils
@@ -37,17 +37,23 @@ public class FileUtils
     }
 
 
+  /**
+   * @param parent
+   * @param children
+   * @return Collection of child directory File objects
+   * @throws IOException
+   */
   public static Collection<File> createDirectories(File parent, String[] children) throws IOException
     {
     ArrayList<File> dirs = new ArrayList<File>();
-    parent.mkdirs();
-    boolean created = true;
+    if (!parent.exists()) parent.mkdirs();
+
     if (parent.isDirectory())
       {
       for (String child: children)
         {
         File childDir = new File(parent, child);
-        if (childDir.mkdirs()) dirs.add(childDir);
+        if (childDir.exists() || childDir.mkdirs()) dirs.add(childDir);
         }
       }
     else
@@ -59,6 +65,10 @@ public class FileUtils
     return dirs;
     }
 
+  /**
+   * @param file
+   * @return Chromosome object with the name set based on the file name.
+   */
   public static String getChromosomeFromFASTA(File file)
     {
     String fastaChr = file.getName().replace("chr", "");

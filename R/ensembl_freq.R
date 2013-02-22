@@ -18,7 +18,7 @@ maxlength = chr_info[ chr_info$Chromosome == chr, 'Base.pairs']
 
 bins = ceiling(maxlength/window)
 
-print( paste("Chr length:", as.character(maxlength), " bins:", as.character(bins) )
+print( paste("Chr length:", as.character(maxlength), " bins:", as.character(bins) ) )
 
 min = 0; max = 0; 
 for (i in 1:bins)

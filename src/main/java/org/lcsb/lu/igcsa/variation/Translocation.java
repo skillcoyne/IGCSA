@@ -25,6 +25,6 @@ public class Translocation extends AbstractVariation
   //TODO  this may not work for translocations...
   public DNASequence mutateSequence(DNASequence sequence)
     {
-    return null;
+    return sequence;
     }
   }

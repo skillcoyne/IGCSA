@@ -26,6 +26,7 @@ public class FASTAWriter
     writeLine(">" + header.getAccession() + "|" + header.getLocus() + "|" + header.getDescription());
     }
 
+  // the only problem with this is that you get a lot of short lines from separating these.
   public void writeLine(String str) throws IOException
     {
     if (str.length() > lineLength)

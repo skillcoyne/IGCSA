@@ -103,4 +103,17 @@ public class Chromosome
     return Name;
     }
 
+  public void resetReader()
+    {
+    try
+      {
+      reader.close();
+      reader.open();
+      }
+    catch (IOException e)
+      {
+      e.printStackTrace();
+      }
+    }
+
   }

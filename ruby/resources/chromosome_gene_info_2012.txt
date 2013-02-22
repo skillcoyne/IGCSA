@@ -24,3 +24,5 @@ Chromosome	Length (cm)	Base pairs	Variations	Confirmed proteins	Putative protein
 X	5.3	155270560	2174952	815	23	780	128	22	85	64	52	EBI
 Y	2	59373566	286812	45	8	327	15	7	17	3	2	EBI
 mtDNA	0.00054	16569	929	13	0	0	0	2	0	0	22	EBI
+
+
