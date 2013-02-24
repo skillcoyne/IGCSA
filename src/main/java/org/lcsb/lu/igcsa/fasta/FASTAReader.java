@@ -60,6 +60,7 @@ public class FASTAReader
     reader = new BufferedReader( new InputStreamReader( this.stream ) );
     getHeader();
     this.seqLineLength = this.readline().length();
+    this.reset();
     }
 
   private void open() throws IOException
@@ -107,7 +108,6 @@ public class FASTAReader
     */
     if (start > seqLineLength) start += Math.floor(start / seqLineLength);
 
-
     start += headerloc;
     reader.skip(start);
 
@@ -119,8 +119,7 @@ public class FASTAReader
       if (c == LINE_FEED || c == CARRIAGE_RETURN) continue;
       sequence.append(c);
       }
-
-    return sequence.toString();
+    return (sequence.toString().length() > 0)? sequence.toString(): null;
     }
 
 
@@ -132,8 +131,7 @@ public class FASTAReader
    */
   public String readSequence(int window) throws IOException
     {
-    //if (stream == null) open();
-    StringBuffer buf = new StringBuffer(window);
+    StringBuffer buf = new StringBuffer();
     char c;
     while ((c = this.read()) != EOF)
       {
@@ -157,7 +155,8 @@ public class FASTAReader
 
   /**
    * Mark the regions of "any" or N sequence starts/stops as well as gaps.
-   *
+   * THIS READS THE ENTIRE FILE.  Does not keep it in memory, but for large fasta files
+   * this could take a while.
    * @return
    * @throws IOException
    */

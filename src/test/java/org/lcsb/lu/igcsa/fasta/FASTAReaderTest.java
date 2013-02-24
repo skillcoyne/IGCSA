@@ -99,7 +99,8 @@ public class FASTAReaderTest
       buf.append(seq);
       if (seq.length() < window) break;
       }
-    assertEquals("Total sequence should be 644 characters", 644, buf.toString().length());
+    assertEquals(buf.toString(), fastaSeq);
+    assertEquals("Total sequence should be 644 characters", fastaSeq.length(), buf.toString().length());
     assertEquals(buf.toString(), fastaSeq);
     }
 
@@ -127,7 +128,7 @@ public class FASTAReaderTest
     int window = 100;
     int start = 0;
     String seq;
-    while((seq = reader.readSequenceFromLocation(start, window)).length() > 0)
+    while((seq = reader.readSequenceFromLocation(start, window)) != null)
       {
       int end = (start+window > fastaSeq.length())? (fastaSeq.length()): (start+window);
       assertEquals(seq, fastaSeq.substring(start, end));
