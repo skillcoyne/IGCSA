@@ -25,7 +25,7 @@ public class Insertion extends AbstractVariation
 
   public DNASequence mutateSequence(DNASequence sequence)
     {
-    return sequence;
+    return null;
     }
 
 

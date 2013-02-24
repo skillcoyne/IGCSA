@@ -51,6 +51,26 @@ public class FASTAReaderTest
     }
 
   @Test
+  public void testZip() throws Exception
+    {
+    URL testUrl = ClassLoader.getSystemResource("fasta/testzip.fa.gz");
+    file = new File(testUrl.toURI());
+    reader = new FASTAReader(file);
+    assertNotNull(reader);
+
+    int window = 100;
+    int start = 0;
+    String seq;
+    while((seq = reader.readSequenceFromLocation(start, window)) != null)
+      {
+      int end = (start+window > fastaSeq.length())? (fastaSeq.length()): (start+window);
+      assertEquals(seq, fastaSeq.substring(start, end));
+      start += window;
+      }
+    }
+
+
+  @Test
   public void testHeader() throws Exception
     {
     assertEquals(reader.getHeader().getClass(), FASTAHeader.class);

@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 public class DNASequence
   {
   private String sequence = "";
+  private Location location;
   private final Pattern nucleotides = Pattern.compile("([ACTGNactgn-]+)");
   private final Pattern unknown = Pattern.compile("[Nn]+");
   private final Pattern gap = Pattern.compile("[-]+");
@@ -36,6 +37,12 @@ public class DNASequence
     this.sequence = seq;
     }
 
+  public DNASequence(String seq, Location location) throws IllegalArgumentException
+    {
+    this(seq);
+    this.location = location;
+    }
+
   public void addNucleotides(String nuc) throws IllegalArgumentException
     {
     nuc = nuc.toUpperCase();
@@ -56,6 +63,11 @@ public class DNASequence
   public String getSequence()
     {
     return sequence;
+    }
+
+  public Location getLocation()
+    {
+    return this.location;
     }
 
 //  public boolean hasUnknownNucleotides()

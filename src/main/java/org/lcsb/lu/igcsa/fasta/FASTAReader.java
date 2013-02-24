@@ -56,21 +56,22 @@ public class FASTAReader
     if (!fasta.exists()) throw new FileNotFoundException("No such file: " + file.getAbsolutePath());
     if (!fasta.canRead()) throw new IOException("Cannot read file " + file.getAbsolutePath());
 
-    open();
+    stream = open();
     reader = new BufferedReader( new InputStreamReader( this.stream ) );
     getHeader();
     this.seqLineLength = this.readline().length();
     this.reset();
     }
 
-  private void open() throws IOException
+  private InputStream open() throws IOException
     {
     this.fileloc = 0L;
-    this.stream = new FileInputStream(this.fasta);
+    InputStream is = new FileInputStream(this.fasta);
     if (this.fasta.getName().endsWith("gz"))
       {
-      stream = new GZIPInputStream(stream);
+      is = new GZIPInputStream(is);
       }
+    return is;
     }
 
   public FASTAHeader getHeader() throws IOException
@@ -87,7 +88,7 @@ public class FASTAReader
   public void reset() throws IOException
     {
     stream.close();
-    open();
+    stream = open();
     }
 
   /**
@@ -101,7 +102,8 @@ public class FASTAReader
    */
   public String readSequenceFromLocation(int start, int charsToRead) throws IOException
     {
-    BufferedReader reader = new BufferedReader( new FileReader(fasta) );
+    InputStream is = open();
+    BufferedReader reader = new BufferedReader( new InputStreamReader(is) );
     /*
     Since every line has a line feed character, the start location needs to be incremented
     by the number of lines that have to be skipped or else the characters read in are off by 1 (or more)
@@ -112,13 +114,13 @@ public class FASTAReader
     reader.skip(start);
 
     StringBuffer sequence = new StringBuffer();
-
     char c;
     while ((c = (char)reader.read()) != EOF && sequence.length() < charsToRead)
       {
       if (c == LINE_FEED || c == CARRIAGE_RETURN) continue;
       sequence.append(c);
       }
+    reader.close();
     return (sequence.toString().length() > 0)? sequence.toString(): null;
     }
 
@@ -162,7 +164,7 @@ public class FASTAReader
    */
   public void markRegions() throws IOException, Exception
     {
-    open();
+    reset();
     int repeatStart = 0;
     int gapStart = 0;
     char lastChar = '&'; // unlikely to be found in a fasta file that I am aware of
@@ -196,8 +198,6 @@ public class FASTAReader
         }
       lastChar = c;
       }
-    stream.close();
-    open();
     }
 
   public long getLastLocation()

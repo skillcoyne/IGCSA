@@ -23,7 +23,7 @@ import static org.junit.Assert.*;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class ReferenceGenomeTest
+public class MutableGenomeTest
   {
   private Genome genome;
   private Chromosome[] chromosomes;
@@ -41,9 +41,9 @@ public class ReferenceGenomeTest
     chromosomes = new Chromosome[10];
     for (int i = 1; i <= 10; i++) // just don't want a chromosome named '0'
       {
-      chromosomes[i - 1] = new Chromosome(Integer.toString(i), "actcgcttac");
+      chromosomes[i - 1] = new Chromosome(Integer.toString(i));
       }
-    genome = new ReferenceGenome("testBuild");
+    genome = new MutableGenome("testBuild");
     assertNotNull("Genome object failed to create", genome);
     }
 
@@ -56,7 +56,7 @@ public class ReferenceGenomeTest
   @Test
   public void testAddChromosome() throws Exception
     {
-    genome.addChromosome(new Chromosome("George", "actcgcgt"));
+    genome.addChromosome(new Chromosome("George"));
     assertTrue("Should have a chromosome named 'George'", genome.hasChromosome("George"));
     }
 
@@ -90,7 +90,7 @@ public class ReferenceGenomeTest
       int mutatedSequences = 0;
       while (true)
         {
-        seq = chr.getDNASequence(window);
+        seq = chr.readSequence(window).getSequence();
         for (Iterator<Variation> it = variations.keySet().iterator(); it.hasNext();)
           {
           Variation var = it.next();

@@ -35,10 +35,10 @@ public class ChromosomeTest extends TestCase
   public void testSequenceByWindow() throws Exception
     {
     int window = 100;
-    String seq = chromosome.getDNASequence(window);
+    String seq = chromosome.readSequence(window).getSequence();
     assertNotNull(seq);
     assertEquals(seq.length(), window);
-    assertNotSame(chromosome.getDNASequence(window), seq);
+    assertNotSame(chromosome.readSequence(window), seq);
     }
 
   @Test
@@ -49,21 +49,12 @@ public class ChromosomeTest extends TestCase
     String all = "";
     while(true)
       {
-      currentSeq = chromosome.getDNASequence(window);
+      currentSeq = chromosome.readSequence(window).getSequence();
       all = all + currentSeq;
       if (currentSeq.length() < window) break;
       }
     assertEquals(all.length(), 644);
     }
 
-  @Test
-  public void testSimpleCreate() throws Exception
-    {
-    String name = "1";
-    String sequence = "actgccatg";
-    Chromosome chr = new Chromosome(name, sequence);
-    assertEquals(name, chr.getName());
-    assertEquals(chr.getDNASequence().toString(), sequence.toUpperCase());
-    }
 
   }

@@ -1,6 +1,8 @@
 package org.lcsb.lu.igcsa.genome;
 
+import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
+import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.variation.Variation;
 
 import java.io.File;
@@ -8,6 +10,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * org.lcsb.lu.igcsa.genome
@@ -17,24 +21,19 @@ import java.util.Collection;
  */
 public class Chromosome
   {
-  private DNASequence DNASequence;
-  private int Length;
   private String Name;
   private File fasta;
   private FASTAReader reader;
+  private Map<Location, DNASequence> alteredSequence = new HashMap<Location, DNASequence>();
 
-  private Collection<Variation> Variations = new ArrayList<Variation>();
-
-
-  protected Chromosome(String name, int length)
+  public Chromosome(String name)
     {
     this.Name = name;
-    this.Length = length;
     }
 
   public Chromosome(String name, File chrFastaFile)
     {
-    this(name, 0);
+    this(name);
     this.fasta = chrFastaFile;
     try
       {
@@ -46,56 +45,19 @@ public class Chromosome
       }
     }
 
-
-  public Chromosome(String name, DNASequence sequence)
-    {
-    this.DNASequence = sequence;
-    }
-
-  public Chromosome(String name, String sequence)
-    {
-    this(name, sequence.length());
-    this.DNASequence = new DNASequence(sequence);
-    }
-
-
-  public DNASequence getDNASequence()
-    {
-    return DNASequence;
-    }
-
-  /**
-   * Get sequence in chunks.  Each call will read from the end point of the last call to the method.
-   * @param window
-   * @return
-   */
-  public String getDNASequence(int window)
-    {
-    String sequenceChunk = "";
-    if (DNASequence != null)
-      {
-      // loop through and return it in chunks
-      }
-    else
-      {
-      //if I"m getting the sequence from the FASTAreader I'm not so sure I want to keep it all in memory...
-      try
-        { sequenceChunk = reader.readSequence(window); }
-      catch (IOException ioe)
-        { ioe.printStackTrace(); }
-      return sequenceChunk;
-      }
-    return sequenceChunk;
-    }
-
   public String getName()
     {
     return Name;
     }
 
-  public File getFASTAFile()
+  public File getFASTA()
     {
-    return fasta;
+    return this.fasta;
+    }
+
+  public FASTAReader getFASTAReader()
+    {
+    return this.reader;
     }
 
   public String toString()
@@ -103,17 +65,50 @@ public class Chromosome
     return Name;
     }
 
-  public void resetReader()
+  /**
+   * Returns the sequence at the given location. If there is a mutated sequence
+   * for the given location it returns that. That location has to be exactly the same
+   * however.  This could be problematic so ...
+   * Otherwise reads it from the FASTA file.
+   * @param loc
+   * @return
+   */
+  public String getSequence(Location loc)
     {
+    String sequence = null;
+    if (this.alteredSequence.containsKey(loc))
+      { sequence = this.alteredSequence.get(loc).getSequence(); }
+    else
+      {
+      try { sequence = reader.readSequenceFromLocation(loc.getStart(), loc.getLength()); }
+      catch (IOException e) { e.printStackTrace(); }
+      }
+    return sequence;
+    }
+
+  /**
+   * Get sequence in chunks from the FASTA file.  Each call will read sequentially from last call.
+   * To get specific regions or any mutated sequences use Chromosome#getSequence(Location)
+   *
+   * @param window
+   * @return
+   */
+  public DNASequence readSequence(int window)
+    {
+    DNASequence sequence = null;
     try
       {
-      reader.close();
-      reader.open();
+      long start = reader.getLastLocation();
+      sequence = new DNASequence(reader.readSequence(window), new Location((int) start, (int) reader.getLastLocation()));
       }
-    catch (IOException e)
-      {
-      e.printStackTrace();
-      }
+    catch (IOException ioe)
+      { ioe.printStackTrace(); }
+    return sequence;
+    }
+
+  public void alterSequence(Location loc, DNASequence sequence)
+    {
+    this.alterSequence(loc, sequence);
     }
 
   }

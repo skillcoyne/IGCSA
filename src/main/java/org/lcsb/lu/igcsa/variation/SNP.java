@@ -60,17 +60,21 @@ public class SNP extends AbstractVariation
 
   public DNASequence mutateSequence(DNASequence sequence)
     {
+    boolean mutated = false;
     if (this.poissonDistribution == null) throw new IllegalStateException("Probabilities have not been set, cannot mutate sequence.");
 
     char[] nucleotides = sequence.getSequence().toCharArray();
     for (int i = 0; i < nucleotides.length; i++)
       {
       if (nucleotides[i] == GAP || nucleotides[i] == UNKNOWN) continue;
-
-      if (this.poissonDistribution.sample() > 0) nucleotides[i] = alterNucleotide(nucleotides[i]);
+      if (this.poissonDistribution.sample() > 0)
+        {
+        char snp = alterNucleotide(nucleotides[i]);
+        if (snp == nucleotides[i]) mutated = true;
+        nucleotides[i] = snp;
+        }
       }
-
-    return new DNASequence(new String(nucleotides));
+    return (mutated)? ( new DNASequence(new String(nucleotides)) ): null;
     }
 
 

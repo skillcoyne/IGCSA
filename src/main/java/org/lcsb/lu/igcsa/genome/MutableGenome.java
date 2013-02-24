@@ -16,17 +16,18 @@ import java.util.*;
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
 
-// TODO AbstractGenome may not be a necessary abstraction since I'm thus far doing nothing special with the reference vs cancer
-public abstract class AbstractGenome implements Genome
+
+public class MutableGenome implements Genome
   {
   protected String buildName;
   protected HashMap<String, Chromosome> chromosomes = new HashMap<String, Chromosome>();
   private Map<Variation, ProbabilityList> variationProbabilities = new HashMap<Variation, ProbabilityList>();
 
-  public AbstractGenome()
-    {}
+  public MutableGenome()
+    {
+    }
 
-  public AbstractGenome(String build)
+  public MutableGenome(String build)
     {
     this.buildName = build;
     }
@@ -86,6 +87,11 @@ public abstract class AbstractGenome implements Genome
     return this.variationProbabilities;
     }
 
+  /*
+    Not recommended for general use unless you have very small chromosomes as this holds the entire
+    genome in memory. Better use is to call #mutate(Chromosome chr, int window) and output the new
+    chromosome.
+   */
   public void mutate(int window)
     {
     Map<Variation, ProbabilityList> variations = this.getVariations();
@@ -99,36 +105,28 @@ public abstract class AbstractGenome implements Genome
     }
 
   /*
- This may not be the way to do it.  Basically there's a chance (based on the frequency of the variation) for each variation to apply
- to the given window. I'm not sure if this is correct.
-  */
+   This may not be the way to do it.  Basically there's a chance (based on the frequency of the variation) for each variation to apply
+   to the given window. I'm not sure if this is correct.
+   */
   public Chromosome mutate(Chromosome chr, int window)
     {
-    String currentSequenceFragment;
-    DNASequence chromosomeSeq = new DNASequence();
-    while (true)
+    DNASequence currentSequence = chr.readSequence(window);
+    System.out.println(currentSequence.getSequence());
+    for (Iterator<Variation> it = this.getVariations().keySet().iterator(); it.hasNext(); )
       {
-      currentSequenceFragment = chr.getDNASequence(window);
-      System.out.println(currentSequenceFragment);
-      for (Iterator<Variation> it = this.getVariations().keySet().iterator(); it.hasNext(); )
-        {
-        try
-          {
-          Variation var = it.next();
-          ProbabilityList pl = this.getVariations().get(var);
-          var.setProbabilityList(pl);
-          DNASequence sequence = var.mutateSequence(new DNASequence(currentSequenceFragment));
-          chromosomeSeq.merge(sequence);
-          }
-        catch (ProbabilityException e)
-          {
-          e.printStackTrace();
-          }
+      try
+        {   // This is so wrong!  It's going to potentially mutate the same sequence several times..
+        Variation var = it.next();
+        var.setProbabilityList(this.getVariations().get(var));
+        DNASequence newSequence = var.mutateSequence(currentSequence);
+        /* if the sequence mutated add to chromosome with the location
+        otherwise don't so the entire sequence is not in memory*/
+        if (newSequence != null) chr.alterSequence(currentSequence.getLocation(), newSequence);
         }
-      if (currentSequenceFragment.length() < window) break;
+      catch (ProbabilityException e)
+        { e.printStackTrace(); }
       }
-
-    return new Chromosome(chr.getName(), chromosomeSeq);
+    return chr;
     }
 
   /*
@@ -140,47 +138,40 @@ public abstract class AbstractGenome implements Genome
     final int window = win;
     final Chromosome chr = c;
 
-    Thread thread = new Thread(new Runnable()
-    {
-    public void run()
+    System.out.println(chr.getName());
+    String currentSequenceFragment;
+    //DNASequence chromosomeSeq = new DNASequence();
+    Location location = new Location(0, window); // FASTA locations are 0 based.
+    while ((currentSequenceFragment = chr.getSequence(location)) != null)
       {
-      System.out.println(chr.getName());
-      String currentSequenceFragment;
-      //DNASequence chromosomeSeq = new DNASequence();
-      while (true)
+      location = new Location(location.getStart() + window, location.getEnd() + window);
+      //      for (Iterator<Variation> it = this.getVariations().keySet().iterator(); it.hasNext(); )
+      //        {
+      //        try
+      //          {
+      //          Variation var = it.next();
+      //          ProbabilityList pl = this.getVariations().get(var);
+      //          var.setProbabilityList(pl);
+      //          DNASequence sequence = var.mutateSequence(new DNASequence(currentSequenceFragment));
+      //          writer.writeLine(sequence.getSequence());
+      //          }
+      //        catch (ProbabilityException e)
+      //          {
+      //          e.printStackTrace();
+      //          }
+      //        }
+      try
         {
-        currentSequenceFragment = chr.getDNASequence(window);
-        //      for (Iterator<Variation> it = this.getVariations().keySet().iterator(); it.hasNext(); )
-        //        {
-        //        try
-        //          {
-        //          Variation var = it.next();
-        //          ProbabilityList pl = this.getVariations().get(var);
-        //          var.setProbabilityList(pl);
-        //          DNASequence sequence = var.mutateSequence(new DNASequence(currentSequenceFragment));
-        //          writer.writeLine(sequence.getSequence());
-        //          }
-        //        catch (ProbabilityException e)
-        //          {
-        //          e.printStackTrace();
-        //          }
-        //        }
-        try
-          {
-          writer.write(currentSequenceFragment + "\n");
-          }
-        catch (IOException e)
-          {
-          e.printStackTrace();
-          }
-        if (currentSequenceFragment.length() < window) break;
+        System.out.println(location.getStart() + "-" + location.getEnd() + " " + currentSequenceFragment);
+        writer.writeLine(currentSequenceFragment);
         }
-
-      chr.resetReader();
+      catch (IOException e)
+        {
+        e.printStackTrace();
+        }
+      if (currentSequenceFragment.length() < window) break;
       }
-    });
-
-    thread.start();
+    writer.flush();
     }
 
   }

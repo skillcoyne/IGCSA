@@ -4,15 +4,12 @@ package org.lcsb.lu.igcsa;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.genome.Chromosome;
-import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.genome.Genome;
-import org.lcsb.lu.igcsa.prob.Probability;
+import org.lcsb.lu.igcsa.genome.MutableGenome;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.lcsb.lu.igcsa.prob.ProbabilityList;
 import org.lcsb.lu.igcsa.utils.FileUtils;
 import org.lcsb.lu.igcsa.utils.GenomeProperties;
-import org.lcsb.lu.igcsa.genome.ReferenceGenome;
-import org.lcsb.lu.igcsa.variation.SNP;
 import org.lcsb.lu.igcsa.variation.VariantType;
 import org.lcsb.lu.igcsa.variation.Variation;
 
@@ -64,23 +61,20 @@ public class InsilicoGenome
   public void createGenomeGenerations(GenomeProperties.GenomeType type) throws IOException
     {
     File[] directories = setupDirectories(type);
-//    for (File f : directories)
-//      print(f.getAbsolutePath());
-
 
     // TODO spring injection for the properties files?  might be simpler than what I'm doing...
-    int generations = Integer.valueOf(normalProperties.getProperty("generations"));
-    int individuals = Integer.valueOf(normalProperties.getProperty("individuals"));
-    int window = Integer.valueOf(normalProperties.getProperty("window"));
+    final int generations = Integer.valueOf(normalProperties.getProperty("generations"));
+    final int individuals = Integer.valueOf(normalProperties.getProperty("individuals"));
+    final int window = Integer.valueOf(normalProperties.getProperty("window"));
 
-    Map<Variation, ProbabilityList> rgVariations = referenceGenome.getVariations();
+    final Map<Variation, ProbabilityList> rgVariations = referenceGenome.getVariations();
     int genFileIndex = 0;
     for (int g = 1; g <= generations; g++)
       {
       if (g > 1) genFileIndex += individuals;
-      int length = (genFileIndex + individuals >= directories.length)? directories.length: individuals;
+      int length = (genFileIndex + individuals >= directories.length) ? directories.length : individuals;
 
-      File[] generationDirs = Arrays.copyOfRange(directories, genFileIndex, length);
+      final File[] generationDirs = Arrays.copyOfRange(directories, genFileIndex, length);
       //TODO this could be done in threads
       for (Chromosome chr : referenceGenome.getChromosomes())
         {
@@ -88,10 +82,17 @@ public class InsilicoGenome
           {
           //referenceGenome.mutate(chr, window);
           print("Generation " + g + " individual " + i + " chromosome " + chr.getName());
-          FASTAHeader header = new FASTAHeader(">chromosome|" + chr.getName() + "|Generation " + g + " individual " + i);
-          FASTAWriter writer = new FASTAWriter(new File(generationDirs[i-1], "chr" + chr.getName() + ".fa"),  header);
-          referenceGenome.mutate(chr, window, writer);
-          writer.close();
+          try
+            {
+            FASTAHeader header = new FASTAHeader(">chromosome|" + chr.getName() + "|Generation " + g + " individual " + i);
+            FASTAWriter writer = new FASTAWriter(new File(generationDirs[i - 1], "chr" + chr.getName() + ".fa"), header);
+            referenceGenome.mutate(chr, window, writer);
+            writer.close();
+            }
+          catch (IOException e)
+            {
+            e.printStackTrace();
+            }
           }
         break;
         }
@@ -102,7 +103,7 @@ public class InsilicoGenome
 
   protected void setupCancerGenome()
     {
-    //cancerGenome = new Genome()
+    cancerGenome = new MutableGenome(this.cancerProperties.getProperty("assembly"));
     }
 
   /*
@@ -110,13 +111,13 @@ public class InsilicoGenome
    */
   protected void setupReferenceGenome() throws FileNotFoundException, ProbabilityException, IllegalAccessException, InstantiationException
     {
-    referenceGenome = new ReferenceGenome(normalProperties.getProperty("assembly"));
+    referenceGenome = new MutableGenome(normalProperties.getProperty("assembly"));
     referenceGenome.addChromosomes(FileUtils.getChromosomesFromFASTA(new File(normalProperties.getProperty("dir.assembly"))));
 
-    // this would probably be a good candidate for spring injection of classes...
+    // TODO this would probably be a good candidate for spring injection of classes...
     for (String variation : normalProperties.getProperty("variations").split(";"))
       {
-      // TODO I know there's a more general method for this but at the moment I don't know what that is
+      // I know there's a more general method for this but at the moment I don't know what that is
       if (variation.equals(VariantType.SNP.getShortName()))
         {
         referenceGenome = setupSNPs(normalProperties.getVariationProperty("snp"), this.referenceGenome);

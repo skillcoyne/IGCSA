@@ -8,35 +8,46 @@ package org.lcsb.lu.igcsa.genome;
  */
 public class Location
   {
-  private int Start;
-  private int End;
-  private int Length;
+  private int start;
+  private int end;
 
-  public Location(int s, int e) throws Exception
+  public Location(int s, int e) throws IllegalArgumentException
     {
-    this.Start = s; this.End = e;
+    this.start = s; this.end = e;
 
-    if (Start > End)
+    if (start > end)
       {
-      throw new Exception("The Start position should come before the End position.");
+      throw new IllegalArgumentException("The start position should come before the end position.");
       }
-
-    this.Length = End - Start;
     }
 
   public int getStart()
     {
-    return Start;
+    return start;
     }
 
   public int getEnd()
     {
-    return End;
+    return end;
     }
 
   public int getLength()
     {
-    return Length;
+    return end - start;
     }
 
+  @Override
+  public boolean equals(Object obj)
+    {
+    Location loc = (Location) obj;
+    return ( (loc.getStart() == this.getStart()) && (loc.getEnd() == this.getEnd()) );
+    }
+
+  @Override
+  public int hashCode()
+    {
+    int result = start;
+    result = 31 * result + end;
+    return result;
+    }
   }

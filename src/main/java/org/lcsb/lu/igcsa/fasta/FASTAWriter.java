@@ -19,28 +19,28 @@ public class FASTAWriter
 
   private FASTAHeader header;
 
+  private StringBuffer buffer = new StringBuffer();
+
   public FASTAWriter(File fasta, FASTAHeader header) throws IOException
     {
     this.fasta = createFile(fasta);
     this.header = header;
-    writeLine(">" + header.getAccession() + "|" + header.getLocus() + "|" + header.getDescription());
+    write(">" + header.getAccession() + "|" + header.getLocus() + "|" + header.getDescription() + "\n");
     }
 
-  // the only problem with this is that you get a lot of short lines from separating these.
+  public void flush() throws IOException
+    {
+    write(buffer.toString() + "\n");
+    buffer = new StringBuffer();
+    }
+
   public void writeLine(String str) throws IOException
     {
-    if (str.length() > lineLength)
+    for (char c : str.toCharArray())
       {
-      int endIndex = lineLength;
-      for (int i = 0; i <= str.length(); i += lineLength)
-        {
-        write(str.substring(i, endIndex) + "\n");
-        endIndex += lineLength;
-        if (endIndex > str.length()-1) endIndex = str.length();
-        }
+      buffer.append(c);
+      if (buffer.length() == lineLength) flush();
       }
-    else
-      { write(str + "\n"); }
     }
 
   public void write(String str) throws IOException
