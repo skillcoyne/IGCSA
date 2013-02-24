@@ -42,14 +42,12 @@ public class FASTAReaderTest
     assertNotNull(file);
     reader = new FASTAReader(file);
     assertNotNull(reader);
-    reader.open();
-    assertEquals("File location reset", reader.getLastLocation(), 0L);
     }
 
   @After
   public void tearDown() throws Exception
     {
-    reader.close();
+
     }
 
   @Test
@@ -105,6 +103,37 @@ public class FASTAReaderTest
     assertEquals(buf.toString(), fastaSeq);
     }
 
+  @Test
+  public void testReadFromLocation() throws Exception
+    {
+    String subSeq = fastaSeq.substring(0, 100);
+
+    // This should allow me to retrieve the same sequence as many times as I like without advancing any read
+    String seqA = reader.readSequenceFromLocation(0, 100);
+    assertEquals(seqA.length(), 100);
+    assertEquals(seqA, subSeq);
+    String seqB = reader.readSequenceFromLocation(0, 100);
+    assertEquals(seqA, seqB);
+
+    String seqC = reader.readSequenceFromLocation(45, 100);
+    assertNotSame(seqA, seqC);
+    assertEquals(seqC.length(), 100);
+    }
+
+
+  @Test
+  public void testLoopRead() throws Exception
+    {
+    int window = 100;
+    int start = 0;
+    String seq;
+    while((seq = reader.readSequenceFromLocation(start, window)).length() > 0)
+      {
+      int end = (start+window > fastaSeq.length())? (fastaSeq.length()): (start+window);
+      assertEquals(seq, fastaSeq.substring(start, end));
+      start += window;
+      }
+    }
 
 
   }

@@ -1,5 +1,6 @@
 package org.lcsb.lu.igcsa.fasta;
 
+import com.sun.org.apache.xerces.internal.impl.xpath.regex.Match;
 import org.apache.commons.lang.ArrayUtils;
 import org.lcsb.lu.igcsa.genome.Location;
 
@@ -34,10 +35,13 @@ public class FASTAReader
   private long fileloc = 0L;
   // this is actually the end of the header
   private long headerloc = 0L;
+  private int seqLineLength;
 
   private File fasta;
   private InputStream stream;
   private FASTAHeader header;
+
+  private BufferedReader reader;
 
   // not really sure this is useful
   private static final Map<Character, NucleotideCodes> nucleotideCodesMap = getNucleotideCodesMap();
@@ -46,14 +50,19 @@ public class FASTAReader
   private Collection<Location> gapRegions = new ArrayList<Location>();
 
 
-  public FASTAReader(File file) throws FileNotFoundException, IOException, Exception
+  public FASTAReader(File file) throws IOException, FileNotFoundException
     {
     fasta = file;
     if (!fasta.exists()) throw new FileNotFoundException("No such file: " + file.getAbsolutePath());
     if (!fasta.canRead()) throw new IOException("Cannot read file " + file.getAbsolutePath());
+
+    open();
+    reader = new BufferedReader( new InputStreamReader( this.stream ) );
+    getHeader();
+    this.seqLineLength = this.readline().length();
     }
 
-  public void open() throws IOException
+  private void open() throws IOException
     {
     this.fileloc = 0L;
     this.stream = new FileInputStream(this.fasta);
@@ -74,57 +83,56 @@ public class FASTAReader
     return header;
     }
 
-  public void close() throws IOException
+  public void reset() throws IOException
     {
     stream.close();
+    open();
+    }
+
+  /**
+   * This method creates a new BufferedReader with each call so theoretically it should be capable of being
+   * called on the same FASTAReader object
+   * @param start - Offset to start reading file from. The header offset will be added to this so the header line is always skipped.
+   * @param charsToRead - Number of characters to read in (ignoring line feeds).
+   * @return String containing the characters read. If the end of the file is found before the total number of characters is reached
+   * the characters read to that point will be returned.
+   * @throws IOException
+   */
+  public String readSequenceFromLocation(int start, int charsToRead) throws IOException
+    {
+    BufferedReader reader = new BufferedReader( new FileReader(fasta) );
+    /*
+    Since every line has a line feed character, the start location needs to be incremented
+    by the number of lines that have to be skipped or else the characters read in are off by 1 (or more)
+    */
+    if (start > seqLineLength) start += Math.floor(start / seqLineLength);
+
+
+    start += headerloc;
+    reader.skip(start);
+
+    StringBuffer sequence = new StringBuffer();
+
+    char c;
+    while ((c = (char)reader.read()) != EOF && sequence.length() < charsToRead)
+      {
+      if (c == LINE_FEED || c == CARRIAGE_RETURN) continue;
+      sequence.append(c);
+      }
+
+    return sequence.toString();
     }
 
 
   /**
-   * This method is primarily used to pull sections of sequence, for instance from specific bands
-   * for use in generating mutated chromosomes.
-   *
-   * @param start
-   * @param end
-   * @return
-   * @throws IOException
-   */
-  //  public String readSequence(long start, long end) throws IOException
-  //    {
-  //    if (end < start) throw new IOException("End location comes before start location.");
-  //    long length = end - start;
-  //    byte[] buf = new byte[(int) length];
-  //    RandomAccessFile ra = new RandomAccessFile(fasta, "r");
-  //    ra.seek(start);
-  //    int bytesRead = ra.read(buf);
-  //    //System.out.println("" + bytesRead);
-  //    //buf = ArrayUtils.subarray(buf, 0, bytesRead);
-  //    this.fileloc = ra.getChannel().position();
-  //    ra.close();
-  //    return new String(ArrayUtils.subarray(buf, 0, bytesRead));
-  //    }
-  //
-  //  public String readSequence(long start, long end, boolean headerOffset) throws IOException
-  //    {
-  //    if (headerOffset)
-  //      {
-  //      start += headerloc;
-  //      end += headerloc;
-  //      }
-  //    return readSequence(start, end);
-  //    }
-
-
-  /**
-   * Read and return chunks from the file. Each call will advance the read.
-   *
+   * Read and return chunks from the file in order. Each call will advance the read.
    * @param window
    * @return
    * @throws IOException
    */
   public String readSequence(int window) throws IOException
     {
-    if (stream == null) open();
+    //if (stream == null) open();
     StringBuffer buf = new StringBuffer(window);
     char c;
     while ((c = this.read()) != EOF)
