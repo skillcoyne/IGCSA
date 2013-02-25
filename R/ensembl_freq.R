@@ -7,12 +7,10 @@ print(filein)
 print(fileout)
 print(as.character(window))
 
-#window = 1000
-
 chr_info = read.table("~/workspace/IGCSA/ruby/resources/chromosome_gene_info_2012.txt", header=T, sep="\t")
 
 d = read.table(filein, header=T, sep="\t")
-chr = d[1,1];
+chr = as.character(d[1,1]);
 
 maxlength = chr_info[ chr_info$Chromosome == chr, 'Base.pairs']
 
