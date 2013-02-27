@@ -36,7 +36,7 @@ histp<-function(expected)
 # --------------/Functions---------------------- #
 
 rm(list = ls())
-setwd("~/Data/VariationNormal/Frequencies/100")
+setwd("~/Data/VariationNormal/Frequencies/1000/Ensembl")
 files = list.files(pattern=".txt")  
 
 for (f in files)
