@@ -3,9 +3,9 @@ filein = args[1]
 fileout = args[2]
 window = as.numeric(args[3])
 
-print(filein)
-print(fileout)
-print(as.character(window))
+print(paste("File in (should be from the ruby read_variations.rb script:", filein))
+print(paste("The file to write varation information to:", fileout))
+print(paste("Bin size: ", as.character(window)))
 
 chr_info = read.table("~/workspace/IGCSA/ruby/resources/chromosome_gene_info_2012.txt", header=T, sep="\t")
 

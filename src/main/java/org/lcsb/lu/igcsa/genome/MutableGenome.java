@@ -92,16 +92,18 @@ public class MutableGenome implements Genome
     genome in memory. Better use is to call #mutate(Chromosome chr, int window) and output the new
     chromosome.
    */
-  public void mutate(int window)
+  public Genome mutate(int window)
     {
+    Genome mutated = new MutableGenome(this.buildName + " m" + window);
     Map<Variation, ProbabilityList> variations = this.getVariations();
     String currentSequenceFragment;
     for (Chromosome chr : this.getChromosomes())
       {
-      Chromosome mutatedChr = mutate(chr, window);
+      Chromosome mutatedChr = this.mutate(chr, window);
       // replace the chromosome -- might be better to just write it or else this could get much too large...
-      this.chromosomes.put(chr.getName(), mutatedChr);
+      mutated.addChromosome(mutatedChr);
       }
+    return mutated;
     }
 
   /*

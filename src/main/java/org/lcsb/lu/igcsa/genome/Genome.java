@@ -49,7 +49,7 @@ public interface Genome
    * chromosome.
    * @param window
    */
-  public abstract void mutate(int window);
+  public abstract Genome mutate(int window);
 
   /**
    *

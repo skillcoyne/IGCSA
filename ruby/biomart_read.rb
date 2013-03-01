@@ -22,6 +22,8 @@ Dir["#{dir}/chr*/dist2.txt"].each do |file|
     chr = File.basename(File.dirname(file))
     chr.sub!("chr", "")
     Thread.current['message'] = "Writing #{File.dirname(file)}/genes-dist2.txt"
+    Thread.current['chr'] = chr
+    Thread.current['errors'] = []
 
     total = 0; positions = {}; counts = []
     # Write each chromosome separately for easier analysis later
@@ -39,19 +41,22 @@ Dir["#{dir}/chr*/dist2.txt"].each do |file|
 
       region = "#{chr}:#{pos}-#{chr}:#{pos+1000}"
       #puts region
-      results = hsgene.search(
+      begin 
+      	results = hsgene.search(
           :filters => {'chromosome_name' => chr, 'chromosomal_region' => [region], 'status' => ['KNOWN']},
           :attributes => ['ensembl_gene_id', 'start_position', 'end_position', 'percentage_gc_content', 'gene_biotype'],
-          :process_results => true
-      )
-      genes = []
-      if (results.size > 0)
-        results.select! { |e| e['gene_biotype'].eql? 'protein_coding' }
-        genes = results.map { |e| e['ensembl_gene_id'] }
-      end
-      positions[pos.to_s] = genes
+          :process_results => true)
+      	genes = []
+      	if (results.size > 0)
+        	results.select! { |e| e['gene_biotype'].eql? 'protein_coding' }
+        	genes = results.map { |e| e['ensembl_gene_id'] }
+      	end
+      	positions[pos.to_s] = genes
 
-      total += 1
+      	total += 1
+			rescue Exception => e
+				Thread.current['errors'] << "Error reading #{file}: #{e.message}"
+			end
       sleep 3 if i%20 == 0 # just in case ensembl gets annoyed
     end
     counts.uniq!
@@ -67,8 +72,9 @@ Dir["#{dir}/chr*/dist2.txt"].each do |file|
 end
 
 threads.each { |t|
-  t.join; t.abort_on_exception;
+  t.join; 
   puts [t['message'], ':', t['total']].join("\t")
+  puts t['errors'].join("\n") unless t['errors'].empty?
 }
 
 

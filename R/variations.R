@@ -1,3 +1,8 @@
+rm(list=ls())
+setwd("~/workspace/IGCSA/R")
+source("lib/gc_functions.R")
+
+
 plotVariations<-function(vars, chr)
   {
   varnames = names(vars[1:7])
@@ -16,11 +21,11 @@ plotVariations<-function(vars, chr)
 	
 plotVariationsSep<-function(vars, chr, dir)
   {
-  varnames = names(vars[1:7])
-  colors = rainbow(length(varnames))
-  names(colors) = varnames
-  for(var in varnames)
+  colors = rainbow(length(names(vars)))
+  names(colors) = names(vars)
+  for(var in names(vars))
     {
+    freq = table(vars[[var]])
     plot_file = paste(dir, chr, sep="/")	
     png(filename=paste(plot_file, "-", var, ".png", sep=""), bg="white", height=600, width=600)
     par(mfrow=c(2,1))
@@ -43,12 +48,23 @@ plotRatios<-function(gcu, chr)
   title(main=chr, ylab="Ratio per 1kb", xlab="Chromosome position, 1kb bins")
   }
 
+testZeros<-function(vars)
+  {
+  par(mfrow=c(4,3))
+  comb = combn(names(vars), 2)
+  for (i in 1:ncol(comb))
+    {
+    current = comb[,i]
+    freq = table( vars[[ current[1] ]], vars[[ current[2] ]] )
+    plot(freq, main=current)
+    }
+  }
+
+
 # ------------------ # MAIN # ------------------ #
 #args = commandArgs(trailingOnly = TRUE)
 #ens_dir = args[1]
 #gc_dir = args[2]
-
-
 
 plot=FALSE
 
@@ -65,34 +81,37 @@ seq_ratios = as.data.frame(matrix(nrow=length(var_files), ncol=length(rnames)))
 colnames(seq_ratios) = rnames
 
 setwd("/Users/sarah.killcoyne/Data/VariationNormal/")
-#var_files = c('chr17.txt')
-colors=rainbow(length(var_files))
-plot(0:300, ann=F, type='n', ylim=c(0,10))
+#colors=rainbow(length(var_files))
+#plot(0:300, ann=F, type='n', ylim=c(0,10))
+par(mfrow=c(4,5))
 for (i in 1:length(var_files))
   {
   file = var_files[i]
   chr = sub(".txt", "", file)
   chrdir = paste(getwd(), chr, sep="/")
-  if (!file.exists(chrdir)) { dir.create(chrdir) }
   
   # Variation & gc files
-  var_f = paste(ens_dir, file, sep="/")
   gc_f = paste(gc_dir, paste(chr, "-gc.txt", sep=""), sep="/")
-  var_d = read.table(var_f, header=T, sep="\t")
-  gc_d = read.table(gc_f, header=T, sep="\t")
-
-  # Get ratios for each bin  
-  gc_d$GCRatio = gc_d$GC/gc_d$BPs
-  gc_d$UnkRatio = gc_d$Unk/gc_d$BPs
+  var_f = paste(ens_dir, file, sep="/")
+  # Data with NA removed
+  data = load.data(gc_f, var_f)
+  var_d = data$vars
+  gc_d = data$gc
+  
+  test = ks.test.all(var_d[1:6], chr) 
+  plot(test$norm, col='blue', type='o', ann=F, xaxt='n')
+  lines(test$pois, col='red', type='o')
+  axis(1, at=1:nrow(test), labels=rownames(test))
+  title(main=chr)
+  
+  write.table(paste("###", chr, "###"),  file="VariationTests.txt", row.names=F, col.names=F, quote=F, append=T)
+  write.table(test, file="VariationTests.txt", quote=F, sep="\t", append=T)
   
   all = cbind(var_d, gc_d)
-  # Counts can't matter if the sequence was all unknown (the counts would all be 0)
-  all[ which(all$UnkRatio == 1), 1:7] = NA
-  var_d[which(gc_d$UnkRatio == 1) ,] = NA
 
-  nozero = table(all$SNV[all$SNV > 0])
-  topvalues = nozero[ which(nozero == max(nozero)) ]
-  write.table(all[all$SNV == names(topvalues) & !is.na(all$SNV),], quote=F, sep="\t", file=paste(chrdir, "dist2.txt", sep="/"))
+  #nozero = table(all$SNV[all$SNV > 0])
+  #topvalues = nozero[ which(nozero == max(nozero)) ]
+  #write.table(all[all$SNV == names(topvalues) & !is.na(all$SNV),], quote=F, sep="\t", file=paste(chrdir, "dist2.txt", sep="/"))
   
   if (!nrow(var_d) == nrow(gc_d)) { stop("Bins don't match, quitting") }
 
@@ -102,10 +121,10 @@ for (i in 1:length(var_files))
   
   seq_ratios[i, 'GC'] = round((sum(gc_d$GC)/sum(gc_d$BPs)), digits=2)
   seq_ratios[i, 'Total.Vars'] = sum(var_d[,1:7], na.rm=T)  
+
   
   if (plot)
     {
-    plotVariationsSep(all,chr, chrdir) 
     plot_file = paste(chrdir, chr, sep="/")
     png(filename=paste(plot_file, "-overview.png", sep=""), bg="white", height=900, width=600)
     par(mfrow=c(2,1))
@@ -116,7 +135,7 @@ for (i in 1:length(var_files))
   
   all$Total.Vars = rowSums(all[,1:7], na.rm=T)
   freq = table(all$Total.Vars)
-  lines(log(freq), type='l', col=colors[i])
+  #lines(log(freq), type='l', col=colors[i])
 
   if (names(freq[ freq == max(freq) ]) != '0') { warning( paste(chr, "variation max frequency is not 0")  ) }
   
@@ -127,12 +146,15 @@ for (i in 1:length(var_files))
   
   if( !exists("sv_data") )  sv_data = all[,2:7]  else sv_data = rbind(sv_data, all[,2:7])
   
-  rm(var_d)
-  rm(gc_d)
+  #rm(var_d)
+  #rm(gc_d)
   }
-legend("topright", legend=seq_ratios$Chr, col=colors, fill=colors)
-title(main="Log Variation Frequency per Chromosome", xlab="1kb bin counts", ylab="log(count frequency)")
+#legend("topright", legend=seq_ratios$Chr, col=colors, fill=colors)
+#title(main="Log Variation Frequency per Chromosome", xlab="1kb bin counts", ylab="log(count frequency)")
 
+# cheap way to get a legend
+plot(test, axes=F, ann=F, type='n')
+legend("topleft", legend=colnames(test), col=c('blue', 'red'), fill=c('blue', 'red'), bty='n')
 
 seq_ratios = seq_ratios[order(seq_ratios$GC),]
 if (plot)
@@ -180,7 +202,7 @@ if (plot)
   dev.off()
   }
   
-svfreq = table(sv_data$Total)
+#svfreq = table(sv_data$Total)
 #plot(log(svfreq))
-ks.test(svfreq,ppois,mean(svfreq),sd(svfreq))
+#ks.test(svfreq,ppois,mean(svfreq),sd(svfreq))
 
