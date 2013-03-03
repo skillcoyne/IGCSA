@@ -35,6 +35,21 @@ corrGC<-function(gd, vd, var='SNV', var.counts, method="pearson")
   return(ct)
   }
 
+load.cpg<-function(cpgfile)
+  {
+  cgd = read.table(cpgfile, sep=" ")
+  # Col 1 values:  0 -> non   1 -> CpG
+  # Col 2: position
+  # Col 3: 2 -> + strand, 1 -> - strand
+  # Col 4/5: 800bp range around CpG
+  # Col 6: Probability of methylation
+  # Col 7: Probability unmethylated
+  # Col 8: Duplicate of 1, CGI-> CpG Island, NCGI-> non
+  colnames(cgd) = c('CpG', 'Pos', 'Strand', 'RangeS', 'RangeE', 'Meth.Prob', 'Unmeth.Prob', 'Named')
+  cgd = cgd[cgd$CpG == 1,]  # Only want cpg islands
+  return(cgd)
+  }
+
 load.data<-function(gcfile, varfile)
   {
   gd = read.table(gcfile, header=T, sep="\t")
