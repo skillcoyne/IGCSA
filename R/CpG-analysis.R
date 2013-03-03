@@ -27,10 +27,10 @@ for (i in 1:length(var_files))
   var_f = paste(ens_dir, file, sep="/")
   
   data = load.data(gc_f, var_f)
-  var_data = data$vd
+  var_data = cbind(data$vars, data$gc)
   cpgd = load.cpg(cpg_f)
   
-  for (fragE in rownames(vd))
+  for (fragE in rownames(var_data))
     {
     fragE = as.numeric(fragE)
     fragS = fragE-1000
@@ -38,10 +38,13 @@ for (i in 1:length(var_files))
     islands = cpgd[ cpgd$RangeS >= fragS & cpgd$RangeE <= fragE,  ]
     if (nrow(islands) > 0) 
       { 
-      vd[fragE, 'Pred.CpGI'] = nrow(islands)
-      vd[fragE, 'Med.Methy.Pred'] = median(islands$Meth.Prob)
+      print(islands)
+      var_data[fragE, 'Pred.CpGI'] = nrow(islands)
+      var_data[fragE, 'Med.Methy.Pred'] = median(islands$Meth.Prob)
       }
     }
   
-  save(var_data, file=paste(dir, chr, ".RData", sep=""))
+  chrdir = paste(dir, "VariationNormal", chr, sep="/")
+  if (!file.exists(chrdir)) dir.create(chrdir)
+  save(var_data, file=paste(chrdir, chr, ".RData", sep=""))
   }
