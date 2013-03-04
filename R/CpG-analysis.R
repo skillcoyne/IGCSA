@@ -2,49 +2,57 @@ rm(list=ls())
 setwd("~/workspace/IGCSA/R")
 source("lib/gc_functions.R")
 
+args = commandArgs(trailingOnly = TRUE)
 
-dir = "/Volumes/Data/Data"
+if (length(args)<2) stop("Usage: CpG-analysis.R <chromosome number format: chr10> <data directory>")
+
+chr = args[1]
+dir = args[2]
+
+print(paste("Reading chr", chr))
+print(paste("Directory:", dir))
+
+
 
 ens_dir = paste(dir,"/VariationNormal/Frequencies/1000/Ensembl", sep="")
-var_files = list.files(path=ens_dir, pattern=".txt")  
+var_file = paste(ens_dir, list.files(path=ens_dir, pattern=paste(chr,"txt", sep=".")), sep="/")
 
 gc_dir = paste(dir, "/VariationNormal/GC/1000", sep="")
-gc_files = list.files(path=gc_dir,pattern=".txt")  
+gc_file = paste(gc_dir, list.files(path=gc_dir, pattern=paste(chr,"-gc.txt", sep="")), sep="/")
 
 cpg_dir = paste(dir, "HDMFPred", sep="/")
-cpg_files = list.files(path=gc_dir,pattern=".txt")  
+cpg_file = paste(cpg_dir, list.files(path=cpg_dir, pattern=paste(chr,"txt", sep=".")), sep="/")
 
-var_files=c("chr10.txt")
-for (i in 1:length(var_files))
+chrdir = paste(dir, "VariationNormal", chr, sep="/")
+if (!file.exists(chrdir)) dir.create(chrdir)
+ 
+# Variation & gc files
+  
+data = load.data(gc_file, var_file)
+gc = data$gc
+var_data = cbind(data$vars, gc)
+  
+# Taking up a lot of memory so gotta try to clean up
+rm(gc)
+rm(data)
+  
+cpgd = load.cpg(cpg_file)
+ 
+print(paste("Total fragments", nrow(var_data)))
+varnorm = paste(dir, "VariationNormal", sep="/")
+nam=T; app=F
+for (i in 1:nrow(var_data))
   {
-  file = var_files[i]
-  chr = sub(".txt", "", file)
-  chrdir = paste(getwd(), chr, sep="/")
-  
-  # Variation & gc files
-  gc_f = paste(gc_dir, paste(chr, "-gc.txt", sep=""), sep="/")
-  cpg_f = paste(cpg_dir, file, sep="/")
-  var_f = paste(ens_dir, file, sep="/")
-  
-  data = load.data(gc_f, var_f)
-  var_data = cbind(data$vars, data$gc)
-  cpgd = load.cpg(cpg_f)
-  
-  for (fragE in rownames(var_data))
-    {
-    fragE = as.numeric(fragE)
-    fragS = fragE-1000
-    print(paste(fragS, fragE, sep="-"))
-    islands = cpgd[ cpgd$RangeS >= fragS & cpgd$RangeE <= fragE,  ]
-    if (nrow(islands) > 0) 
-      { 
-      print(islands)
-      var_data[fragE, 'Pred.CpGI'] = nrow(islands)
-      var_data[fragE, 'Med.Methy.Pred'] = median(islands$Meth.Prob)
-      }
+  fragE = as.numeric( rownames(var_data[i,]) )
+  fragS = fragE-1000
+  islands = cpgd[ cpgd$RangeS >= fragS & cpgd$RangeE <= fragE,  ]
+  if (nrow(islands) > 0) 
+    { 
+    var_data[i, 'Pred.CpGI'] = nrow(islands)
+    var_data[i, 'Med.Methy.Pred'] = median(islands$Meth.Prob)
+    app=T
     }
-  
-  chrdir = paste(dir, "VariationNormal", chr, sep="/")
-  if (!file.exists(chrdir)) dir.create(chrdir)
-  save(var_data, file=paste(chrdir, chr, ".RData", sep=""))
+  write.table(var_data[i,], file=paste(chrdir, "/", chr, "-varCpG.txt", sep=""), sep="\t", quote=F, append=app, col.names=nam)
+  nam=F
   }
+  
