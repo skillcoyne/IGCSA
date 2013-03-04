@@ -1,13 +1,14 @@
-rm(list=ls())
-setwd("~/workspace/IGCSA/R")
-source("lib/gc_functions.R")
-
 args = commandArgs(trailingOnly = TRUE)
+#print(args)
+if (length(args) < 3) stop("Usage: CpG-analysis.R <chromosome number format: chr10> <data directory> <working dir>")
 
-if (length(args)<2) stop("Usage: CpG-analysis.R <chromosome number format: chr10> <data directory>")
+print(args[1])
 
 chr = args[1]
 dir = args[2]
+wd =  args[3]
+
+source(paste(wd, "lib/gc_functions.R", sep="/"))
 
 print(paste("Reading chr", chr))
 print(paste("Directory:", dir))
