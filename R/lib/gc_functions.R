@@ -1,5 +1,3 @@
-rm(list=ls())
-
 corrGC<-function(gd, vd, var='SNV', var.counts, method="pearson")
   {
   print(var.counts)
