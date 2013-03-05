@@ -2,13 +2,12 @@ rm(list=ls())
 
 source("lib/gc_functions.R")
 
-dir = "/Volumes/Data/Data"
-
+dir = "~/Data"
 ens_dir = paste(dir,"/VariationNormal/Frequencies/1000/Ensembl", sep="")
-var_files = list.files(path=ens_dir, pattern=".txt")  
+var_files = list.files(path=ens_dir, pattern="*.txt")
 
 gc_dir = paste(dir, "/VariationNormal/GC/1000", sep="")
-gc_files = list.files(path=gc_dir,pattern=".txt")  
+gc_files = list.files(path=gc_dir, pattern="*-gc.txt")
 
 
 pvalues = as.data.frame(matrix(nrow=0, ncol=3))
@@ -55,7 +54,7 @@ for (i in 1:length(var_files))
   #rt = cor.test(rand[1:2500], rand[2501:5000], method="pearson" )
   #pvalues[chr, 'sampled.p.value'] = format.pval(rt$p.value, digits=3)
   #pvalues[chr, 'gc'] = signif(mean(gd$GCRatio), 3)
-  save(gdvd, file=paste("/Users/skillcoyne/Data/for-john/", chr, ".RData", sep=""))
+  
   }
 #pvalues = pvalues[ order(pvalues$'p.value'), ]
 #plot(pvalues$sampled.p.value, type='o', col='red', ann=F, xaxt='n', pch=19)

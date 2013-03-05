@@ -33,9 +33,19 @@ corrGC<-function(gd, vd, var='SNV', var.counts, method="pearson")
   return(ct)
   }
 
+load.combined.cpg<-function(cpgfile, drop.na = F)
+  {
+  # forgot to write out column headers apparently
+  d = read.table(cpgfile, header=F, sep="\t")
+  colnames(d) = c("SNV", "deletion", "indel", "insertion",  "sequence_alteration", "substitution",  "tandem_repeat",      
+   "GC", "Unk", "BPs",  "UnkRatio",  "GCRatio", "Pred.CpGI",  "Med.Methy.Pred" )
+  if (drop.na) d = d[ !is.na(d$Pred.CpGI), ]
+  return(d)
+  }
+
+
 load.cpg<-function(cpgfile)
   {
-  print(paste("Reading", cpgfile))
   cgd = read.table(cpgfile, sep=" ")
   # Col 1 values:  0 -> non   1 -> CpG
   # Col 2: position
@@ -51,9 +61,7 @@ load.cpg<-function(cpgfile)
 
 load.data<-function(gcfile, varfile)
   {
-  print(paste("Reading", gcfile))
   gd = read.table(gcfile, header=T, sep="\t")
-  print(paste("Reading", varfile))
   vd = read.table(varfile, header=T, sep="\t")
   
   # Get ratios for each bin  

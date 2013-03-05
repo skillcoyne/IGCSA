@@ -35,7 +35,7 @@ for (i in 1:bins)
   rm(chunk)
   rm(freq)
   }
-rm(d)
+#rm(d)
 
 write.table(file=fileout, all_freq, quote=F, row.names=T, sep="\t")
 

@@ -15,8 +15,17 @@ hsgene = biomart.datasets['hsapiens_gene_ensembl']
 
 dir = "#{Dir.home}/Data/VariationNormal"
 
+files = Dir["#{dir}/chr*/dist2.txt"]
+files.select!{|e|
+  e.match(/chr1\//) || e.match(/chr2\//) || e.match(/chr3/) || e.match(/chr4/) ||
+      e.match(/chr5/) || e.match(/chrX/) || e.match(/chrY/)
+}
+#puts files
+
+
 threads = []
-Dir["#{dir}/chr*/dist2.txt"].each do |file|
+files.each do |file|
+#Dir["#{dir}/chr*/dist2.txt"].each do |file|
   puts file
   threads << Thread.new(file) {
     chr = File.basename(File.dirname(file))
@@ -41,7 +50,7 @@ Dir["#{dir}/chr*/dist2.txt"].each do |file|
 
       region = "#{chr}:#{pos}-#{chr}:#{pos+1000}"
       #puts region
-      begin 
+      begin
       	results = hsgene.search(
           :filters => {'chromosome_name' => chr, 'chromosomal_region' => [region], 'status' => ['KNOWN']},
           :attributes => ['ensembl_gene_id', 'start_position', 'end_position', 'percentage_gc_content', 'gene_biotype'],

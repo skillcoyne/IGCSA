@@ -9,10 +9,6 @@ if ARGV[0].eql?'-s'
   separate_gvf = ARGV[1]
 end
 
-
-
-
-
 # --- Setup is the same for directory of VCF or a single file --- #
 config_defaults = YAML.load_file("resources/var.props.example")
 cfg = Utils.check_config("resources/var.props", config_defaults, ['tabix.path', 'chromosome.data'])

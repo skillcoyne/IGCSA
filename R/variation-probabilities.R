@@ -1,6 +1,10 @@
 # http://cran.r-project.org/doc/contrib/Ricci-distributions-en.pdf
 # clear workspace
 
+###  This script is useless right now.  I'm keeping it around just for the commands so I don't have to 
+###  go searching again.
+
+
 
 # --------------Functions---------------------- #
 normplot<-function(scores)
