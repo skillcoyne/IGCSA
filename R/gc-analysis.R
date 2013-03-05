@@ -29,27 +29,29 @@ for (i in 1:length(var_files))
   vd = data$vars
   gd = data$gc
   
+  # So, there's a difference between high & low gc content.  Low GC seems to correlate appears to be 
+  # correlated with high high frequency of SNVs in that hill distribution
+  # Extreme values still cause problems
   gdvd = cbind(vd, gd)
-  gdvd = gdvd[gdvd$GCRatio <= 0.3,]  # low GC seems to correlate with high SNV
-  cor.test(gdvd$SNV, gdvd$GCRatio, methods="pearson")
-  #bins1 = which(vd$SNV == 0 )
-  #r1 = gd$GCRatio[bins1]
-  #bins2 = which(vd$SNV == 19 )
-  #r2 = gd$GCRatio[bins2]
-  #t.test(r1, r2)  
-  
-  #par(mfrow=c(1,2))
-  #hist(r1, main="1kb = 0")
-  #hist(r2, main="1kb = 19")
+  low = gdvd[gdvd$GCRatio <= 0.3,]  
+  cor.test(low$SNV, low$GCRatio, methods="pearson")
+  range(low$SNV)
+  median(low$SNV)
+  table(low$SNV)
+  # High GC *seems* to be more frequent in the fragments with large numbers of SNVs  
+  high = gdvd[gdvd$GCRatio >= 0.6,]
+  cor.test(high$SNV, high$GCRatio, methods="pearson")
+  range(high$SNV)
+  median(high$SNV)
+  table(high$SNV)
   
   ## TODO: Look at CpG islands do means/bins t.tests, this *could* be GC content but isn't really significant
   
-  #ct = corrGC(gd, vd, var="SNV", var.counts=c(16, 15), method="pearson")
-  #if (!is.na(ct)) pvalues[chr, 'p.value'] = format.pval(ct$p.value, digits=3)
-  
   # Random pvalue test
-  #rand = sample( gd$GCRatio, 5000 )
-  #t.test(rand[1:2500], rand[2501:5000])
+  rand1 = sample( gdvd$GCRatio, 5000 )
+  rand2 = sample( gdvd$SNV, 5000 )
+  t.test(rand1[1:2500], rand1[2501:5000])
+  t.test(rand1[1:2500], rand2[1:2500])
   #rt = cor.test(quantile(rand[1:2500]), quantile(rand[2501:5000]), method="pearson" )
   #rt = cor.test(rand[1:2500], rand[2501:5000], method="pearson" )
   #pvalues[chr, 'sampled.p.value'] = format.pval(rt$p.value, digits=3)
