@@ -4,6 +4,10 @@ if (length(args) < 3) stop("Usage: CpG-analysis.R <chromosome number format: chr
 
 print(args[1])
 
+#chr = 'chr1'
+#dir = "~/Data"
+#wd = "~/workspace/IGCSA/R"
+
 chr = args[1]
 dir = args[2]
 wd =  args[3]
@@ -34,13 +38,20 @@ var_data = cbind(data$vars, gc)
 rm(gc)
 rm(data)
   
-cpgd = load.cpg(cpg_file)
+cpgd = load.cpg(cpg_file, cpgI.only=F)
  
+high = cpgd[cpgd$Meth.Prob >= 0.5, ]
+low = cpgd[cpgd$Meth.Prob < 0.5, ]
+
+table(low[,1])
+table(high[,1])
+
 print(paste("Total fragments", nrow(var_data)))
 varnorm = paste(dir, "VariationNormal", sep="/")
 
 var_data$Pred.CpGI = NA
-var_data$Med.Methy.Pred = NA
+var_data$CpGI.Meth = NA
+var_data$NonCpGI.Meth = NA
 
 nam=T; app=F
 for (i in 1:nrow(var_data))
@@ -48,12 +59,15 @@ for (i in 1:nrow(var_data))
   fragE = as.numeric( rownames(var_data[i,]) )
   fragS = fragE-1000
   islands = cpgd[ cpgd$RangeS >= fragS & cpgd$RangeE <= fragE,  ]
-  if (nrow(islands) > 0) 
+  if (nrow(islands) > 0 ) 
     { 
-    var_data[i, 'Pred.CpGI'] = nrow(islands)
-    var_data[i, 'Med.Methy.Pred'] = median(islands$Meth.Prob)
+    # 1 -> CpG Island, 0 is nonCpG
+    var_data[i, 'Pred.CpGI'] = nrow(islands[islands$CpG > 0,]) 
+    var_data[i, 'CpGI.Meth'] = mean(islands[islands$CpG == 1, 'Meth.Prob'])
+    var_data[i, 'NonCpGI.Meth'] = mean(islands[islands$CpG < 1, 'Meth.Prob'])
     }
   write.table(var_data[i,], file=paste(chrdir, "/", chr, "-varCpG.txt", sep=""), sep="\t", quote=F, append=app, col.names=nam)
+  #write.table(var_data[i,], sep="\t", quote=F, append=app, col.names=nam)
   nam=F; app=T
   }
   
