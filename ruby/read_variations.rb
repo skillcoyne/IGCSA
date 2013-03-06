@@ -1,4 +1,5 @@
 require_relative 'lib/gvf_reader'
+require_relative 'lib/utils'
 
 require 'yaml'
 
@@ -17,6 +18,8 @@ output_dir = "#{cfg['freq.output.dir']}/Ensembl/#{cfg['window']}"
 Utils.setup_dirs([output_dir, "#{output_dir}/tmp"], true)
 
 # --- Separate GVF into Chromosome specific files -- #
+
+
 
 if separate_gvf
 

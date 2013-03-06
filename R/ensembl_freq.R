@@ -1,3 +1,7 @@
+## 
+## Script counts variations by fragment across the chromosome
+##
+
 args = commandArgs(trailingOnly = TRUE)
 filein = args[1]
 fileout = args[2]

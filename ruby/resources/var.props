@@ -2,10 +2,10 @@
 fasta.dir: /Users/sarah.killcoyne/Data/FASTA
 
 # Directories with variation files. e.g. 1000genomes VCF files. If using multiple sources separate directories with a ;
-variation.dir: /Users/sarah.killcoyne/Data/VariationNormal/Ensembl
-#/Users/sarah.killcoyne/Data/1000Genomes/VCF
+variation.dir: /Users/sarah.killcoyne/Data/Ensembl/Variation
 
 # Output directories for frequency/gc distribution files
+output.dir: /Users/sarah.killcoyne/Data/VariationNormal
 freq.output.dir: /Users/sarah.killcoyne/Data/VariationNormal/Frequencies
 gc.output.dir: /Users/sarah.killcoyne/Data/VariationNormal/GC
 

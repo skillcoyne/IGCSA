@@ -44,15 +44,6 @@ puts "BP length of genome: #{total_length}"
 tabix = cfg['tabix.path'] || 'tabix'
 
 
-#if vcf_file
-#
-#  vcf_file.match(/chr(\d+|X|Y)/)
-#  chr = $1
-#  reader = VariationReader.new(chr, entry, output_dir)
-#  reader.set_tabix(tabix)
-#  rv = reader.read_variations(cfg['window'], chr_info[chr])
-#
-#else
   var_dirs = cfg['variation.dir'].split(';')
   var_dirs.map! { |e| [e, Dir["#{e}/*.vcf.gz"]] }
 
@@ -100,4 +91,3 @@ tabix = cfg['tabix.path'] || 'tabix'
   warn "WARNING: " + warnings.join("\n")
   # don't keep the vcf file around
   FileUtils.rm_rf("#{output_dir}/tmp")
-#end

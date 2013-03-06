@@ -1,21 +1,43 @@
+rm(list=ls())
+setwd("~/workspace/IGCSA/R")
+source("lib/gc_functions.R")
 
 
-setwd("~/Data/VariationNormal/")
-files = list.files(pattern="genes-dist2.txt", recursive=T)  
+#args = commandArgs(trailingOnly = TRUE)
+#ens_dir = args[1]
+#gc_dir = args[2]
 
-rm(counts)
-for (f in files)
+data_dir = "~/Data/VariationNormal"
+setwd(data_dir)
+
+ens_dir = paste(data_dir, "Frequencies/1000/Ensembl", sep="/")
+var_files = list.files(path=ens_dir, pattern=".txt")  
+
+gc_dir = paste(data_dir, "GC/1000", sep="/")
+gc_files = list.files(path=gc_dir,pattern=".txt")  
+
+
+for(file in var_files)
   {
-  chr = sub("/genes-dist2.txt", "", f)
-  g = read.table(f, header=T, sep="\t")
+  chr = sub(".txt", "", file)
+  chrdir = paste(getwd(), chr, sep="/")
   
-  if (!exists("counts")) counts = g else counts = rbind(counts, g)
-  #rm(g)
-  break
+  # Variation & gc files
+  gc_f = paste(gc_dir, paste(chr, "-gc.txt", sep=""), sep="/")
+  var_f = paste(ens_dir, file, sep="/")
+  
+  data = load.data(gc_f, var_f)
+  vd = data$vars; gd = data$gc
+  all = cbind(vd, gd)
+  
+  extreme_frags = all[all$SNV < 8,]
+  med_frags = all[all$SNV == median(all$SNV), ]
+  
+  write.table(extreme_frags, file=paste(chrdir, "dist-extremes.txt", sep="/") , quote=F, sep="\t")
+  #write.table(med_frags, file=paste(chrdir, "dist2.txt", sep="/") , quote=F, sep="\t")
   }
 
-freq = table(counts$Total.Genes)
-png(filename="genes-dist2.png", width=650, height=650)
-barplot(freq, main="From 2nd dist across all Chromosomes", xlab="# of genes found in fragments", ylab="1kb fragments", col="blue", sub=paste("Total bins:", nrow(counts)))
-dev.off()
+
+
+
 

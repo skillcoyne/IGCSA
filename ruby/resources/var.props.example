@@ -13,6 +13,7 @@ variation.dir: /path/to/var/files
 fasta.dir: /path/to/fasta/files
 
 # Output directories for frequency/gc distribution files
+output.dir:
 freq.output.dir: /path/to/output/freq/files
 gc.output.dir: /path/to/output/gc/files
 

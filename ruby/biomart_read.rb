@@ -15,13 +15,7 @@ hsgene = biomart.datasets['hsapiens_gene_ensembl']
 
 dir = "#{Dir.home}/Data/VariationNormal"
 
-files = Dir["#{dir}/chr*/dist2.txt"]
-files.select!{|e|
-  e.match(/chr1\//) || e.match(/chr2\//) || e.match(/chr3/) || e.match(/chr4/) ||
-      e.match(/chr5/) || e.match(/chrX/) || e.match(/chrY/)
-}
-#puts files
-
+files = Dir["#{dir}/chr*/dist-extremes.txt"]
 
 threads = []
 files.each do |file|
@@ -30,13 +24,14 @@ files.each do |file|
   threads << Thread.new(file) {
     chr = File.basename(File.dirname(file))
     chr.sub!("chr", "")
-    Thread.current['message'] = "Writing #{File.dirname(file)}/genes-dist2.txt"
+    Thread.current['message'] = "Writing #{File.dirname(file)}/genes-extremes.txt"
     Thread.current['chr'] = chr
-    Thread.current['errors'] = []
 
     total = 0; positions = {}; counts = []
+    ferr = File.open("#{File.dirname(file)}/genes-err.txt", 'w')
+
     # Write each chromosome separately for easier analysis later
-    fout = File.open("#{File.dirname(file)}/genes-dist2.txt", 'w')
+    fout = File.open("#{File.dirname(file)}/genes-extremes.txt", 'w')
     fout.write ['Chr', 'Position', 'Genes', 'Total.Genes', 'Total.SNVs', 'Max.Count'].join("\t") + "\n"
 
     File.open(file, 'r').each_with_index do |line, i|
@@ -64,7 +59,7 @@ files.each do |file|
 
       	total += 1
 			rescue Exception => e
-				Thread.current['errors'] << "Error reading #{file}: #{e.message}"
+				ferr.write "Error reading #{file}: #{e.message}\n"
 			end
       sleep 3 if i%20 == 0 # just in case ensembl gets annoyed
     end
@@ -76,6 +71,7 @@ files.each do |file|
     end
 
     fout.close
+    ferr.close
     Thread.current['total'] = total
   }
 end
@@ -83,7 +79,6 @@ end
 threads.each { |t|
   t.join; 
   puts [t['message'], ':', t['total']].join("\t")
-  puts t['errors'].join("\n") unless t['errors'].empty?
 }
 
 
