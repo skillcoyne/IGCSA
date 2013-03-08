@@ -6,8 +6,14 @@ source("lib/gc_functions.R")
 #args = commandArgs(trailingOnly = TRUE)
 #ens_dir = args[1]
 #gc_dir = args[2]
+#outdir = args[3]
+#low/median/high
+frags = "high"
 
 data_dir = "~/Data/VariationNormal"
+outdir = paste(data_dir, "Genes", frags, "fragments", sep="/")
+if (!file.exists(outdir)) dir.create(outdir, recursive=T)
+
 setwd(data_dir)
 
 ens_dir = paste(data_dir, "Frequencies/1000/Ensembl", sep="/")
@@ -15,7 +21,6 @@ var_files = list.files(path=ens_dir, pattern=".txt")
 
 gc_dir = paste(data_dir, "GC/1000", sep="/")
 gc_files = list.files(path=gc_dir,pattern=".txt")  
-
 
 for(file in var_files)
   {
@@ -30,11 +35,20 @@ for(file in var_files)
   vd = data$vars; gd = data$gc
   all = cbind(vd, gd)
   
-  extreme_frags = all[all$SNV < 8,]
-  med_frags = all[all$SNV == median(all$SNV), ]
-  
-  write.table(extreme_frags, file=paste(chrdir, "dist-extremes.txt", sep="/") , quote=F, sep="\t")
-  #write.table(med_frags, file=paste(chrdir, "dist2.txt", sep="/") , quote=F, sep="\t")
+  if (frags == 'high')
+    {
+    fragments = all[all$SNV > mean(all$SNV) + sd(all$SNV),]
+    }
+  else if (frags == 'mean')
+    {
+    fragments = all[all$SNV == median(all$SNV), ]
+    }
+  else if (frags == 'low')
+    {
+    fragments = all[all$SNV < 8,]
+    }
+  print(paste(outdir, paste(chr, "txt", sep="."), sep="/"))
+  write.table(fragments, file=paste(outdir, paste(chr, "txt", sep="."), sep="/"), quote=F, sep="\t")
   }
 
 
