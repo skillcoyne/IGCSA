@@ -26,8 +26,8 @@ gc_file = paste(gc_dir, list.files(path=gc_dir, pattern=paste(chr,"-gc.txt", sep
 cpg_dir = paste(dir, "HDMFPred", sep="/")
 cpg_file = paste(cpg_dir, list.files(path=cpg_dir, pattern=paste(chr,"txt", sep=".")), sep="/")
 
-chrdir = paste(dir, "VariationNormal", chr, sep="/")
-if (!file.exists(chrdir)) dir.create(chrdir)
+print(paste("Reading", gc_file, var_file, cpg_file))
+out_dir = paste(dir, "/VariationNormal/CpG/1000", sep="")
  
 # Variation & gc files
 data = load.data(gc_file, var_file)
@@ -66,7 +66,7 @@ for (i in 1:nrow(var_data))
     var_data[i, 'CpGI.Meth'] = mean(islands[islands$CpG == 1, 'Meth.Prob'])
     var_data[i, 'NonCpGI.Meth'] = mean(islands[islands$CpG < 1, 'Meth.Prob'])
     }
-  write.table(var_data[i,], file=paste(chrdir, "/", chr, "-varCpG.txt", sep=""), sep="\t", quote=F, append=app, col.names=nam)
+  write.table(var_data[i,], file=paste(out_dir, "/", chr, "-varCpG.txt", sep=""), sep="\t", quote=F, append=app, col.names=nam)
   #write.table(var_data[i,], sep="\t", quote=F, append=app, col.names=nam)
   nam=F; app=T
   }
