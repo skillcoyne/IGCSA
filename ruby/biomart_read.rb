@@ -1,3 +1,4 @@
+require 'fileutils'
 require 'biomart'
 require 'yaml'
 
@@ -6,32 +7,49 @@ biomart = Biomart::Server.new("http://www.ensembl.org/biomart")
 hsgene = biomart.datasets['hsapiens_gene_ensembl']
 
 
+if ARGV.length < 3
+  puts("Usage: #{$0} <genes directory> <high low median> <chromosome list>")
+  exit()
+end
+
+dir = ARGV[0]
+dist = ARGV[1]
+chrs = ARGV[2..ARGV.length]
+
+
 #results = hsgene.search(
 #    :filters => {'chromosome_name' => 10, 'chromosomal_region' => ["10:101000-10:140000"], 'status' => ["KNOWN"]},
 #    :attributes => ['ensembl_gene_id', 'start_position', 'end_position', 'percentage_gc_content', 'gene_biotype'],
 #    :process_results => true
 #).select!{|e| e['gene_biotype'].eql?'protein_coding'}
 
+if chrs.length.eql?1 and chrs[0].eql?'all'
+  chrs = ("1".."22").to_a
+  chrs.push('X')
+  chrs.push('Y')
+  puts chrs
+end
+puts "Running chromosomes: #{chrs.join(',')}"
 
-dir = "#{Dir.home}/Data/VariationNormal"
+gene_dir = "#{dir}/#{dist}/genes"
+FileUtils.mkpath(gene_dir) unless File.exists?gene_dir
 
-files = Dir["#{dir}/chr*/dist-extremes.txt"]
 
 threads = []
-files.each do |file|
-#Dir["#{dir}/chr*/dist2.txt"].each do |file|
+chrs.each do |chr|
+  file = "#{dir}/#{dist}/fragments/chr#{chr}.txt"
   puts file
-  threads << Thread.new(file) {
-    chr = File.basename(File.dirname(file))
-    chr.sub!("chr", "")
-    Thread.current['message'] = "Writing #{File.dirname(file)}/genes-extremes.txt"
+  threads << Thread.new(file, dir, dist, chr) {
+    outfile = "#{dir}/#{dist}/genes/chr#{chr}-genes.txt"
+
+    Thread.current['message'] = "Writing #{outfile}"
     Thread.current['chr'] = chr
 
     total = 0; positions = {}; counts = []
-    ferr = File.open("#{File.dirname(file)}/genes-err.txt", 'w')
+    ferr = File.open("#{dir}/#{dist}/#{chr}-genes.err", 'w')
 
     # Write each chromosome separately for easier analysis later
-    fout = File.open("#{File.dirname(file)}/genes-extremes.txt", 'w')
+    fout = File.open(outfile, 'w')
     fout.write ['Chr', 'Position', 'Genes', 'Total.Genes', 'Total.SNVs', 'Max.Count'].join("\t") + "\n"
 
     File.open(file, 'r').each_with_index do |line, i|

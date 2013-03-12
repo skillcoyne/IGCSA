@@ -12,6 +12,10 @@ import org.lcsb.lu.igcsa.utils.FileUtils;
 import org.lcsb.lu.igcsa.utils.GenomeProperties;
 import org.lcsb.lu.igcsa.variation.VariantType;
 import org.lcsb.lu.igcsa.variation.Variation;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import javax.annotation.Resource;
 
 import static org.lcsb.lu.igcsa.utils.GenomeUtils.*;
 
@@ -34,7 +38,6 @@ public class InsilicoGenome
   {
   private static final String propertyFile = "genome.properties";
 
-
   protected GenomeProperties normalProperties;
   protected GenomeProperties cancerProperties;
   protected Genome referenceGenome;
@@ -47,8 +50,11 @@ public class InsilicoGenome
 
   public static void main(String[] args) throws Exception
     {
+    ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
+
     InsilicoGenome igAp = new InsilicoGenome(args);
     }
+
 
   public InsilicoGenome(String[] args) throws Exception
     {

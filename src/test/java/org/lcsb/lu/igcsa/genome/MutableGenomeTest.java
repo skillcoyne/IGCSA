@@ -81,7 +81,7 @@ public class MutableGenomeTest
     assertTrue(genome.hasChromosome("1"));
     assertTrue(genome.hasChromosome("2"));
 
-    genome.mutate();
+    //genome.mutate();
 
 
     int window = 50;
