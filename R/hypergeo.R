@@ -96,3 +96,10 @@ mean(cg[!(gcLowRows+gcHighRows),"SNV"])
 mean(cg[gcHighRows,"SNV"])
 
 
+## Break up the gc content by some sd's and t-test each variation to see what works better for each 
+## variation type.  After cutoffs are selected this way, can do mann-whitney to support it (for pub)
+
+
+
+
+
