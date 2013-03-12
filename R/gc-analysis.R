@@ -14,7 +14,7 @@ pvalues = as.data.frame(matrix(nrow=0, ncol=3))
 colnames(pvalues) = c('p.value', 'sampled.p.value', 'gc')
 # Does correlation tests against the two tops of the variation distribution (0 ~15)
 # on each chromosome
-var_files=c("chr6.txt")
+var_files=c("chr1.txt")
 for (i in 1:length(var_files))
   {
   file = var_files[i]
@@ -33,11 +33,19 @@ for (i in 1:length(var_files))
   # correlated with high high frequency of SNVs in that hill distribution
   # Extreme values still cause problems
   gdvd = cbind(vd, gd)
+  
+  snvCutoff = 1
+  snvCutoffUpper = 29
+  snvBump = gdvd[gdvd$SNV > snvCutoff & gdvd$SNV < snvCutoffUpper ,]
+  
+  q = quantile(gdvd$GCRatio)
+
   low = gdvd[gdvd$GCRatio <= 0.3,]  
   cor.test(low$SNV, low$GCRatio, methods="pearson")
   range(low$SNV)
   median(low$SNV)
   table(low$SNV)
+  
   # High GC *seems* to be more frequent in the fragments with large numbers of SNVs  
   high = gdvd[gdvd$GCRatio >= 0.6,]
   cor.test(high$SNV, high$GCRatio, methods="pearson")
@@ -45,7 +53,6 @@ for (i in 1:length(var_files))
   median(high$SNV)
   table(high$SNV)
   
-  ## TODO: Look at CpG islands do means/bins t.tests, this *could* be GC content but isn't really significant
   
   # Random pvalue test
   rand1 = sample( gdvd$GCRatio, 5000 )
@@ -66,4 +73,32 @@ for (i in 1:length(var_files))
 #title(main="GC Ratio pvalues", sub="p.value on bins with count 0, 15", ylab='p value')
 #legend("topleft", legend=names(pvalues), fill=c('blue', 'red', 'green') )
 #write.table(pvalues, quote=F, sep="\t")
+
+
+
+
+sd(gdvd$GCRatio)
+
+highest = max(gdvd$GCRatio)
+high = mean(gdvd$GCRatio) + 2*sd(gdvd$GCRatio)
+mean = mean(gdvd$GCRatio)
+low = mean(gdvd$GCRatio) - 2*sd(gdvd$GCRatio)
+
+
+sum(gdvd$GCRatio <= low)
+sum(gdvd$GCRatio > low & gdvd$GCRatio <= mean)
+sum(gdvd$GCRatio > mean & gdvd$GCRatio <= high)
+sum(gdvd$GCRatio > high & gdvd$GCRatio <= highest)
+
+
+chunk = gdvd[gdvd$GCRatio <= low,]
+chunk = gdvd[gdvd$GCRatio > low & gdvd$GCRatio <= mean,]
+chunk = gdvd[gdvd$GCRatio > mean & gdvd$GCRatio <= high,]
+chunk = gdvd[gdvd$GCRatio > high & gdvd$GCRatio <= highest,]
+nrow(chunk)
+cor.test(chunk[,6], chunk$GCRatio, m="p")
+
+colnames(chunk[,1:7])
+
+
 

@@ -14,34 +14,43 @@ gene_perc = vector("numeric", length(var_files))
 gp_names = vector("character", length(var_files))
 
 chrs = c(1:22)#, 'X', 'Y')
-gr = as.data.frame(matrix(ncol=5, nrow=length(chrs)))
-colnames(gr) = c('TF.Dist2', 'FG.Dist2', 'TF.Extreme', 'FG.Extreme', 'Known.Genes')
-for (i in 1:length(chrs))
+gr = data.frame(chr=chrs, row.names='chr')
+#colnames(gr) = c('TF.Dist2', 'FG.Dist2', 'TF.Extreme', 'FG.Extreme', 'Known.Genes')
+for (c in chrs)
   {
-  c = chrs[i]
+  overlap_genes = list()
+  low_g = list()
+  med_g = list()
+  high_g = list()
+  for (dist in c('low', 'median', 'high'))
+    {
+    dpath = paste(gene_dir, dist, 'genes', sep="/")
+    file = list.files(path=dpath, pattern=paste('chr',c, '-',sep=""))
+    gene_d = read.table(paste(dpath, file, sep="/"), header=T, sep="\t")
 
-  chr = paste('chr', c, sep="")
+    # gene files
+    genes = unique(unlist(strsplit(as.character(gene_d$Genes), ","))) # Since one gene may overlap multiple consecutive regions
+    if (dist == 'low') { low_g = genes } else if (dist == 'median') { med_g = genes } else {high_g = genes}
+
+    overlap_genes = unlist(append(overlap_genes, genes))
+    # TF -> total fragments, FG -> Fragment genes
+    colnames = c( paste('TF', dist, sep='.'), paste('FG', dist, sep='.')    )
+    gr[c, colnames[1]] = nrow(gene_d) - nrow(gene_d[gene_d$Position < 10000,])
+    gr[c, colnames[2]] = length(genes)
+    }
+  gr[c, 'Low.Med.Diff'] = length(setdiff(low_g, med_g))
+  gr[c, 'Low.High.Diff'] = length(setdiff(low_g, high_g))
+  gr[c, 'High.Med.Diff'] = length(setdiff(high_g, med_g))
   
-  # gene files
-  df = paste(gene_dir, "/dist2/genes/", paste(chr, "-genes-dist2.txt", sep=""), sep="")
-  ef = paste(gene_dir, "/extremes/genes/", paste(chr, "-genes-extremes.txt", sep=""), sep="")
-
-  gr[i, 'Known.Genes'] = chr_info[c, 'Confirmed.proteins']
   
-  # Dist2
-  gene_d = read.table(df, header=T, sep="\t")
-  genes = unique(unlist(strsplit(as.character(gene_d$Genes), ","))) # Since one gene may overlap multiple consecutive regions
-  gr[i, 'TF.Dist2'] = nrow(gene_d) - nrow(gene_d[gene_d$Position < 10000,])
-  gr[i, 'FG.Dist2'] = length(genes)
-
-  # Extremes
-  gene_d = read.table(ef, header=T, sep="\t")
-  genes = unique(unlist(strsplit(as.character(gene_d$Genes), ","))) # Since one gene may overlap multiple consecutive regions
-  gr[i, 'TF.Extreme'] = nrow(gene_d) - nrow(gene_d[gene_d$Position < 10000,])
-  gr[i, 'FG.Extreme'] = length(genes)
+  overlap_genes = unique(overlap_genes)
+  gr[c, 'Unique.Genes'] = length(overlap_genes)
+  gr[c, 'Known.Genes'] = chr_info[c, 'Confirmed.proteins']
   }
-rownames(gr) = chrs
-save(gr, file="Genes.Rdata")
+
+
+
+#save(gr, file="Genes.Rdata")
 
 # Proportion of genes in entire chromosome identified within the top of the hill region
 # Number of fragments matters
@@ -49,17 +58,13 @@ save(gr, file="Genes.Rdata")
 # I *think* I should adjust the number of genes by the number of fragments
 # And I should definitely adjust by the number of known genes
 
-adjd2 = (gr$FG.Dist2/gr$TF.Dist2)/gr$Known.Genes
-adjex = (gr$FG.Extreme/gr$TF.Extreme)/gr$Known.Genes
+frag_adj = gr[,'TF.median']/chr_info[1:22, 'Base.pairs']
+m = (gr[, 'FG.median']/gr$Known.Genes)/frag_adj
 
-plot(adjd2, col='blue', xaxt='n', type='o', pch=19, xlab="Chromosomes", ylab="Adjusted genes")
-lines(adjex, col='red',type='o', pch=19)
-axis(1, at=1:nrow(gr), labels=rownames(gr))
-legend('topleft', legend=c("Hill dist", "Extremes"), col=c('blue', 'red'), fill=c('blue', 'red'))
+frag_adj = gr[,'TF.low']/chr_info[1:22, 'Base.pairs']
+l = (gr[, 'FG.low']/gr$Known.Genes)/frag_adj
 
-# erm...not sure I actually need to do any tests here.  All I wanted to see was how many genes overlapped the fragments within the
-# given distribution of variations on a chromosome.  Problem is that I'm not sure how to really compare them.  I had fewer fragments in the extreme
-# regions.  So that needs to be normalized somehow
-# extremes are less normal, as expected
-ks.test(adjd2, pnorm, mean(adjd2), sd(adjd2)) 
-ks.test(adjex, pnorm, mean(adjex), sd(adjex))
+frag_adj = gr[,'TF.high']/chr_info[1:22, 'Base.pairs']
+h = (gr[, 'FG.high']/gr$Known.Genes)/frag_adj
+
+# Not sure what I can really say about this or how to mine it further

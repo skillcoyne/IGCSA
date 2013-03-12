@@ -4,13 +4,13 @@ if (length(args) < 3) stop("Usage: CpG-analysis.R <chromosome number format: chr
 
 print(args[1])
 
-#chr = 'chr1'
-#dir = "~/Data"
-#wd = "~/workspace/IGCSA/R"
+chr = 'chr1'
+dir = "~/Data"
+wd = "~/workspace/IGCSA/R"
 
-chr = args[1]
-dir = args[2]
-wd =  args[3]
+#chr = args[1]
+#dir = args[2]
+#wd =  args[3]
 
 source(paste(wd, "lib/gc_functions.R", sep="/"))
 
@@ -66,7 +66,7 @@ for (i in 1:nrow(var_data))
     var_data[i, 'CpGI.Meth'] = mean(islands[islands$CpG == 1, 'Meth.Prob'])
     var_data[i, 'NonCpGI.Meth'] = mean(islands[islands$CpG < 1, 'Meth.Prob'])
     }
-  write.table(var_data[i,], file=paste(out_dir, "/", chr, "-varCpG.txt", sep=""), sep="\t", quote=F, append=app, col.names=nam)
+  #write.table(var_data[i,], file=paste(out_dir, "/", chr, "-varCpG.txt", sep=""), sep="\t", quote=F, append=app, col.names=nam)
   #write.table(var_data[i,], sep="\t", quote=F, append=app, col.names=nam)
   nam=F; app=T
   }
