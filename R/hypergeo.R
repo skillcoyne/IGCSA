@@ -98,6 +98,43 @@ mean(cg[gcHighRows,"SNV"])
 
 ## Break up the gc content by some sd's and t-test each variation to see what works better for each 
 ## variation type.  After cutoffs are selected this way, can do mann-whitney to support it (for pub)
+sum(cg[,"SNV"] > 0)
+t.test( cg[gcLowRows,"SNV"], cg[gcLowRows, "GC"]  )
+
+summary(cg[,'GC'])
+ranges = c(
+  max(cg[,'GC']),
+  mean(cg[,'GC']) + 4*sd(cg[,'GC']),
+  mean(cg[,'GC']) + 3*sd(cg[,'GC']),
+  mean(cg[,'GC']) + 2*sd(cg[,'GC']),
+  mean(cg[,'GC']) + sd(cg[,'GC']),
+  mean(cg[,'GC']),
+  mean(cg[,'GC']) - sd(cg[,'GC']),
+  mean(cg[,'GC']) - 2*sd(cg[,'GC']),
+  mean(cg[,'GC']) - 3*sd(cg[,'GC']),
+  0)
+ranges = rev(ranges)
+
+for (i in 1:length(ranges)-1)
+  {
+  print(i)
+  min = ranges[i]; max = ranges[i+1]
+  print(min)
+  print(max)
+  }
+min = 0
+max = m3sd
+rows = cg$GC > min & cg$GC <= max
+test = vector("numieric", length=4)
+names(test) = c('t.statistic', 'n.rows', 'min', 'max')
+tt = t.test(cg[rows, "SNV"], cg[rows, "GC"])
+
+test[1] = tt$statistic
+test[2] = nrow(cg[rows,])
+test[3] = min
+test[4] = max
+
+print(test)
 
 
 

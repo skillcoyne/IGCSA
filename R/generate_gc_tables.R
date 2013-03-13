@@ -1,5 +1,30 @@
 rm(list=ls())
 
+t.test.gc<-function(cg, cols, ranges)
+  {
+  if (ranges[1] > 0) ranges = rev(round(ranges))
+  #print(ranges)
+  tests = data.frame()
+  for (i in 1:length(ranges))
+    {
+    if (i == length(ranges)) break
+    min = ranges[i]; max = ranges[i+1]
+    rows = cg$GC > min & cg$GC <= max
+    
+    for (var in colnames(cg[,1:cols]))
+      {
+      tt = t.test(cg[rows,var])
+      print(tt)
+      tests[i, paste(var,'t', sep='.')] = round(tt$statistic, 2)
+      }
+    tests[i, 'min.GC'] = min
+    tests[i, 'max.GC'] = max
+    tests[i, 'n.rows'] = nrow(cg[rows,])
+    }
+  return(tests)
+  }
+
+
 setwd("~/workspace/IGCSA/R")
 source("lib/gc_functions.R")
 
@@ -10,80 +35,132 @@ var_files = list.files(path=ens_dir, pattern="*.txt")
 gc_dir = paste(dir, "/VariationNormal/GC/1000", sep="")
 gc_files = list.files(path=gc_dir, pattern="*-gc.txt")
 
-q = read.table(paste(gc_dir, 'gc-quintiles.txt', sep="/"), sep='\t', header=T)
-q = as.vector(q)
+filename = paste(dir, "gc.ttests.txt", sep="/")
+if (file.exists(filename)) file.remove(filename)
 
-tables_dir = paste(dir, "/VariationNormal", sep="")
-
-highest_f = paste(tables_dir, 'highest-gc.txt', sep='/')
-write(paste("## GC >", signif(q$high, 4), "GC <=", signif(q$highest, 4), "##"), file=highest_f)
-
-high_f = paste(tables_dir, 'high-gc.txt', sep='/')
-write(paste("## GC >", signif(q$mean, 4), "GC <=", signif(q$high, 4), "##"), file=high_f)
-
-mid_f = paste(tables_dir, 'mid-gc.txt', sep='/')
-write(paste("## GC >", signif(q$low, 4), "GC <=", signif(q$mean, 4), "##"), file=mid_f)
-
-low_f = paste(tables_dir, 'low-gc.txt', sep='/')
-write(paste("## GC >", signif(q$lowest, 4), "GC <=", signif(q$low, 4), "##"), file=low_f)
-
-lowest_f = paste(tables_dir, 'lowest-gc.txt', sep='/')
-write(paste("## GC <", signif(q$lowest, 4), "##"), file=lowest_f)
-
-rm(all_gc)
-col=T; rows=F
+var_files = c('chr1.txt')
 for (file in var_files)
   {
   chr = sub(".txt", "", file)
-  chrdir = paste(getwd(), chr, sep="/")
   
   # Variation & gc files
   gc_f = paste(gc_dir, paste(chr, "-gc.txt", sep=""), sep="/")
   var_f = paste(ens_dir, file, sep="/")
-  
+
   data = load.data(gc_f, var_f)
   vd = data$vars
   gd = data$gc
+  cg = cbind(vd, gd)
+  rm(data,vd,gd)
 
-  all = cbind(vd,gd)
+  summary(cg[,'GC'])
+  ranges1 = c(
+    #max(cg[,'GC']),
+    mean(cg[,'GC']) + 2*sd(cg[,'GC']),
+    mean(cg[,'GC']) + sd(cg[,'GC']),
+    mean(cg[,'GC']),
+    mean(cg[,'GC']) - sd(cg[,'GC']),
+    mean(cg[,'GC']) - 2*sd(cg[,'GC'])
+    #0    
+    )
   
+  ranges2 = c(
+    #max(cg[,'GC']),
+    mean(cg[,'GC']) + 2*sd(cg[,'GC']),
+    mean(cg[,'GC']),
+    mean(cg[,'GC']) - 2*sd(cg[,'GC'])
+    #0
+    )
   
-  highest = all[ all[,'GCRatio'] > q$high & all[,'GCRatio'] <= q$highest ,] 
-  high = all[ all[,'GCRatio'] > q$mean & all[,'GCRatio'] <= q$high ,] 
-  mid = all[ all[,'GCRatio'] > q$low & all[,'GCRatio'] <= q$mean ,] 
-  low = all[ all[,'GCRatio'] > q$lowest & all[,'GCRatio'] <= q$low ,] 
-  lowest = all[ all[,'GCRatio'] < q$lowest ,] 
+  ranges3 = c(
+    #max(cg[,'GC']),
+    mean(cg[,'GC']) + 2*sd(cg[,'GC']),
+    mean(cg[,'GC']),
+    mean(cg[,'GC']) - sd(cg[,'GC'])
+    #0
+  )
+
+  ranges4 = c(
+    #max(cg[,'GC']),
+    mean(cg[,'GC']) + 3*sd(cg[,'GC']),
+    mean(cg[,'GC']) + 2*sd(cg[,'GC']),
+    mean(cg[,'GC'])
+    #0
+  )
 
   
-  write.table(highest, quote=F, sep="\t", row.names=rows, append=T, col.names=col, file=highest_f)
-  write.table(high,    quote=F, sep="\t", row.names=rows, append=T, col.names=col, file=high_f)
-  write.table(mid,     quote=F, sep="\t", row.names=rows, append=T, col.names=col, file=mid_f)
-  write.table(low,     quote=F, sep="\t", row.names=rows, append=T, col.names=col, file=low_f)
-  write.table(lowest,  quote=F, sep="\t", row.names=rows, append=T, col.names=col, file=lowest_f)
   
-  if (!exists('all_gc')) all_gc = gd$GCRatio else all_gc = unlist(append(all_gc, gd$GCRatio))
-  col = F
+  #ranges=rev(round(ranges1))
+  
+  ranges = round(ranges1)
+  
+  #print(ranges)
+  tests = data.frame()
+  for (i in 1:length(ranges))
+    {
+    #min = ranges[i]; max = ranges[i+1]
+    #rows = cg$GC > min & cg$GC <= max
+    if (i == length(ranges)) break
+    highRows = cg[,'GC'] >= ranges[i]
+    lowRows = cg[,'GC'] <= ranges[length(ranges)]
+
+    var = 'deletion'
+    
+print( paste(ranges[i], ranges[length(ranges)], sep=":") )
+  t1 = t.test( cg[highRows, var], cg[!(highRows+lowRows), var] ) 
+    t2 = t.test( cg[highRows, var], cg[lowRows, var] ) 
+    
+    
+    tests[i, 't1'] = t1$statistic
+    tests[i, 't2'] = t2$statistic
+    
+    #for (var in colnames(cg[,1:7]))
+    #  {
+    #  tt = t.test(cg[rows,var], cg[!(rows), var])
+    #  tests[i, paste(var,'t', sep='.')] = round(tt$statistic, 2)
+    #  }
+    #tests[i, 'min.GC'] = min
+    #tests[i, 'max.GC'] = max
+    #tests[i, 'range'] = ranges[i]
+    #tests[i, 'n.rows'] = nrow(cg[rows,])
+    }
+  print(tests)
+  
+  
+  varcols = 7
+  if (chr == 'chrY') varcols = 5
+  
+  write(paste("###", chr, "###"), file=filename, app=T)
+  
+  tests = t.test.gc(cg, varcols, ranges1)
+  write.table(tests, file=filename, app=T, col.name=T, row.name=F, quote=F)
+  write(" ", file=filename, app=T)
+  
+  tests = t.test.gc(cg, varcols, ranges2)
+  write.table(tests, file=filename, app=T, col.name=T, row.name=F, quote=F)
+  write(" ", file=filename, app=T)
+  
+  tests = t.test.gc(cg, varcols, ranges3)
+  write.table(tests, file=filename, app=T, col.name=T, row.name=F, quote=F)
+  write(" ", file=filename, app=T)
+  
+  tests = t.test.gc(cg, varcols, ranges4)
+  write.table(tests, file=filename, app=T, col.name=T, row.name=F, quote=F)
+  write(" ", file=filename, app=T)
+  
+  # none in Y chromosome
+  tests = data.frame()
+  x = round(nrow(cg)/4)
+  for (i in 1:4)
+    {
+    max = x*i; min = x*(i-1)
+    print(paste(min, max, sep=":"))
+    tt = t.test(cg[min:max,'tandem_repeat'])
+    tests[i, 'tandem_repeat.t'] = round(tt$statistic, 2)
+    tests[i, 'n.rows'] = x
+    }
+  
+  write.table(tests, file=filename, app=T, col.name=T, row.name=F, quote=F)
+  write(" ", file=filename, app=T)
+  
   }
-
-sd(all_gc)
-
-quin = vector("numeric", length=5)
-names(quin) = c('highest', 'high', 'mean', 'low', 'lowest')
-
-quin['highest'] = max(all_gc)
-quin['high'] = mean(all_gc) + 3*sd(all_gc)
-quin['mean'] = mean(all_gc) + 2*sd(all_gc)
-quin['low'] = mean(all_gc)
-quin['lowest'] = mean(all_gc) - 2*sd(all_gc)
-
-length(all_gc)
-
-length( all_gc[ all_gc > high & all_gc <= highest ] )
-length( all_gc[ all_gc > mean & all_gc <= high ] )
-length( all_gc[ all_gc > low & all_gc <= mean ] )
-length( all_gc[ all_gc > lowest & all_gc <= low ] )
-length( all_gc[ all_gc < lowest ] ) 
-
-#write.table(t(quin), quote=F, sep="\t", row.names=F, file=paste(gc_dir, 'gc-quintiles.txt', sep="/"))
-              
-              
