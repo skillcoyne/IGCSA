@@ -115,28 +115,29 @@ ranges = c(
   0)
 ranges = rev(ranges)
 
-for (i in 1:length(ranges)-1)
+tests = data.frame(t.statistic=0, n.rows=0, min=0, max=0)
+for (i in 1:length(ranges))
   {
-  print(i)
+  if (i == length(ranges)) break
   min = ranges[i]; max = ranges[i+1]
-  print(min)
-  print(max)
+  rows = cg$GC > min & cg$GC <= max
+  #test = vector("numeric", length=4)
+  
+  for (var in colnames(cg[,1:7]))
+    {
+    tt = t.test(cg[rows, "GC"], cg[rows, var])
+    tests[i, paste(var,'t','statistic', sep='.')] = tt$statistic
+    }
+  tests[i, 'n.rows'] = nrow(cg[rows,])
+  tests[i, 'min'] = min
+  tests[i, 'max'] = max
+  
+  #tests = cbind(tests, test)
+  
+  
   }
-min = 0
-max = m3sd
-rows = cg$GC > min & cg$GC <= max
-test = vector("numieric", length=4)
-names(test) = c('t.statistic', 'n.rows', 'min', 'max')
-tt = t.test(cg[rows, "SNV"], cg[rows, "GC"])
 
-test[1] = tt$statistic
-test[2] = nrow(cg[rows,])
-test[3] = min
-test[4] = max
-
-print(test)
-
-
+tests
 
 
 
