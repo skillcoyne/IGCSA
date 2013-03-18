@@ -1,5 +1,6 @@
 package org.lcsb.lu.igcsa.genome;
 
+import org.springframework.util.StringUtils;
 import sun.misc.Regexp;
 
 import java.util.regex.Matcher;
@@ -18,6 +19,7 @@ public class DNASequence
   private final Pattern nucleotides = Pattern.compile("([ACTGNactgn-]+)");
   private final Pattern unknown = Pattern.compile("[Nn]+");
   private final Pattern gap = Pattern.compile("[-]+");
+
 
 
   private void testNucleotides(String sequence) throws IllegalArgumentException
@@ -42,6 +44,14 @@ public class DNASequence
     this(seq);
     this.location = location;
     }
+
+  public int calculateGC()
+    {
+    int guanine = StringUtils.countOccurrencesOf(this.sequence, "G");
+    int cytosine = StringUtils.countOccurrencesOf(this.sequence, "C");
+    return (guanine + cytosine);
+    }
+
 
   public void addNucleotides(String nuc) throws IllegalArgumentException
     {

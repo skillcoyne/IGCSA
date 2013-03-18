@@ -17,7 +17,7 @@ import sun.plugin2.message.GetAppletMessage;
 public class SNP extends AbstractVariation
   {
   private ProbabilityList probabilityList;
-  private PoissonDistribution poissonDistribution;
+  //private PoissonDistribution poissonDistribution;
   private DNASequence snpSeq;
 
 
@@ -29,7 +29,7 @@ public class SNP extends AbstractVariation
   public SNP(Probability p) throws ProbabilityException
     {
     super(p);
-    this.poissonDistribution = new PoissonDistribution(this.probability.getProbability());
+    //this.poissonDistribution = new PoissonDistribution(this.probability.getProbability());
     }
 
   public SNP(DNASequence s, Probability p) throws ProbabilityException
@@ -48,26 +48,26 @@ public class SNP extends AbstractVariation
     {
     super.setProbability(p);
     if (p.getName().length() > 1) throw new ProbabilityException("SNP probability name should be a nucleotide");
-    this.poissonDistribution = new PoissonDistribution(this.probability.getFrequency()); // no idea if this is the right thing
+    //this.poissonDistribution = new PoissonDistribution(this.probability.getFrequency()); // no idea if this is the right thing
     }
 
   @Override
   public void setProbabilityList(ProbabilityList pl) throws ProbabilityException
     {
     this.probabilityList = pl;
-    this.poissonDistribution = new PoissonDistribution(this.probabilityList.getFrequency());
+    //this.poissonDistribution = new PoissonDistribution(this.probabilityList.getFrequency());
     }
 
   public DNASequence mutateSequence(DNASequence sequence)
     {
     boolean mutated = false;
-    if (this.poissonDistribution == null) throw new IllegalStateException("Probabilities have not been set, cannot mutate sequence.");
+    //if (this.poissonDistribution == null) throw new IllegalStateException("Probabilities have not been set, cannot mutate sequence.");
 
     char[] nucleotides = sequence.getSequence().toCharArray();
     for (int i = 0; i < nucleotides.length; i++)
       {
       if (nucleotides[i] == GAP || nucleotides[i] == UNKNOWN) continue;
-      if (this.poissonDistribution.sample() > 0)
+      //if (this.poissonDistribution.sample() > 0)
         {
         char snp = alterNucleotide(nucleotides[i]);
         if (snp == nucleotides[i]) mutated = true;

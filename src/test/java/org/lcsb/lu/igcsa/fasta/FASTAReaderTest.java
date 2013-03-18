@@ -3,10 +3,16 @@ package org.lcsb.lu.igcsa.fasta;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
 import static org.junit.Assert.*;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Properties;
 
 /**
  * org.lcsb.lu.igcsa.fasta
@@ -14,11 +20,16 @@ import java.net.URL;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
+
+@RunWith (SpringJUnit4ClassRunner.class)
+@ContextConfiguration (locations={"classpath:test-spring-config.xml"})
 public class FASTAReaderTest
   {
+  @Autowired
+  private Properties testProperties;
+
   private FASTAReader reader;
   private File file;
-
 
   private String fastaSeq =
       "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN" +
@@ -32,8 +43,6 @@ public class FASTAReaderTest
       "GTCGCCATTTTAGCGTGATGACGCAGTGGATCTGACTTTGTGTCCGAGGGTCCAGAAGGGAGGGCTAGCT" +
   "AGGGAGGGCTAGCT";
 
-
-
   @Before
   public void setUp() throws Exception
     {
@@ -42,12 +51,6 @@ public class FASTAReaderTest
     assertNotNull(file);
     reader = new FASTAReader(file);
     assertNotNull(reader);
-    }
-
-  @After
-  public void tearDown() throws Exception
-    {
-
     }
 
   @Test

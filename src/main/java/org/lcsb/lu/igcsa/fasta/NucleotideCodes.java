@@ -12,7 +12,7 @@ import java.util.Map;
 public enum NucleotideCodes
   {
   A('A', "adenosine"),
-  C('C', "cytidine"),
+  C('C', "cytosine"),
   G('G', "guanine"),
   T('T', "thymidine"),
   N('N', "any"),

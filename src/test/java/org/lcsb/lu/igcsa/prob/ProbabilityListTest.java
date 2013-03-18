@@ -21,9 +21,9 @@ public class ProbabilityListTest
   public void setUp() throws Exception
     {
     pl = new ProbabilityList();
-    pl.add( new Probability("a", 0.3, 0.001) );
-    pl.add( new Probability("b", 0.2, 0.001) );
-    pl.add( new Probability("c", 0.5, 0.001) );
+    pl.add( new Probability("a", 0.3) );
+    pl.add( new Probability("b", 0.2) );
+    pl.add( new Probability("c", 0.5) );
     assertNotNull(pl);
     }
 

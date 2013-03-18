@@ -3,10 +3,14 @@ package org.lcsb.lu.igcsa.fasta;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.File;
+import java.util.Properties;
 
-import org.lcsb.lu.igcsa.utils.GenomeProperties;
 
 import static org.junit.Assert.*;
 
@@ -16,19 +20,24 @@ import static org.junit.Assert.*;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
+
+@RunWith (SpringJUnit4ClassRunner.class)
+@ContextConfiguration (locations={"classpath:test-spring-config.xml"})
 public class FASTAWriterTest
   {
   private File fastaFile;
   private FASTAWriter writer;
 
+  @Autowired
+  private Properties testProperties;
 
   @Before
   public void setUp() throws Exception
     {
     FASTAHeader header = new FASTAHeader(">gi|12345|This is a sample test case that illustrates FASTA writing");
-    GenomeProperties props = GenomeProperties.readPropertiesFile("test.properties", GenomeProperties.GenomeType.NORMAL);
+    //Properties props = Properties.readPropertiesFile("test.properties", GenomeProperties.GenomeType.NORMAL);
 
-    fastaFile = new File(props.getProperty("dir.insilico") + "/test.fasta");
+    fastaFile = new File(testProperties.getProperty("dir.insilico") + "/test.fasta");
     assertFalse(fastaFile.exists());
 
     writer = new FASTAWriter(fastaFile, header);

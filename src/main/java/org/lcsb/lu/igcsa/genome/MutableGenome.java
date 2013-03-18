@@ -1,5 +1,10 @@
 package org.lcsb.lu.igcsa.genome;
 
+import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.database.Bin;
+import org.lcsb.lu.igcsa.database.Fragment;
+import org.lcsb.lu.igcsa.database.FragmentVariationDAO;
+import org.lcsb.lu.igcsa.database.GCBinDAO;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.lcsb.lu.igcsa.prob.ProbabilityList;
@@ -19,12 +24,19 @@ import java.util.*;
 
 public class MutableGenome implements Genome
   {
+  static Logger log = Logger.getLogger(Genome.class.getName());
+
   protected String buildName;
   protected HashMap<String, Chromosome> chromosomes = new HashMap<String, Chromosome>();
   private Map<Variation, ProbabilityList> variationProbabilities = new HashMap<Variation, ProbabilityList>();
 
-  public MutableGenome()
+  private GCBinDAO binDAO;
+  private FragmentVariationDAO variationDAO;
+
+  public MutableGenome(GCBinDAO gcBinDAO, FragmentVariationDAO variationDAO)
     {
+    this.binDAO = gcBinDAO;
+    this.variationDAO = variationDAO;
     }
 
   public MutableGenome(String build)
@@ -95,8 +107,9 @@ public class MutableGenome implements Genome
   public Genome mutate(int window)
     {
     Genome mutated = new MutableGenome(this.buildName + " m" + window);
-    Map<Variation, ProbabilityList> variations = this.getVariations();
-    String currentSequenceFragment;
+
+//    Map<Variation, ProbabilityList> variations = this.getVariations();
+//    String currentSequenceFragment;
     for (Chromosome chr : this.getChromosomes())
       {
       Chromosome mutatedChr = this.mutate(chr, window);
@@ -113,21 +126,36 @@ public class MutableGenome implements Genome
   public Chromosome mutate(Chromosome chr, int window)
     {
     DNASequence currentSequence = chr.readSequence(window);
-    System.out.println(currentSequence.getSequence());
-    for (Iterator<Variation> it = this.getVariations().keySet().iterator(); it.hasNext(); )
-      {
-      try
-        {   // This is so wrong!  It's going to potentially mutate the same sequence several times..
-        Variation var = it.next();
-        var.setProbabilityList(this.getVariations().get(var));
-        DNASequence newSequence = var.mutateSequence(currentSequence);
-        /* if the sequence mutated add to chromosome with the location
-        otherwise don't so the entire sequence is not in memory*/
-        if (newSequence != null) chr.alterSequence(currentSequence.getLocation(), newSequence);
-        }
-      catch (ProbabilityException e)
-        { e.printStackTrace(); }
-      }
+    int gcContent = currentSequence.calculateGC();
+
+    Bin gcBin = this.binDAO.getBinByGC(chr.getName(), gcContent);
+
+    Random randomFragment = new Random(gcBin.getSize());
+
+    Fragment fragment = this.variationDAO.getFragment(chr.getName(), gcBin.getBinId(), randomFragment.nextInt());
+    log.debug(fragment.toString());
+
+    // apply the variations to the sequence
+
+    // fragment.getSNV()
+
+
+
+//    System.out.println(currentSequence.getSequence());
+//    for (Iterator<Variation> it = this.getVariations().keySet().iterator(); it.hasNext(); )
+//      {
+//      try
+//        {   // This is so wrong!  It's going to potentially mutate the same sequence several times..
+//        Variation var = it.next();
+//        var.setProbabilityList(this.getVariations().get(var));
+//        DNASequence newSequence = var.mutateSequence(currentSequence);
+//        /* if the sequence mutated add to chromosome with the location
+//        otherwise don't so the entire sequence is not in memory*/
+//        if (newSequence != null) chr.alterSequence(currentSequence.getLocation(), newSequence);
+//        }
+//      catch (ProbabilityException e)
+//        { e.printStackTrace(); }
+//      }
     return chr;
     }
 

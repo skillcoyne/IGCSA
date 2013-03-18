@@ -1,17 +1,20 @@
 package org.lcsb.lu.igcsa.database;
 
+import org.apache.commons.lang.math.Range;
+
 /**
  * org.lcsb.lu.igcsa.database
  * Author: sarah.killcoyne
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public interface FragmentDAO
+public interface GCBinDAO
   {
 
-  // TODO These will need to use the correct table based on GC content...
-  public int insertFragment(Fragment fragment);
+  public Bin getBinByGC(String chr, int gcContent);
 
-  public Fragment getByRow(int rowNum);
+  public Bin getBinById(String chr, int binId);
+
+  public Bin[] getBins(String chr);
 
   }

@@ -8,14 +8,35 @@ package org.lcsb.lu.igcsa.database;
  */
 public class Fragment
   {
-
+  private String chr;
+  private int binId;
   private int SNV;
   private int deletion;
   private int indel;
   private int insertion;
   private int seqAlt;
   private int substitution;
-  private int tandem_repeat;
+  private int tandemRepeat;
+
+  public String getChr()
+    {
+    return chr;
+    }
+
+  public void setChr(String chr)
+    {
+    this.chr = chr;
+    }
+
+  public int getBinId()
+    {
+    return binId;
+    }
+
+  public void setBinId(int binId)
+    {
+    this.binId = binId;
+    }
 
   public int getSNV()
     {
@@ -79,11 +100,18 @@ public class Fragment
 
   public int getTandemRepeat()
     {
-    return tandem_repeat;
+    return tandemRepeat;
     }
 
   public void setTandemRepeat(int tandem_repeat)
     {
-    this.tandem_repeat = tandem_repeat;
+    this.tandemRepeat = tandem_repeat;
+    }
+
+  public String toString()
+    {
+    String str = "Chr " + this.chr + ", bin " + this.binId + ": " + this.SNV + " " + this.deletion + " " + this.indel + " " + this.insertion + " " + this.seqAlt + " " +
+        this.substitution + " " + this.tandemRepeat;
+    return super.toString() + ": " + str;
     }
   }

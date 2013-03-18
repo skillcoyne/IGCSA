@@ -13,37 +13,27 @@ public class Probability
   {
   private String name; // mostly useful for SNPs
   private double probability;
-  private double frequency;
 
   // These are used by size based variations (not SNPs)
   private int minimum = 1;
   private int maximum = 1;
 
 
-  public Probability(double prob, double freq) throws ProbabilityException
-    {
-    this(null, prob, freq);
-    }
-
   /**
-   *
    * @param Name (String)
    * @param Probability (Double)
    * @param Frequency (Double)
    * @throws ProbabilityException
    */
-  public Probability(String n, double prob, double freq) throws ProbabilityException
+  public Probability(String n, double prob) throws ProbabilityException
     {
     this.name = n;
     this.probability = prob;
-    this.frequency = freq;
-    if (frequency <= 0)
-      throw new ProbabilityException("Frequency must be greater than 0.");
     }
 
-  public Probability(double prob)
+  public Probability(double prob) throws ProbabilityException
     {
-    this.probability = prob;
+    this(null, prob);
     }
 
   public String getName()
@@ -54,11 +44,6 @@ public class Probability
   public double getProbability()
     {
     return this.probability;
-    }
-
-  public double getFrequency()
-    {
-    return this.frequency;
     }
 
   }

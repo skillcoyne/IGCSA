@@ -76,11 +76,11 @@ public class ProbabilityList extends ArrayList<Probability> implements Comparabl
 
   private void testFrequency() throws ProbabilityException
     {
-    for (Probability p : this.toArray())
-      {
-      if (this.frequency == 0) this.frequency = p.getFrequency();
-      if (this.frequency != p.getFrequency()) throw new ProbabilityException("Frequency of Probabilites must all be the same.");
-      }
+//    for (Probability p : this.toArray())
+//      {
+//      if (this.frequency == 0) this.frequency = p.getFrequency();
+//      if (this.frequency != p.getFrequency()) throw new ProbabilityException("Frequency of Probabilites must all be the same.");
+//      }
     }
 
   private void sumProbabilities() //throws ProbabilityException
