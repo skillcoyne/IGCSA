@@ -2,7 +2,13 @@ package org.lcsb.lu.igcsa.prob;
 
 import org.apache.log4j.Logger;
 
-import java.util.*;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.Random;
+import java.util.TreeMap;
+import java.util.Collection;
+import java.util.Iterator;
+
 
 /**
  * org.lcsb.lu.igcsa.prob
@@ -14,38 +20,60 @@ public class Frequency
   {
   static Logger log = Logger.getLogger(Frequency.class.getName());
 
+  private Random generator;
+  private double totalValue;
   private NavigableMap<Double, Object> objProbabilities = new TreeMap<Double, Object>();
 
 
+  /**
+   * Takes a map of objects and given probabilities (doubles).  The probabilities must sum to 1.
+   * A cumulative probability table is generated from this.
+   * @param probabilities
+   * @throws ProbabilityException
+   */
   public Frequency(Map<Object, Double> probabilities) throws ProbabilityException
     {
     if ( !isSumOne(probabilities.values()) ) throw new ProbabilityException("Sum of probabilities did not equal 1.");
+    this.generator = new Random();
 
-    for (Object obj: probabilities.keySet())
+    double total = 0.0;
+    for (Map.Entry<Object, Double> entry: probabilities.entrySet())
       {
-      objProbabilities.put( probabilities.get(obj), obj );
+      objProbabilities.put( round(entry.getValue()+total), entry.getKey() );
+      total = round(total + entry.getValue());
       }
+    this.totalValue = round(total);
+    //log.debug("Cumulative probability: " + totalValue);
     }
 
 
-  public Object random()
+  /**
+   * Randomly generates a number between 0 and 1.0.  Returns the object in the probability table with the higher probability.
+   * All generated values are rounded to 2 digits.
+   * @return
+   */
+  public Object roll()
     {
-    double p = new Random().nextDouble();
-    log.debug( p );
+    double p = this.generator.nextDouble();
+    log.debug("Rolled: " + p);
 
-    return objProbabilities.higherEntry(p);
+    if (p >= totalValue) return objProbabilities.lastEntry().getValue();
+    else return objProbabilities.higherEntry(p).getValue();
     }
-
 
   private boolean isSumOne(Collection<Double> doubles)
     {
     double sum = 0;
     Iterator<Double> ip = doubles.iterator();
-    while (ip.hasNext())
-      {
-      sum += ip.next();
-      }
+    while (ip.hasNext()) sum += ip.next();
+    sum = round(sum);
+
     return (sum == 1.0)? (true): (false);
+    }
+
+  private double round(double p)
+    {
+    return Math.round(p*100.0)/100.0;
     }
 
   }

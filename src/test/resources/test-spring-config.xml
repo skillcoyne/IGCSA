@@ -3,33 +3,21 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <!-- Properties -->
-    <bean id="testProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
-        <property name="ignoreResourceNotFound"><value>true</value></property>
-        <property name="locations">
+    <!-- Logging -->
+    <bean id="log4jInitialization" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="targetClass" value="org.springframework.util.Log4jConfigurer"/>
+        <property name="targetMethod" value="initLogging"/>
+        <property name="arguments">
             <list>
-                <value>classpath:test.properties</value>
+                <value>classpath:log4j.xml</value>
             </list>
         </property>
     </bean>
 
 
-    <!-- Database for the fragment tables, this doesn't have to be mysql.  These aren't particularly large -->
-    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
-        <property name="url" value="jdbc:mysql://localhost:3306/normal_genome_variation"/>
-        <property name="username" value="root"/>
-        <property name="password" value=""/>
-    </bean>
-
-    <bean id="FragmentDAO" class="org.lcsb.lu.igcsa.database.JDBCFragmentVariationDAO">
-        <property name="dataSource" ref="dataSource"/>
-        <property name="tableName" value="variations"/>
-    </bean>
-
-    <bean id="GCBinDAO" class="org.lcsb.lu.igcsa.database.JDBCGCBinDAO">
-        <property name="dataSource" ref="dataSource"/>
-        <property name="tableName" value="gc_bins"/>
-    </bean>
+    <import resource="conf/props-config.xml"/>
+    <import resource="conf/database-config.xml"/>
+    <import resource="conf/normal-genome.xml"/>
+    <!--<import resource="conf/cancer-genome.xml"/>-->
 
 </beans>

@@ -1,15 +1,13 @@
 package org.lcsb.lu.igcsa.fasta;
 
-import com.sun.org.apache.xerces.internal.impl.xpath.regex.Match;
-import org.apache.commons.lang.ArrayUtils;
 import org.lcsb.lu.igcsa.genome.Location;
+import org.lcsb.lu.igcsa.genome.Nucleotides;
 
 import java.io.*;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
 
-import static org.lcsb.lu.igcsa.fasta.NucleotideCodes.*;
-import static org.lcsb.lu.igcsa.fasta.NucleotideCodes.getNucleotideCodesMap;
+import static org.lcsb.lu.igcsa.genome.Nucleotides.*;
 
 /**
  * org.lcsb.lu.igcsa.fasta
@@ -43,8 +41,6 @@ public class FASTAReader
 
   private BufferedReader reader;
 
-  // not really sure this is useful
-  private static final Map<Character, NucleotideCodes> nucleotideCodesMap = getNucleotideCodesMap();
 
   private Collection<Location> repeatRegions = new ArrayList<Location>();
   private Collection<Location> gapRegions = new ArrayList<Location>();

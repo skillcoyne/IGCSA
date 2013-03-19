@@ -1,4 +1,4 @@
-package org.lcsb.lu.igcsa.fasta;
+package org.lcsb.lu.igcsa.genome;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,7 +9,7 @@ import java.util.Map;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public enum NucleotideCodes
+public enum Nucleotides
   {
   A('A', "adenosine"),
   C('C', "cytosine"),
@@ -32,7 +32,7 @@ public enum NucleotideCodes
   private final char nucleotide;
   private final String description;
 
-  NucleotideCodes(char n, String d)
+  Nucleotides(char n, String d)
     {
     this.nucleotide = n;
     this.description = d;
@@ -53,15 +53,10 @@ public enum NucleotideCodes
     return Character.getNumericValue(this.nucleotide);
     }
 
-  public static Map<Character, NucleotideCodes> getNucleotideCodesMap()
+  public static char[] validDNA()
     {
-    Map<Character, NucleotideCodes> map = new HashMap<Character, NucleotideCodes>();
-
-    for(NucleotideCodes nc: NucleotideCodes.values())
-      {
-      map.put( nc.getNucleotide(), nc );
-      }
-    return map;
+    char[] dna = {A.getNucleotide(), C.getNucleotide(), T.getNucleotide(), G.getNucleotide()};
+    return dna;
     }
 
   }

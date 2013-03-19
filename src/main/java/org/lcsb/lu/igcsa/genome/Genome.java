@@ -6,6 +6,7 @@ import org.lcsb.lu.igcsa.variation.Variation;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -16,8 +17,10 @@ import java.util.Map;
  */
 public interface Genome
   {
-
+  public void setBuildName(String buildName);
   public String getBuildName();
+
+  public List<Variation> getVariantTypes();
 
   public void addChromosomes(Chromosome[] chromosomes);
 
@@ -44,12 +47,11 @@ public interface Genome
   public Map<Variation, ProbabilityList> getVariations();
 
   /**
-   * Not recommended for general use unless you have very small chromosomes as this holds the entire
-   * genome in memory. Better use is to call #mutate(Chromosome chr, int window) and output the new
-   * chromosome.
+   * Mutate the entire genome at once and output. This method just loops through the chromosomes and calls
+   * Genome#mutate(chromosome, window, writer)
    * @param window
    */
-  public abstract Genome mutate(int window);
+  public abstract Genome mutate(int window, FASTAWriter writer);
 
   /**
    *
@@ -60,5 +62,5 @@ public interface Genome
    */
   public abstract Chromosome mutate(Chromosome chromosome, int window);
 
-  public abstract void mutate(Chromosome chr, int window, FASTAWriter writer) throws IOException;
+  public abstract Chromosome mutate(Chromosome chr, int window, FASTAWriter writer) throws IOException;
   }

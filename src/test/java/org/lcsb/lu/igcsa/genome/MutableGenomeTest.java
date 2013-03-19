@@ -4,19 +4,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.lcsb.lu.igcsa.prob.ProbabilityList;
-import org.lcsb.lu.igcsa.utils.GenomeUtils;
-import org.lcsb.lu.igcsa.variation.Deletion;
-import org.lcsb.lu.igcsa.variation.SNP;
-import org.lcsb.lu.igcsa.variation.Variation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.File;
 import java.net.URL;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Properties;
 
 import static org.junit.Assert.*;

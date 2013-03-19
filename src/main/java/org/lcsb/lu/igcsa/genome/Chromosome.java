@@ -73,7 +73,7 @@ public class Chromosome
    * @param loc
    * @return
    */
-  public String getSequence(Location loc)
+  public DNASequence getSequence(Location loc)
     {
     String sequence = null;
     if (this.alteredSequence.containsKey(loc))
@@ -83,7 +83,7 @@ public class Chromosome
       try { sequence = reader.readSequenceFromLocation(loc.getStart(), loc.getLength()); }
       catch (IOException e) { e.printStackTrace(); }
       }
-    return sequence;
+    return new DNASequence(sequence);
     }
 
   /**

@@ -1,9 +1,9 @@
 package org.lcsb.lu.igcsa.variation;
 
-import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.genome.DNASequence;
-import org.lcsb.lu.igcsa.prob.Probability;
-import org.lcsb.lu.igcsa.prob.ProbabilityException;
+import org.lcsb.lu.igcsa.genome.Nucleotides;
+
+import org.apache.log4j.Logger;
 
 /**
  * org.lcsb.lu.igcsa.variation
@@ -11,22 +11,16 @@ import org.lcsb.lu.igcsa.prob.ProbabilityException;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class Insertion extends AbstractVariation
+public class Insertion extends Variation
   {
+  static Logger log = Logger.getLogger(Insertion.class.getName());
 
-  public Insertion()
+
+  public DNASequence mutateSequence(String sequence)
     {
+    this.fragment.getInsertion();
+    // TODO what is the general probability of occurrence for each nucleotide anyhow??
+    char[] validNucleotides = Nucleotides.validDNA();
+    return new DNASequence(sequence);
     }
-
-  public Insertion(Probability p) throws ProbabilityException
-    {
-    super(p);
-    }
-
-  public DNASequence mutateSequence(DNASequence sequence)
-    {
-    return null;
-    }
-
-
   }

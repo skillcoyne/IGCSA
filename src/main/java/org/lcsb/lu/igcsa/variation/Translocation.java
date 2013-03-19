@@ -1,9 +1,9 @@
 package org.lcsb.lu.igcsa.variation;
 
-import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.genome.DNASequence;
-import org.lcsb.lu.igcsa.prob.Probability;
-import org.lcsb.lu.igcsa.prob.ProbabilityException;
+
+import org.apache.log4j.Logger
+;
 
 /**
  * org.lcsb.lu.igcsa.variation
@@ -11,20 +11,15 @@ import org.lcsb.lu.igcsa.prob.ProbabilityException;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class Translocation extends AbstractVariation
+public class Translocation extends Variation
   {
-  public Translocation()
-    {
-    }
-
-  public Translocation(Probability p) throws ProbabilityException
-    {
-    super(p);
-    }
+  static Logger log = Logger.getLogger(Translocation.class.getName());
 
   //TODO  this may not work for translocations...
-  public DNASequence mutateSequence(DNASequence sequence)
+
+
+  public DNASequence mutateSequence(String sequence)
     {
-    return null;
+    return new DNASequence(sequence);
     }
   }

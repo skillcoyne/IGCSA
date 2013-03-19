@@ -1,5 +1,6 @@
 package org.lcsb.lu.igcsa.variation;
 
+import org.lcsb.lu.igcsa.database.Fragment;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.genome.DNASequence;
@@ -12,15 +13,19 @@ import org.lcsb.lu.igcsa.prob.ProbabilityList;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public interface Variation
+public abstract class Variation
     {
-    public void setProbability(Probability p) throws ProbabilityException;
+    protected Fragment fragment;
 
-    public void setProbabilityList(ProbabilityList pl) throws ProbabilityException;
+    public void setMutationFragment(Fragment fragment)
+      {
+      this.fragment = fragment;
+      }
 
-    public Probability getProbability();
+    public abstract DNASequence mutateSequence(String sequence);
 
-    public DNASequence mutateSequence(String s);
-
-    public DNASequence mutateSequence(DNASequence s);
+    public DNASequence mutateSequence(DNASequence sequence)
+      {
+      return mutateSequence(sequence.getSequence());
+      }
     }

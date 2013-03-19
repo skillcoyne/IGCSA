@@ -2,8 +2,7 @@ package org.lcsb.lu.igcsa;
 
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.database.Bin;
-import org.lcsb.lu.igcsa.database.Fragment;
+
 import org.lcsb.lu.igcsa.database.FragmentVariationDAO;
 import org.lcsb.lu.igcsa.database.GCBinDAO;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
@@ -14,16 +13,17 @@ import org.lcsb.lu.igcsa.genome.MutableGenome;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.lcsb.lu.igcsa.prob.ProbabilityList;
 import org.lcsb.lu.igcsa.utils.FileUtils;
-import org.lcsb.lu.igcsa.variation.VariantType;
+import org.lcsb.lu.igcsa.variation.SNV;
 import org.lcsb.lu.igcsa.variation.Variation;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.Resource;
 
-import static org.lcsb.lu.igcsa.utils.GenomeUtils.*;
+
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -64,16 +64,17 @@ public class InsilicoGenome
   protected FragmentVariationDAO fragmentDAO;
   protected GCBinDAO binDAO;
 
-  protected Properties normalProperties;
-  protected Properties cancerProperties;
-
-  protected Genome referenceGenome;
-  protected Genome cancerGenome;
+  protected Properties normalGenomeProperties;
+  protected Properties cancerGenomeProperties;
 
   // Defaults
   private int generations = 5;
   private int individuals = 5;
   private int windowSize = 1000;
+
+
+  protected Genome referenceGenome;
+  protected Genome cancerGenome;
 
 
   protected void print(String s)
@@ -91,34 +92,18 @@ public class InsilicoGenome
     {
     init();
 
-    log.debug(normalProperties.getProperty("assembly"));
+    log.info(normalGenomeProperties.getProperty("assembly"));
 
-    //setupReferenceGenome();
+    setupReferenceGenome();
 
-
-    //createGenomeGenerations(GenomeProperties.GenomeType.NORMAL);
+    createGenomeGenerations(GenomeType.NORMAL);
     }
 
-  private void init()
-    {
-    ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
-    fragmentDAO = (FragmentVariationDAO) context.getBean("FragmentDAO");
-    binDAO = (GCBinDAO) context.getBean("GCBinDAO");
-
-    normalProperties = (Properties) context.getBean("normalGenomeProperties");
-    cancerProperties = (Properties) context.getBean("cancerGenomeProperties");
-
-    if (normalProperties.containsKey("generations") && normalProperties.containsKey("individuals"))
-      {
-      this.generations = Integer.valueOf(normalProperties.getProperty("generations"));
-      this.individuals = Integer.valueOf(normalProperties.getProperty("individuals"));
-      }
-
-    if (normalProperties.containsKey("window"))
-      this.windowSize = Integer.valueOf(normalProperties.getProperty("window"));
-    }
-
-
+  /**
+   * Creates mutated normal genomes.
+   * @param type
+   * @throws IOException
+   */
   public void createGenomeGenerations(GenomeType type) throws IOException
     {
     File[] directories = setupDirectories(type);
@@ -127,7 +112,6 @@ public class InsilicoGenome
     final int individuals = this.individuals;
     final int window = this.windowSize;
 
-    final Map<Variation, ProbabilityList> rgVariations = referenceGenome.getVariations();
     int genFileIndex = 0;
     for (int g = 1; g <= generations; g++)
       {
@@ -164,46 +148,53 @@ public class InsilicoGenome
 
   protected void setupCancerGenome()
     {
-    cancerGenome = new MutableGenome(this.cancerProperties.getProperty("assembly"));
+    //cancerGenome = new MutableGenome(this.cancerGenomeProperties.getProperty("assembly"));
     }
 
   /*
    * Sets up the reference genome based on the fasta files for the current build.
    */
-  //  protected void setupReferenceGenome() throws FileNotFoundException, ProbabilityException, IllegalAccessException, InstantiationException
-  //    {
-  //    referenceGenome = new MutableGenome(normalProperties.getProperty("assembly"));
-  //    referenceGenome.addChromosomes(FileUtils.getChromosomesFromFASTA(new File(normalProperties.getProperty("dir.assembly"))));
-  //
-  //    // TODO this would probably be a good candidate for spring injection of classes...
-  //    for (String variation : normalProperties.getProperty("variations").split(";"))
-  //      {
-  //      // I know there's a more general method for this but at the moment I don't know what that is
-  //      if (variation.equals(VariantType.SNP.getShortName()))
-  //        {
-  //        referenceGenome = setupSNPs(normalProperties.getVariationProperty("snp"), this.referenceGenome);
-  //        }
-  //      else
-  //        {
-  //        VariantType vt = VariantType.fromShortName(variation);
-  //        if (vt == null)
-  //          { print("No VariantType defined for '" + variation + "'"); }
-  //        else
-  //          {
-  //          Class<Variation> var = vt.getVariation();
-  //          referenceGenome = setupSizeVariation(normalProperties.getVariationProperty(variation), this.referenceGenome, var.newInstance());
-  //          }
-  //        }
-  //      }
-  //    }
+  protected void setupReferenceGenome() throws FileNotFoundException, ProbabilityException, IllegalAccessException, InstantiationException
+    {
+    referenceGenome.addChromosomes(FileUtils.getChromosomesFromFASTA(new File(normalGenomeProperties.getProperty("dir.assembly"))));
+    log.debug("Reference genome build: " + referenceGenome.getBuildName());
+    log.debug("Reference genome has: " + referenceGenome.getChromosomes().length + " chromosomes");
+    }
+
+
+  /*
+  Variable initialization. Most of it is done in the Spring configuration files.
+   */
+  private void init()
+    {
+    ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
+
+    fragmentDAO = (FragmentVariationDAO) context.getBean("FragmentDAO");
+    binDAO = (GCBinDAO) context.getBean("GCBinDAO");
+
+    normalGenomeProperties = (Properties) context.getBean("normalGenomeProperties");
+    cancerGenomeProperties = (Properties) context.getBean("cancerGenomeProperties");
+
+    if (normalGenomeProperties.containsKey("generations") && normalGenomeProperties.containsKey("individuals"))
+      {
+      this.generations = Integer.valueOf(normalGenomeProperties.getProperty("generations"));
+      this.individuals = Integer.valueOf(normalGenomeProperties.getProperty("individuals"));
+      }
+
+    if (normalGenomeProperties.containsKey("window"))
+      this.windowSize = Integer.valueOf(normalGenomeProperties.getProperty("window"));
+
+    referenceGenome = (Genome) context.getBean("referenceGenome");
+    }
+
 
   /*
    * Creates the directories where the generated fasta files will be written
    */
   private File[] setupDirectories(GenomeType type) throws IOException
     {
-    int generations = Integer.valueOf(normalProperties.getProperty("generations"));
-    int individuals = Integer.valueOf(normalProperties.getProperty("individuals"));
+    int generations = Integer.valueOf(normalGenomeProperties.getProperty("generations"));
+    int individuals = Integer.valueOf(normalGenomeProperties.getProperty("individuals"));
     ArrayList<File> directories = new ArrayList<File>();
 
     // Directories for the generations
@@ -211,7 +202,7 @@ public class InsilicoGenome
     String[] orderedSubDirs = {type.getName(), "generations"};
     for (int i = 0; i < generations; i++)
       genomeDirs[i] = FileUtils.directory(orderedSubDirs, i + 1);
-    Collection<File> generationDirs = FileUtils.createDirectories(new File(normalProperties.getProperty("dir.insilico")), genomeDirs);
+    Collection<File> generationDirs = FileUtils.createDirectories(new File(normalGenomeProperties.getProperty("dir.insilico")), genomeDirs);
     // Directories for individuals
     for (File generation : generationDirs)
       {

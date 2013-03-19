@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+    <!-- Load in application properties reference -->
+    <bean id="applicationProperties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="location" value="classpath:props/genome.properties"/>
+    </bean>
+
+    <!-- Frequency objects for SNVs -->
+    <bean id="cFrequency" class="org.lcsb.lu.igcsa.prob.Frequency">
+        <constructor-arg>
+            <map key-type="java.lang.Character">
+                <entry key="A" value="${CA}"/>
+                <entry key="T" value="${CT}"/>
+                <entry key="G" value="${CG}"/>
+            </map>
+        </constructor-arg>
+    </bean>
+    <bean id="tFrequency" class="org.lcsb.lu.igcsa.prob.Frequency">
+        <constructor-arg>
+            <map key-type="java.lang.Character">
+                <entry key="A" value="${TA}"/>
+                <entry key="G" value="${TG}"/>
+                <entry key="C" value="${TC}"/>
+            </map>
+        </constructor-arg>
+    </bean>
+    <bean id="gFrequency" class="org.lcsb.lu.igcsa.prob.Frequency">
+        <constructor-arg>
+            <map key-type="java.lang.Character">
+                <entry key="A" value="${GA}"/>
+                <entry key="T" value="${GT}"/>
+                <entry key="C" value="${GC}"/>
+            </map>
+        </constructor-arg>
+    </bean>
+    <bean id="aFrequency" class="org.lcsb.lu.igcsa.prob.Frequency">
+        <constructor-arg>
+            <map key-type="java.lang.Character">
+                <entry key="T" value="${AT}"/>
+                <entry key="G" value="${AG}"/>
+                <entry key="C" value="${AC}"/>
+            </map>
+        </constructor-arg>
+    </bean>
+
+    <!-- Reference Genome creation -->
+    <bean id="referenceGenome" class="org.lcsb.lu.igcsa.genome.MutableGenome">
+        <constructor-arg ref="GCBinDAO"></constructor-arg>
+        <constructor-arg ref="FragmentDAO"></constructor-arg>
+        <property name="buildName">
+            <value>${assembly}</value>
+        </property>
+        <!-- Variation classes -->
+        <property name="variantTypes">
+            <list>
+                <bean id="Indel" class="org.lcsb.lu.igcsa.variation.Indel"/>
+                <bean id="Deletion" class="org.lcsb.lu.igcsa.variation.Deletion"/>
+                <bean id="Insertion" class="org.lcsb.lu.igcsa.variation.Insertion"/>
+                <bean id="Inversion" class="org.lcsb.lu.igcsa.variation.Inversion"/>
+                <!-- SNPs -->
+                <bean id="SNV" class="org.lcsb.lu.igcsa.variation.SNV">
+                    <constructor-arg>
+                        <map key-type="java.lang.Character">
+                            <entry key="A" value-ref="aFrequency"/>
+                            <entry key="C" value-ref="cFrequency"/>
+                            <entry key="T" value-ref="tFrequency"/>
+                            <entry key="G" value-ref="gFrequency"/>
+                        </map>
+                    </constructor-arg>
+                </bean>
+
+            </list>
+        </property>
+    </bean>
+
+    <!--<bean id="cancerGenome" class="org.lcsb.lu.igcsa.genome.MutableGenome">-->
+    <!--</bean>-->
+
+
+</beans>

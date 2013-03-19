@@ -6,9 +6,7 @@ import org.lcsb.lu.igcsa.database.Fragment;
 import org.lcsb.lu.igcsa.database.FragmentVariationDAO;
 import org.lcsb.lu.igcsa.database.GCBinDAO;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
-import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.lcsb.lu.igcsa.prob.ProbabilityList;
-import org.lcsb.lu.igcsa.variation.SNP;
 import org.lcsb.lu.igcsa.variation.Variation;
 
 import java.io.IOException;
@@ -33,15 +31,22 @@ public class MutableGenome implements Genome
   private GCBinDAO binDAO;
   private FragmentVariationDAO variationDAO;
 
+  private List<Variation> variantTypes;
+
   public MutableGenome(GCBinDAO gcBinDAO, FragmentVariationDAO variationDAO)
     {
     this.binDAO = gcBinDAO;
     this.variationDAO = variationDAO;
     }
 
-  public MutableGenome(String build)
+  protected MutableGenome(String buildName)
     {
-    this.buildName = build;
+    this.buildName = buildName;
+    }
+
+  public void setBuildName(String buildName)
+    {
+    this.buildName = buildName;
     }
 
   public String getBuildName()
@@ -49,9 +54,20 @@ public class MutableGenome implements Genome
     return this.buildName;
     }
 
+  public List<Variation> getVariantTypes()
+    {
+    return variantTypes;
+    }
+
+  public void setVariantTypes(List<Variation> variantTypes)
+    {
+    this.variantTypes = variantTypes;
+    }
+
   public void addChromosome(Chromosome chr)
     {
     this.chromosomes.put(chr.getName(), chr);
+    log.debug("Added chromosome " + chr.getName() + ", have " + chromosomes.size() + " chromosomes");
     }
 
   public void addChromosomes(Chromosome[] chromosomes)
@@ -104,104 +120,96 @@ public class MutableGenome implements Genome
     genome in memory. Better use is to call #mutate(Chromosome chr, int window) and output the new
     chromosome.
    */
-  public Genome mutate(int window)
+  public Genome mutate(int window, FASTAWriter writer)
     {
-    Genome mutated = new MutableGenome(this.buildName + " m" + window);
-
-//    Map<Variation, ProbabilityList> variations = this.getVariations();
-//    String currentSequenceFragment;
+    Genome newGenome = new MutableGenome(this.getBuildName());
     for (Chromosome chr : this.getChromosomes())
       {
-      Chromosome mutatedChr = this.mutate(chr, window);
-      // replace the chromosome -- might be better to just write it or else this could get much too large...
-      mutated.addChromosome(mutatedChr);
-      }
-    return mutated;
-    }
-
-  /*
-   This may not be the way to do it.  Basically there's a chance (based on the frequency of the variation) for each variation to apply
-   to the given window. I'm not sure if this is correct.
-   */
-  public Chromosome mutate(Chromosome chr, int window)
-    {
-    DNASequence currentSequence = chr.readSequence(window);
-    int gcContent = currentSequence.calculateGC();
-
-    Bin gcBin = this.binDAO.getBinByGC(chr.getName(), gcContent);
-
-    Random randomFragment = new Random(gcBin.getSize());
-
-    Fragment fragment = this.variationDAO.getFragment(chr.getName(), gcBin.getBinId(), randomFragment.nextInt());
-    log.debug(fragment.toString());
-
-    // apply the variations to the sequence
-
-    // fragment.getSNV()
-
-
-
-//    System.out.println(currentSequence.getSequence());
-//    for (Iterator<Variation> it = this.getVariations().keySet().iterator(); it.hasNext(); )
-//      {
-//      try
-//        {   // This is so wrong!  It's going to potentially mutate the same sequence several times..
-//        Variation var = it.next();
-//        var.setProbabilityList(this.getVariations().get(var));
-//        DNASequence newSequence = var.mutateSequence(currentSequence);
-//        /* if the sequence mutated add to chromosome with the location
-//        otherwise don't so the entire sequence is not in memory*/
-//        if (newSequence != null) chr.alterSequence(currentSequence.getLocation(), newSequence);
-//        }
-//      catch (ProbabilityException e)
-//        { e.printStackTrace(); }
-//      }
-    return chr;
-    }
-
-  /*
- This is so wrong!  It's going to potentially mutate the same sequence several times..
-  */
-  public void mutate(Chromosome c, int win, FASTAWriter w) throws IOException
-    {
-    final FASTAWriter writer = w;
-    final int window = win;
-    final Chromosome chr = c;
-
-    System.out.println(chr.getName());
-    String currentSequenceFragment;
-    //DNASequence chromosomeSeq = new DNASequence();
-    Location location = new Location(0, window); // FASTA locations are 0 based.
-    while ((currentSequenceFragment = chr.getSequence(location)) != null)
-      {
-      location = new Location(location.getStart() + window, location.getEnd() + window);
-      //      for (Iterator<Variation> it = this.getVariations().keySet().iterator(); it.hasNext(); )
-      //        {
-      //        try
-      //          {
-      //          Variation var = it.next();
-      //          ProbabilityList pl = this.getVariations().get(var);
-      //          var.setProbabilityList(pl);
-      //          DNASequence sequence = var.mutateSequence(new DNASequence(currentSequenceFragment));
-      //          writer.writeLine(sequence.getSequence());
-      //          }
-      //        catch (ProbabilityException e)
-      //          {
-      //          e.printStackTrace();
-      //          }
-      //        }
       try
         {
-        System.out.println(location.getStart() + "-" + location.getEnd() + " " + currentSequenceFragment);
-        writer.writeLine(currentSequenceFragment);
+        newGenome.addChromosome(this.mutate(chr, window, writer));
         }
       catch (IOException e)
         {
-        e.printStackTrace();
+        log.error(e);
         }
-      if (currentSequenceFragment.length() < window) break;
       }
-    writer.flush();
+    return newGenome;
     }
+
+
+  public Chromosome mutate(Chromosome chr, int window)
+    {
+    Chromosome mutatedChr = chr;
+
+    DNASequence currentSequenceFragment;
+    Location location = new Location(0, window); // FASTA locations are 0 based.
+    while ((currentSequenceFragment = chr.getSequence(location)) != null)
+      {
+      DNASequence mutatedSequence = mutateSequenceAtLocation(chr, location, currentSequenceFragment);
+      mutatedChr.alterSequence(location, mutatedSequence);
+      }
+    return mutatedChr;
+    }
+
+  /**
+   * Loop over the sequence, mutate and immediately write to new FASTA file.
+   * This does not keep the new chromosome in memory.
+   *
+   * @param chr
+   * @param window
+   * @param writer
+   * @throws IOException
+   */
+  public Chromosome mutate(Chromosome chr, int window, FASTAWriter writer) throws IOException
+    {
+    log.debug(chr.getName());
+    Location location = new Location(0, window); // FASTA locations are 0 based.
+
+    DNASequence currentSequenceFragment;
+    while ((currentSequenceFragment = chr.getSequence(location)) != null)
+      {
+      DNASequence mutatedSequence = mutateSequenceAtLocation(chr, location, currentSequenceFragment);
+      try
+        {
+        writer.writeLine(mutatedSequence.getSequence());
+        }
+      catch (IOException e)
+        {
+        log.error(e);
+        }
+      writer.flush();
+      }
+    writer.close();
+    return new Chromosome(chr.getName(), writer.getFASTAFile());
+    }
+
+  // Mutates the sequence based on the information provided in the database
+  private DNASequence mutateSequenceAtLocation(Chromosome chr, Location location, DNASequence sequence)
+    {
+    DNASequence mutatedSequence = sequence;
+
+    // get the GC content in order to select the correct fragment bin
+    int gcContent = sequence.calculateGC();
+    if (gcContent > 0)
+      {
+      Bin gcBin = this.binDAO.getBinByGC(chr.getName(), gcContent);
+
+      // get random fragment within the GC bin
+      Random randomFragment = new Random();
+      Fragment fragment = this.variationDAO.getFragment(chr.getName(), gcBin.getBinId(), randomFragment.nextInt(gcBin.getSize()));
+      log.debug(fragment.toString());
+
+      // apply the variations to the sequence, each of them needs to apply to the same fragment
+      // it is possible that one could override another (e.g. a deletion removes SNVs)
+      for (Variation variation : this.getVariantTypes())
+        {
+        variation.setMutationFragment(fragment);
+        mutatedSequence = variation.mutateSequence(mutatedSequence);
+        }
+      }
+    return mutatedSequence;
+    }
+
 
   }

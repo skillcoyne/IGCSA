@@ -1,5 +1,6 @@
 package org.lcsb.lu.igcsa.genome;
 
+import org.apache.log4j.Logger;
 import org.springframework.util.StringUtils;
 import sun.misc.Regexp;
 
@@ -14,12 +15,15 @@ import java.util.regex.Pattern;
  */
 public class DNASequence
   {
+  static Logger log = Logger.getLogger(DNASequence.class.getName());
+
   private String sequence = "";
   private Location location;
   private final Pattern nucleotides = Pattern.compile("([ACTGNactgn-]+)");
   private final Pattern unknown = Pattern.compile("[Nn]+");
   private final Pattern gap = Pattern.compile("[-]+");
 
+  // TODO Need to return a location to start mutations from in the case of gaps or unknown nucleotides.
 
 
   private void testNucleotides(String sequence) throws IllegalArgumentException
@@ -49,6 +53,7 @@ public class DNASequence
     {
     int guanine = StringUtils.countOccurrencesOf(this.sequence, "G");
     int cytosine = StringUtils.countOccurrencesOf(this.sequence, "C");
+    log.info("GC content: " + (guanine + cytosine));
     return (guanine + cytosine);
     }
 

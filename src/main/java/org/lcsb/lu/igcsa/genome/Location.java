@@ -1,5 +1,7 @@
 package org.lcsb.lu.igcsa.genome;
 
+import org.apache.log4j.Logger;
+
 /**
  * org.lcsb.lu.igcsa.genome
  * Author: skillcoyne
@@ -8,6 +10,8 @@ package org.lcsb.lu.igcsa.genome;
  */
 public class Location
   {
+  static Logger log = Logger.getLogger(Location.class.getName());
+
   private int start;
   private int end;
 
@@ -15,10 +19,7 @@ public class Location
     {
     this.start = s; this.end = e;
 
-    if (start > end)
-      {
-      throw new IllegalArgumentException("The start position should come before the end position.");
-      }
+    if (start > end) throw new IllegalArgumentException("The start position should come before the end position.");
     }
 
   public int getStart()
