@@ -9,21 +9,11 @@ import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.Genome;
-import org.lcsb.lu.igcsa.genome.MutableGenome;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
-import org.lcsb.lu.igcsa.prob.ProbabilityList;
 import org.lcsb.lu.igcsa.utils.FileUtils;
-import org.lcsb.lu.igcsa.variation.SNV;
-import org.lcsb.lu.igcsa.variation.Variation;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.beans.factory.annotation.Value;
-
-import javax.annotation.Resource;
-
-
 
 import java.io.File;
 import java.io.FileNotFoundException;

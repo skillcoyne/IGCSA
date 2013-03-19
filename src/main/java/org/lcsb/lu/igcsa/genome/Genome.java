@@ -35,18 +35,6 @@ public interface Genome
   public Chromosome[] getChromosomes();
 
   /**
-   * Add variation with corresponding probabilities.
-   * @param variation
-   * @param probabilityList
-   */
-  public void addVariationType(Variation variation, ProbabilityList probabilityList);
-
-  /**
-   * @return Map with key-value pairs sorted by the frequency of the ProbabilityLists
-   */
-  public Map<Variation, ProbabilityList> getVariations();
-
-  /**
    * Mutate the entire genome at once and output. This method just loops through the chromosomes and calls
    * Genome#mutate(chromosome, window, writer)
    * @param window

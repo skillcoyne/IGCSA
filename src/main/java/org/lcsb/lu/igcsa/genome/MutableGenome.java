@@ -86,35 +86,6 @@ public class MutableGenome implements Genome
     return chromosomes.values().toArray(new Chromosome[chromosomes.size()]);
     }
 
-  public void addVariationType(Variation v, ProbabilityList pl)
-    {
-    this.variationProbabilities.put(v, pl);
-    }
-
-  /*
- Sorted variation map by the ProbabilibyList frequencies.
-  */
-  public Map<Variation, ProbabilityList> getVariations()
-    {
-    List list = new LinkedList<Map.Entry<Variation, ProbabilityList>>(this.variationProbabilities.entrySet());
-    Collections.sort(list, new Comparator<Map.Entry<Variation, ProbabilityList>>()
-    {
-    public int compare(Map.Entry<Variation, ProbabilityList> me1, Map.Entry<Variation, ProbabilityList> me2)
-      {
-      return me1.getValue().compareTo(me2.getValue());
-      }
-    });
-
-    Map<Variation, ProbabilityList> sortedMap = new LinkedHashMap<Variation, ProbabilityList>();
-    for (Iterator it = list.listIterator(); it.hasNext(); )
-      {
-      Map.Entry<Variation, ProbabilityList> entry = (Map.Entry) it.next();
-      sortedMap.put(entry.getKey(), entry.getValue());
-      }
-    this.variationProbabilities = sortedMap;
-    return this.variationProbabilities;
-    }
-
   /*
     Not recommended for general use unless you have very small chromosomes as this holds the entire
     genome in memory. Better use is to call #mutate(Chromosome chr, int window) and output the new
