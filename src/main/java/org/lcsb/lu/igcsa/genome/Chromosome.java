@@ -1,5 +1,6 @@
 package org.lcsb.lu.igcsa.genome;
 
+import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
@@ -21,6 +22,8 @@ import java.util.Map;
  */
 public class Chromosome
   {
+  static Logger log = Logger.getLogger(Chromosome.class.getName());
+
   private String Name;
   private File fasta;
   private FASTAReader reader;
@@ -108,7 +111,9 @@ public class Chromosome
 
   public void alterSequence(Location loc, DNASequence sequence)
     {
-    this.alterSequence(loc, sequence);
+//    log.debug(loc);
+//    log.debug(sequence);
+    this.alteredSequence.put(loc, sequence);
     }
 
   }

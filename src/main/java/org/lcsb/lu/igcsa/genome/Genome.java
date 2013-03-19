@@ -22,6 +22,8 @@ public interface Genome
 
   public List<Variation> getVariantTypes();
 
+  public void setVariantTypes(List<Variation> variantTypes);
+
   public void addChromosomes(Chromosome[] chromosomes);
 
   public void addChromosome(Chromosome chromosome);

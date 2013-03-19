@@ -51,4 +51,10 @@ public class Location
     result = 31 * result + end;
     return result;
     }
+
+  @Override
+  public String toString()
+    {
+    return this.toString() + ": " + this.getStart() + "-" + this.getEnd();
+    }
   }

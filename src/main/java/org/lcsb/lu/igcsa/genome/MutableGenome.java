@@ -86,6 +86,7 @@ public class MutableGenome implements Genome
     return chromosomes.values().toArray(new Chromosome[chromosomes.size()]);
     }
 
+
   /*
     Not recommended for general use unless you have very small chromosomes as this holds the entire
     genome in memory. Better use is to call #mutate(Chromosome chr, int window) and output the new
@@ -117,8 +118,9 @@ public class MutableGenome implements Genome
     Location location = new Location(0, window); // FASTA locations are 0 based.
     while ((currentSequenceFragment = chr.getSequence(location)) != null)
       {
-      DNASequence mutatedSequence = mutateSequenceAtLocation(chr, location, currentSequenceFragment);
+      DNASequence mutatedSequence = mutateSequenceAtLocation(chr, currentSequenceFragment);
       mutatedChr.alterSequence(location, mutatedSequence);
+      location = new Location( location.getEnd(), location.getEnd()+window );
       }
     return mutatedChr;
     }
@@ -138,9 +140,10 @@ public class MutableGenome implements Genome
     Location location = new Location(0, window); // FASTA locations are 0 based.
 
     DNASequence currentSequenceFragment;
-    while ((currentSequenceFragment = chr.getSequence(location)) != null)
+
+    while ((currentSequenceFragment = chr.readSequence(window)) != null)
       {
-      DNASequence mutatedSequence = mutateSequenceAtLocation(chr, location, currentSequenceFragment);
+      DNASequence mutatedSequence = mutateSequenceAtLocation(chr, currentSequenceFragment);
       try
         {
         writer.writeLine(mutatedSequence.getSequence());
@@ -149,6 +152,7 @@ public class MutableGenome implements Genome
         {
         log.error(e);
         }
+      location = new Location( location.getEnd(), location.getEnd()+window );
       writer.flush();
       }
     writer.close();
@@ -156,7 +160,7 @@ public class MutableGenome implements Genome
     }
 
   // Mutates the sequence based on the information provided in the database
-  private DNASequence mutateSequenceAtLocation(Chromosome chr, Location location, DNASequence sequence)
+  private DNASequence mutateSequenceAtLocation(Chromosome chr, DNASequence sequence)
     {
     DNASequence mutatedSequence = sequence;
 
