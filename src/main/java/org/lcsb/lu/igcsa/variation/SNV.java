@@ -55,6 +55,7 @@ public class SNV extends Variation
       {
       //log.debug("SNPs: " + totalSNPs);
       int nIndex = selector.nextInt(sequence.length());
+
       while (noReplacement.contains(nIndex)) nIndex = selector.nextInt(sequence.length());
       noReplacement.add(nIndex);
 
@@ -69,10 +70,10 @@ public class SNV extends Variation
         lastMutations.put( new Location(nIndex, nIndex), new DNASequence(String.valueOf(nucleotides)) );
         ++totalSNPs;
         }
-      log.debug("Orig: " + n + " New: " + newN);
+      //log.debug("Orig: " + n + " New: " + newN);
       }
 
-    log.debug("Total SNPs:" + totalSNPs);
+    log.debug("Total SNPs:" + totalSNPs + " " + nucleotides.length);
     return new DNASequence(String.valueOf(nucleotides));
     }
 

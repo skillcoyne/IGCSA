@@ -25,11 +25,11 @@
         <priority value="error" />
     </category>
 
-
     <root>
-        <priority value ="info" />
+        <priority value ="debug" />
         <appender-ref ref="console" />
         <appender-ref ref="file" />
     </root>
+
 
 </log4j:configuration>

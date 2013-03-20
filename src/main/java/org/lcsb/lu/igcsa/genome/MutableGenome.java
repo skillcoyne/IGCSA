@@ -120,7 +120,7 @@ public class MutableGenome implements Genome
       {
       DNASequence mutatedSequence = mutateSequenceAtLocation(chr, currentSequenceFragment);
       //mutatedChr.alterSequence(location, mutatedSequence);
-      location = new Location( location.getEnd(), location.getEnd()+window );
+      location = new Location(location.getEnd(), location.getEnd() + window);
       }
     return mutatedChr;
     }
@@ -136,14 +136,19 @@ public class MutableGenome implements Genome
    */
   public Chromosome mutate(Chromosome chr, int window, FASTAWriter writer) throws IOException
     {
+    // TODO so...the FASTEST thing to do here would be to mutate ever section concurrently, write to a temp file that is labeled appropriately and put it
+    // back together in order
+    int total = 0;
     log.debug(chr.getName());
-    Location location = new Location(0, window); // FASTA locations are 0 based.
 
+    Location location = new Location(0, window); // FASTA locations are 0 based.
     DNASequence currentSequenceFragment;
 
     while ((currentSequenceFragment = chr.readSequence(window)) != null)
       {
+      log.debug(chr.getName() + location.toString());
       DNASequence mutatedSequence = mutateSequenceAtLocation(chr, currentSequenceFragment);
+      total += mutatedSequence.getLength();
       try
         {
         writer.write(mutatedSequence.getSequence());
@@ -152,10 +157,11 @@ public class MutableGenome implements Genome
         {
         log.error(e);
         }
-      location = new Location( location.getEnd(), location.getEnd()+window );
+      location = new Location(location.getEnd(), location.getEnd() + window);
       }
     writer.flush();
     writer.close();
+    log.info("Mutated chromosome " + chr.getName() + " sequence length " + total);
     return new Chromosome(chr.getName(), writer.getFASTAFile());
     }
 
@@ -163,6 +169,7 @@ public class MutableGenome implements Genome
   private DNASequence mutateSequenceAtLocation(Chromosome chr, DNASequence sequence)
     {
     DNASequence mutatedSequence = sequence;
+    Random randomFragment = new Random();
 
     // get the GC content in order to select the correct fragment bin
     int gcContent = sequence.calculateGC();
@@ -170,17 +177,20 @@ public class MutableGenome implements Genome
       {
       Bin gcBin = this.binDAO.getBinByGC(chr.getName(), gcContent);
 
+      log.debug(gcBin.toString());
       // get random fragment within the GC bin
-      Random randomFragment = new Random();
       Fragment fragment = this.variationDAO.getFragment(chr.getName(), gcBin.getBinId(), randomFragment.nextInt(gcBin.getSize()));
-      log.debug(fragment.toString());
 
-      // apply the variations to the sequence, each of them needs to apply to the same fragment
-      // it is possible that one could override another (e.g. a deletion removes SNVs)
-      for (Variation variation : this.getVariantTypes())
+      if (gcContent >= fragment.countSums())
         {
-        variation.setMutationFragment(fragment);
-        mutatedSequence = variation.mutateSequence(mutatedSequence);
+        log.info("MUTATING FRAGMENT " + fragment.toString());
+        // apply the variations to the sequence, each of them needs to apply to the same fragment
+        // it is possible that one could override another (e.g. a deletion removes SNVs)
+        for (Variation variation : this.getVariantTypes())
+          {
+          variation.setMutationFragment(fragment);
+          mutatedSequence = variation.mutateSequence(mutatedSequence);
+          }
         }
       }
     return mutatedSequence;

@@ -18,6 +18,8 @@ public class Fragment
   private int substitution;
   private int tandemRepeat;
 
+  private int sum = 0;
+
   public String getChr()
     {
     return chr;
@@ -45,6 +47,7 @@ public class Fragment
 
   public void setSNV(int SNV)
     {
+    sum += SNV;
     this.SNV = SNV;
     }
 
@@ -55,6 +58,7 @@ public class Fragment
 
   public void setDeletion(int deletion)
     {
+    sum += deletion;
     this.deletion = deletion;
     }
 
@@ -65,6 +69,7 @@ public class Fragment
 
   public void setIndel(int indel)
     {
+    sum += indel;
     this.indel = indel;
     }
 
@@ -75,6 +80,7 @@ public class Fragment
 
   public void setInsertion(int insertion)
     {
+    sum += insertion;
     this.insertion = insertion;
     }
 
@@ -85,6 +91,7 @@ public class Fragment
 
   public void setSeqAlt(int seqAlt)
     {
+    sum += seqAlt;
     this.seqAlt = seqAlt;
     }
 
@@ -95,6 +102,7 @@ public class Fragment
 
   public void setSubstitution(int substitution)
     {
+    sum += substitution;
     this.substitution = substitution;
     }
 
@@ -105,7 +113,13 @@ public class Fragment
 
   public void setTandemRepeat(int tandem_repeat)
     {
+    sum += tandem_repeat;
     this.tandemRepeat = tandem_repeat;
+    }
+
+  public int countSums()
+    {
+    return sum;
     }
 
   public String toString()

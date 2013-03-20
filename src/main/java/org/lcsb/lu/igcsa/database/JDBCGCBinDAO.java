@@ -34,9 +34,54 @@ public class JDBCGCBinDAO implements GCBinDAO
     this.dataSource = dataSource;
     }
 
+  private int maxBin(String chr)
+    {
+    String sql = "SELECT * FROM gc_bins WHERE chr = ? order by max desc limit 0,1";
+
+    Connection conn = null;
+    try
+      {
+      conn = dataSource.getConnection();
+      PreparedStatement ps = conn.prepareStatement(sql);
+      ps.setString(1, chr);
+      ResultSet rs = ps.executeQuery();
+      int max = 0;
+      if (rs.next())
+        {
+        max = rs.getInt("max");
+        }
+      rs.close();
+      ps.close();
+      return max;
+      }
+    catch (SQLException e)
+      {
+      throw new RuntimeException(e);
+      }
+    finally
+      {
+      if (conn != null)
+        {
+        try
+          {
+          conn.close();
+          }
+        catch (SQLException e)
+          {
+          log.warn(e.getMessage());
+          }
+        }
+      }
+    }
+
   public Bin getBinByGC(String chr, int gcContent)
     {
     String sql = "SELECT * FROM " + this.tableName + " WHERE chr = ? AND (min <= ? AND max >= ?)";
+    log.debug(sql);
+    log.debug(chr + ": gc " + gcContent);
+
+    int maxBin = maxBin(chr);
+    if (maxBin < gcContent) sql = "SELECT * FROM " + this.tableName + " WHERE chr = ? AND max = ?";
 
     Connection conn = null;
 
@@ -46,7 +91,7 @@ public class JDBCGCBinDAO implements GCBinDAO
       PreparedStatement ps = conn.prepareStatement(sql);
       ps.setString(1, chr);
       ps.setInt(2, gcContent);
-      ps.setInt(3, gcContent);
+      if (maxBin > gcContent) ps.setInt(3, gcContent);
       Bin gcBin = null;
       ResultSet rs = ps.executeQuery();
       if (rs.next())

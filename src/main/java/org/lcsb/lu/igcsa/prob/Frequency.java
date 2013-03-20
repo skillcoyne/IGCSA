@@ -43,7 +43,6 @@ public class Frequency
       total = round(total + entry.getValue());
       }
     this.totalValue = round(total);
-    //log.debug("Cumulative probability: " + totalValue);
     }
 
 
@@ -55,7 +54,7 @@ public class Frequency
   public Object roll()
     {
     double p = this.generator.nextDouble();
-    log.debug("Rolled: " + p);
+    //log.debug("Rolled: " + p);
 
     if (p >= totalValue) return objProbabilities.lastEntry().getValue();
     else return objProbabilities.higherEntry(p).getValue();

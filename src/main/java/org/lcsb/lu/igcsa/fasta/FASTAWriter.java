@@ -1,5 +1,7 @@
 package org.lcsb.lu.igcsa.fasta;
 
+import org.apache.log4j.Logger;
+
 import java.io.*;
 
 /**
@@ -10,12 +12,16 @@ import java.io.*;
  */
 public class FASTAWriter
   {
+  static Logger log = Logger.getLogger(FASTAWriter.class.getName());
+
   // 71 seems to be the usual, but I like round numbers and there's no standard for fasta
   private static final int lineLength = 70;
 
   private File fasta;
   private FileWriter fileWriter;
   private BufferedWriter bufferedWriter;
+
+  private int totalCharacters = 0;
 
   private FASTAHeader header;
 
@@ -28,8 +34,14 @@ public class FASTAWriter
     writeString(">" + header.getAccession() + "|" + header.getLocus() + "|" + header.getDescription() + "\n");
     }
 
+  public int sequenceLengthWritten()
+    {
+    return this.totalCharacters;
+    }
+
   public void flush() throws IOException
     {
+    totalCharacters += buffer.length();
     writeString(buffer.toString() + "\n");
     buffer = new StringBuffer();
     }
@@ -52,6 +64,7 @@ public class FASTAWriter
 
   public void close() throws IOException
     {
+    log.info("Total sequence length written " + this.totalCharacters);
     bufferedWriter.close();
     fileWriter.close();
     }
