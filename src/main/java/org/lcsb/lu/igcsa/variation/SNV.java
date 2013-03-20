@@ -43,7 +43,7 @@ public class SNV extends Variation
     int count = this.fragment.getSNV();
     lastMutations = new LinkedHashMap<Location, DNASequence>();
 
-    log.debug(sequence.length() + " expected count " + count);
+    log.info(sequence.length() + " expected count " + count);
     Random selector = new Random();
     char[] nucleotides = sequence.toCharArray();
 

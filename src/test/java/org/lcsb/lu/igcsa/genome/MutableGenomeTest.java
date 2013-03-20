@@ -30,15 +30,21 @@ public class MutableGenomeTest
   {
   private Chromosome[] chromosomes;
   private File fastaFile;
+  private File outputFasta;
 
   @Autowired
   private Genome testGenome;
+
+  @Autowired
+  private Properties testProperties;
 
   @Before
   public void setUp() throws Exception
     {
     URL testUrl = ClassLoader.getSystemResource("fasta/test.fa");
     fastaFile = new File(testUrl.toURI());
+
+    outputFasta = new File(testProperties.getProperty("dir.insilico") + "/test.fasta");
 
     chromosomes = new Chromosome[10];
     for (int i = 1; i <= 10; i++) // just don't want a chromosome named '0'
@@ -47,6 +53,12 @@ public class MutableGenomeTest
       }
 
     assertNotNull("Genome object failed to create", testGenome);
+    }
+
+  @After
+  public void tearDown() throws Exception
+    {
+    outputFasta.delete();
     }
 
   @Test
@@ -64,9 +76,11 @@ public class MutableGenomeTest
     assertNotNull(testGenome.getVariantTypes());
     assertEquals(testGenome.getVariantTypes().size(), 5);
 
-    testGenome.addChromosome(new Chromosome("19", fastaFile));
+    Chromosome origChr = new Chromosome("19", fastaFile);
 
-    Chromosome newChr;
+    testGenome.addChromosome(origChr);
+
+    Chromosome newChr = null;
     for(Chromosome chr: testGenome.getChromosomes())
       {
       System.out.println(chr.getName());
@@ -74,39 +88,8 @@ public class MutableGenomeTest
       newChr = testGenome.mutate(chr, 20);
       }
 
-//    testGenome = GenomeUtils.setupSizeVariation(properties.getVariationProperty("del"), testGenome, new Deletion());
-//    testGenome = GenomeUtils.setupSNPs(properties.getVariationProperty("snp"), testGenome);
-//    assertEquals(testGenome.getVariations().size(),5);
-//
-//    testGenome.addChromosome(new Chromosome("1", fastaFile));
-//    testGenome.addChromosome(new Chromosome("2", fastaFile));
-//    assertTrue(testGenome.hasChromosome("1"));
-//    assertTrue(testGenome.hasChromosome("2"));
-//
-//    //testGenome.mutate();
-//
-//
-//    int window = 50;
-//    String seq;
-//    Map<Variation, ProbabilityList> variations = testGenome.getVariations();
-//    for (Chromosome chr : testGenome.getChromosomes())
-//      {
-//      int mutatedSequences = 0;
-//      while (true)
-//        {
-//        seq = chr.readSequence(window).getSequence();
-//        for (Iterator<Variation> it = variations.keySet().iterator(); it.hasNext();)
-//          {
-//          Variation var = it.next();
-//          if (!var.getClass().isInstance(new SNP())) continue;
-//          var.setProbabilityList( variations.get(var) );
-//          DNASequence newSequence = var.mutateSequence( new DNASequence(seq) );
-//          if (!newSequence.toString().equals(seq)) ++mutatedSequences;
-//          }
-//        if (seq.length() < window) break;
-//        }
-//      assertTrue("At least one sequence should have mutated", mutatedSequences > 0);
-//      }
+    assertNotSame(origChr.retrieveFullSequence(), newChr.retrieveFullSequence());
+
     }
 
 

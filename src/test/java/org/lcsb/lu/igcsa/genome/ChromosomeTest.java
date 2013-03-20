@@ -56,5 +56,37 @@ public class ChromosomeTest extends TestCase
     assertEquals(all.length(), 644);
     }
 
+  @Test
+  public void testGetAllSequence() throws Exception
+    {
+    DNASequence sequence = chromosome.retrieveFullSequence();
+    assertEquals(sequence.getLength(), 644);
+    }
+
+//  @Test
+//  public void testAlterSequence() throws Exception
+//    {
+//    Location loc1 = new Location(112, 264);
+//    DNASequence sequence = chromosome.getSequence(loc1);
+//    assertEquals(sequence.getLength(), 264-112);
+//
+//    char[] s = sequence.getSequence().toCharArray();
+//    s[10] = '-'; s[75] = '-';
+//    DNASequence seq1 = new DNASequence(String.valueOf(s));
+//
+//    assertNotSame(sequence, seq1);
+//    chromosome.alterSequence(loc1, seq1);
+//
+//
+//    for (int i=12; i<20; i++) s[i] = '-';
+//
+//    Location loc2 = new Location(300, 452);
+//    DNASequence seq2 = new DNASequence(String.valueOf(s));
+//    chromosome.alterSequence(loc2, seq2);
+//
+//    chromosome.retrieveFullSequence();
+//
+//    }
+
 
   }

@@ -8,7 +8,7 @@ import org.apache.log4j.Logger;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class Location
+public class Location implements Comparable<Location>
   {
   static Logger log = Logger.getLogger(Location.class.getName());
 
@@ -55,6 +55,12 @@ public class Location
   @Override
   public String toString()
     {
-    return this.toString() + ": " + this.getStart() + "-" + this.getEnd();
+    return super.toString() + ": <" + this.getStart() + "-" + this.getEnd() + ">";
+    }
+
+  public int compareTo(Location location)
+    {
+    if (this.start == location.getStart() && this.end == location.getEnd()) return 0;
+    else return (this.start - location.getStart()) + (this.end - location.getEnd());
     }
   }

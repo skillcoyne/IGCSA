@@ -16,8 +16,6 @@ public class Translocation extends Variation
   static Logger log = Logger.getLogger(Translocation.class.getName());
 
   //TODO  this may not work for translocations...
-
-
   public DNASequence mutateSequence(String sequence)
     {
     return new DNASequence(sequence);

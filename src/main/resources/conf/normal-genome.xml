@@ -61,7 +61,10 @@
                 <bean id="Indel" class="org.lcsb.lu.igcsa.variation.Indel"/>
                 <bean id="Deletion" class="org.lcsb.lu.igcsa.variation.Deletion"/>
                 <bean id="Insertion" class="org.lcsb.lu.igcsa.variation.Insertion"/>
-                <bean id="Inversion" class="org.lcsb.lu.igcsa.variation.Inversion"/>
+                <bean id="Substitution" class="org.lcsb.lu.igcsa.variation.Substitution"/>
+                <bean id="TandemRepeat" class="org.lcsb.lu.igcsa.variation.TandemRepeat"/>
+                <!--<bean id="Inversion" class="org.lcsb.lu.igcsa.variation.Inversion"/>-->
+
                 <!-- SNPs -->
                 <bean id="SNV" class="org.lcsb.lu.igcsa.variation.SNV">
                     <constructor-arg>

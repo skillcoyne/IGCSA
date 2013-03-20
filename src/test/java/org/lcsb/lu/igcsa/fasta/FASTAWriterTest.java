@@ -28,6 +28,19 @@ public class FASTAWriterTest
   private File fastaFile;
   private FASTAWriter writer;
 
+  private String fastaSeq =
+      "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN" +
+          "TGCAGCAAAGAGTCAGCAAGAACACCGATAGGTACGTTTCCAGCTGCCTACGGACAGGGCGGCTCCCTAA" +
+          "GGTCTGGGTCAAACACATACAATAGTCGCAGAAGAGAACTAAGCAGCACGCTATCTGACCGCCGTAGCGC" +
+          "CATCAGAGTAGTGGAGCCTAATGCCCTCAATTAGAGAGCGATAACCGGACTGCCCTACGCTAGGGCATAC" +
+          "GTCGCCATTTTAGCGTGATGACGCAGTGGATCTGACTTTGTGTCCGAGGGTCCAGAAGGGAGGGCTAGCT" +
+          "GTGCAATAGTGTTCGGTTTGGTAACGAGTCCTACCTCCGTACCATGCATGCTGACTACACAGGAACGTTT" +
+          "AATTAGCCCGGGCATCGAATCCAACCAGGAGCGATAGTCGCCCTGAGTTCCGACCTGCTTGTCACACCTA" +
+          "AATTAGCCCGGGCATCGAAT--------------CCAACCAGGAGCGATAGTCGCCCTGAGTTCCGACCT" +
+          "GTCGCCATTTTAGCGTGATGACGCAGTGGATCTGACTTTGTGTCCGAGGGTCCAGAAGGGAGGGCTAGCT" +
+          "AGGGAGGGCTAGCT";
+
+
   @Autowired
   private Properties testProperties;
 
@@ -35,15 +48,13 @@ public class FASTAWriterTest
   public void setUp() throws Exception
     {
     FASTAHeader header = new FASTAHeader(">gi|12345|This is a sample test case that illustrates FASTA writing");
-    //Properties props = Properties.readPropertiesFile("test.properties", GenomeProperties.GenomeType.NORMAL);
 
     fastaFile = new File(testProperties.getProperty("dir.insilico") + "/test.fasta");
-    assertFalse(fastaFile.exists());
 
     writer = new FASTAWriter(fastaFile, header);
     assertNotNull(writer);
     assertTrue(writer.getFASTAFile().exists());
-    assertEquals("Header is written, file length should b 68", writer.getFASTAFile().length(), 68);
+    assertEquals("Header is written, file length should be 68", writer.getFASTAFile().length(), 68);
     }
 
   @After
@@ -59,7 +70,8 @@ public class FASTAWriterTest
   public void testWrite() throws Exception
     {
     long beforeWrite = writer.getFASTAFile().length();
-    writer.writeLine("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    writer.write("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    writer.flush();
     assertTrue("File should be longer after writing than before.", writer.getFASTAFile().length() > beforeWrite);
     }
 
@@ -69,8 +81,23 @@ public class FASTAWriterTest
     String seq = "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN" +
                  "XGCAGCAAAGAGTCAGCAAGAACACCGATAGGTACGTTTCCAGCTGCCTACGGACAGGGCGGCTCCCTAA" +
                  "XTATATATA";
-    writer.writeLine(seq);
+    writer.write(seq);
+    writer.flush();
+
+    FASTAReader reader = new FASTAReader(fastaFile);
+    assertTrue( reader.readSequence(seq.length()).equals(seq) );
+
     assertEquals("With line separators this file should be length 220", writer.getFASTAFile().length(), 220);
+    }
+
+  @Test
+  public void testWriteLongSequence() throws Exception
+    {
+    writer.write(this.fastaSeq);
+    writer.flush();
+
+    FASTAReader reader = new FASTAReader(fastaFile);
+    assertTrue( reader.readSequence(fastaSeq.length()).equals(fastaSeq) );
     }
 
   }

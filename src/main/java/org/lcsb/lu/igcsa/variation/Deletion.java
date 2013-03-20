@@ -18,7 +18,9 @@ public class Deletion extends Variation
 
   public DNASequence mutateSequence(String sequence)
     {
-    this.fragment.getDeletion();
+    int count = this.fragment.getDeletion();
+    log.info(sequence.length() + " expected count " + count);
+
     return new DNASequence(sequence);
     }
 

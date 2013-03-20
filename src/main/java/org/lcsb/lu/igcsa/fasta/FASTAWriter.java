@@ -25,16 +25,17 @@ public class FASTAWriter
     {
     this.fasta = createFile(fasta);
     this.header = header;
-    write(">" + header.getAccession() + "|" + header.getLocus() + "|" + header.getDescription() + "\n");
+    writeString(">" + header.getAccession() + "|" + header.getLocus() + "|" + header.getDescription() + "\n");
     }
 
   public void flush() throws IOException
     {
-    write(buffer.toString() + "\n");
+    writeString(buffer.toString() + "\n");
     buffer = new StringBuffer();
     }
 
-  public void writeLine(String str) throws IOException
+
+  public void write(String str) throws IOException
     {
     for (char c : str.toCharArray())
       {
@@ -43,7 +44,7 @@ public class FASTAWriter
       }
     }
 
-  public void write(String str) throws IOException
+  private void writeString(String str) throws IOException
     {
     bufferedWriter.write(str);
     bufferedWriter.flush();

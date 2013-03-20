@@ -119,7 +119,7 @@ public class MutableGenome implements Genome
     while ((currentSequenceFragment = chr.getSequence(location)) != null)
       {
       DNASequence mutatedSequence = mutateSequenceAtLocation(chr, currentSequenceFragment);
-      mutatedChr.alterSequence(location, mutatedSequence);
+      //mutatedChr.alterSequence(location, mutatedSequence);
       location = new Location( location.getEnd(), location.getEnd()+window );
       }
     return mutatedChr;
@@ -146,15 +146,15 @@ public class MutableGenome implements Genome
       DNASequence mutatedSequence = mutateSequenceAtLocation(chr, currentSequenceFragment);
       try
         {
-        writer.writeLine(mutatedSequence.getSequence());
+        writer.write(mutatedSequence.getSequence());
         }
       catch (IOException e)
         {
         log.error(e);
         }
       location = new Location( location.getEnd(), location.getEnd()+window );
-      writer.flush();
       }
+    writer.flush();
     writer.close();
     return new Chromosome(chr.getName(), writer.getFASTAFile());
     }

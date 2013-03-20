@@ -18,7 +18,8 @@ public class Insertion extends Variation
 
   public DNASequence mutateSequence(String sequence)
     {
-    this.fragment.getInsertion();
+    int count = this.fragment.getInsertion();
+    log.info(sequence.length() + " expected count " + count);
     // TODO what is the general probability of occurrence for each nucleotide anyhow??
     char[] validNucleotides = Nucleotides.validDNA();
     return new DNASequence(sequence);

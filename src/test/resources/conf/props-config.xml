@@ -4,7 +4,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <!-- Properties -->
-    <bean id="testNormalProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+    <bean id="testProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
         <property name="ignoreResourceNotFound">
             <value>true</value>
         </property>

@@ -18,6 +18,5 @@
     <import resource="conf/props-config.xml"/>
     <import resource="conf/database-config.xml"/>
     <import resource="conf/test-genome.xml"/>
-    <!--<import resource="conf/cancer-genome.xml"/>-->
 
 </beans>

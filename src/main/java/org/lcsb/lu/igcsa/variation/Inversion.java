@@ -17,6 +17,7 @@ public class Inversion extends Variation
 
   public DNASequence mutateSequence(String sequence)
     {
+//    log.info(sequence.length() + " expected count " + count);
     return new DNASequence(sequence);
     }
   }

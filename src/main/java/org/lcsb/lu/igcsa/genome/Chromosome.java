@@ -1,18 +1,11 @@
 package org.lcsb.lu.igcsa.genome;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
-import org.lcsb.lu.igcsa.fasta.FASTAWriter;
-import org.lcsb.lu.igcsa.variation.Variation;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * org.lcsb.lu.igcsa.genome
@@ -27,7 +20,8 @@ public class Chromosome
   private String Name;
   private File fasta;
   private FASTAReader reader;
-  private Map<Location, DNASequence> alteredSequence = new HashMap<Location, DNASequence>();
+  private DNASequence fullSequence;
+  private NavigableMap<Location, DNASequence> alteredSequence = new TreeMap<Location, DNASequence>();
 
   public Chromosome(String name)
     {
@@ -73,6 +67,7 @@ public class Chromosome
    * for the given location it returns that. That location has to be exactly the same
    * however.  This could be problematic so ...
    * Otherwise reads it from the FASTA file.
+   *
    * @param loc
    * @return
    */
@@ -80,11 +75,19 @@ public class Chromosome
     {
     String sequence = null;
     if (this.alteredSequence.containsKey(loc))
-      { sequence = this.alteredSequence.get(loc).getSequence(); }
+      {
+      sequence = this.alteredSequence.get(loc).getSequence();
+      }
     else
       {
-      try { sequence = reader.readSequenceFromLocation(loc.getStart(), loc.getLength()); }
-      catch (IOException e) { e.printStackTrace(); }
+      try
+        {
+        sequence = reader.readSequenceFromLocation(loc.getStart(), loc.getLength());
+        }
+      catch (IOException e)
+        {
+        e.printStackTrace();
+        }
       }
     return new DNASequence(sequence);
     }
@@ -105,15 +108,67 @@ public class Chromosome
       sequence = new DNASequence(reader.readSequence(window), new Location((int) start, (int) reader.getLastLocation()));
       }
     catch (IOException ioe)
-      { ioe.printStackTrace(); }
+      {
+      ioe.printStackTrace();
+      }
     return sequence;
     }
 
+  /**
+   * This currently gets only the sequence from the FASTA file.  The sequences in "alterSequence" are not used for anything right now.
+   * @return
+   */
+  public DNASequence retrieveFullSequence()
+    {
+    DNASequence fullSequence = new DNASequence();
+    //if (this.fullSequence == null)
+      {
+      //this.fullSequence = new DNASequence();
+      int window = 500;
+      String currentSeq;
+      while (true)
+        {
+        currentSeq = this.readSequence(window).getSequence();
+        fullSequence.addNucleotides(currentSeq);
+        if (currentSeq.length() < window) break;
+        }
+      }
+    return fullSequence;
+    }
+
+
+  /*
+ I'm not certain this is a useful thing yet.
+  */
   public void alterSequence(Location loc, DNASequence sequence)
     {
-//    log.debug(loc);
-//    log.debug(sequence);
     this.alteredSequence.put(loc, sequence);
     }
+
+//  private void mergeAlteredSequences()
+//    {
+//    String sequence = retrieveFullSequence().getSequence();
+//
+//    int currentIndex = 0;
+//    String newSequence = "";
+//    // Basically if the beginning of the sequence hasn't been altered...
+//    if (currentIndex < alteredSequence.firstEntry().getKey().getStart())
+//      {
+//      newSequence = sequence.substring(0, alteredSequence.firstEntry().getKey().getStart());
+//      currentIndex = alteredSequence.firstEntry().getKey().getStart();
+//      }
+//
+//    for(Map.Entry<Location, DNASequence> entry: this.alteredSequence.entrySet())
+//      {
+//      log.info(entry.getKey() + " : " + entry.getValue());
+//
+//      Location current = entry.getKey();
+//
+//      newSequence = newSequence + sequence.substring(current.getStart(), current.getEnd());
+//
+//
+//      }
+//    }
+
 
   }
