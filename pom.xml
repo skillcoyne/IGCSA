@@ -10,7 +10,7 @@
     <name>Insilico Genome</name>
 
     <build>
-        <finalName>insilicogenome</finalName>
+        <finalName>igcsa</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -38,7 +38,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>CreateGenome</mainClass>
+                            <mainClass>org.lcsb.lu.igcsa.InsilicoGenome</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

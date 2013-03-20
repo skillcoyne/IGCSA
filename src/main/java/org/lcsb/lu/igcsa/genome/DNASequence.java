@@ -53,7 +53,7 @@ public class DNASequence
     {
     int guanine = StringUtils.countOccurrencesOf(this.sequence, "G");
     int cytosine = StringUtils.countOccurrencesOf(this.sequence, "C");
-    log.info("GC content: " + (guanine + cytosine));
+    log.debug("GC content: " + (guanine + cytosine));
     return (guanine + cytosine);
     }
 

@@ -82,10 +82,7 @@ public class InsilicoGenome
     {
     init();
 
-    log.info(normalGenomeProperties.getProperty("assembly"));
-
     setupReferenceGenome();
-
     createGenomeGenerations(GenomeType.NORMAL);
     }
 
@@ -113,10 +110,11 @@ public class InsilicoGenome
       //TODO this could be done in threads
       for (Chromosome chr : referenceGenome.getChromosomes())
         {
+        log.info(chr.getName());
         for (int i = 1; i <= individuals; i++)
           {
           //referenceGenome.mutate(chr, window);
-          print("Generation " + g + " individual " + i + " chromosome " + chr.getName());
+          log.info("Generation " + g + " individual " + i + " chromosome " + chr.getName());
           try
             {
             FASTAHeader header = new FASTAHeader(">chromosome|" + chr.getName() + "|Generation " + g + " individual " + i);
@@ -147,8 +145,8 @@ public class InsilicoGenome
   protected void setupReferenceGenome() throws FileNotFoundException, ProbabilityException, IllegalAccessException, InstantiationException
     {
     referenceGenome.addChromosomes(FileUtils.getChromosomesFromFASTA(new File(normalGenomeProperties.getProperty("dir.assembly"))));
-    log.debug("Reference genome build: " + referenceGenome.getBuildName());
-    log.debug("Reference genome has: " + referenceGenome.getChromosomes().length + " chromosomes");
+    log.info("Reference genome build: " + referenceGenome.getBuildName());
+    log.info("Reference genome has: " + referenceGenome.getChromosomes().length + " chromosomes");
     }
 
 

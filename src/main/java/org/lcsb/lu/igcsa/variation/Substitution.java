@@ -16,7 +16,7 @@ public class Substitution extends Variation
   public DNASequence mutateSequence(String sequence)
     {
     int count = this.fragment.getSubstitution();
-    log.info(sequence.length() + " expected count " + count);
+    log.debug(sequence.length() + " expected count " + count);
 
     return new DNASequence(sequence);
     }

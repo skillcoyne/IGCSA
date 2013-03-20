@@ -18,7 +18,8 @@ public class Indel extends Variation
   public DNASequence mutateSequence(String sequence)
     {
     int count = this.fragment.getIndel();
-    log.info(sequence.length() + " expected count " + count);
+    log.debug(sequence.length() + " expected count " + count);
+
 
     return new DNASequence(sequence);
     }

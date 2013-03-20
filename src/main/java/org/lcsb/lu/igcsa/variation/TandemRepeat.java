@@ -16,7 +16,7 @@ public class TandemRepeat extends Variation
   public DNASequence mutateSequence(String sequence)
     {
     int count = fragment.getTandemRepeat();
-    log.info(sequence.length() + " expected count " + count);
+    log.debug(sequence.length() + " expected count " + count);
 
     return new DNASequence(sequence);
     }

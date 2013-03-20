@@ -1,5 +1,6 @@
 package org.lcsb.lu.igcsa.variation;
 
+import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.Fragment;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.genome.Location;
