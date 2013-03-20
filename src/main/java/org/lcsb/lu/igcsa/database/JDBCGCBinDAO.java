@@ -24,6 +24,8 @@ public class JDBCGCBinDAO implements GCBinDAO
   private DataSource dataSource;
   private String tableName;
 
+  private int maxBinSize = 0;
+
   public void setTableName(String tableName)
     {
     this.tableName = tableName;
@@ -36,48 +38,53 @@ public class JDBCGCBinDAO implements GCBinDAO
 
   private int maxBin(String chr)
     {
-    String sql = "SELECT * FROM gc_bins WHERE chr = ? order by max desc limit 0,1";
+    // this only really needs to be checked once
+    if (maxBinSize <= 0)
+      {
+      String sql = "SELECT * FROM gc_bins WHERE chr = ? order by max desc limit 0,1";
 
-    Connection conn = null;
-    try
-      {
-      conn = dataSource.getConnection();
-      PreparedStatement ps = conn.prepareStatement(sql);
-      ps.setString(1, chr);
-      ResultSet rs = ps.executeQuery();
-      int max = 0;
-      if (rs.next())
+      Connection conn = null;
+      try
         {
-        max = rs.getInt("max");
+        conn = dataSource.getConnection();
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setString(1, chr);
+        ResultSet rs = ps.executeQuery();
+        int max = 0;
+        if (rs.next())
+          {
+          max = rs.getInt("max");
+          }
+        rs.close();
+        ps.close();
+        maxBinSize = max;
         }
-      rs.close();
-      ps.close();
-      return max;
-      }
-    catch (SQLException e)
-      {
-      throw new RuntimeException(e);
-      }
-    finally
-      {
-      if (conn != null)
+      catch (SQLException e)
         {
-        try
+        throw new RuntimeException(e);
+        }
+      finally
+        {
+        if (conn != null)
           {
-          conn.close();
-          }
-        catch (SQLException e)
-          {
-          log.warn(e.getMessage());
+          try
+            {
+            conn.close();
+            }
+          catch (SQLException e)
+            {
+            log.warn(e.getMessage());
+            }
           }
         }
       }
+    return maxBinSize;
     }
 
   public Bin getBinByGC(String chr, int gcContent)
     {
     int maxBin = maxBin(chr);
-    log.debug("MAX BIN FOR " + chr + " = " + maxBin );
+    log.debug("MAX BIN FOR " + chr + " = " + maxBin);
 
     Connection conn = null;
 
@@ -95,7 +102,7 @@ public class JDBCGCBinDAO implements GCBinDAO
         sql = "SELECT * FROM " + this.tableName + " WHERE chr = ? AND max = ?";
         ps = conn.prepareStatement(sql);
         ps.setString(1, chr);
-        ps.setInt(2, gcContent);
+        ps.setInt(2, maxBin);
         }
 
       log.debug(sql);
@@ -104,10 +111,12 @@ public class JDBCGCBinDAO implements GCBinDAO
       Bin gcBin = null;
       ResultSet rs = ps.executeQuery();
 
-      if (rs.next()) gcBin = createBin(rs);
+      if (rs.next())
+        gcBin = createBin(rs);
 
       rs.close();
-      ps.close();;
+      ps.close();
+      ;
       return gcBin;
       }
     catch (SQLException e)
