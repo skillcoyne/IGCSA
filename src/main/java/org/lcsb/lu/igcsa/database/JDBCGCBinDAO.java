@@ -76,28 +76,36 @@ public class JDBCGCBinDAO implements GCBinDAO
 
   public Bin getBinByGC(String chr, int gcContent)
     {
-    String sql = "SELECT * FROM " + this.tableName + " WHERE chr = ? AND (min <= ? AND max >= ?)";
-    log.debug(sql);
-    log.debug(chr + ": gc " + gcContent);
-
     int maxBin = maxBin(chr);
-    if (maxBin < gcContent) sql = "SELECT * FROM " + this.tableName + " WHERE chr = ? AND max = ?";
+    log.debug("MAX BIN FOR " + chr + " = " + maxBin );
 
     Connection conn = null;
 
     try
       {
       conn = dataSource.getConnection();
+      String sql = "SELECT * FROM " + this.tableName + " WHERE chr = ? AND (min <= ? AND max >= ?)";
       PreparedStatement ps = conn.prepareStatement(sql);
       ps.setString(1, chr);
       ps.setInt(2, gcContent);
-      if (maxBin > gcContent) ps.setInt(3, gcContent);
+      ps.setInt(3, gcContent);
+
+      if (maxBin < gcContent)
+        {
+        sql = "SELECT * FROM " + this.tableName + " WHERE chr = ? AND max = ?";
+        ps = conn.prepareStatement(sql);
+        ps.setString(1, chr);
+        ps.setInt(2, gcContent);
+        }
+
+      log.debug(sql);
+      log.debug(chr + ": gc " + gcContent);
+
       Bin gcBin = null;
       ResultSet rs = ps.executeQuery();
-      if (rs.next())
-        {
-        gcBin = createBin(rs);
-        }
+
+      if (rs.next()) gcBin = createBin(rs);
+
       rs.close();
       ps.close();;
       return gcBin;
