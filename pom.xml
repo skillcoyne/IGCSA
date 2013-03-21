@@ -33,6 +33,7 @@
                     </execution>
                 </executions>
                 <configuration>
+
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
@@ -53,6 +54,9 @@
             </plugin>
         </plugins>
     </build>
+
+
+
     <dependencies>
         <!-- Logging -->
         <dependency>

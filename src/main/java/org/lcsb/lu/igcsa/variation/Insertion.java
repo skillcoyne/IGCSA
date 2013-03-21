@@ -1,9 +1,11 @@
 package org.lcsb.lu.igcsa.variation;
 
 import org.lcsb.lu.igcsa.genome.DNASequence;
-import org.lcsb.lu.igcsa.genome.Nucleotides;
+import static org.lcsb.lu.igcsa.genome.Nucleotides.*;
 
 import org.apache.log4j.Logger;
+
+import java.util.Random;
 
 /**
  * org.lcsb.lu.igcsa.variation
@@ -19,10 +21,34 @@ public class Insertion extends Variation
   public DNASequence mutateSequence(String sequence)
     {
     int count = this.fragment.getInsertion();
+    // TODO really need size as well from the DB
     log.debug(sequence.length() + " expected count " + count);
 
     // TODO what is the general probability of occurrence for each nucleotide anyhow??
-    char[] validNucleotides = Nucleotides.validDNA();
+    char[] validNucleotides = {A.value(), C.value(), T.value(), G.value()};
+
+    int totalIns = 0;
+    while (totalIns < count && sequence.length() > 1)
+      {
+      int nIndex = siteSelector.nextInt(sequence.length());
+      int size = new Random().nextInt(sequence.length()-nIndex)+1;
+
+      log.debug("Site selected " + nIndex + " insertion size " + size);
+
+      StringBuffer buf = new StringBuffer();
+      for (int i=1; i<=size; i++)
+        {
+        char n = validNucleotides[ new Random().nextInt(3) ];
+        buf.append(String.valueOf(n));
+        }
+
+      String newSequence =  sequence.substring(0, nIndex);
+      newSequence = newSequence + buf.toString() + sequence.substring(nIndex, sequence.length());
+
+      sequence = newSequence;
+      ++totalIns;
+      }
+
     return new DNASequence(sequence);
     }
   }

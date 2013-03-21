@@ -110,20 +110,20 @@ public class MutableGenome implements Genome
     }
 
 
-  public Chromosome mutate(Chromosome chr, int window)
-    {
-    Chromosome mutatedChr = chr;
-
-    DNASequence currentSequenceFragment;
-    Location location = new Location(0, window); // FASTA locations are 0 based.
-    while ((currentSequenceFragment = chr.getSequence(location)) != null)
-      {
-      DNASequence mutatedSequence = mutateSequenceAtLocation(chr, currentSequenceFragment);
-      //mutatedChr.alterSequence(location, mutatedSequence);
-      location = new Location(location.getEnd(), location.getEnd() + window);
-      }
-    return mutatedChr;
-    }
+//  public Chromosome mutate(Chromosome chr, int window)
+//    {
+//    Chromosome mutatedChr = chr;
+//
+//    DNASequence currentSequenceFragment;
+//    Location location = new Location(0, window); // FASTA locations are 0 based.
+//    while ((currentSequenceFragment = chr.getSequence(location)) != null)
+//      {
+//      DNASequence mutatedSequence = mutateSequenceAtLocation(chr, currentSequenceFragment);
+//      //mutatedChr.alterSequence(location, mutatedSequence);
+//      location = new Location(location.getEnd(), location.getEnd() + window);
+//      }
+//    return mutatedChr;
+//    }
 
   /**
    * Loop over the sequence, mutate and immediately write to new FASTA file.
@@ -142,10 +142,13 @@ public class MutableGenome implements Genome
     log.debug(chr.getName());
 
     Location location = new Location(0, window); // FASTA locations are 0 based.
+    chr.getFASTAReader().reset();
+
     DNASequence currentSequenceFragment;
 
-    while ((currentSequenceFragment = chr.readSequence(window)) != null)
+     while (true)
       {
+      currentSequenceFragment = chr.readSequence(window);
       log.debug(chr.getName() + location.toString());
       DNASequence mutatedSequence = mutateSequenceAtLocation(chr, currentSequenceFragment);
       total += mutatedSequence.getLength();
@@ -158,6 +161,7 @@ public class MutableGenome implements Genome
         log.error(e);
         }
       location = new Location(location.getEnd(), location.getEnd() + window);
+      if (currentSequenceFragment.getLength() < window) break;
       }
     writer.flush();
     writer.close();
@@ -172,16 +176,16 @@ public class MutableGenome implements Genome
     Random randomFragment = new Random();
 
     // get the GC content in order to select the correct fragment bin
-    int gcContent = sequence.calculateGC();
-    if (gcContent > 0)
+    int totalNucleotides = sequence.calculateNucleotides();
+    if (totalNucleotides > 0)
       {
-      Bin gcBin = this.binDAO.getBinByGC(chr.getName(), gcContent);
+      Bin gcBin = this.binDAO.getBinByGC(chr.getName(), sequence.calculateGC());
 
       log.debug(gcBin.toString());
       // get random fragment within the GC bin
       Fragment fragment = this.variationDAO.getFragment(chr.getName(), gcBin.getBinId(), randomFragment.nextInt(gcBin.getSize()));
 
-      if (gcContent >= fragment.countSums())
+      if (totalNucleotides >= fragment.countSums())
         {
         log.info("MUTATING FRAGMENT " + fragment.toString());
         // apply the variations to the sequence, each of them needs to apply to the same fragment

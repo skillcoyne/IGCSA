@@ -8,6 +8,8 @@ import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.lcsb.lu.igcsa.prob.ProbabilityList;
 
+import java.util.Random;
+
 /**
  * org.lcsb.lu.igcsa.variation
  * Author: skillcoyne
@@ -17,6 +19,8 @@ import org.lcsb.lu.igcsa.prob.ProbabilityList;
 public abstract class Variation
     {
     protected Fragment fragment;
+
+    protected Random siteSelector = new Random();
 
     public void setMutationFragment(Fragment fragment)
       {

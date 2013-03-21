@@ -11,6 +11,7 @@
         <property name="locations">
             <list>
                 <value>classpath:props/genome.properties</value>
+                <!--<value>classpath*:props/genome.properties</value>-->
             </list>
         </property>
     </bean>
@@ -22,6 +23,7 @@
         <property name="locations">
             <list>
                 <value>classpath:props/cancer.properties</value>
+                <!--<value>classpath*:props/cancer.properties</value>-->
             </list>
         </property>
     </bean>

@@ -30,6 +30,7 @@ public class FASTAWriter
   public FASTAWriter(File fasta, FASTAHeader header) throws IOException
     {
     this.fasta = createFile(fasta);
+    log.debug(fasta.getAbsolutePath());
     this.header = header;
     writeString(">" + header.getAccession() + "|" + header.getLocus() + "|" + header.getDescription() + "\n");
     }

@@ -58,10 +58,9 @@ public class InsilicoGenome
   protected Properties cancerGenomeProperties;
 
   // Defaults
-  private int generations = 5;
-  private int individuals = 5;
+  private int generations = 1;
+  private int individuals = 1;
   private int windowSize = 1000;
-
 
   protected Genome referenceGenome;
   protected Genome cancerGenome;
@@ -127,9 +126,7 @@ public class InsilicoGenome
             e.printStackTrace();
             }
           }
-        break;
         }
-      break;
       }
     }
 

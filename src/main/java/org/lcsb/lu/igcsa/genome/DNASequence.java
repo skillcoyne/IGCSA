@@ -2,10 +2,8 @@ package org.lcsb.lu.igcsa.genome;
 
 import org.apache.log4j.Logger;
 import org.springframework.util.StringUtils;
-import sun.misc.Regexp;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import static org.lcsb.lu.igcsa.genome.Nucleotides.*;
 
 /**
  * org.lcsb.lu.igcsa.genome
@@ -19,18 +17,17 @@ public class DNASequence
 
   private String sequence = "";
   private Location location;
-  private final Pattern nucleotides = Pattern.compile("([ACTGNactgn-]+)");
-  private final Pattern unknown = Pattern.compile("[Nn]+");
-  private final Pattern gap = Pattern.compile("[-]+");
 
-  // TODO Need to return a location to start mutations from in the case of gaps or unknown nucleotides.
+
+
+  // TODO Need to return a location to start mutations from in the case of gaps or unknown nucleotides. -- maybe
 
 
   private void testNucleotides(String sequence) throws IllegalArgumentException
     {
-    Matcher match = nucleotides.matcher(sequence);
-    if (!match.matches())
-      throw new IllegalArgumentException("The sequence contains incorrect nucleotides, expected " + nucleotides + " provided: " + sequence);
+    if (sequence.length() <= 0) throw new IllegalArgumentException("No sequence provided.");
+    if (!validCharacters().matcher(sequence).matches())
+      throw new IllegalArgumentException("The sequence contains incorrect nucleotides, expected " + validCharacters() + " provided: " + sequence);
     }
 
   public DNASequence()
@@ -51,12 +48,17 @@ public class DNASequence
 
   public int calculateGC()
     {
-    int guanine = StringUtils.countOccurrencesOf(this.sequence, "G");
-    int cytosine = StringUtils.countOccurrencesOf(this.sequence, "C");
-    log.debug("GC content: " + (guanine + cytosine));
+    int guanine = StringUtils.countOccurrencesOf(this.sequence, G.toString());
+    int cytosine = StringUtils.countOccurrencesOf(this.sequence, C.toString());
     return (guanine + cytosine);
     }
 
+  public int calculateAT()
+    {
+    int thymidine = StringUtils.countOccurrencesOf(this.sequence, T.toString());
+    int adenine = StringUtils.countOccurrencesOf(this.sequence, A.toString());
+    return (thymidine + adenine);
+    }
 
   public void addNucleotides(String nuc) throws IllegalArgumentException
     {
@@ -85,17 +87,19 @@ public class DNASequence
     return this.location;
     }
 
-//  public boolean hasUnknownNucleotides()
-//    {
-//    Matcher match = unknown.matcher(sequence);
-//    return match.matches();
-//    }
-//
-//  public boolean hasGaps()
-//    {
-//    Matcher match = gap.matcher(sequence);
-//    return match.matches();
-//    }
+  public int calculateNucleotides()
+    {
+    return (calculateAT() + calculateGC());
+    }
+
+  // Including gaps
+  public int calculateUnknown()
+    {
+    int unk = StringUtils.countOccurrencesOf(this.sequence, UNKNOWN.toString());
+    int gap = StringUtils.countOccurrencesOf(this.sequence, GAP.toString());
+    return (unk + gap);
+    }
+
 
   @Override
   public String toString()

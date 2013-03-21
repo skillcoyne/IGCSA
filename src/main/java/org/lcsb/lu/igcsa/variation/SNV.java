@@ -3,7 +3,6 @@ package org.lcsb.lu.igcsa.variation;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.genome.Location;
-import org.lcsb.lu.igcsa.genome.Nucleotides;
 import org.lcsb.lu.igcsa.prob.Frequency;
 
 import java.util.Map;
@@ -11,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.Random;
 import java.util.TreeSet;
 
+import static org.lcsb.lu.igcsa.genome.Nucleotides.*;
 
 
 /**
@@ -25,9 +25,6 @@ public class SNV extends Variation
 
   private Map<Character, Frequency> snvFrequencies;
   private LinkedHashMap<Location, DNASequence> lastMutations;
-
-  private static final char GAP = Nucleotides.GAP.getNucleotide();
-  private static final char UNKNOWN = Nucleotides.N.getNucleotide();
 
   public SNV(Map<Character, Frequency> frequencyMap)
     {
@@ -45,7 +42,6 @@ public class SNV extends Variation
 
     lastMutations = new LinkedHashMap<Location, DNASequence>();
 
-    Random selector = new Random();
     char[] nucleotides = sequence.toCharArray();
 
     int totalSNPs = 0;
@@ -54,13 +50,13 @@ public class SNV extends Variation
     while (totalSNPs < count)
       {
       //log.debug("SNPs: " + totalSNPs);
-      int nIndex = selector.nextInt(sequence.length());
+      int nIndex = siteSelector.nextInt(sequence.length());
 
-      while (noReplacement.contains(nIndex)) nIndex = selector.nextInt(sequence.length());
+      while (noReplacement.contains(nIndex)) nIndex = siteSelector.nextInt(sequence.length());
       noReplacement.add(nIndex);
 
       char n = nucleotides[nIndex];
-      if (n == GAP || n == UNKNOWN) continue;
+      if (n == GAP.value() || n == UNKNOWN.value()) continue;
 
       Frequency f = snvFrequencies.get(n);
       char newN = (Character) f.roll();

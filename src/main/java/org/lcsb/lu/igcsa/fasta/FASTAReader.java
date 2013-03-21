@@ -1,7 +1,8 @@
 package org.lcsb.lu.igcsa.fasta;
 
+import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.genome.Location;
-import org.lcsb.lu.igcsa.genome.Nucleotides;
+
 
 import java.io.*;
 import java.util.*;
@@ -17,6 +18,8 @@ import static org.lcsb.lu.igcsa.genome.Nucleotides.*;
  */
 public class FASTAReader
   {
+  static Logger log = Logger.getLogger(FASTAReader.class.getName());
+
   // The standard gamut of line terminators, plus EOF
   private static final char CARRIAGE_RETURN = 0x000A;
   // ASCII carriage return (CR), as char
@@ -46,7 +49,7 @@ public class FASTAReader
   private Collection<Location> gapRegions = new ArrayList<Location>();
 
 
-  public FASTAReader(File file) throws IOException, FileNotFoundException
+  public FASTAReader(File file) throws IOException
     {
     fasta = file;
     if (!fasta.exists()) throw new FileNotFoundException("No such file: " + file.getAbsolutePath());
@@ -62,6 +65,8 @@ public class FASTAReader
   private InputStream open() throws IOException
     {
     this.fileloc = 0L;
+    log.debug(fasta.getAbsolutePath() + " file location " + fileloc);
+
     InputStream is = new FileInputStream(this.fasta);
     if (this.fasta.getName().endsWith("gz"))
       {
@@ -174,20 +179,20 @@ public class FASTAReader
         else this.skipline();
         }
 
-      if (c == N.getNucleotide() && c != lastChar)
+      if (c == UNKNOWN.value() && c != lastChar)
         {
         repeatStart = (int) this.fileloc;
         }
-      else if (lastChar == N.getNucleotide() && c != lastChar)
+      else if (lastChar == UNKNOWN.value() && c != lastChar)
         {
         this.repeatRegions.add(new Location(repeatStart, (int) this.fileloc));
         repeatStart = 0;
         }
-      else if (c == GAP.getNucleotide() && c != lastChar)
+      else if (c == GAP.value() && c != lastChar)
         {
         gapStart = (int) this.fileloc;
         }
-      else if (lastChar == GAP.getNucleotide() && c != lastChar)
+      else if (lastChar == GAP.value() && c != lastChar)
         {
         this.gapRegions.add(new Location(gapStart, (int) this.fileloc));
         gapStart = 0;

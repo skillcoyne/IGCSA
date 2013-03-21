@@ -10,6 +10,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * org.lcsb.lu.igcsa.database
@@ -24,7 +26,8 @@ public class JDBCGCBinDAO implements GCBinDAO
   private DataSource dataSource;
   private String tableName;
 
-  private int maxBinSize = 0;
+  private Map<String, Integer> maxBins = new HashMap<String, Integer>();
+
 
   public void setTableName(String tableName)
     {
@@ -39,7 +42,7 @@ public class JDBCGCBinDAO implements GCBinDAO
   private int maxBin(String chr)
     {
     // this only really needs to be checked once
-    if (maxBinSize <= 0)
+    if (!maxBins.containsKey(chr))
       {
       String sql = "SELECT * FROM gc_bins WHERE chr = ? order by max desc limit 0,1";
 
@@ -57,7 +60,7 @@ public class JDBCGCBinDAO implements GCBinDAO
           }
         rs.close();
         ps.close();
-        maxBinSize = max;
+        maxBins.put(chr, max);
         }
       catch (SQLException e)
         {
@@ -78,7 +81,7 @@ public class JDBCGCBinDAO implements GCBinDAO
           }
         }
       }
-    return maxBinSize;
+    return maxBins.get(chr);
     }
 
   public Bin getBinByGC(String chr, int gcContent)

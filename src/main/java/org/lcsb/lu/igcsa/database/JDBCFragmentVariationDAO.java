@@ -35,6 +35,7 @@ public class JDBCFragmentVariationDAO implements FragmentVariationDAO
     {
     String sql = "SELECT * FROM " + this.tableName + " WHERE chr = ? AND bin_id = ? LIMIT " + fragmentNum + ", 1";
     log.debug(sql);
+    log.debug("chr = " + chr + " bin_id = " + binId);
 
     Connection conn = null;
 
@@ -44,6 +45,7 @@ public class JDBCFragmentVariationDAO implements FragmentVariationDAO
       PreparedStatement ps = conn.prepareStatement(sql);
       ps.setString(1, chr);
       ps.setInt(2, binId);
+
 
       Fragment fragment = null;
       ResultSet rs = ps.executeQuery();

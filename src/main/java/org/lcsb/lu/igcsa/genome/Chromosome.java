@@ -20,7 +20,7 @@ public class Chromosome
   private String Name;
   private File fasta;
   private FASTAReader reader;
-  private DNASequence fullSequence;
+  //private DNASequence fullSequence;
   private NavigableMap<Location, DNASequence> alteredSequence = new TreeMap<Location, DNASequence>();
 
   public Chromosome(String name)
@@ -38,7 +38,7 @@ public class Chromosome
       }
     catch (Exception e)
       {
-      e.printStackTrace();
+      log.error(e);
       }
     }
 
@@ -71,26 +71,26 @@ public class Chromosome
    * @param loc
    * @return
    */
-  public DNASequence getSequence(Location loc)
-    {
-    String sequence = null;
-    if (this.alteredSequence.containsKey(loc))
-      {
-      sequence = this.alteredSequence.get(loc).getSequence();
-      }
-    else
-      {
-      try
-        {
-        sequence = reader.readSequenceFromLocation(loc.getStart(), loc.getLength());
-        }
-      catch (IOException e)
-        {
-        e.printStackTrace();
-        }
-      }
-    return new DNASequence(sequence);
-    }
+//  public DNASequence getSequence(Location loc)
+//    {
+//    String sequence = null;
+//    if (this.alteredSequence.containsKey(loc))
+//      {
+//      sequence = this.alteredSequence.get(loc).getSequence();
+//      }
+//    else
+//      {
+//      try
+//        {
+//        sequence = reader.readSequenceFromLocation(loc.getStart(), loc.getLength());
+//        }
+//      catch (IOException e)
+//        {
+//        e.printStackTrace();
+//        }
+//      }
+//    return new DNASequence(sequence);
+//    }
 
   /**
    * Get sequence in chunks from the FASTA file.  Each call will read sequentially from last call.
@@ -116,22 +116,30 @@ public class Chromosome
 
   /**
    * This currently gets only the sequence from the FASTA file.  The sequences in "alterSequence" are not used for anything right now.
+   *
    * @return
    */
   public DNASequence retrieveFullSequence()
     {
+    log.info("Retrieve full sequence from " + this.fasta.getAbsolutePath());
     DNASequence fullSequence = new DNASequence();
-    //if (this.fullSequence == null)
+    try
       {
-      //this.fullSequence = new DNASequence();
-      int window = 500;
-      String currentSeq;
-      while (true)
-        {
-        currentSeq = this.readSequence(window).getSequence();
-        fullSequence.addNucleotides(currentSeq);
-        if (currentSeq.length() < window) break;
-        }
+      reader.reset();
+      }
+    catch (IOException e)
+      {
+      log.error(e);
+      }
+
+    //this.fullSequence = new DNASequence();
+    int window = 500;
+    String currentSeq;
+    while (true)
+      {
+      currentSeq = this.readSequence(window).getSequence();
+      fullSequence.addNucleotides(currentSeq);
+      if (currentSeq.length() < window) break;
       }
     return fullSequence;
     }
@@ -145,30 +153,30 @@ public class Chromosome
     this.alteredSequence.put(loc, sequence);
     }
 
-//  private void mergeAlteredSequences()
-//    {
-//    String sequence = retrieveFullSequence().getSequence();
-//
-//    int currentIndex = 0;
-//    String newSequence = "";
-//    // Basically if the beginning of the sequence hasn't been altered...
-//    if (currentIndex < alteredSequence.firstEntry().getKey().getStart())
-//      {
-//      newSequence = sequence.substring(0, alteredSequence.firstEntry().getKey().getStart());
-//      currentIndex = alteredSequence.firstEntry().getKey().getStart();
-//      }
-//
-//    for(Map.Entry<Location, DNASequence> entry: this.alteredSequence.entrySet())
-//      {
-//      log.info(entry.getKey() + " : " + entry.getValue());
-//
-//      Location current = entry.getKey();
-//
-//      newSequence = newSequence + sequence.substring(current.getStart(), current.getEnd());
-//
-//
-//      }
-//    }
+  //  private void mergeAlteredSequences()
+  //    {
+  //    String sequence = retrieveFullSequence().getSequence();
+  //
+  //    int currentIndex = 0;
+  //    String newSequence = "";
+  //    // Basically if the beginning of the sequence hasn't been altered...
+  //    if (currentIndex < alteredSequence.firstEntry().getKey().getStart())
+  //      {
+  //      newSequence = sequence.substring(0, alteredSequence.firstEntry().getKey().getStart());
+  //      currentIndex = alteredSequence.firstEntry().getKey().getStart();
+  //      }
+  //
+  //    for(Map.Entry<Location, DNASequence> entry: this.alteredSequence.entrySet())
+  //      {
+  //      log.info(entry.getKey() + " : " + entry.getValue());
+  //
+  //      Location current = entry.getKey();
+  //
+  //      newSequence = newSequence + sequence.substring(current.getStart(), current.getEnd());
+  //
+  //
+  //      }
+  //    }
 
 
   }

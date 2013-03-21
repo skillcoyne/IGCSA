@@ -4,6 +4,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.lcsb.lu.igcsa.fasta.FASTAHeader;
+import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.Genome;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +60,7 @@ public class MutableGenomeTest
   @After
   public void tearDown() throws Exception
     {
-    outputFasta.delete();
+    //outputFasta.delete();
     }
 
   @Test
@@ -73,19 +75,22 @@ public class MutableGenomeTest
   @Test
   public void testMutateChromosome() throws Exception
     {
+    FASTAHeader header = new FASTAHeader(">gi|12345|Test case for mutating genomes");
+    FASTAWriter writer = new FASTAWriter(outputFasta, header);
+
     assertNotNull(testGenome.getVariantTypes());
     assertEquals(testGenome.getVariantTypes().size(), 5);
 
     Chromosome origChr = new Chromosome("19", fastaFile);
-
     testGenome.addChromosome(origChr);
+
+    assertEquals(testGenome.getChromosomes().length, 1);
 
     Chromosome newChr = null;
     for(Chromosome chr: testGenome.getChromosomes())
       {
-      System.out.println(chr.getName());
-      System.out.println(chr.getFASTA().getAbsolutePath());
-      newChr = testGenome.mutate(chr, 20);
+      assertEquals(chr.getName(), "19");
+      newChr = testGenome.mutate(chr, 50, writer);
       }
 
     assertNotSame(origChr.retrieveFullSequence(), newChr.retrieveFullSequence());
