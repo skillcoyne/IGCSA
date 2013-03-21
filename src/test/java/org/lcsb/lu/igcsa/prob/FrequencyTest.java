@@ -41,13 +41,13 @@ public class FrequencyTest
     assertNotNull(frequency);
 
     StringBuffer buf = new StringBuffer();
-    for (int i=0; i<10; i++) buf.append( (String) frequency.roll() );
+    for (int i=0; i<100; i++) buf.append( (String) frequency.roll() );
 
     // I think these should always hold true...but...
-    assertTrue( StringUtils.countOccurrencesOf(buf.toString(), "C") >= 3);
-    assertTrue( StringUtils.countOccurrencesOf(buf.toString(), "G") >= 2);
-    assertTrue( StringUtils.countOccurrencesOf(buf.toString(), "T") <= 1);
-
+    assertTrue( StringUtils.countOccurrencesOf(buf.toString(), "C") >= 4);
+    assertTrue( StringUtils.countOccurrencesOf(buf.toString(), "G") >= 3);
+    assertTrue( StringUtils.countOccurrencesOf(buf.toString(), "A") >= 2);
+    assertTrue( StringUtils.countOccurrencesOf(buf.toString(), "T") >= 1);
     }
 
   @Test

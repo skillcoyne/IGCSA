@@ -12,12 +12,12 @@
         <property name="password" value=""/>
     </bean>
 
-    <bean id="FragmentDAO" class="org.lcsb.lu.igcsa.database.JDBCFragmentVariationDAO">
+    <bean id="fragmentDAO" class="org.lcsb.lu.igcsa.database.JDBCFragmentVariationDAO">
         <property name="dataSource" ref="dataSource"/>
         <property name="tableName" value="variations"/>
     </bean>
 
-    <bean id="GCBinDAO" class="org.lcsb.lu.igcsa.database.JDBCGCBinDAO">
+    <bean id="gcBinDAO" class="org.lcsb.lu.igcsa.database.JDBCGCBinDAO">
         <property name="dataSource" ref="dataSource"/>
         <property name="tableName" value="gc_bins"/>
     </bean>

@@ -43,10 +43,10 @@ public class GCBinDAOTest
   public void testGetBinByGC() throws Exception
     {
     Bin b = binDAO.getBinByGC("5", 311);
-    assertEquals(b.getBinId(), 6);
-    assertEquals(b.getMin(), 415);
-    assertEquals(b.getMax(), 498);
-    assertEquals(b.getSize(), 46840);
+    assertEquals(b.getBinId(), 4);
+    assertEquals(b.getMin(), 249);
+    assertEquals(b.getMax(), 332);
+    assertEquals(b.getSize(), 27733);
     }
 
 

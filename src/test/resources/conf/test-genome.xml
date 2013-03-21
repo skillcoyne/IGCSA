@@ -66,19 +66,17 @@
 
 
     <!-- Reference Genome creation -->
-    <bean id="referenceGenome" class="org.lcsb.lu.igcsa.genome.MutableGenome">
-        <constructor-arg ref="GCBinDAO"></constructor-arg>
-        <constructor-arg ref="FragmentDAO"></constructor-arg>
+    <bean id="testReferenceGenome" class="org.lcsb.lu.igcsa.genome.MutableGenome">
+        <constructor-arg ref="gcBinDAO"></constructor-arg>
+        <constructor-arg ref="fragmentDAO"></constructor-arg>
         <property name="buildName">
             <value>${assembly}</value>
         </property>
         <!-- Variation classes -->
         <property name="variantTypes">
             <list>
-                <bean id="Indel" class="org.lcsb.lu.igcsa.variation.Indel"/>
                 <bean id="Deletion" class="org.lcsb.lu.igcsa.variation.Deletion"/>
                 <bean id="Insertion" class="org.lcsb.lu.igcsa.variation.Insertion"/>
-                <bean id="Inversion" class="org.lcsb.lu.igcsa.variation.Inversion"/>
                 <ref bean="SNV"/>
             </list>
         </property>

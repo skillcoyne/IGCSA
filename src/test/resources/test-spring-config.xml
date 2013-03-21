@@ -9,14 +9,23 @@
         <property name="targetMethod" value="initLogging"/>
         <property name="arguments">
             <list>
-                <value>classpath:log4j.xml</value>
+                <value>classpath:test-log4j.xml</value>
             </list>
         </property>
     </bean>
 
+    <bean id="testProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+        <property name="ignoreResourceNotFound">
+            <value>true</value>
+        </property>
+        <property name="locations">
+            <list>
+                <value>classpath:test.properties</value>
+            </list>
+        </property>
+    </bean>
 
-    <import resource="conf/props-config.xml"/>
-    <import resource="conf/database-config.xml"/>
+    <import resource="conf/test-database-config.xml"/>
     <import resource="conf/test-genome.xml"/>
 
 </beans>

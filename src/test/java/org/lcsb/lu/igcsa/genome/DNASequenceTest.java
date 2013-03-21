@@ -50,6 +50,6 @@ public class DNASequenceTest
   @Test
   public void testGetSequence() throws Exception
     {
-    assertEquals(DNASequence.getSequence(), Nucleotides);
+    assertEquals(DNASequence.getSequence(), Nucleotides.toUpperCase());
     }
   }

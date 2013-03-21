@@ -49,7 +49,8 @@ public class SNV extends Variation
     TreeSet<Integer> noReplacement = new TreeSet<Integer>();
     while (totalSNPs < count)
       {
-      //log.debug("SNPs: " + totalSNPs);
+      if (noReplacement.size() == sequence.length()) break; // this really only seems to happen in testing as I'm not using long sequences but...
+
       int nIndex = siteSelector.nextInt(sequence.length());
 
       while (noReplacement.contains(nIndex)) nIndex = siteSelector.nextInt(sequence.length());
@@ -66,10 +67,8 @@ public class SNV extends Variation
         lastMutations.put( new Location(nIndex, nIndex), new DNASequence(String.valueOf(nucleotides)) );
         ++totalSNPs;
         }
-      //log.debug("Orig: " + n + " New: " + newN);
       }
 
-    log.debug("Total SNPs:" + totalSNPs + " " + nucleotides.length);
     return new DNASequence(String.valueOf(nucleotides));
     }
 
