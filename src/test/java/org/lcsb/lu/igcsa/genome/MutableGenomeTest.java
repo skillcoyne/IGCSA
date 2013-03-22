@@ -4,13 +4,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.lcsb.lu.igcsa.database.FragmentVariationDAO;
-import org.lcsb.lu.igcsa.database.GCBinDAO;
+import org.lcsb.lu.igcsa.database.normal.FragmentVariationDAO;
+import org.lcsb.lu.igcsa.database.normal.GCBinDAO;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.Genome;
-import org.lcsb.lu.igcsa.genome.MutableGenome;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -19,7 +18,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.File;
 import java.net.URL;
-import java.util.List;
 import java.util.Properties;
 
 import static org.junit.Assert.*;

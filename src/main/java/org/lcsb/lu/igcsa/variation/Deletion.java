@@ -2,7 +2,9 @@ package org.lcsb.lu.igcsa.variation;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.genome.DNASequence;
+import org.lcsb.lu.igcsa.genome.Location;
 
+import java.util.LinkedHashMap;
 import java.util.Random;
 import java.util.TreeSet;
 
@@ -21,12 +23,17 @@ public class Deletion extends Variation
   public DNASequence mutateSequence(String sequence)
     {
     int count = this.fragment.getDeletion();
+
+    lastMutations = new LinkedHashMap<Location, DNASequence>();
+
     // Size should be from the DB as well...
     log.debug(sequence.length() + " expected count " + count);
 
     int totalDel = 0;
-    while (totalDel < count && sequence.length() > 1)
+    while (totalDel < count)
       {
+      if (sequence.length() < 2) break;
+
       int nIndex = siteSelector.nextInt(sequence.length());
       int size = new Random().nextInt(sequence.length()-nIndex)+1;
 
@@ -34,6 +41,8 @@ public class Deletion extends Variation
 
       String newSequence =  sequence.substring(0, nIndex);
       newSequence = newSequence + sequence.substring(nIndex + size, sequence.length());
+
+      lastMutations.put(new Location(nIndex, nIndex+size), new DNASequence("-"));
 
       sequence = newSequence;
       ++totalDel;

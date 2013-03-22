@@ -8,9 +8,9 @@
     <!-- Database for the NORMAL GENOME fragment tables, this doesn't have to be mysql.  These aren't particularly large -->
     <bean id="normalDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
         <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
-        <property name="url" value="jdbc:mysql://localhost:3306/normal_genome_variation"/>
-        <property name="username" value="root"/>
-        <property name="password" value=""/>
+        <property name="url" value="jdbc:mysql://${normal.genome.host}:3306/${normal.genome.db}"/>
+        <property name="username" value="${normal.genome.user}"/>
+        <property name="password" value="${normal.genome.pwd}"/>
     </bean>
 
     <bean id="FragmentDAO" class="org.lcsb.lu.igcsa.database.JDBCFragmentVariationDAO">
@@ -24,5 +24,30 @@
     </bean>
 
     <!-- Database for CANCER GENOME tables?? -->
+    <!--<bean id="cancerDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">-->
+        <!--<property name="driverClassName" value="com.mysql.jdbc.Driver"/>-->
+        <!--<property name="url" value="jdbc:mysql://${cancer.genome.host}:3306/${cancer.genome.db}"/>-->
+        <!--<property name="username" value="${cancer.genome.user}"/>-->
+        <!--<property name="password" value="${cancer.genome.pwd}"/>-->
+    <!--</bean>-->
+
+
+    <!-- Database for tracking genome mutations -->
+    <!--<bean id="insilicoDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">-->
+        <!--<property name="driverClassName" value="com.mysql.jdbc.Driver"/>-->
+        <!--<property name="url" value="jdbc:mysql://${insilico.genome.host}:3306/${insilico.genome.db}"/>-->
+        <!--<property name="username" value="${insilico.genome.user}"/>-->
+        <!--<property name="password" value="${insilico.genome.pwd}"/>-->
+    <!--</bean>-->
+
+    <!--<bean id="insilicoGenomeDAO" class='org.lcsb.lu.igcsa.database.JDBCInsilicoGenomeDAO'>-->
+        <!--<property name="dataSource" ref="insilicoDataSource"/>-->
+        <!--<property name="tableName" value="genome"/>-->
+    <!--</bean>-->
+
+    <!--<bean id="insilicoMutationDAO" class="org.lcsb.lu.igcsa.database.JDBCInsilicoMutationDAO">-->
+        <!--<property name="dataSource" ref="insilicoDataSource"/>-->
+        <!--<property name="tableName" value="mutation"/>-->
+    <!--</bean>-->
 
 </beans>

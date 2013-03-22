@@ -2,6 +2,9 @@ package org.lcsb.lu.igcsa.variation;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.genome.DNASequence;
+import org.lcsb.lu.igcsa.genome.Location;
+
+import java.util.LinkedHashMap;
 
 /**
  * org.lcsb.lu.igcsa.variation
@@ -16,6 +19,9 @@ public class Substitution extends Variation
   public DNASequence mutateSequence(String sequence)
     {
     int count = this.fragment.getSubstitution();
+
+    lastMutations = new LinkedHashMap<Location, DNASequence>();
+
     log.debug(sequence.length() + " expected count " + count);
 
     return new DNASequence(sequence);

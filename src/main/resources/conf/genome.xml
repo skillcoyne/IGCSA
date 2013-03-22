@@ -4,12 +4,6 @@
        xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-
-    <!-- Load in application properties reference -->
-    <bean id="applicationProperties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-        <property name="location" value="classpath:props/genome.properties"/>
-    </bean>
-
     <!-- Frequency objects for SNVs -->
     <bean id="cFrequency" class="org.lcsb.lu.igcsa.prob.Frequency">
         <constructor-arg>
@@ -55,16 +49,32 @@
         <property name="buildName">
             <value>${assembly}</value>
         </property>
+        <!--<property name="genomeDAO" ref="insilicoGenomeDAO"/>-->
+        <!--<property name="mutationDAO" ref="insilicoMutationDAO"/>-->
         <!-- Variation classes -->
         <property name="variantTypes">
             <list>
-                <bean id="Indel" class="org.lcsb.lu.igcsa.variation.Indel"/>
-                <bean id="Deletion" class="org.lcsb.lu.igcsa.variation.Deletion"/>
-                <bean id="Insertion" class="org.lcsb.lu.igcsa.variation.Insertion"/>
-                <bean id="Substitution" class="org.lcsb.lu.igcsa.variation.Substitution"/>
-                <bean id="TandemRepeat" class="org.lcsb.lu.igcsa.variation.TandemRepeat"/>
-                <!--<bean id="Inversion" class="org.lcsb.lu.igcsa.variation.Inversion"/>-->
-
+                <bean id="Indel" class="org.lcsb.lu.igcsa.variation.Indel">
+                    <property name="variationName" value="indel"/>
+                </bean>
+                <bean id="Deletion" class="org.lcsb.lu.igcsa.variation.Deletion">
+                    <property name="variationName" value="deletion"/>
+                </bean>
+                <bean id="Insertion" class="org.lcsb.lu.igcsa.variation.Insertion">
+                    <property name="variationName" value="insertion"/>
+                </bean>
+                <bean id="Substitution" class="org.lcsb.lu.igcsa.variation.Substitution">
+                    <property name="variationName" value="substitution"/>
+                </bean>
+                <bean id="TandemRepeat" class="org.lcsb.lu.igcsa.variation.TandemRepeat">
+                    <property name="variationName" value="tandem_repeat"/>
+                </bean>
+                <!--<bean id="Inversion" class="org.lcsb.lu.igcsa.variation.Inversion">-->
+                    <!--<property name="variationName" value="inversion"/>-->
+                <!--</bean>-->
+                <!--<bean id="Translocation" class="org.lcsb.lu.igcsa.variation.Translocation">-->
+                    <!--<property name="variationName" value="translocation"/>-->
+                <!--</bean>-->
                 <!-- SNPs -->
                 <bean id="SNV" class="org.lcsb.lu.igcsa.variation.SNV">
                     <constructor-arg>
@@ -75,8 +85,8 @@
                             <entry key="G" value-ref="gFrequency"/>
                         </map>
                     </constructor-arg>
+                    <property name="variationName" value="SNV"/>
                 </bean>
-
             </list>
         </property>
     </bean>

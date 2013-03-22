@@ -4,6 +4,9 @@ import org.lcsb.lu.igcsa.genome.DNASequence;
 
 import org.apache.log4j.Logger
 ;
+import org.lcsb.lu.igcsa.genome.Location;
+
+import java.util.LinkedHashMap;
 
 /**
  * org.lcsb.lu.igcsa.variation
@@ -18,6 +21,7 @@ public class Translocation extends Variation
   //TODO  this may not work for translocations...
   public DNASequence mutateSequence(String sequence)
     {
+    lastMutations = new LinkedHashMap<Location, DNASequence>();
     return new DNASequence(sequence);
     }
   }

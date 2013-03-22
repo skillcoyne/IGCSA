@@ -1,6 +1,8 @@
 package org.lcsb.lu.igcsa.database;
 
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.database.normal.Fragment;
+import org.lcsb.lu.igcsa.database.normal.FragmentVariationDAO;
 
 import javax.sql.DataSource;
 import java.sql.Connection;

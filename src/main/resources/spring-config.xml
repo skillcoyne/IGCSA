@@ -16,10 +16,26 @@
         </property>
     </bean>
 
+    <!-- Properties -->
+    <bean id="normalGenomeProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+        <property name="ignoreResourceNotFound">
+            <value>true</value>
+        </property>
+        <property name="locations">
+            <list>
+                <value>file:genome.properties</value>
+            </list>
+        </property>
+    </bean>
 
-    <import resource="conf/props-config.xml"/>
+    <!-- Load in application properties reference -->
+    <bean id="applicationProperties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="location"
+                  value="file:genome.properties"/>
+    </bean>
+
+
     <import resource="conf/database-config.xml"/>
-    <import resource="conf/normal-genome.xml"/>
-    <!--<import resource="conf/cancer-genome.xml"/>-->
+    <import resource="conf/genome.xml"/>
 
 </beans>

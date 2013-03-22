@@ -4,6 +4,9 @@ import org.lcsb.lu.igcsa.genome.DNASequence;
 
 import org.apache.log4j.Logger
 ;
+import org.lcsb.lu.igcsa.genome.Location;
+
+import java.util.LinkedHashMap;
 
 /**
  * org.lcsb.lu.igcsa.variation
@@ -18,6 +21,9 @@ public class Indel extends Variation
   public DNASequence mutateSequence(String sequence)
     {
     int count = this.fragment.getIndel();
+
+    lastMutations = new LinkedHashMap<Location, DNASequence>();
+
     log.debug(sequence.length() + " expected count " + count);
 
 

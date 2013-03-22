@@ -24,7 +24,6 @@ public class SNV extends Variation
   static Logger log = Logger.getLogger(SNV.class.getName());
 
   private Map<Character, Frequency> snvFrequencies;
-  private LinkedHashMap<Location, DNASequence> lastMutations;
 
   public SNV(Map<Character, Frequency> frequencyMap)
     {
@@ -64,7 +63,7 @@ public class SNV extends Variation
       if (newN != n)
         {
         nucleotides[nIndex] = newN;
-        lastMutations.put( new Location(nIndex, nIndex), new DNASequence(String.valueOf(nucleotides)) );
+        lastMutations.put( new Location(nIndex, nIndex), new DNASequence(String.valueOf(newN)) );
         ++totalSNPs;
         }
       }
@@ -76,9 +75,9 @@ public class SNV extends Variation
    * Note that these are not cumulative.  Each call to mutateSequence resets this map.
    * @return
    */
-  public LinkedHashMap<Location, DNASequence> getLastMutations()
-    {
-    return this.lastMutations;
-    }
+//  public LinkedHashMap<Location, DNASequence> getLastMutations()
+//    {
+//    return this.lastMutations;
+//    }
 
   }

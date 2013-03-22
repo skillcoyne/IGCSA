@@ -1,6 +1,4 @@
-package org.lcsb.lu.igcsa.database;
-
-import org.apache.commons.lang.math.Range;
+package org.lcsb.lu.igcsa.database.normal;
 
 /**
  * org.lcsb.lu.igcsa.database

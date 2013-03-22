@@ -3,6 +3,9 @@ package org.lcsb.lu.igcsa.variation;
 import org.lcsb.lu.igcsa.genome.DNASequence;
 
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.genome.Location;
+
+import java.util.LinkedHashMap;
 
 /**
  * org.lcsb.lu.igcsa.variation
@@ -17,6 +20,7 @@ public class Inversion extends Variation
 
   public DNASequence mutateSequence(String sequence)
     {
+    lastMutations = new LinkedHashMap<Location, DNASequence>();
 //    log.info(sequence.length() + " expected count " + count);
     return new DNASequence(sequence);
     }

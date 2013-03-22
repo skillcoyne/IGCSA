@@ -1,11 +1,15 @@
 package org.lcsb.lu.igcsa.genome;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.database.Bin;
-import org.lcsb.lu.igcsa.database.Fragment;
-import org.lcsb.lu.igcsa.database.FragmentVariationDAO;
-import org.lcsb.lu.igcsa.database.GCBinDAO;
+import org.lcsb.lu.igcsa.database.insilico.GenomeDAO;
+import org.lcsb.lu.igcsa.database.insilico.Mutation;
+import org.lcsb.lu.igcsa.database.insilico.MutationDAO;
+import org.lcsb.lu.igcsa.database.normal.Bin;
+import org.lcsb.lu.igcsa.database.normal.Fragment;
+import org.lcsb.lu.igcsa.database.normal.FragmentVariationDAO;
+import org.lcsb.lu.igcsa.database.normal.GCBinDAO;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
+import org.lcsb.lu.igcsa.fasta.MutationWriter;
 import org.lcsb.lu.igcsa.prob.ProbabilityList;
 import org.lcsb.lu.igcsa.variation.Variation;
 
@@ -31,6 +35,11 @@ public class MutableGenome implements Genome
   private GCBinDAO binDAO;
   private FragmentVariationDAO variationDAO;
 
+  //  private GenomeDAO genomeDAO;
+  //  private MutationDAO mutationDAO;
+
+  private MutationWriter mutationWriter;
+
   private List<Variation> variantTypes;
 
   public MutableGenome(GCBinDAO gcBinDAO, FragmentVariationDAO variationDAO)
@@ -39,10 +48,26 @@ public class MutableGenome implements Genome
     this.variationDAO = variationDAO;
     }
 
+  public void setMutationWriter(MutationWriter writer)
+    {
+    this.mutationWriter = writer;
+    }
+
+
   protected MutableGenome(String buildName)
     {
     this.buildName = buildName;
     }
+
+  //  public void setGenomeDAO(GenomeDAO genomeDAO)
+  //    {
+  //    this.genomeDAO = genomeDAO;
+  //    }
+  //
+  //  public void setMutationDAO(MutationDAO mutationDAO)
+  //    {
+  //    this.mutationDAO = mutationDAO;
+  //    }
 
   public void setBuildName(String buildName)
     {
@@ -94,6 +119,8 @@ public class MutableGenome implements Genome
    */
   public Genome mutate(int window, FASTAWriter writer)
     {
+    //int genomeId = this.genomeDAO.insertGenome(id, writer.getFASTAFile().getAbsolutePath());
+
     Genome newGenome = new MutableGenome(this.getBuildName());
     for (Chromosome chr : this.getChromosomes())
       {
@@ -109,21 +136,6 @@ public class MutableGenome implements Genome
     return newGenome;
     }
 
-
-//  public Chromosome mutate(Chromosome chr, int window)
-//    {
-//    Chromosome mutatedChr = chr;
-//
-//    DNASequence currentSequenceFragment;
-//    Location location = new Location(0, window); // FASTA locations are 0 based.
-//    while ((currentSequenceFragment = chr.getSequence(location)) != null)
-//      {
-//      DNASequence mutatedSequence = mutateSequenceAtLocation(chr, currentSequenceFragment);
-//      //mutatedChr.alterSequence(location, mutatedSequence);
-//      location = new Location(location.getEnd(), location.getEnd() + window);
-//      }
-//    return mutatedChr;
-//    }
 
   /**
    * Loop over the sequence, mutate and immediately write to new FASTA file.
@@ -146,11 +158,11 @@ public class MutableGenome implements Genome
 
     DNASequence currentSequenceFragment;
 
-     while (true)
+    while (true)
       {
       currentSequenceFragment = chr.readSequence(window);
       log.debug(chr.getName() + location.toString());
-      DNASequence mutatedSequence = mutateSequenceAtLocation(chr, currentSequenceFragment);
+      DNASequence mutatedSequence = mutateSequenceAtLocation(chr, currentSequenceFragment, location);
       total += mutatedSequence.getLength();
       try
         {
@@ -161,7 +173,8 @@ public class MutableGenome implements Genome
         log.error(e);
         }
       location = new Location(location.getEnd(), location.getEnd() + window);
-      if (currentSequenceFragment.getLength() < window) break;
+      if (currentSequenceFragment.getLength() < window)
+        break;
       }
     writer.flush();
     writer.close();
@@ -170,7 +183,7 @@ public class MutableGenome implements Genome
     }
 
   // Mutates the sequence based on the information provided in the database
-  private DNASequence mutateSequenceAtLocation(Chromosome chr, DNASequence sequence)
+  private DNASequence mutateSequenceAtLocation(Chromosome chr, DNASequence sequence, Location location)
     {
     DNASequence mutatedSequence = sequence;
     Random randomFragment = new Random();
@@ -194,10 +207,41 @@ public class MutableGenome implements Genome
           {
           variation.setMutationFragment(fragment);
           mutatedSequence = variation.mutateSequence(mutatedSequence);
+
+          if (mutationWriter != null)
+            writeVariations(chr, location, variation, variation.getLastMutations());
           }
         }
       }
     return mutatedSequence;
+    }
+
+  private void writeVariations(Chromosome chr, Location fragment, Variation variation, Map<Location, DNASequence> mutations)
+    {
+    if (mutations.size() > 0)
+      {
+      Mutation mutation = new Mutation();
+      mutation.setChromosome(chr.getName());
+      mutation.setFragment(fragment.getStart());
+      mutation.setVariationType(variation.getVariationName());
+      for (Map.Entry<Location, DNASequence> entry : mutations.entrySet())
+        {
+        Location loc = entry.getKey();
+        DNASequence seq = entry.getValue();
+
+        mutation.setStartLocation(loc.getStart());
+        mutation.setEndLocation(loc.getEnd());
+        mutation.setSequence(seq.getSequence());
+        }
+      try
+        {
+        mutationWriter.write(mutation);
+        }
+      catch (IOException e)
+        {
+        log.error(e);
+        }
+      }
     }
 
 

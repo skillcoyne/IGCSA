@@ -1,13 +1,11 @@
 package org.lcsb.lu.igcsa.variation;
 
-import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.database.Fragment;
-import org.lcsb.lu.igcsa.prob.Probability;
-import org.lcsb.lu.igcsa.genome.Location;
+import org.lcsb.lu.igcsa.database.normal.Fragment;
 import org.lcsb.lu.igcsa.genome.DNASequence;
-import org.lcsb.lu.igcsa.prob.ProbabilityException;
-import org.lcsb.lu.igcsa.prob.ProbabilityList;
+import org.lcsb.lu.igcsa.genome.Location;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -20,12 +18,31 @@ public abstract class Variation
     {
     protected Fragment fragment;
 
+    protected LinkedHashMap<Location, DNASequence> lastMutations;
     protected Random siteSelector = new Random();
+    protected String variationName;
+
+
+    public void setVariationName(String name)
+      {
+      this.variationName = name;
+      }
+
+    public String getVariationName()
+      {
+      return this.variationName;
+      }
 
     public void setMutationFragment(Fragment fragment)
       {
       this.fragment = fragment;
       }
+
+    public Map<Location, DNASequence> getLastMutations()
+      {
+      return this.lastMutations;
+      }
+
 
     public abstract DNASequence mutateSequence(String sequence);
 

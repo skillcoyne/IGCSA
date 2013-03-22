@@ -1,10 +1,8 @@
 package org.lcsb.lu.igcsa.variation;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.lcsb.lu.igcsa.database.Fragment;
+import org.lcsb.lu.igcsa.database.normal.Fragment;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.springframework.beans.factory.annotation.Autowired;

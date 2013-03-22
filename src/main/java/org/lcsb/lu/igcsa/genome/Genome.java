@@ -1,6 +1,7 @@
 package org.lcsb.lu.igcsa.genome;
 
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
+import org.lcsb.lu.igcsa.fasta.MutationWriter;
 import org.lcsb.lu.igcsa.prob.ProbabilityList;
 import org.lcsb.lu.igcsa.variation.Variation;
 
@@ -30,11 +31,15 @@ public interface Genome
 
   public boolean hasChromosome(String name);
 
+  public void setMutationWriter(MutationWriter writer);
+
+
   /**
    * Exactly what it sounds like.
    * @return
    */
   public Chromosome[] getChromosomes();
+
 
   /**
    * Mutate the entire genome at once and output. This method just loops through the chromosomes and calls

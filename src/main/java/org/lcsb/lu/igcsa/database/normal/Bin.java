@@ -1,4 +1,4 @@
-package org.lcsb.lu.igcsa.database;
+package org.lcsb.lu.igcsa.database.normal;
 
 /**
  * org.lcsb.lu.igcsa.database

@@ -4,7 +4,9 @@ import org.lcsb.lu.igcsa.genome.DNASequence;
 import static org.lcsb.lu.igcsa.genome.Nucleotides.*;
 
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.genome.Location;
 
+import java.util.LinkedHashMap;
 import java.util.Random;
 
 /**
@@ -21,6 +23,8 @@ public class Insertion extends Variation
   public DNASequence mutateSequence(String sequence)
     {
     int count = this.fragment.getInsertion();
+    lastMutations = new LinkedHashMap<Location, DNASequence>();
+
     // TODO really need size as well from the DB
     log.debug(sequence.length() + " expected count " + count);
 
@@ -44,6 +48,8 @@ public class Insertion extends Variation
 
       String newSequence =  sequence.substring(0, nIndex);
       newSequence = newSequence + buf.toString() + sequence.substring(nIndex, sequence.length());
+
+      lastMutations.put(new Location(nIndex, nIndex+buf.length()), new DNASequence(buf.toString()));
 
       sequence = newSequence;
       ++totalIns;

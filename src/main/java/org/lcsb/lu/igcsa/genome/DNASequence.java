@@ -25,9 +25,9 @@ public class DNASequence
 
   private void testNucleotides(String sequence) throws IllegalArgumentException
     {
-    if (sequence.length() <= 0) throw new IllegalArgumentException("No sequence provided.");
+    //if (sequence.length() <= 0) throw new IllegalArgumentException("No sequence provided.");
     if (!validCharacters().matcher(sequence).matches())
-      throw new IllegalArgumentException("The sequence contains incorrect nucleotides, expected " + validCharacters() + " provided: " + sequence);
+      log.warn("The sequence contains incorrect nucleotides, expected " + validCharacters() + " provided: " + sequence);
     }
 
   public DNASequence()
@@ -35,6 +35,8 @@ public class DNASequence
 
   public DNASequence(String seq) throws IllegalArgumentException
     {
+    if (seq == null) seq = "";
+    seq = seq.replaceAll("\\s", "");
     seq = seq.toUpperCase();
     testNucleotides(seq);
     this.sequence = seq;

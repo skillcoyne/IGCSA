@@ -1,7 +1,8 @@
 package org.lcsb.lu.igcsa.database;
 
-import org.apache.commons.lang.math.Range;
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.database.normal.Bin;
+import org.lcsb.lu.igcsa.database.normal.GCBinDAO;
 
 import javax.sql.DataSource;
 import java.sql.Connection;

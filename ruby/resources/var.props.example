@@ -16,6 +16,7 @@ fasta.dir: /path/to/fasta/files
 output.dir:
 freq.output.dir: /path/to/output/freq/files
 gc.output.dir: /path/to/output/gc/files
+size.output.dir:
 
 # Tool paths - These are optional. If the tool is pathed on the system these should be
 # removed from the configuration file.
