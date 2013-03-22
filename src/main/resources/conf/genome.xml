@@ -43,7 +43,7 @@
     </bean>
 
     <!-- Reference Genome creation -->
-    <bean id="referenceGenome" class="org.lcsb.lu.igcsa.genome.MutableGenome">
+    <bean id="genome" class="org.lcsb.lu.igcsa.genome.MutableGenome">
         <constructor-arg ref="GCBinDAO"></constructor-arg>
         <constructor-arg ref="FragmentDAO"></constructor-arg>
         <property name="buildName">
@@ -69,12 +69,12 @@
                 <bean id="TandemRepeat" class="org.lcsb.lu.igcsa.variation.TandemRepeat">
                     <property name="variationName" value="tandem_repeat"/>
                 </bean>
-                <!--<bean id="Inversion" class="org.lcsb.lu.igcsa.variation.Inversion">-->
-                    <!--<property name="variationName" value="inversion"/>-->
-                <!--</bean>-->
-                <!--<bean id="Translocation" class="org.lcsb.lu.igcsa.variation.Translocation">-->
-                    <!--<property name="variationName" value="translocation"/>-->
-                <!--</bean>-->
+                <bean id="Inversion" class="org.lcsb.lu.igcsa.variation.Inversion">
+                    <property name="variationName" value="inversion"/>
+                </bean>
+                <bean id="Translocation" class="org.lcsb.lu.igcsa.variation.Translocation">
+                    <property name="variationName" value="translocation"/>
+                </bean>
                 <!-- SNPs -->
                 <bean id="SNV" class="org.lcsb.lu.igcsa.variation.SNV">
                     <constructor-arg>

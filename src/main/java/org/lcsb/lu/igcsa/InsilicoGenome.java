@@ -34,15 +34,12 @@ public class InsilicoGenome
   {
   static Logger log = Logger.getLogger(InsilicoGenome.class.getName());
 
-//  protected FragmentVariationDAO fragmentDAO;
-//  protected GCBinDAO binDAO;
-
-  protected Properties normalGenomeProperties;
+  protected Properties genomeProperties;
 
   // Defaults
   private int windowSize = 1000;
 
-  protected Genome referenceGenome;
+  protected Genome genome;
 
 
   protected void print(String s)
@@ -63,27 +60,27 @@ public class InsilicoGenome
     long time = java.lang.System.currentTimeMillis();
     int individualId = new Random().nextInt( (int) (time*-1));
 
-    setupReferenceGenome();
+    setupgenome();
     createGenome( individualId );
     }
 
 
   public void createGenome(int id) throws IOException
     {
-    File genomeDirectory = new File( normalGenomeProperties.getProperty("dir.insilico"), String.valueOf(id) );
+    File genomeDirectory = new File( genomeProperties.getProperty("dir.insilico"), String.valueOf(id) );
     if (genomeDirectory.exists()) throw new IOException(genomeDirectory + " exists, cannot overwrite");
     else genomeDirectory.mkdirs();
     log.info(genomeDirectory.getAbsolutePath());
 
-    referenceGenome.setMutationWriter( new MutationWriter(new File(genomeDirectory, "mutations.txt")));
-    for (Chromosome chr : referenceGenome.getChromosomes()) //this could be done in threads, each chromosome can be mutated separately
+    genome.setMutationWriter( new MutationWriter(new File(genomeDirectory, "mutations.txt")));
+    for (Chromosome chr : genome.getChromosomes()) //this could be done in threads, each chromosome can be mutated separately
       {
       log.info(chr.getName());
       try
         {
         FASTAHeader header = new FASTAHeader(">chromosome|" + chr.getName() + "|individual " + id);
         FASTAWriter writer = new FASTAWriter(new File(genomeDirectory, "chr" + chr.getName() + ".fa"), header);
-        referenceGenome.mutate(chr, windowSize, writer);
+        genome.mutate(chr, windowSize, writer);
         writer.close();
         }
       catch (IOException e)
@@ -97,11 +94,11 @@ public class InsilicoGenome
   /*
    * Sets up the reference genome based on the fasta files for the current build.
    */
-  protected void setupReferenceGenome() throws FileNotFoundException, ProbabilityException, IllegalAccessException, InstantiationException
+  protected void setupgenome() throws FileNotFoundException, ProbabilityException, IllegalAccessException, InstantiationException
     {
-    referenceGenome.addChromosomes(FileUtils.getChromosomesFromFASTA(new File(normalGenomeProperties.getProperty("dir.assembly"))));
-    log.info("Reference genome build: " + referenceGenome.getBuildName());
-    log.info("Reference genome has: " + referenceGenome.getChromosomes().length + " chromosomes");
+    genome.addChromosomes(FileUtils.getChromosomesFromFASTA(new File(genomeProperties.getProperty("dir.assembly"))));
+    log.info("Reference genome build: " + genome.getBuildName());
+    log.info("Reference genome has: " + genome.getChromosomes().length + " chromosomes");
     }
 
 
@@ -111,16 +108,8 @@ public class InsilicoGenome
   private void init()
     {
     ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
-
-//    fragmentDAO = (FragmentVariationDAO) context.getBean("FragmentDAO");
-//    binDAO = (GCBinDAO) context.getBean("GCBinDAO");
-
-    normalGenomeProperties = (Properties) context.getBean("normalGenomeProperties");
-
-//    if (normalGenomeProperties.containsKey("window"))
-//      this.windowSize = Integer.valueOf(normalGenomeProperties.getProperty("window"));
-
-    referenceGenome = (Genome) context.getBean("referenceGenome");
+    genomeProperties = (Properties) context.getBean("genomeProperties");
+    genome = (Genome) context.getBean("genome");
     }
 
   }
