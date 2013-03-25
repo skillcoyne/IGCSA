@@ -23,7 +23,7 @@ public class Frequency
   private Random generator;
   private double totalValue;
   private NavigableMap<Double, Object> objProbabilities = new TreeMap<Double, Object>();
-
+  private double rounder = 100.0;
 
   /**
    * Takes a map of objects and given probabilities (doubles).  The probabilities must sum to 1.
@@ -33,16 +33,19 @@ public class Frequency
    */
   public Frequency(Map<Object, Double> probabilities) throws ProbabilityException
     {
-    if ( !isSumOne(probabilities.values()) ) throw new ProbabilityException("Sum of probabilities did not equal 1.");
-    this.generator = new Random();
+    this.init(probabilities);
+    }
 
-    double total = 0.0;
-    for (Map.Entry<Object, Double> entry: probabilities.entrySet())
-      {
-      objProbabilities.put( round(entry.getValue()+total), entry.getKey() );
-      total = round(total + entry.getValue());
-      }
-    this.totalValue = round(total);
+  /**
+   * Takes a map of objects and given probabilities (doubles).  The probabilities must sum to 1.
+   * A cumulative probability table is generated from this.
+   * @param probabilities
+   * @throws ProbabilityException
+   */
+  public Frequency(Map<Object, Double> probabilities, double rounder) throws ProbabilityException
+    {
+    this.rounder = rounder;
+    this.init(probabilities);
     }
 
 
@@ -72,7 +75,22 @@ public class Frequency
 
   private double round(double p)
     {
-    return Math.round(p*100.0)/100.0;
+    return Math.round(p*rounder)/rounder;
     }
+
+  private void init(Map<Object, Double> probabilities) throws ProbabilityException
+    {
+    if ( !isSumOne(probabilities.values()) ) throw new ProbabilityException("Sum of probabilities did not equal 1.");
+    this.generator = new Random();
+
+    double total = 0.0;
+    for (Map.Entry<Object, Double> entry: probabilities.entrySet())
+      {
+      objProbabilities.put( round(entry.getValue()+total), entry.getKey() );
+      total = round(total + entry.getValue());
+      }
+    this.totalValue = round(total);
+    }
+
 
   }

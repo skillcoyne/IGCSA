@@ -62,21 +62,28 @@
                 <entry key="G" value-ref="gFrequency"/>
             </map>
         </constructor-arg>
+        <property name="variationName" value="SNV"/>
     </bean>
+
 
 
     <!-- Reference Genome creation -->
     <bean id="testReferenceGenome" class="org.lcsb.lu.igcsa.genome.MutableGenome">
         <constructor-arg ref="gcBinDAO"></constructor-arg>
         <constructor-arg ref="fragmentDAO"></constructor-arg>
+        <constructor-arg ref="sizeDAO"></constructor-arg>
         <property name="buildName">
             <value>${assembly}</value>
         </property>
         <!-- Variation classes -->
         <property name="variantTypes">
             <list>
-                <bean id="Deletion" class="org.lcsb.lu.igcsa.variation.Deletion"/>
-                <bean id="Insertion" class="org.lcsb.lu.igcsa.variation.Insertion"/>
+                <bean id="Deletion" class="org.lcsb.lu.igcsa.variation.Deletion">
+                    <property name="variationName" value="deletion"/>
+                </bean>
+                <bean id="Insertion" class="org.lcsb.lu.igcsa.variation.Insertion">
+                    <property name="variationName" value="insertion"/>
+                </bean>
                 <ref bean="SNV"/>
             </list>
         </property>

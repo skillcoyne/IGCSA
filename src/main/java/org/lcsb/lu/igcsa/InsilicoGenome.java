@@ -3,8 +3,6 @@ package org.lcsb.lu.igcsa;
 
 import org.apache.log4j.Logger;
 
-import org.lcsb.lu.igcsa.database.normal.FragmentVariationDAO;
-import org.lcsb.lu.igcsa.database.normal.GCBinDAO;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.fasta.MutationWriter;

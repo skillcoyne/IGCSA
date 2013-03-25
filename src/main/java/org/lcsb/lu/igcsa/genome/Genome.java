@@ -48,14 +48,5 @@ public interface Genome
    */
   public abstract Genome mutate(int window, FASTAWriter writer);
 
-  /**
-   *
-   * @param chromosome
-   * @param window
-   * @return Chromosome object with entire new sequence.  Might be more efficient to just keep the mutated
-   * sequences with locations but...
-   */
-//  public abstract Chromosome mutate(Chromosome chromosome, int window);
-
   public abstract Chromosome mutate(Chromosome chr, int window, FASTAWriter writer) throws IOException;
   }

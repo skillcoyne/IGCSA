@@ -32,10 +32,10 @@ public class Deletion extends Variation
     int totalDel = 0;
     while (totalDel < count)
       {
-      if (sequence.length() < 2) break;
+      if (sequence.length() < 2) break; // really a deletion could get down to 0...
 
       int nIndex = siteSelector.nextInt(sequence.length());
-      int size = new Random().nextInt(sequence.length()-nIndex)+1;
+      int size = (Integer) this.sizeVariation.getFrequency().roll();
 
       log.debug("Site selected " + nIndex + " deletion size " + size);
 

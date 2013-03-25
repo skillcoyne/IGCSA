@@ -46,11 +46,11 @@
     <bean id="genome" class="org.lcsb.lu.igcsa.genome.MutableGenome">
         <constructor-arg ref="GCBinDAO"></constructor-arg>
         <constructor-arg ref="FragmentDAO"></constructor-arg>
+        <constructor-arg ref="SizeDAO"></constructor-arg>
         <property name="buildName">
             <value>${assembly}</value>
         </property>
-        <!--<property name="genomeDAO" ref="insilicoGenomeDAO"/>-->
-        <!--<property name="mutationDAO" ref="insilicoMutationDAO"/>-->
+
         <!-- Variation classes -->
         <property name="variantTypes">
             <list>

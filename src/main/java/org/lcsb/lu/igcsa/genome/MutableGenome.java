@@ -1,18 +1,13 @@
 package org.lcsb.lu.igcsa.genome;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.database.insilico.GenomeDAO;
-import org.lcsb.lu.igcsa.database.insilico.Mutation;
-import org.lcsb.lu.igcsa.database.insilico.MutationDAO;
-import org.lcsb.lu.igcsa.database.normal.Bin;
-import org.lcsb.lu.igcsa.database.normal.Fragment;
-import org.lcsb.lu.igcsa.database.normal.FragmentVariationDAO;
-import org.lcsb.lu.igcsa.database.normal.GCBinDAO;
+import org.lcsb.lu.igcsa.fasta.Mutation;
+import org.lcsb.lu.igcsa.database.normal.*;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.fasta.MutationWriter;
-import org.lcsb.lu.igcsa.prob.ProbabilityList;
 import org.lcsb.lu.igcsa.variation.Variation;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -30,22 +25,20 @@ public class MutableGenome implements Genome
 
   protected String buildName;
   protected HashMap<String, Chromosome> chromosomes = new HashMap<String, Chromosome>();
-  private Map<Variation, ProbabilityList> variationProbabilities = new HashMap<Variation, ProbabilityList>();
+  private List<Variation> variantTypes;
 
+  // Database connections
   private GCBinDAO binDAO;
   private FragmentVariationDAO variationDAO;
-
-  //  private GenomeDAO genomeDAO;
-  //  private MutationDAO mutationDAO;
+  private SizeDAO sizeDAO;
 
   private MutationWriter mutationWriter;
 
-  private List<Variation> variantTypes;
-
-  public MutableGenome(GCBinDAO gcBinDAO, FragmentVariationDAO variationDAO)
+  public MutableGenome(GCBinDAO gcBinDAO, FragmentVariationDAO variationDAO, SizeDAO sizeDAO)
     {
     this.binDAO = gcBinDAO;
     this.variationDAO = variationDAO;
+    this.sizeDAO = sizeDAO;
     }
 
   public void setMutationWriter(MutationWriter writer)
@@ -53,21 +46,10 @@ public class MutableGenome implements Genome
     this.mutationWriter = writer;
     }
 
-
   protected MutableGenome(String buildName)
     {
     this.buildName = buildName;
     }
-
-  //  public void setGenomeDAO(GenomeDAO genomeDAO)
-  //    {
-  //    this.genomeDAO = genomeDAO;
-  //    }
-  //
-  //  public void setMutationDAO(MutationDAO mutationDAO)
-  //    {
-  //    this.mutationDAO = mutationDAO;
-  //    }
 
   public void setBuildName(String buildName)
     {
@@ -157,7 +139,6 @@ public class MutableGenome implements Genome
     chr.getFASTAReader().reset();
 
     DNASequence currentSequenceFragment;
-
     while (true)
       {
       currentSequenceFragment = chr.readSequence(window);
@@ -182,6 +163,7 @@ public class MutableGenome implements Genome
     return new Chromosome(chr.getName(), writer.getFASTAFile());
     }
 
+
   // Mutates the sequence based on the information provided in the database
   private DNASequence mutateSequenceAtLocation(Chromosome chr, DNASequence sequence, Location location)
     {
@@ -205,6 +187,8 @@ public class MutableGenome implements Genome
         // it is possible that one could override another (e.g. a deletion removes SNVs)
         for (Variation variation : this.getVariantTypes())
           {
+          log.info(variation.getVariationName());
+          //if (variation.getVariationName() != "SNV") variation.setSizeVariation(this.sizeDAO.getByChromosomeAndVariation(chr.getName(), variation.getVariationName()));
           variation.setMutationFragment(fragment);
           mutatedSequence = variation.mutateSequence(mutatedSequence);
 

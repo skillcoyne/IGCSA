@@ -8,6 +8,9 @@ variation.dir: /Users/sarah.killcoyne/Data/Ensembl/Variation
 output.dir: /Users/sarah.killcoyne/Data/VariationNormal
 freq.output.dir: /Users/sarah.killcoyne/Data/VariationNormal/Frequencies
 gc.output.dir: /Users/sarah.killcoyne/Data/VariationNormal/GC
+size.output.dir: /Users/sarah.killcoyne/Data/VariationNormal/Size
+
+
 
 # Tool paths - These are optional. If the tool is pathed on the system these should be
 # removed from the configuration file.

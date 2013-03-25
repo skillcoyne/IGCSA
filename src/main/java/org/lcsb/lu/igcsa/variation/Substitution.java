@@ -19,6 +19,8 @@ public class Substitution extends Variation
   public DNASequence mutateSequence(String sequence)
     {
     int count = this.fragment.getSubstitution();
+    int size = (Integer) this.sizeVariation.getFrequency().roll();
+
 
     lastMutations = new LinkedHashMap<Location, DNASequence>();
 

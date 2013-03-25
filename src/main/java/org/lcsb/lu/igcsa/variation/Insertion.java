@@ -35,7 +35,7 @@ public class Insertion extends Variation
     while (totalIns < count && sequence.length() > 1)
       {
       int nIndex = siteSelector.nextInt(sequence.length());
-      int size = new Random().nextInt(sequence.length()-nIndex)+1;
+      int size = (Integer) this.sizeVariation.getFrequency().roll();
 
       log.debug("Site selected " + nIndex + " insertion size " + size);
 

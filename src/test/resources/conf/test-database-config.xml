@@ -5,7 +5,7 @@
 
 
     <!-- Database for the fragment tables, this doesn't have to be mysql.  These aren't particularly large -->
-    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+    <bean id="testDS" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
         <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
         <property name="url" value="jdbc:mysql://localhost:3306/normal_genome_variation"/>
         <property name="username" value="root"/>
@@ -13,13 +13,18 @@
     </bean>
 
     <bean id="fragmentDAO" class="org.lcsb.lu.igcsa.database.JDBCFragmentVariationDAO">
-        <property name="dataSource" ref="dataSource"/>
+        <property name="dataSource" ref="testDS"/>
         <property name="tableName" value="variations"/>
     </bean>
 
     <bean id="gcBinDAO" class="org.lcsb.lu.igcsa.database.JDBCGCBinDAO">
-        <property name="dataSource" ref="dataSource"/>
+        <property name="dataSource" ref="testDS"/>
         <property name="tableName" value="gc_bins"/>
+    </bean>
+
+    <bean id="sizeDAO" class="org.lcsb.lu.igcsa.database.JDBCSizeDAO">
+        <property name="dataSource" ref="testDS"/>
+        <property name="tableName" value="variation_size_prob"/>
     </bean>
 
 </beans>

@@ -3,6 +3,7 @@ package org.lcsb.lu.igcsa.database;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.normal.Bin;
 import org.lcsb.lu.igcsa.database.normal.GCBinDAO;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -24,6 +25,7 @@ public class JDBCGCBinDAO implements GCBinDAO
   {
   static Logger log = Logger.getLogger(GCBinDAO.class.getName());
 
+  private JdbcTemplate jdbcTemplate;
   private DataSource dataSource;
   private String tableName;
 
@@ -38,6 +40,7 @@ public class JDBCGCBinDAO implements GCBinDAO
   public void setDataSource(DataSource dataSource)
     {
     this.dataSource = dataSource;
+    jdbcTemplate = new JdbcTemplate(dataSource); // TODO use the jdbcTemplate instead of the boilerplate code
     }
 
   private int maxBin(String chr)

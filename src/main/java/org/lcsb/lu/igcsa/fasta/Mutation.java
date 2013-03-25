@@ -1,4 +1,4 @@
-package org.lcsb.lu.igcsa.database.insilico;
+package org.lcsb.lu.igcsa.fasta;
 
 import org.apache.log4j.Logger;
 

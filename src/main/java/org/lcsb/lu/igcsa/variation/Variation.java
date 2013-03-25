@@ -1,6 +1,8 @@
 package org.lcsb.lu.igcsa.variation;
 
+import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.normal.Fragment;
+import org.lcsb.lu.igcsa.database.normal.SizeVariation;
 import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.genome.Location;
 
@@ -16,7 +18,10 @@ import java.util.Random;
  */
 public abstract class Variation
     {
+    static Logger log = Logger.getLogger(Variation.class.getName());
+
     protected Fragment fragment;
+    protected SizeVariation sizeVariation;
 
     protected LinkedHashMap<Location, DNASequence> lastMutations;
     protected Random siteSelector = new Random();
@@ -38,11 +43,16 @@ public abstract class Variation
       this.fragment = fragment;
       }
 
+    public void setSizeVariation(SizeVariation sizeVariation)
+      {
+      log.debug(sizeVariation.getVariation());
+      this.sizeVariation = sizeVariation;
+      }
+
     public Map<Location, DNASequence> getLastMutations()
       {
       return this.lastMutations;
       }
-
 
     public abstract DNASequence mutateSequence(String sequence);
 

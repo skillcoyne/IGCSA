@@ -27,9 +27,24 @@ create table `variations` (
   `sequence_alteration` int(11) not null,
   `substitution` int(11) not null,
   `tandem_repeat` int(11) not null,
-  primary key(`id`),
   `id` int(11) not null auto_increment,
+  primary key(`id`),
   index varindex (`chr`, `bin_id`)
+);
+
+
+create table `variation_size_prob` (
+  `chr` varchar(12) not null,
+  `maxbp` int(11) not null,
+  `deletion` decimal(5,4) not null,
+  `indel` decimal(5,4) not null,
+  `insertion` decimal(5,4) not null,
+  `sequence_alteration` decimal(5,4) not null,
+  `substitution` decimal(5,4) not null,
+  `tandem_repeat` decimal(5,4) not null,
+  `id` int(11) not null auto_increment,
+  primary key(`id`),
+  index vspindex (`chr`, `maxbp`)
 );
 
 
@@ -38,3 +53,5 @@ create table `variations` (
 ## load data local infile 'gc_bins.txt' into table normal_genome_variation.gc_bins ignore 1 lines;
 
 ## load data local infile 'variations-table.txt' into table normal_genome_variation.variations ignore 1 lines;
+
+## load data local infile 'variation-size-table.txt' into table normal_genome_variation.variation_size_prob ignore 1 lines;
