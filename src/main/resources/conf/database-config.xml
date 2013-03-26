@@ -7,8 +7,8 @@
 
     <!-- Database for the NORMAL GENOME fragment tables, this doesn't have to be mysql.  These aren't particularly large -->
     <bean id="normalDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
-        <property name="url" value="jdbc:mysql://${normal.genome.host}:3306/${normal.genome.db}"/>
+        <property name="driverClassName" value="${normal.genome.driver}"/>
+        <property name="url" value="jdbc:mysql://${normal.genome.host}:${normal.genome.port}/${normal.genome.db}"/>
         <property name="username" value="${normal.genome.user}"/>
         <property name="password" value="${normal.genome.pwd}"/>
     </bean>
@@ -31,8 +31,8 @@
 
     <!-- Database for CANCER GENOME tables?? -->
     <!--<bean id="cancerDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">-->
-        <!--<property name="driverClassName" value="com.mysql.jdbc.Driver"/>-->
-        <!--<property name="url" value="jdbc:mysql://${cancer.genome.host}:3306/${cancer.genome.db}"/>-->
+        <!--<property name="driverClassName" value="${cancer.genome.driver}"/>-->
+        <!--<property name="url" value="jdbc:mysql://${cancer.genome.host}:${cancer.genome.port}/${cancer.genome.db}"/>-->
         <!--<property name="username" value="${cancer.genome.user}"/>-->
         <!--<property name="password" value="${cancer.genome.pwd}"/>-->
     <!--</bean>-->
