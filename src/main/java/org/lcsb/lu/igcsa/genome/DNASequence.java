@@ -23,11 +23,15 @@ public class DNASequence
   // TODO Need to return a location to start mutations from in the case of gaps or unknown nucleotides. -- maybe
 
 
-  private void testNucleotides(String sequence) throws IllegalArgumentException
+  private String testNucleotides(String sequence) throws IllegalArgumentException
     {
     //if (sequence.length() <= 0) throw new IllegalArgumentException("No sequence provided.");
     if (!validCharacters().matcher(sequence).matches())
+      {
       log.warn("The sequence contains incorrect nucleotides, expected " + validCharacters() + " provided: " + sequence);
+      sequence = "";
+      }
+    return sequence;
     }
 
   public DNASequence()
@@ -38,8 +42,7 @@ public class DNASequence
     if (seq == null) seq = "";
     seq = seq.replaceAll("\\s", "");
     seq = seq.toUpperCase();
-    testNucleotides(seq);
-    this.sequence = seq;
+    this.sequence = testNucleotides(seq);
     }
 
   public DNASequence(String seq, Location location) throws IllegalArgumentException
@@ -65,8 +68,7 @@ public class DNASequence
   public void addNucleotides(String nuc) throws IllegalArgumentException
     {
     nuc = nuc.toUpperCase();
-    testNucleotides(nuc);
-    this.sequence = sequence + nuc;
+    this.sequence = sequence + testNucleotides(nuc);
     }
 
   public void merge(DNASequence seq)

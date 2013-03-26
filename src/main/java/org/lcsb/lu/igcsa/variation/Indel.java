@@ -21,7 +21,7 @@ public class Indel extends Variation
   public DNASequence mutateSequence(String sequence)
     {
     int count = this.fragment.getIndel();
-    int size = (Integer) this.sizeVariation.getFrequency().roll();
+    int size = (Integer) this.sizeVariation.roll();
 
     lastMutations = new LinkedHashMap<Location, DNASequence>();
 

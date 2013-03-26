@@ -2,9 +2,9 @@ package org.lcsb.lu.igcsa.database;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.normal.SizeDAO;
-import org.lcsb.lu.igcsa.database.normal.SizeVariation;
+import org.lcsb.lu.igcsa.prob.Frequency;
+import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -50,29 +50,35 @@ public class JDBCSizeDAO implements SizeDAO
     this.tableName = tableName;
     }
 
-  public SizeVariation getByChromosomeAndVariation(String chromosome, String variation)
+
+  public Map<String, Frequency> getAll() throws ProbabilityException
     {
-    String sql = "SELECT maxbp, " + variation + " FROM " + this.tableName + " WHERE chr = ?";
-    log.debug(sql);
+    String[] variations = new String[]{"deletion", "indel", "insertion", "sequence_alteration", "substitution", "tandem_repeat"};
+    Map<String, Frequency> frequencyMap = new HashMap<String, Frequency>();
+    for (String var : variations)
+      frequencyMap.put(var, this.getByVariation(var));
+    return frequencyMap;
+    }
+
+  public Frequency getByVariation(String variation) throws ProbabilityException
+    {
+    String sql = "SELECT maxbp, " + variation + " FROM " + this.tableName;
+
     Connection conn = null;
     try
       {
       conn = dataSource.getConnection();
       PreparedStatement ps = conn.prepareStatement(sql);
-      ps.setString(1, chromosome);
       ResultSet rs = ps.executeQuery();
 
       Map<Object, Double> probs = new TreeMap<Object, Double>();
 
-      while (rs.next()) probs.put( rs.getInt("maxbp"), rs.getDouble(variation) );
-
-      SizeVariation sv = new SizeVariation();
-      sv.setVariation(variation);
-      sv.setFrequency(probs);
+      while (rs.next())
+        probs.put(rs.getInt("maxbp"), rs.getDouble(variation));
 
       rs.close();
       ps.close();
-      return sv;
+      return new Frequency(probs);
       }
     catch (SQLException e)
       {
@@ -93,7 +99,5 @@ public class JDBCSizeDAO implements SizeDAO
         }
       }
     }
-
-
 
   }

@@ -2,9 +2,9 @@ package org.lcsb.lu.igcsa.variation;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.normal.Fragment;
-import org.lcsb.lu.igcsa.database.normal.SizeVariation;
 import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.genome.Location;
+import org.lcsb.lu.igcsa.prob.Frequency;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -21,7 +21,7 @@ public abstract class Variation
     static Logger log = Logger.getLogger(Variation.class.getName());
 
     protected Fragment fragment;
-    protected SizeVariation sizeVariation;
+    protected Frequency sizeVariation;
 
     protected LinkedHashMap<Location, DNASequence> lastMutations;
     protected Random siteSelector = new Random();
@@ -43,10 +43,15 @@ public abstract class Variation
       this.fragment = fragment;
       }
 
-    public void setSizeVariation(SizeVariation sizeVariation)
+    public void setSizeVariation(Map<String, Frequency> frequencyMap)
       {
-      log.debug(sizeVariation.getVariation());
-      this.sizeVariation = sizeVariation;
+      this.sizeVariation = frequencyMap.get(getVariationName());
+      }
+
+
+    public void setSizeVariation(Frequency frequency)
+      {
+      this.sizeVariation = frequency;
       }
 
     public Map<Location, DNASequence> getLastMutations()

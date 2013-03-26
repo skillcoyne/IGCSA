@@ -4,12 +4,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.lcsb.lu.igcsa.database.normal.FragmentVariationDAO;
-import org.lcsb.lu.igcsa.database.normal.GCBinDAO;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.Genome;
+import org.lcsb.lu.igcsa.genome.MutableGenome;
+import org.lcsb.lu.igcsa.prob.Frequency;
+import org.lcsb.lu.igcsa.variation.Variation;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -18,7 +20,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.File;
 import java.net.URL;
-import java.util.Properties;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -39,12 +41,6 @@ public class MutableGenomeTest
   private Genome testGenome;
 
   @Autowired
-  private GCBinDAO gcBinDAO;
-
-  @Autowired
-  FragmentVariationDAO fragmentDAO;
-
-  @Autowired
   private Properties testProperties;
 
   @Before
@@ -54,8 +50,21 @@ public class MutableGenomeTest
     fastaFile = new File(testUrl.toURI());
     outputFasta = new File(testProperties.getProperty("dir.insilico") + "/test.fasta");
 
+    Map<Object, Double> probs = new TreeMap<Object, Double>();
+    probs.put(1, 0.9897);
+    probs.put(5, 0.0086);
+    probs.put(10, 0.0017);
+    Frequency f = new Frequency(probs);
+
+    // need to reload the genome each time or the add chromosome tests screw things up
     ApplicationContext context = new ClassPathXmlApplicationContext("test-spring-config.xml");
-    testGenome = (Genome) context.getBean("testReferenceGenome");
+    testGenome = (Genome) context.getBean("testGenome");
+
+    List<Variation> variationList = testGenome.getVariantTypes();
+    for (Variation var: variationList)
+      var.setSizeVariation(f);
+
+    testGenome.setVariantTypes(variationList);
 
     assertNotNull("Genome object failed to create", testGenome);
     }
@@ -64,6 +73,7 @@ public class MutableGenomeTest
   public void tearDown() throws Exception
     {
     outputFasta.delete();
+    testGenome = null;
     }
 
   @Test
@@ -102,6 +112,5 @@ public class MutableGenomeTest
     assertNotSame(origChr.retrieveFullSequence(), newChr.retrieveFullSequence());
 
     }
-
 
   }

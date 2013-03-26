@@ -12,17 +12,17 @@
         <property name="password" value=""/>
     </bean>
 
-    <bean id="fragmentDAO" class="org.lcsb.lu.igcsa.database.JDBCFragmentVariationDAO">
+    <bean id="testFragmentDAO" class="org.lcsb.lu.igcsa.database.JDBCFragmentVariationDAO">
         <property name="dataSource" ref="testDS"/>
         <property name="tableName" value="variations"/>
     </bean>
 
-    <bean id="gcBinDAO" class="org.lcsb.lu.igcsa.database.JDBCGCBinDAO">
+    <bean id="testGCBinDAO" class="org.lcsb.lu.igcsa.database.JDBCGCBinDAO">
         <property name="dataSource" ref="testDS"/>
         <property name="tableName" value="gc_bins"/>
     </bean>
 
-    <bean id="sizeDAO" class="org.lcsb.lu.igcsa.database.JDBCSizeDAO">
+    <bean id="testSizeDAO" class="org.lcsb.lu.igcsa.database.JDBCSizeDAO">
         <property name="dataSource" ref="testDS"/>
         <property name="tableName" value="variation_size_prob"/>
     </bean>

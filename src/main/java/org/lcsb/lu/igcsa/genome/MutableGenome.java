@@ -5,6 +5,8 @@ import org.lcsb.lu.igcsa.fasta.Mutation;
 import org.lcsb.lu.igcsa.database.normal.*;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.fasta.MutationWriter;
+import org.lcsb.lu.igcsa.prob.Frequency;
+import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.lcsb.lu.igcsa.variation.Variation;
 
 import java.io.File;
@@ -26,13 +28,16 @@ public class MutableGenome implements Genome
   protected String buildName;
   protected HashMap<String, Chromosome> chromosomes = new HashMap<String, Chromosome>();
   private List<Variation> variantTypes;
+  private Map<String, Frequency> sizeFreqMap = new HashMap<String, Frequency>();
 
   // Database connections
   private GCBinDAO binDAO;
   private FragmentVariationDAO variationDAO;
   private SizeDAO sizeDAO;
 
+
   private MutationWriter mutationWriter;
+
 
   public MutableGenome(GCBinDAO gcBinDAO, FragmentVariationDAO variationDAO, SizeDAO sizeDAO)
     {
@@ -69,6 +74,7 @@ public class MutableGenome implements Genome
   public void setVariantTypes(List<Variation> variantTypes)
     {
     this.variantTypes = variantTypes;
+    for (Variation var: variantTypes) var.setSizeVariation(this.getSizeFrequencies());
     }
 
   public void addChromosome(Chromosome chr)
@@ -188,7 +194,7 @@ public class MutableGenome implements Genome
         for (Variation variation : this.getVariantTypes())
           {
           log.info(variation.getVariationName());
-          //if (variation.getVariationName() != "SNV") variation.setSizeVariation(this.sizeDAO.getByChromosomeAndVariation(chr.getName(), variation.getVariationName()));
+
           variation.setMutationFragment(fragment);
           mutatedSequence = variation.mutateSequence(mutatedSequence);
 
@@ -226,6 +232,18 @@ public class MutableGenome implements Genome
         log.error(e);
         }
       }
+    }
+
+  private Map<String, Frequency> getSizeFrequencies()
+    {
+    if (this.sizeFreqMap.size() <= 0)
+      {
+      try
+        { this.sizeFreqMap = this.sizeDAO.getAll(); }
+      catch (ProbabilityException e)
+        { log.error(e); }
+      }
+    return this.sizeFreqMap;
     }
 
 

@@ -26,18 +26,19 @@ public class Deletion extends Variation
 
     lastMutations = new LinkedHashMap<Location, DNASequence>();
 
-    // Size should be from the DB as well...
     log.debug(sequence.length() + " expected count " + count);
 
     int totalDel = 0;
     while (totalDel < count)
       {
-      if (sequence.length() < 2) break; // really a deletion could get down to 0...
+      if (sequence.length() <= 0 ) break;
 
       int nIndex = siteSelector.nextInt(sequence.length());
-      int size = (Integer) this.sizeVariation.getFrequency().roll();
+      int size = (Integer) this.sizeVariation.roll();
 
-      log.debug("Site selected " + nIndex + " deletion size " + size);
+      if (size > sequence.length()-nIndex) size = sequence.length()-nIndex;
+
+      log.debug("Site selected " + nIndex + " deletion size " + size + " sequence length " + sequence.length());
 
       String newSequence =  sequence.substring(0, nIndex);
       newSequence = newSequence + sequence.substring(nIndex + size, sequence.length());

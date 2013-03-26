@@ -1,10 +1,10 @@
 package org.lcsb.lu.igcsa.database;
 
-import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.lcsb.lu.igcsa.database.normal.SizeDAO;
-import org.lcsb.lu.igcsa.database.normal.SizeVariation;
+
+import org.lcsb.lu.igcsa.prob.Frequency;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -29,7 +29,7 @@ public class JDBCSizeDAOTest
   @Test
   public void testGetByChromosomeAndVariation() throws Exception
     {
-    SizeVariation sv = sizeDAO.getByChromosomeAndVariation("19", "deletion");
-    assertNotNull(sv);
+    Frequency frequency = sizeDAO.getByVariation("deletion");
+    assertNotNull(frequency);
     }
   }

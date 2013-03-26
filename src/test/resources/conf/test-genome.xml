@@ -4,12 +4,6 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 
-    <!-- Load in application properties reference -->
-    <bean id="applicationProperties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-        <property name="location" value="classpath:test.properties"/>
-    </bean>
-
-
     <!-- Frequency objects for SNVs -->
     <bean id="cFrequency" class="org.lcsb.lu.igcsa.prob.Frequency">
         <constructor-arg>
@@ -68,10 +62,10 @@
 
 
     <!-- Reference Genome creation -->
-    <bean id="testReferenceGenome" class="org.lcsb.lu.igcsa.genome.MutableGenome">
-        <constructor-arg ref="gcBinDAO"></constructor-arg>
-        <constructor-arg ref="fragmentDAO"></constructor-arg>
-        <constructor-arg ref="sizeDAO"></constructor-arg>
+    <bean id="testGenome" class="org.lcsb.lu.igcsa.genome.MutableGenome">
+        <constructor-arg ref="testGCBinDAO"></constructor-arg>
+        <constructor-arg ref="testFragmentDAO"></constructor-arg>
+        <constructor-arg ref="testSizeDAO"></constructor-arg>
         <property name="buildName">
             <value>${assembly}</value>
         </property>

@@ -25,31 +25,39 @@ public class DNASequenceTest
   @Autowired
   private Properties testProperties;
 
-  private String Nucleotides = "actcgccactttgc";
-  private DNASequence DNASequence;
+  private String nucleotides = "actcgccactttgc";
+  private DNASequence dnaSequence;
 
   @Before
   public void setUp() throws Exception
     {
-    DNASequence = new DNASequence(Nucleotides);
-    assertNotNull(DNASequence);
+    dnaSequence = new DNASequence(nucleotides);
+    assertNotNull(dnaSequence);
+    }
+
+  @Test
+  public void testGetLength() throws Exception
+    {
+    assertEquals(dnaSequence.getLength(), nucleotides.length());
     }
 
   @Test
   public void testAddNucleotides() throws Exception
     {
     try
-      { DNASequence.addNucleotides("swacp"); }
+      { dnaSequence.addNucleotides("swcp"); }
     catch (Exception e)
       { assertNotNull(e); }
 
-    DNASequence.addNucleotides("aatg");
-    assertEquals(DNASequence.getLength(), Nucleotides.length()+4);
+    assertEquals(dnaSequence.getLength(), nucleotides.length());
+
+    dnaSequence.addNucleotides("aatg");
+    assertEquals(dnaSequence.getLength(), nucleotides.length()+4);
     }
 
   @Test
   public void testGetSequence() throws Exception
     {
-    assertEquals(DNASequence.getSequence(), Nucleotides.toUpperCase());
+    assertEquals(dnaSequence.getSequence(), nucleotides.toUpperCase());
     }
   }

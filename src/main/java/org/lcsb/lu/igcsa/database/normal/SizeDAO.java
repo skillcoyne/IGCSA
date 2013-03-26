@@ -1,6 +1,10 @@
 package org.lcsb.lu.igcsa.database.normal;
 
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.prob.Frequency;
+import org.lcsb.lu.igcsa.prob.ProbabilityException;
+
+import java.util.Map;
 
 /**
  * org.lcsb.lu.igcsa.database.insilico
@@ -11,6 +15,8 @@ import org.apache.log4j.Logger;
 public interface SizeDAO
   {
 
-  public SizeVariation getByChromosomeAndVariation(String chromosome, String variation);
+  public Map<String, Frequency> getAll() throws ProbabilityException;
+
+  public Frequency getByVariation(String variation) throws ProbabilityException;
 
   }

@@ -34,7 +34,6 @@ create table `variations` (
 
 
 create table `variation_size_prob` (
-  `chr` varchar(12) not null,
   `maxbp` int(11) not null,
   `deletion` decimal(5,4) not null,
   `indel` decimal(5,4) not null,
@@ -43,8 +42,7 @@ create table `variation_size_prob` (
   `substitution` decimal(5,4) not null,
   `tandem_repeat` decimal(5,4) not null,
   `id` int(11) not null auto_increment,
-  primary key(`id`),
-  index vspindex (`chr`, `maxbp`)
+  primary key(`id`)
 );
 
 
