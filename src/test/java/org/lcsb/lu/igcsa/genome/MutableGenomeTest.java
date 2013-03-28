@@ -1,4 +1,4 @@
-package org.lcsb.lu.igcsa.testGenome;
+package org.lcsb.lu.igcsa.genome;
 
 import org.junit.After;
 import org.junit.Before;
@@ -6,12 +6,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
-import org.lcsb.lu.igcsa.genome.Chromosome;
-import org.lcsb.lu.igcsa.genome.Genome;
-import org.lcsb.lu.igcsa.genome.MutableGenome;
 import org.lcsb.lu.igcsa.prob.Frequency;
 import org.lcsb.lu.igcsa.variation.Variation;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -93,6 +89,7 @@ public class MutableGenomeTest
     {
     FASTAHeader header = new FASTAHeader(">gi|12345|Test case for mutating genomes");
     FASTAWriter writer = new FASTAWriter(outputFasta, header);
+    long origLength = outputFasta.length();
 
     assertNotNull(testGenome.getVariantTypes());
     assertEquals(testGenome.getVariantTypes().size(), 3);
@@ -102,15 +99,13 @@ public class MutableGenomeTest
 
     assertEquals(testGenome.getChromosomes().length, 1);
 
-    Chromosome newChr = null;
-    for(Chromosome chr: testGenome.getChromosomes())
-      {
-      assertEquals(chr.getName(), "19");
-      newChr = testGenome.mutate(chr, 50, writer);
-      }
+    Mutable m = testGenome.mutate(testGenome.getChromosomes()[0], 50, writer);
+    m.run();
 
+    assertTrue(outputFasta.length() > origLength);
+
+    Chromosome newChr = new Chromosome("19", outputFasta);
     assertNotSame(origChr.retrieveFullSequence(), newChr.retrieveFullSequence());
-
     }
 
   }

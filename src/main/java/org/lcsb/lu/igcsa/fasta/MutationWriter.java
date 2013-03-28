@@ -33,6 +33,11 @@ public class MutationWriter
     flush();
     }
 
+  public File getMutationFile()
+    {
+    return this.mutationFile;
+    }
+
   public void write(Mutation mutation) throws IOException
     {
     buffer.append( mutation.getChromosome() + "\t" );

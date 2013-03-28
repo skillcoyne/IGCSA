@@ -18,6 +18,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 /**
@@ -70,7 +72,8 @@ public class InsilicoGenome
     else genomeDirectory.mkdirs();
     log.info(genomeDirectory.getAbsolutePath());
 
-    genome.setMutationWriter( new MutationWriter(new File(genomeDirectory, "mutations.txt")));
+    ExecutorService executorService = Executors.newFixedThreadPool(5);
+    //genome.setMutationWriter( new MutationWriter(new File(genomeDirectory, "mutations.txt")));
     for (Chromosome chr : genome.getChromosomes()) //this could be done in threads, each chromosome can be mutated separately
       {
       log.info(chr.getName());
@@ -78,8 +81,8 @@ public class InsilicoGenome
         {
         FASTAHeader header = new FASTAHeader(">chromosome|" + chr.getName() + "|individual " + id);
         FASTAWriter writer = new FASTAWriter(new File(genomeDirectory, "chr" + chr.getName() + ".fa"), header);
-        genome.mutate(chr, windowSize, writer);
-        writer.close();
+        executorService.execute(genome.mutate(chr, windowSize, writer));
+        //writer.close();
         }
       catch (IOException e)
         {
@@ -106,8 +109,10 @@ public class InsilicoGenome
   private void init()
     {
     ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
-    genomeProperties = (Properties) context.getBean("genomeProperties");
+//    genomeProperties = (Properties) context.getBean("genomeProperties");
     genome = (Genome) context.getBean("genome");
+    genomeProperties = (Properties) context.getBean("applicationProperties");
+
     }
 
   }

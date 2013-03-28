@@ -12,6 +12,9 @@ import org.lcsb.lu.igcsa.variation.Variation;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * org.lcsb.lu.igcsa.genome
@@ -37,7 +40,6 @@ public class MutableGenome implements Genome
 
 
   private MutationWriter mutationWriter;
-
 
   public MutableGenome(GCBinDAO gcBinDAO, FragmentVariationDAO variationDAO, SizeDAO sizeDAO)
     {
@@ -74,7 +76,8 @@ public class MutableGenome implements Genome
   public void setVariantTypes(List<Variation> variantTypes)
     {
     this.variantTypes = variantTypes;
-    for (Variation var: variantTypes) var.setSizeVariation(this.getSizeFrequencies());
+    for (Variation var : variantTypes)
+      var.setSizeVariation(this.getSizeFrequencies());
     }
 
   public void addChromosome(Chromosome chr)
@@ -107,21 +110,36 @@ public class MutableGenome implements Genome
    */
   public Genome mutate(int window, FASTAWriter writer)
     {
+    ExecutorService executorService = Executors.newFixedThreadPool(5);
     //int genomeId = this.genomeDAO.insertGenome(id, writer.getFASTAFile().getAbsolutePath());
 
     Genome newGenome = new MutableGenome(this.getBuildName());
     for (Chromosome chr : this.getChromosomes())
       {
-      try
-        {
-        newGenome.addChromosome(this.mutate(chr, window, writer));
-        }
-      catch (IOException e)
-        {
-        log.error(e);
-        }
+      newGenome.addChromosome(new Chromosome(chr.getName(), writer.getFASTAFile()));
+      executorService.execute(this.mutate(chr, window, writer));
       }
     return newGenome;
+    }
+
+
+  public Mutable mutate(Chromosome chr, int window, FASTAWriter writer)
+    {
+    try
+      {
+      Mutable m = new Mutable(chr, window, getVariantTypes());
+      m.setConnections(binDAO, variationDAO, sizeDAO);
+      m.setWriters(writer, new MutationWriter(new File(writer.getFASTAFile().getParentFile().getAbsolutePath(), chr.getName() + "mutations.txt")));
+      return m;
+      }
+    catch (IOException e)
+      {
+      throw new RuntimeException(e);
+      }
+    //executorService.execute(m);
+    //m.start();
+    //m.run();
+    //return new Chromosome(chr.getName(), writer.getFASTAFile());
     }
 
 
@@ -134,7 +152,7 @@ public class MutableGenome implements Genome
    * @param writer
    * @throws IOException
    */
-  public Chromosome mutate(Chromosome chr, int window, FASTAWriter writer) throws IOException
+  public Chromosome mutateOLD(Chromosome chr, int window, FASTAWriter writer) throws IOException
     {
     // TODO so...the FASTEST thing to do here would be to mutate ever section concurrently, write to a temp file that is labeled appropriately and put it
     // back together in order
@@ -239,9 +257,13 @@ public class MutableGenome implements Genome
     if (this.sizeFreqMap.size() <= 0)
       {
       try
-        { this.sizeFreqMap = this.sizeDAO.getAll(); }
+        {
+        this.sizeFreqMap = this.sizeDAO.getAll();
+        }
       catch (ProbabilityException e)
-        { log.error(e); }
+        {
+        log.error(e);
+        }
       }
     return this.sizeFreqMap;
     }
