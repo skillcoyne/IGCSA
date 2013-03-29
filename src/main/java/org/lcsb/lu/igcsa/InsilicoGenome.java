@@ -60,7 +60,7 @@ public class InsilicoGenome
     long time = java.lang.System.currentTimeMillis();
     int individualId = new Random().nextInt( (int) (time*-1));
 
-    setupgenome();
+    genomeSetup();
     createGenome( individualId );
     }
 
@@ -73,7 +73,7 @@ public class InsilicoGenome
     log.info(genomeDirectory.getAbsolutePath());
 
     ExecutorService executorService = Executors.newFixedThreadPool(5);
-    //genome.setMutationWriter( new MutationWriter(new File(genomeDirectory, "mutations.txt")));
+
     for (Chromosome chr : genome.getChromosomes()) //this could be done in threads, each chromosome can be mutated separately
       {
       log.info(chr.getName());
@@ -82,20 +82,20 @@ public class InsilicoGenome
         FASTAHeader header = new FASTAHeader(">chromosome|" + chr.getName() + "|individual " + id);
         FASTAWriter writer = new FASTAWriter(new File(genomeDirectory, "chr" + chr.getName() + ".fa"), header);
         executorService.execute(genome.mutate(chr, windowSize, writer));
-        //writer.close();
         }
       catch (IOException e)
         {
         e.printStackTrace();
         }
       }
+    executorService.shutdown();
     }
 
 
   /*
    * Sets up the reference genome based on the fasta files for the current build.
    */
-  protected void setupgenome() throws FileNotFoundException, ProbabilityException, IllegalAccessException, InstantiationException
+  protected void genomeSetup() throws FileNotFoundException, ProbabilityException, IllegalAccessException, InstantiationException
     {
     genome.addChromosomes(FileUtils.getChromosomesFromFASTA(new File(genomeProperties.getProperty("dir.assembly"))));
     log.info("Reference genome build: " + genome.getBuildName());
@@ -109,10 +109,8 @@ public class InsilicoGenome
   private void init()
     {
     ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
-//    genomeProperties = (Properties) context.getBean("genomeProperties");
     genome = (Genome) context.getBean("genome");
-    genomeProperties = (Properties) context.getBean("applicationProperties");
-
+    genomeProperties = (Properties) context.getBean("genomeProperties");
     }
 
   }

@@ -119,6 +119,7 @@ public class MutableGenome implements Genome
       newGenome.addChromosome(new Chromosome(chr.getName(), writer.getFASTAFile()));
       executorService.execute(this.mutate(chr, window, writer));
       }
+    executorService.shutdown();
     return newGenome;
     }
 
