@@ -12,33 +12,23 @@
         <property name="targetMethod" value="initLogging"/>
         <property name="arguments">
             <list>
-                <value>classpath:log4j.xml</value>
+                <value>file:${props.path}/log4j.properties</value>
             </list>
         </property>
     </bean>
 
-    <!--<context:property-placeholder location="file:${props.path}/genome.properties"/>-->
     <!-- Properties -->
     <bean id="genomeProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
         <property name="ignoreResourceNotFound">
             <value>true</value>
         </property>
         <property name="location" value="file:${props.path}/genome.properties"/>
-            <!--<list>-->
-            <!--&lt;!&ndash;<value>"file:${props.path}/genome.properties"</value>&ndash;&gt;-->
-            <!--</list>-->
-
     </bean>
-
-
 
     <!-- Load in application properties reference -->
     <bean id="applicationProperties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
         <property name="properties" ref="genomeProperties"/>
-        <!--<property name="location" value="file:${props.path}/genome.properties"/>-->
     </bean>
-
-
 
 
     <import resource="conf/database-config.xml"/>
