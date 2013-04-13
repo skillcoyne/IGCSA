@@ -129,7 +129,7 @@ public class MutableGenome implements Genome
     try
       {
       // TODO variant types need to be cloned for each chromosome or else the mutations being generated are incorrect MAJOR PROBLEM
-      Mutable m = new Mutable(chr, window, getVariantTypes());
+      Mutable m = new Mutable(chr, window, cloneVariantTypes());
 
       m.setConnections(binDAO, variationDAO, sizeDAO);
       m.setWriters(writer, new MutationWriter(new File(writer.getFASTAFile().getParentFile().getAbsolutePath(), chr.getName() + "mutations.txt")));
@@ -224,11 +224,8 @@ public class MutableGenome implements Genome
 
   private List<Variation> cloneVariantTypes()
     {
-    List<Variation> cloneList = new ArrayList<Variation>();
-    for (Variation v: getVariantTypes())
-      {
-      // TODO....
-      }
+    // TODO...this just does a shallow clone.  Need to provide a complete copy to each chromosome...somehow.
+    List<Variation> cloneList = new ArrayList<Variation>(getVariantTypes());
     return cloneList;
     }
 
