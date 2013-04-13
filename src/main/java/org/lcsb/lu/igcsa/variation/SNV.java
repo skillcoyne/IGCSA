@@ -30,6 +30,11 @@ public class SNV extends Variation
     this.snvFrequencies = frequencyMap;
     }
 
+  public Map<Character, Frequency> getSNVFrequencies()
+    {
+    return this.snvFrequencies;
+    }
+
   /*
   Randomly selects nucleotides to attempt to mutate based on their frequency table.  Stops when the max (count)
   is reached.

@@ -128,7 +128,9 @@ public class MutableGenome implements Genome
     {
     try
       {
+      // TODO variant types need to be cloned for each chromosome or else the mutations being generated are incorrect MAJOR PROBLEM
       Mutable m = new Mutable(chr, window, getVariantTypes());
+
       m.setConnections(binDAO, variationDAO, sizeDAO);
       m.setWriters(writer, new MutationWriter(new File(writer.getFASTAFile().getParentFile().getAbsolutePath(), chr.getName() + "mutations.txt")));
       return m;
@@ -137,55 +139,6 @@ public class MutableGenome implements Genome
       {
       throw new RuntimeException(e);
       }
-    //executorService.execute(m);
-    //m.start();
-    //m.run();
-    //return new Chromosome(chr.getName(), writer.getFASTAFile());
-    }
-
-
-  /**
-   * Loop over the sequence, mutate and immediately write to new FASTA file.
-   * This does not keep the new chromosome in memory.
-   *
-   * @param chr
-   * @param window
-   * @param writer
-   * @throws IOException
-   */
-  public Chromosome mutateOLD(Chromosome chr, int window, FASTAWriter writer) throws IOException
-    {
-    // TODO so...the FASTEST thing to do here would be to mutate ever section concurrently, write to a temp file that is labeled appropriately and put it
-    // back together in order
-    int total = 0;
-    log.debug(chr.getName());
-
-    Location location = new Location(0, window); // FASTA locations are 0 based.
-    chr.getFASTAReader().reset();
-
-    DNASequence currentSequenceFragment;
-    while (true)
-      {
-      currentSequenceFragment = chr.readSequence(window);
-      log.debug(chr.getName() + location.toString());
-      DNASequence mutatedSequence = mutateSequenceAtLocation(chr, currentSequenceFragment, location);
-      total += mutatedSequence.getLength();
-      try
-        {
-        writer.write(mutatedSequence.getSequence());
-        }
-      catch (IOException e)
-        {
-        log.error(e);
-        }
-      location = new Location(location.getEnd(), location.getEnd() + window);
-      if (currentSequenceFragment.getLength() < window)
-        break;
-      }
-    writer.flush();
-    writer.close();
-    log.info("Mutated chromosome " + chr.getName() + " sequence length " + total);
-    return new Chromosome(chr.getName(), writer.getFASTAFile());
     }
 
 
@@ -267,6 +220,16 @@ public class MutableGenome implements Genome
         }
       }
     return this.sizeFreqMap;
+    }
+
+  private List<Variation> cloneVariantTypes()
+    {
+    List<Variation> cloneList = new ArrayList<Variation>();
+    for (Variation v: getVariantTypes())
+      {
+      // TODO....
+      }
+    return cloneList;
     }
 
 

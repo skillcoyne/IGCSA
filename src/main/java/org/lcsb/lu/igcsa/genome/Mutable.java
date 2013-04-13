@@ -8,6 +8,7 @@ import org.lcsb.lu.igcsa.fasta.MutationWriter;
 import org.lcsb.lu.igcsa.variation.Variation;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -24,7 +25,7 @@ public class Mutable implements Runnable
 
   private Chromosome chromosome;
   private int window;
-  private List<Variation> variations;
+  private Collection<Variation> variations;
 
   private FASTAWriter writer;
   private MutationWriter mutationWriter;
@@ -34,14 +35,11 @@ public class Mutable implements Runnable
   private FragmentVariationDAO variationDAO;
   private SizeDAO sizeDAO;
 
-  private Thread thread;
-
-  public Mutable(Chromosome chr, int window, List<Variation> variants)
+  public Mutable(Chromosome chr, int window, Collection<Variation> variants)
     {
     this.chromosome = chr;
     this.window = window;
-    this.variations = variants;
-//    thread.start();
+    this.variations =  variants;
     }
 
   public void setWriters(FASTAWriter writer, MutationWriter mutationWriter)
@@ -50,19 +48,11 @@ public class Mutable implements Runnable
     this.mutationWriter = mutationWriter;
     }
 
-
-
   public void setConnections(GCBinDAO bin, FragmentVariationDAO fragment, SizeDAO size)
     {
     this.binDAO = bin;
     this.variationDAO = fragment;
     this.sizeDAO = size;
-    }
-
-  public void start()
-    {
-    thread = new Thread(this);
-    thread.start();
     }
 
   public void run()
@@ -152,14 +142,17 @@ public class Mutable implements Runnable
     return mutatedSequence;
     }
 
-  private void writeVariations(Chromosome chr, Location fragment, Variation variation, Map<Location, DNASequence> mutations)
+  private void writeVariations(Chromosome chr, Location fragment, Variation variation, Map<Location, DNASequence> lastMutations)
     {
+    final Map<Location, DNASequence> mutations = lastMutations;
+
     if (mutations.size() > 0)
       {
       Mutation mutation = new Mutation();
       mutation.setChromosome(chr.getName());
       mutation.setFragment(fragment.getStart());
       mutation.setVariationType(variation.getVariationName());
+
       for (Map.Entry<Location, DNASequence> entry : mutations.entrySet())
         {
         Location loc = entry.getKey();

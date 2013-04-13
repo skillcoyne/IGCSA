@@ -27,7 +27,6 @@ public abstract class Variation
     protected Random siteSelector = new Random();
     protected String variationName;
 
-
     public void setVariationName(String name)
       {
       this.variationName = name;
@@ -47,7 +46,6 @@ public abstract class Variation
       {
       this.sizeVariation = frequencyMap.get(getVariationName());
       }
-
 
     public void setSizeVariation(Frequency frequency)
       {
