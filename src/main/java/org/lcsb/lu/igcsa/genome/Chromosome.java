@@ -2,6 +2,7 @@ package org.lcsb.lu.igcsa.genome;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
+import org.lcsb.lu.igcsa.variation.Variation;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +21,8 @@ public class Chromosome
   private String Name;
   private File fasta;
   private FASTAReader reader;
-  //private DNASequence fullSequence;
+  private List<Variation> variationList;
+
   private NavigableMap<Location, DNASequence> alteredSequence = new TreeMap<Location, DNASequence>();
 
   public Chromosome(String name)
@@ -55,6 +57,17 @@ public class Chromosome
   public FASTAReader getFASTAReader()
     {
     return this.reader;
+    }
+
+  public void setVariantList(List<Variation> variants)
+    {
+    this.variationList = variants;
+    log.info(getName() + "variant list: " + variationList.hashCode());
+    }
+
+  public List<Variation> getVariantList()
+    {
+    return this.variationList;
     }
 
   public String toString()

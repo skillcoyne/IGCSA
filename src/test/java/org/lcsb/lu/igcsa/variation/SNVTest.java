@@ -25,9 +25,6 @@ import static org.junit.Assert.*;
 public class SNVTest
     {
     @Autowired
-    private Properties testNormalProperties;
-
-    @Autowired
     private SNV SNV;
 
     private char[] sequence = "ACTGCTTAGCG".toCharArray();

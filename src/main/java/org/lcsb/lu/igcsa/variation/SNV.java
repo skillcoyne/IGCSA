@@ -76,13 +76,4 @@ public class SNV extends Variation
     return new DNASequence(String.valueOf(nucleotides));
     }
 
-  /**
-   * Note that these are not cumulative.  Each call to mutateSequence resets this map.
-   * @return
-   */
-//  public LinkedHashMap<Location, DNASequence> getLastMutations()
-//    {
-//    return this.lastMutations;
-//    }
-
   }

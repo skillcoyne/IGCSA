@@ -42,11 +42,6 @@ public abstract class Variation
       this.fragment = fragment;
       }
 
-    public void setSizeVariation(Map<String, Frequency> frequencyMap)
-      {
-      this.sizeVariation = frequencyMap.get(getVariationName());
-      }
-
     public void setSizeVariation(Frequency frequency)
       {
       this.sizeVariation = frequency;

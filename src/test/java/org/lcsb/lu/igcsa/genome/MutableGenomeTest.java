@@ -35,6 +35,7 @@ public class MutableGenomeTest
   private File outputFasta;
 
   private Genome testGenome;
+  private List<Variation> variationList;
 
   @Autowired
   private Properties testProperties;
@@ -55,12 +56,12 @@ public class MutableGenomeTest
     // need to reload the genome each time or the add chromosome tests screw things up
     ApplicationContext context = new ClassPathXmlApplicationContext("test-spring-config.xml");
     testGenome = (Genome) context.getBean("testGenome");
-
-    List<Variation> variationList = testGenome.getVariantTypes();
-    for (Variation var: variationList)
-      var.setSizeVariation(f);
-
-    testGenome.setVariantTypes(variationList);
+    variationList = (List<Variation>) context.getBean("testVariantList");
+//    List<Variation> variationList = testGenome.getVariantTypes();
+//    for (Variation var: variationList)
+//      var.setSizeVariation(f);
+//
+//    testGenome.setVariantTypes(variationList);
 
     assertNotNull("Genome object failed to create", testGenome);
     }
@@ -76,7 +77,12 @@ public class MutableGenomeTest
   public void testGetChromosomes() throws Exception
     {
     Chromosome[] chromosomes = new Chromosome[10];
-    for (int i = 1; i <= 10; i++) chromosomes[i - 1] = new Chromosome(Integer.toString(i));
+    for (int i = 1; i <= 10; i++)
+      {
+      Chromosome chr = new Chromosome(Integer.toString(i));
+      chr.setVariantList(variationList);
+      chromosomes[i - 1] = chr;
+      }
 
     testGenome.addChromosomes(chromosomes);
     assertEquals("Chromosomes names 1-10 added", testGenome.getChromosomes().length, 10);
@@ -95,6 +101,7 @@ public class MutableGenomeTest
     assertEquals(testGenome.getVariantTypes().size(), 3);
 
     Chromosome origChr = new Chromosome("19", fastaFile);
+    origChr.setVariantList(variationList);
     testGenome.addChromosome(origChr);
 
     assertEquals(testGenome.getChromosomes().length, 1);

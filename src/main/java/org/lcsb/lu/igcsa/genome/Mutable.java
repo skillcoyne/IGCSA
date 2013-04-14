@@ -25,7 +25,7 @@ public class Mutable implements Runnable
 
   private Chromosome chromosome;
   private int window;
-  private Collection<Variation> variations;
+  //private Collection<Variation> variations;
 
   private FASTAWriter writer;
   private MutationWriter mutationWriter;
@@ -35,11 +35,10 @@ public class Mutable implements Runnable
   private FragmentVariationDAO variationDAO;
   private SizeDAO sizeDAO;
 
-  public Mutable(Chromosome chr, int window, Collection<Variation> variants)
+  public Mutable(Chromosome chr, int window)
     {
     this.chromosome = chr;
     this.window = window;
-    this.variations =  variants;
     }
 
   public void setWriters(FASTAWriter writer, MutationWriter mutationWriter)
@@ -129,7 +128,7 @@ public class Mutable implements Runnable
         log.info("Chromosome " + chr.getName() + "MUTATING FRAGMENT " + fragment.toString());
         // apply the variations to the sequence, each of them needs to apply to the same fragment
         // it is possible that one could override another (e.g. a deletion removes SNVs)
-        for (Variation variation : variations)
+        for (Variation variation : chr.getVariantList())
           {
           variation.setMutationFragment(fragment);
           mutatedSequence = variation.mutateSequence(mutatedSequence);

@@ -12,6 +12,7 @@ import org.lcsb.lu.igcsa.genome.Genome;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.lcsb.lu.igcsa.utils.FileUtils;
 
+import org.lcsb.lu.igcsa.variation.Variation;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -41,6 +42,7 @@ public class InsilicoGenome
   protected Genome genome;
 
   private ExecutorService executorService;
+  private ApplicationContext context;
 
   protected void print(String s)
     {
@@ -104,6 +106,7 @@ public class InsilicoGenome
         {
         FASTAHeader header = new FASTAHeader(">chromosome|" + chr.getName() + "|individual " + name);
         FASTAWriter writer = new FASTAWriter(new File(genomeDirectory, "chr" + chr.getName() + ".fa"), header);
+        chr.setVariantList( (List<Variation>) context.getBean("variantList") );
         executorService.execute(genome.mutate(chr, windowSize, writer));
         }
       catch (IOException e)
@@ -131,7 +134,9 @@ public class InsilicoGenome
    */
   private void init()
     {
-    ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
+    context = new ClassPathXmlApplicationContext(new String[] {"classpath*:spring-config.xml", "classpath*:/conf/genome.xml",
+        "classpath*:/conf/database-config.xml"});
+    //context = new ClassPathXmlApplicationContext("spring-config.xml");
     genome = (Genome) context.getBean("genome");
     genomeProperties = (Properties) context.getBean("genomeProperties");
     }

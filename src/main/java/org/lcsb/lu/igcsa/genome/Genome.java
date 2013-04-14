@@ -28,23 +28,11 @@ public interface Genome
 
   public boolean hasChromosome(String name);
 
-//  public void setMutationWriter(MutationWriter writer);
-
-
   /**
    * Exactly what it sounds like.
    * @return
    */
   public Chromosome[] getChromosomes();
 
-
-  /**
-   * Mutate the entire genome at once and output. This method just loops through the chromosomes and calls
-   * Genome#mutate(chromosome, window, writer)
-   * @param window
-   */
-  public abstract Genome mutate(int window, FASTAWriter writer);
-
   public abstract Mutable mutate(Chromosome chr, int window, FASTAWriter writer);
-  //public abstract Chromosome mutate(Chromosome chr, int window, FASTAWriter writer) throws IOException;
   }

@@ -62,6 +62,7 @@ public class JDBCSizeDAO implements SizeDAO
 
   public Frequency getByVariation(String variation) throws ProbabilityException
     {
+    log.debug("******* Get by variation " + variation);
     String sql = "SELECT maxbp, " + variation + " FROM " + this.tableName;
 
     Connection conn = null;

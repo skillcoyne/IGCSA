@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
     <!-- Frequency objects for SNVs -->
     <bean id="cFrequency" class="org.lcsb.lu.igcsa.prob.Frequency">
@@ -47,7 +47,7 @@
     </bean>
 
 
-    <bean id="SNV" class="org.lcsb.lu.igcsa.variation.SNV">
+    <bean id="testSNV" class="org.lcsb.lu.igcsa.variation.SNV">
         <constructor-arg>
             <map key-type="java.lang.Character">
                 <entry key="A" value-ref="aFrequency"/>
@@ -59,7 +59,21 @@
         <property name="variationName" value="SNV"/>
     </bean>
 
-
+    <bean id="testVariantList" class="java.util.ArrayList">
+        <constructor-arg>
+            <list>
+                <bean id="Deletion" class="org.lcsb.lu.igcsa.variation.Deletion">
+                    <property name="variationName" value="deletion"/>
+                    <property name="sizeVariation" value="#{testSizeDAO.getByVariation('deletion')}"/>
+                </bean>
+                <bean id="Insertion" class="org.lcsb.lu.igcsa.variation.Insertion">
+                    <property name="variationName" value="insertion"/>
+                    <property name="sizeVariation" value="#{testSizeDAO.getByVariation('insertion')}"/>
+                </bean>
+                <ref bean="testSNV"/>
+            </list>
+        </constructor-arg>
+    </bean>
 
     <!-- Reference Genome creation -->
     <bean id="testGenome" class="org.lcsb.lu.igcsa.genome.MutableGenome">
@@ -70,17 +84,7 @@
             <value>${assembly}</value>
         </property>
         <!-- Variation classes -->
-        <property name="variantTypes">
-            <list>
-                <bean id="Deletion" class="org.lcsb.lu.igcsa.variation.Deletion">
-                    <property name="variationName" value="deletion"/>
-                </bean>
-                <bean id="Insertion" class="org.lcsb.lu.igcsa.variation.Insertion">
-                    <property name="variationName" value="insertion"/>
-                </bean>
-                <ref bean="SNV"/>
-            </list>
-        </property>
+        <property name="variantTypes" ref="testVariantList"/>
     </bean>
 
 
