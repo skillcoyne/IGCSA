@@ -6,7 +6,6 @@ import org.apache.log4j.Logger;
 
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
-import org.lcsb.lu.igcsa.fasta.MutationWriter;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.Genome;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
@@ -17,7 +16,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -61,16 +59,31 @@ public class InsilicoGenome
     CommandLine cl = parseCommandLine(args);
 
     long time = java.lang.System.currentTimeMillis();
-    log.debug("" + time);
     String genomeName = String.valueOf(new Random().nextInt(Math.abs((int) (time))));
     boolean overwriteGenome = false;
 
     if (cl.hasOption('n') || cl.hasOption("name")) genomeName = cl.getOptionValue('n');
     if (cl.hasOption('o') || cl.hasOption("overwrite")) overwriteGenome = true;
 
-    log.debug(genomeName + " " + overwriteGenome);
+    List<String> chromosomes = new ArrayList<String>();
+    if (cl.hasOption('c') || cl.hasOption("chromosome"))
+      {
+      for (String c: cl.getOptionValue('c').split(","))
+        chromosomes.add(c);
+      }
 
-    genomeSetup();
+    File fastaDir = new File(genomeProperties.getProperty("dir.assembly"));
+    if (chromosomes.size() > 0)
+      {
+      for (String c: chromosomes)
+        genome.addChromosome( new Chromosome(c, FileUtils.getFASTA(c, fastaDir) ) );
+      }
+    else
+      {
+      genome.addChromosomes(FileUtils.getChromosomesFromFASTA(fastaDir));
+      }
+    log.info("Reference genome build: " + genome.getBuildName());
+    log.info("Reference genome has: " + genome.getChromosomes().length + " chromosomes");
 
     int threads = 5;
     if (cl.hasOption('t') || cl.hasOption("threads")) threads = Integer.valueOf(cl.getOptionValue('t'));
@@ -117,18 +130,6 @@ public class InsilicoGenome
     executorService.shutdown();
     }
 
-
-  /*
-   * Sets up the reference genome based on the fasta files for the current build.
-   */
-  protected void genomeSetup() throws FileNotFoundException, ProbabilityException, IllegalAccessException, InstantiationException
-    {
-    genome.addChromosomes(FileUtils.getChromosomesFromFASTA(new File(genomeProperties.getProperty("dir.assembly"))));
-    log.info("Reference genome build: " + genome.getBuildName());
-    log.info("Reference genome has: " + genome.getChromosomes().length + " chromosomes");
-    }
-
-
   /*
   Variable initialization. Most of it is done in the Spring configuration files.
    */
@@ -147,11 +148,13 @@ public class InsilicoGenome
     options.addOption("n", "name", true, "Genome directory name, if not provided a random name is generated.");
     options.addOption("o", "overwrite", false, "Overwrite genome directory if name already exists.");
     options.addOption("t", "threads", true, "Number of concurrent threads, default is 5.");
+    options.addOption("c", "chromosome", true, "List of chromosomes, best used for debugging.");
     //options.addOption("v", "version", false, "");
     options.addOption("h", "help", false, "print usage help");
 
     CommandLineParser clp = new BasicParser();
     CommandLine cl = null;
+
     try
       {
       cl = clp.parse(options, args);
@@ -166,6 +169,11 @@ public class InsilicoGenome
       {
       log.error(e);
       }
+
+    print("Running InsilicoGenome with the following parameters: ");
+    for (Option opt: cl.getOptions())
+      print( "\t-" + opt.getLongOpt() + " " + opt.getValue("true"));
+
     return cl;
     }
 

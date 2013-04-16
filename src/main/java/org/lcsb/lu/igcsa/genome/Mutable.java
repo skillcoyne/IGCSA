@@ -77,7 +77,7 @@ public class Mutable implements Runnable
     while (true)
       {
       currentSequenceFragment = chromosome.readSequence(window);
-      log.debug(chromosome.getName() + location.toString());
+      log.info("MUTATING " + chromosome.getName() + " at " + location.toString());
       DNASequence mutatedSequence = mutateSequenceAtLocation(chromosome, currentSequenceFragment, location);
       total += mutatedSequence.getLength();
       try
@@ -104,7 +104,7 @@ public class Mutable implements Runnable
       log.error(e);
       }
 
-    log.info("Mutated chromosome " + chromosome.getName() + " sequence length " + total);
+    log.info("FINISHED mutating chromosome " + chromosome.getName() + " sequence length " + total);
     }
 
   // Mutates the sequence based on the information provided in the database
@@ -122,10 +122,9 @@ public class Mutable implements Runnable
       log.debug(gcBin.toString());
       // get random fragment within the GC bin
       Fragment fragment = this.variationDAO.getFragment(chr.getName(), gcBin.getBinId(), randomFragment.nextInt(gcBin.getSize()));
-
       if (totalNucleotides >= fragment.countSums())
         {
-        log.info("Chromosome " + chr.getName() + "MUTATING FRAGMENT " + fragment.toString());
+        log.debug("Chromosome " + chr.getName() + " MUTATING FRAGMENT " + fragment.toString());
         // apply the variations to the sequence, each of them needs to apply to the same fragment
         // it is possible that one could override another (e.g. a deletion removes SNVs)
         for (Variation variation : chr.getVariantList())
@@ -170,6 +169,7 @@ public class Mutable implements Runnable
         log.error(e);
         }
       }
+
     }
 
   }

@@ -6,3 +6,5 @@ PPATH=`pwd`
 #fi
 
 time java -Dprops.path=${PPATH} -jar -Xms256m -Xmx1024m igcsa-jar-with-dependencies.jar $@
+
+
