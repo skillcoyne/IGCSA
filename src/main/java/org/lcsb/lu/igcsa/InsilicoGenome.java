@@ -148,7 +148,7 @@ public class InsilicoGenome
     options.addOption("n", "name", true, "Genome directory name, if not provided a random name is generated.");
     options.addOption("o", "overwrite", false, "Overwrite genome directory if name already exists.");
     options.addOption("t", "threads", true, "Number of concurrent threads, default is 5.");
-    options.addOption("c", "chromosome", true, "List of chromosomes, best used for debugging.");
+    options.addOption("c", "chromosome", true, "List of chromosomes to include, use to generate/mutate sets of chromosomes.");
     //options.addOption("v", "version", false, "");
     options.addOption("h", "help", false, "print usage help");
 
