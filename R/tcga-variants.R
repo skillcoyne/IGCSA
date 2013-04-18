@@ -3,6 +3,10 @@ chr = args[1]
 out_dir=args[2]
 data_dir=args[3]
 
+print(paste("Chromosome", chr, sep=" "))
+print(paste("Output dir", out_dir, sep=": "))
+print(paste("Data dir", data_dir, sep=": ")) 
+
 window = 1000
 
 #out_dir = "~/Analysis/TCGA"
@@ -29,7 +33,7 @@ app=F; cols=T;
 for (i in 1:bins)
   {
   max = max + window;
-  print(paste(chr, min, max, sep=" : "))
+#  print(paste(chr, min, max, sep=" : "))
   chunk = d[ d$Start >= min & d$End <= max, ]    
 
   # Just wondering if it's common for the mutations to show up in the same locations
