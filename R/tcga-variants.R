@@ -1,15 +1,17 @@
 args = commandArgs(trailingOnly = TRUE)
 chr = args[1]
+out_dir=args[2]
+data_dir=args[3]
 
 window = 1000
 
-out_dir = "~/Analysis/TCGA"
-
-chr_info = read.table("~/workspace/IGCSA/ruby/resources/chromosome_gene_info_2012.txt", header=T, sep="\t")
-cancer_info = read.table("~/Data/TCGA/cancer_abbreviations.txt", header=T, sep="\t")
+#out_dir = "~/Analysis/TCGA"
+setwd(data_dir)
+chr_info = read.table("chromosome_gene_info_2012.txt", header=T, sep="\t")
+cancer_info = read.table("cancer_abbreviations.txt", header=T, sep="\t")
 cancers = cancer_info$Study.Abbr
 
-d = read.table(paste("~/Data/TCGA/chr", chr, "_variants.txt", sep=""), header=T, sep="\t", quote="")
+d = read.table(paste("chr", chr, "_variants.txt", sep=""), header=T, sep="\t", quote="")
 d = d[order(d$Start),]
 d = d[,1:8]
 # Due to the way the mafs are structured there's a lot of duplicate data
@@ -20,7 +22,6 @@ dir.create(chrdir, recursive=T)
 
 maxlength = chr_info[ chr_info$Chromosome == chr, 'Base.pairs']
 bins = ceiling(maxlength/window)
-    
 
 #rm(all_freq, all_cnc, center)
 min = 0; max = 0; 
@@ -60,7 +61,7 @@ for (i in 1:bins)
   rm(chunk, freq)
   }
   
-write.table(freq, file=paste(chrdir, "freq.txt", sep="/"), quote=F, col.names=NA, row.names=T)
+write.table(all_freq, file=paste(chrdir, "freq.txt", sep="/"), quote=F, col.names=NA, row.names=T)
 write.table(all_cnc, file=paste(chrdir, "cancer-freq.txt", sep="/"), quote=F, col.names=NA, row.names=T)  
 write.table(center, file=paste(chrdir, "center-freq.txt", sep="/"), quote=F, col.names=NA, row.names=T)  
 
