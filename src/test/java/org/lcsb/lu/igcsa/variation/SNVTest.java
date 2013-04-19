@@ -45,6 +45,7 @@ public class SNVTest
 
       // This is just testing that I kept the changes around
       Map<Location, DNASequence> lastMutations = SNV.getLastMutations();
+      assertTrue(lastMutations.size() > 0);
       char[] newSeqChars = newSeq.getSequence().toCharArray();
       for (Location loc: lastMutations.keySet())
         {

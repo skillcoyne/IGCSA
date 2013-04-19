@@ -1,3 +1,9 @@
+#
+# Analysis script.
+# Compares sequential bins based on either GC content or just chunks of the genome (total bps/10) using t-test to identify best method to break down
+# variations for use in genome generation.
+#
+
 rm(list=ls())
 
 plot.var.cor<-function(tests, plot=F)
@@ -24,6 +30,7 @@ plot.var.cor<-function(tests, plot=F)
   return(cors)
   } 
 
+# Run t.test over each variation in chunks of the *known* genome (all unknowns were filtered out) broken up by bins based on GC content.
 test.gc.bins<-function(cg, binsize)
   {
   tests = data.frame()
@@ -50,6 +57,8 @@ test.gc.bins<-function(cg, binsize)
   return(tests)
   }
 
+# Run t.test over each variation in chunks of the *known* genome (all unknowns were filtered out) broken up by number of bins.  Entirely regardless
+# of the GC content
 test.bp.bins<-function(cg, binsize)
   {
   tests = data.frame()
@@ -87,7 +96,7 @@ gc_dir = paste(dir, "/VariationNormal/GC/1000", sep="")
 gc_files = list.files(path=gc_dir, pattern="*-gc.txt")
 
 col=T; app=F
-#var_files = c('chr1.txt')
+file = c('chr1.txt')
 for (file in var_files)
   {
   chr = sub(".txt", "", file)
@@ -102,7 +111,7 @@ for (file in var_files)
   cg = cbind(vd, gd)
   
   bp.test = test.bp.bins(cg, 10) 
-  bp.cor = plot.var.cor(bp.test,F)
+  bp.cor = plot.var.cor(bp.test,T)
   rho = bp.cor['rho',]
   rownames(rho) = chr
   
@@ -164,7 +173,7 @@ write.table(gc.cor, file=filename, app=T, col.name=T, row.name=T, quote=F, sep="
 
 d = read.table(paste(dir, "chr-gcbin-cor.txt", sep="/"), h=T, sep="\t")
 d[,'chr'] = c(1, 10:19, 2, 20:22, 3:9)
-d = d[order(d$chr),]
+d = d[order(d$chr),]:
 
 par(mfrow=c(3,3))
 for (var in colnames(d[,1:7]))

@@ -1,3 +1,6 @@
+# Script filters the fragments found in high/low/mean variation (SNV) counts to see if these matched with any particular 
+# genes.  The gene_analysis.R script compares them.
+
 rm(list=ls())
 setwd("~/workspace/IGCSA/R")
 source("lib/gc_functions.R")
@@ -22,6 +25,7 @@ var_files = list.files(path=ens_dir, pattern=".txt")
 gc_dir = paste(data_dir, "GC/1000", sep="/")
 gc_files = list.files(path=gc_dir,pattern=".txt")  
 
+file="chr10.txt"
 for(file in var_files)
   {
   chr = sub(".txt", "", file)

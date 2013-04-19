@@ -19,6 +19,7 @@ public class Mutation
   private int endLocation;
   private String variationType;
   private String sequence;
+  private int gcBin;
 
 
   public int getGenomeId()
@@ -89,5 +90,15 @@ public class Mutation
   public void setSequence(String sequence)
     {
     this.sequence = sequence;
+    }
+
+  public int getGCBin()
+    {
+    return gcBin;
+    }
+
+  public void setGCBin(int gcBin)
+    {
+    this.gcBin = gcBin;
     }
   }

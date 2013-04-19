@@ -1,3 +1,8 @@
+#
+# Analysis script.
+# Looks at the number of SNVs found per 1kb fragment and attempts to correlate with GC content of that fragment.
+# 
+
 rm(list=ls())
 
 source("lib/gc_functions.R")
@@ -14,7 +19,7 @@ pvalues = as.data.frame(matrix(nrow=0, ncol=3))
 colnames(pvalues) = c('p.value', 'sampled.p.value', 'gc')
 # Does correlation tests against the two tops of the variation distribution (0 ~15)
 # on each chromosome
-var_files=c("chr1.txt")
+file=c("chr10.txt")
 for (i in 1:length(var_files))
   {
   file = var_files[i]
@@ -38,8 +43,6 @@ for (i in 1:length(var_files))
   snvCutoffUpper = 29
   snvBump = gdvd[gdvd$SNV > snvCutoff & gdvd$SNV < snvCutoffUpper ,]
   
-  q = quantile(gdvd$GCRatio)
-
   low = gdvd[gdvd$GCRatio <= 0.3,]  
   cor.test(low$SNV, low$GCRatio, methods="pearson")
   range(low$SNV)

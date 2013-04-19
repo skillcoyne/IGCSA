@@ -57,11 +57,7 @@ public class MutableGenomeTest
     ApplicationContext context = new ClassPathXmlApplicationContext("test-spring-config.xml");
     testGenome = (Genome) context.getBean("testGenome");
     variationList = (List<Variation>) context.getBean("testVariantList");
-//    List<Variation> variationList = testGenome.getVariantTypes();
-//    for (Variation var: variationList)
-//      var.setSizeVariation(f);
-//
-//    testGenome.setVariantTypes(variationList);
+
 
     assertNotNull("Genome object failed to create", testGenome);
     }

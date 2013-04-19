@@ -1,3 +1,7 @@
+# This was part of the identification of the GC content effect on SNVs  Ultimately not strong enough to make it worth separating things
+# stringently by GC content.
+
+
 rm(list=ls())
 setwd("~/workspace/IGCSA/R")
 source("lib/gc_functions.R")
@@ -6,7 +10,7 @@ dir = "~/Data"
 cpg_dir = paste(dir, "/VariationNormal/CpG/1000", sep="")
 cpg_files = list.files(path=cpg_dir, pattern="*.txt")
 
-file = 'chr1-varCpG.txt'
+file = 'chr10-varCpG.txt'
 cpg_file = paste(cpg_dir, file, sep="/")
 cg = read.table(cpg_file, header=T, sep="\t")
 cg$Pred.CpGI[ which(is.na(cg$CpGI.Meth)) ] = NA  

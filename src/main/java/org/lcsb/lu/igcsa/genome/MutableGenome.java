@@ -85,26 +85,11 @@ public class MutableGenome implements Genome
     return chromosomes.values().toArray(new Chromosome[chromosomes.size()]);
     }
 
-  /*
-    Not recommended for general use unless you have very small chromosomes as this holds the entire
-    genome in memory. Better use is to call #mutate(Chromosome chr, int window) and output the new
-    chromosome.
+
+  /* TODO write a mutate method that holds the chromosome in memory to write out at the end
+  useful ONLY for the cluster where multiple sequential writes are difficult.  In this case either the genome should only
+   contain one chromosome or each chromosome may have to mutate sequentially due to the Java memory.
    */
-//  public Genome mutate(int window, FASTAWriter writer)
-//    {
-//    ExecutorService executorService = Executors.newFixedThreadPool(5);
-//
-//    Genome newGenome = new MutableGenome(this.getBuildName());
-//    for (Chromosome chr : this.getChromosomes())
-//      {
-//      newGenome.addChromosome(new Chromosome(chr.getName(), writer.getFASTAFile()));
-//      executorService.execute(this.mutate(chr, window, writer));
-//      }
-//    executorService.shutdown();
-//    return newGenome;
-//    }
-
-
   public Mutable mutate(Chromosome chr, int window, FASTAWriter writer)
     {
     try
@@ -113,7 +98,11 @@ public class MutableGenome implements Genome
       Mutable m = new Mutable(chr, window);
 
       m.setConnections(binDAO, variationDAO, sizeDAO);
-      m.setWriters(writer, new MutationWriter(new File(writer.getFASTAFile().getParentFile().getAbsolutePath(), chr.getName() + "mutations.txt")));
+
+      File mutWriterPath = new File(writer.getFASTAFile().getParentFile().getAbsolutePath(), "mutations");
+      if (!mutWriterPath.exists() || !mutWriterPath.isDirectory()) mutWriterPath.mkdir();
+
+      m.setWriters(writer, new MutationWriter(new File(mutWriterPath, chr.getName() + "mutations.txt")));
       return m;
       }
     catch (IOException e)

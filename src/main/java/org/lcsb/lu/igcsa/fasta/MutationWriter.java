@@ -29,7 +29,7 @@ public class MutationWriter
     {
     this.mutationFile = mutationFile;
     createFile(mutationFile);
-    buffer.append( "Chromosome\tFragment\tStartLoc\tEndLoc\tVariation\tSequence"  );
+    buffer.append( "Chromosome\tFragment\tGCBin\tStartLoc\tEndLoc\tVariation\tSequence\n" );
     flush();
     }
 
@@ -40,20 +40,19 @@ public class MutationWriter
 
   public void write(Mutation mutation) throws IOException
     {
-    buffer.append( mutation.getChromosome() + "\t" );
-    buffer.append( mutation.getFragment() + "\t" );
-    buffer.append( mutation.getStartLocation() + "\t" );
-    buffer.append( mutation.getEndLocation() + "\t" );
-    buffer.append( mutation.getVariationType() + "\t" );
-    buffer.append( mutation.getSequence() + "\t" );
+    addToBuffer(mutation);
     flush();
     }
 
-
+  public void write(Mutation[] mutations) throws IOException
+    {
+    for (Mutation m: mutations) addToBuffer(m);
+    flush();
+    }
 
   public void flush() throws IOException
     {
-    bufferedWriter.write(buffer.toString() + "\n");
+    bufferedWriter.write(buffer.toString());
     bufferedWriter.flush();
     buffer = new StringBuffer();
     }
@@ -62,6 +61,17 @@ public class MutationWriter
     {
     bufferedWriter.close();
     fileWriter.close();
+    }
+
+  private void addToBuffer(Mutation mutation)
+    {
+    buffer.append( mutation.getChromosome() + "\t" );
+    buffer.append( mutation.getFragment() + "\t" );
+    buffer.append( mutation.getGCBin() + "\t");
+    buffer.append( mutation.getStartLocation() + "\t" );
+    buffer.append( mutation.getEndLocation() + "\t" );
+    buffer.append( mutation.getVariationType() + "\t" );
+    buffer.append( mutation.getSequence() + "\n" );
     }
 
   private File createFile(File file) throws IOException

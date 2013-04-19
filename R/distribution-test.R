@@ -1,3 +1,9 @@
+# 
+# Analysis script.
+# The distribution of variations appeared to be poisson or bimodal in most chromosomes (X,Y excepted). To assess if this was something I should concern myself
+# with modeling I applied a Mann-Whitney against the distributions of the number of variations of a given type per fragments of 1kb in size.
+#
+
 source("lib/gc_functions.R")
 
 
@@ -15,6 +21,8 @@ pvalues = matrix(ncol=14, nrow=length(var_files))
 colnames(pvalues) = c('SNV', 'SNV.log', 'deletion', 'deletion.log', 'indel', 'indel.log', 'insertion', 'insertion.log', 'sequence_alteration', 
                       'sequence_alteration.log', 'substitution', 'substitution.log', 'tandem_repeat', 'tandem_repeat.log')
 rownames(pvalues) = c(1:22, 'X', 'Y')
+
+file=c("chr10.txt")
 
 # Variation & gc files
 for (file in var_files)
@@ -47,7 +55,8 @@ for (file in var_files)
   pvalues[chrnum, 'SNV.log'] = signif(test$p.value, 4)
   }
 
-write.table(pvalues, file=paste(dir, "/VariationNormal/wilcox-tests.txt", sep=""), sep="\t", quote=F)
+write.table(pvalues, file=paste(dir, "/VariationNormal/wilcox-tests.txt", sep=""), sep="\t", quote=F, col.names=NA)
+
 
 
 

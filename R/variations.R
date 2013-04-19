@@ -1,3 +1,7 @@
+#
+# Script outputs the variation frequency plots.  Only useful for pretty pictures really.
+# 
+
 rm(list=ls())
 setwd("~/workspace/IGCSA/R")
 source("lib/gc_functions.R")

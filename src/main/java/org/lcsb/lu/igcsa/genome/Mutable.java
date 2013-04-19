@@ -8,10 +8,7 @@ import org.lcsb.lu.igcsa.fasta.MutationWriter;
 import org.lcsb.lu.igcsa.variation.Variation;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 /**
  * org.lcsb.lu.igcsa.genome
@@ -133,41 +130,46 @@ public class Mutable implements Runnable
           mutatedSequence = variation.mutateSequence(mutatedSequence);
 
           if (mutationWriter != null)
-            writeVariations(chr, location, variation, variation.getLastMutations());
+            writeVariations(chr, location, gcBin, variation, variation.getLastMutations());
           }
         }
       }
     return mutatedSequence;
     }
 
-  private void writeVariations(Chromosome chr, Location fragment, Variation variation, Map<Location, DNASequence> lastMutations)
+  private void writeVariations(Chromosome chr, Location fragment, Bin GC, Variation variation, Map<Location, DNASequence> lastMutations)
     {
     final Map<Location, DNASequence> mutations = lastMutations;
 
     if (mutations.size() > 0)
       {
-      Mutation mutation = new Mutation();
-      mutation.setChromosome(chr.getName());
-      mutation.setFragment(fragment.getStart());
-      mutation.setVariationType(variation.getVariationName());
-
+      List<Mutation> mutationBuffer = new ArrayList<Mutation>();
       for (Map.Entry<Location, DNASequence> entry : mutations.entrySet())
         {
         Location loc = entry.getKey();
         DNASequence seq = entry.getValue();
 
+        Mutation mutation = new Mutation();
+        mutation.setChromosome(chr.getName());
+        mutation.setFragment(fragment.getStart());
+        mutation.setGCBin(GC.getBinId());
+        mutation.setVariationType(variation.getVariationName());
+
         mutation.setStartLocation(loc.getStart());
         mutation.setEndLocation(loc.getEnd());
         mutation.setSequence(seq.getSequence());
+
+        mutationBuffer.add(mutation);
         }
       try
         {
-        mutationWriter.write(mutation);
+        mutationWriter.write(mutationBuffer.toArray( new Mutation[mutationBuffer.size()] ));
         }
       catch (IOException e)
         {
         log.error(e);
         }
+
       }
 
     }
