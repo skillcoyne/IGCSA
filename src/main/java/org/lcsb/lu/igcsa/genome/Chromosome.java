@@ -62,7 +62,7 @@ public class Chromosome
   public void setVariantList(List<Variation> variants)
     {
     this.variationList = variants;
-    log.info(getName() + "variant list: " + variationList.hashCode());
+    log.debug(getName() + "variant list: " + variationList.hashCode());
     }
 
   public List<Variation> getVariantList()
@@ -134,7 +134,7 @@ public class Chromosome
    */
   public DNASequence retrieveFullSequence()
     {
-    log.info("Retrieve full sequence from " + this.fasta.getAbsolutePath());
+    log.debug("Retrieve full sequence from " + this.fasta.getAbsolutePath());
     DNASequence fullSequence = new DNASequence();
     try
       {

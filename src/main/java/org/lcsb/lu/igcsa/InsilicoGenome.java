@@ -110,11 +110,11 @@ public class InsilicoGenome
     else if (genomeDirectory.exists() && !overwrite)
       throw new IOException(genomeDirectory + " exists, cannot overwrite");
 
-    log.info(genomeDirectory.getAbsolutePath());
+    log.debug(genomeDirectory.getAbsolutePath());
 
     for (Chromosome chr : genome.getChromosomes()) //this could be done in threads, each chromosome can be mutated separately
       {
-      log.info(chr.getName());
+      log.debug(chr.getName());
       try
         {
         FASTAHeader header = new FASTAHeader(">chromosome|" + chr.getName() + "|individual " + name);

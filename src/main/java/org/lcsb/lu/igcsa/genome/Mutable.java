@@ -53,7 +53,7 @@ public class Mutable implements Runnable
 
   public void run()
     {
-    log.info("Running mutations " + chromosome.getName());
+    log.info("RUNNING mutations on chromosome " + chromosome.getName());
     if (binDAO == null || variationDAO == null || sizeDAO == null)
       throw new RuntimeException("Missing database connections. Call Mutable.setConnections() before running");
 
@@ -74,7 +74,7 @@ public class Mutable implements Runnable
     while (true)
       {
       currentSequenceFragment = chromosome.readSequence(window);
-      log.info("MUTATING " + chromosome.getName() + " at " + location.toString());
+      log.debug("MUTATING " + chromosome.getName() + " at " + location.toString());
       DNASequence mutatedSequence = mutateSequenceAtLocation(chromosome, currentSequenceFragment, location);
       total += mutatedSequence.getLength();
       try
