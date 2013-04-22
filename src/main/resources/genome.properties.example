@@ -32,21 +32,4 @@ cancer.genome.host=
 cancer.genome.user=
 cancer.genome.pwd=
 
-## SNP Frequency, these are based on the Ensembl variation data
-AC=0.2
-AG=0.7
-AT=0.1
-
-CA=0.2
-CG=0.2
-CT=0.6
-
-GA=0.6
-GC=0.2
-GT=0.2
-
-TA=0.1
-TC=0.7
-TG=0.2
-
 

@@ -28,6 +28,11 @@
         <property name="tableName" value="variation_size_prob"/>
     </bean>
 
+    <bean id="SNVDAO" class="org.lcsb.lu.igcsa.database.JDBCSNVProbabilityDAO">
+        <property name="dataSource" ref="normalDataSource"/>
+        <property name="tableName" value="snv_prob"/>
+    </bean>
+
 
     <!-- Database for CANCER GENOME tables?? -->
     <!--<bean id="cancerDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">-->

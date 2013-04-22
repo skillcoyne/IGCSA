@@ -22,15 +22,15 @@ import static org.junit.Assert.*;
 public class FragmentVariationDAOTest
   {
   @Autowired
-  private FragmentVariationDAO fragmentDAO;
+  private FragmentVariationDAO testFragmentDAO;
 
   @Test
   public void testGetFragment() throws Exception
     {
-    Fragment frag = fragmentDAO.getFragment("5", 1, 63);
+    Fragment frag = testFragmentDAO.getFragment("5", 1, 63);
     assertNull(frag);
 
-    frag = fragmentDAO.getFragment("5", 6, 63);
+    frag = testFragmentDAO.getFragment("5", 6, 63);
     assertNotNull(frag);
 
     assertEquals(frag.getSNV(), 27);

@@ -27,4 +27,9 @@
         <property name="tableName" value="variation_size_prob"/>
     </bean>
 
+    <bean id="testSNVDAO" class="org.lcsb.lu.igcsa.database.JDBCSNVProbabilityDAO">
+        <property name="tableName" value="snv_prob"/>
+        <property name="dataSource" ref="testDS"/>
+    </bean>
+
 </beans>

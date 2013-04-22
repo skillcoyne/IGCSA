@@ -49,6 +49,11 @@ public class Frequency
     }
 
 
+  public NavigableMap<Double, Object> getProbabilities()
+    {
+    return objProbabilities;
+    }
+
   /**
    * Randomly generates a number between 0 and 1.0.  Returns the object in the probability table with the higher probability.
    * All generated values are rounded to 2 digits.

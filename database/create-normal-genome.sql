@@ -14,9 +14,6 @@ create table `gc_bins` (
   index binindex (`chr`, `bin_id`)
 );
 
-
-## Might be faster to have a table for each chromosome...
-
 create table `variations` (
   `chr` varchar(12) not null,
   `bin_id` int(11) not null,
@@ -32,7 +29,6 @@ create table `variations` (
   index varindex (`chr`, `bin_id`)
 );
 
-
 create table `variation_size_prob` (
   `maxbp` int(11) not null,
   `deletion` decimal(5,4) not null,
@@ -45,6 +41,15 @@ create table `variation_size_prob` (
   primary key(`id`)
 );
 
+create table `snv_prob` (
+  `nucleotide` ENUM('A', 'C', 'G', 'T') not null,
+  `prob_A` decimal(5,2) not null,
+  `prob_C` decimal(5,2) not null,
+  `prob_G` decimal(5,2) not null,
+  `prob_T` decimal(5,2) not null,
+  primary key(`nucleotide`)
+);
+
 
 
 
@@ -53,3 +58,5 @@ create table `variation_size_prob` (
 ## load data local infile 'variations-table.txt' into table normal_genome_variation.variations ignore 1 lines;
 
 ## load data local infile 'variation-size-table.txt' into table normal_genome_variation.variation_size_prob ignore 1 lines;
+
+## load data local infile 'snv_table.txt' into table normal_genome_variation.snv_prob;

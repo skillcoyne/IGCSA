@@ -24,12 +24,12 @@ public class JDBCSizeDAOTest
   {
 
   @Autowired
-  private SizeDAO sizeDAO;
+  private SizeDAO testSizeDAO;
 
   @Test
   public void testGetByChromosomeAndVariation() throws Exception
     {
-    Frequency frequency = sizeDAO.getByVariation("deletion");
+    Frequency frequency = testSizeDAO.getByVariation("deletion");
     assertNotNull(frequency);
     }
   }

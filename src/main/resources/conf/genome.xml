@@ -4,43 +4,6 @@
        xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-    <!-- Frequency objects for SNVs -->
-    <bean id="cFrequency" class="org.lcsb.lu.igcsa.prob.Frequency">
-        <constructor-arg>
-            <map key-type="java.lang.Character">
-                <entry key="A" value="${CA}"/>
-                <entry key="T" value="${CT}"/>
-                <entry key="G" value="${CG}"/>
-            </map>
-        </constructor-arg>
-    </bean>
-    <bean id="tFrequency" class="org.lcsb.lu.igcsa.prob.Frequency">
-        <constructor-arg>
-            <map key-type="java.lang.Character">
-                <entry key="A" value="${TA}"/>
-                <entry key="G" value="${TG}"/>
-                <entry key="C" value="${TC}"/>
-            </map>
-        </constructor-arg>
-    </bean>
-    <bean id="gFrequency" class="org.lcsb.lu.igcsa.prob.Frequency">
-        <constructor-arg>
-            <map key-type="java.lang.Character">
-                <entry key="A" value="${GA}"/>
-                <entry key="T" value="${GT}"/>
-                <entry key="C" value="${GC}"/>
-            </map>
-        </constructor-arg>
-    </bean>
-    <bean id="aFrequency" class="org.lcsb.lu.igcsa.prob.Frequency">
-        <constructor-arg>
-            <map key-type="java.lang.Character">
-                <entry key="T" value="${AT}"/>
-                <entry key="G" value="${AG}"/>
-                <entry key="C" value="${AC}"/>
-            </map>
-        </constructor-arg>
-    </bean>
 
     <bean id="variantList" class="java.util.ArrayList" scope="prototype">
         <constructor-arg>
@@ -68,10 +31,10 @@
                 <bean id="SNV" class="org.lcsb.lu.igcsa.variation.SNV">
                     <constructor-arg>
                         <map key-type="java.lang.Character">
-                            <entry key="A" value-ref="aFrequency"/>
-                            <entry key="C" value-ref="cFrequency"/>
-                            <entry key="T" value-ref="tFrequency"/>
-                            <entry key="G" value-ref="gFrequency"/>
+                            <entry key="A" value="#{SNVDAO.getByNucleotide('A')}"/>
+                            <entry key="C" value="#{SNVDAO.getByNucleotide('C')}"/>
+                            <entry key="T" value="#{SNVDAO.getByNucleotide('T')}"/>
+                            <entry key="G" value="#{SNVDAO.getByNucleotide('G')}"/>
                         </map>
                     </constructor-arg>
                     <property name="variationName" value="SNV"/>
@@ -90,9 +53,6 @@
         <property name="buildName">
             <value>${assembly}</value>
         </property>
-
-        <!-- Variation classes :: THIS SHOULD GO AWAY -->
-        <!--<property name="variantTypes" ref="variantList"/>-->
     </bean>
 
 </beans>

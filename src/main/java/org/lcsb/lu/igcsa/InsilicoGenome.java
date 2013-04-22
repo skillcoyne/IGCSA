@@ -55,6 +55,7 @@ public class InsilicoGenome
 
   public InsilicoGenome(String[] args) throws Exception
     {
+    final long startTime = System.currentTimeMillis();
     init();
     CommandLine cl = parseCommandLine(args);
 
@@ -92,8 +93,12 @@ public class InsilicoGenome
 
     createGenome(genomeName, overwriteGenome);
 
-    log.info("Finished creating genome " + genomeName);
-    print("Finished creating genome " + genomeName);
+    if (executorService.isTerminated())
+      {
+      final long elapsedTimeMillis = System.currentTimeMillis() - startTime;
+      log.info("FINISHED creating genome " + genomeName);
+      log.info("Elapsed time (seconds): " + elapsedTimeMillis/1000);
+      }
     }
 
 
@@ -170,9 +175,9 @@ public class InsilicoGenome
       log.error(e);
       }
 
-    print("Running InsilicoGenome with the following parameters: ");
+    log.info("Running InsilicoGenome with the following parameters: ");
     for (Option opt: cl.getOptions())
-      print( "\t-" + opt.getLongOpt() + " " + opt.getValue("true"));
+      log.info( "\t-" + opt.getLongOpt() + " '" + opt.getValue("true") + "'");
 
     return cl;
     }
