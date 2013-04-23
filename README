@@ -1,4 +1,4 @@
-
+-----------------------------------------------------------------------------------------------
 Requirements:
 
 1. FASTA files from a reference genome.  Currently tested with human reference GRCh37 (any human reference will work).
@@ -8,9 +8,10 @@ variations that are defined or download <this> mysql dump.
 
 3. Copy genome.properties.example to genome.properties and fill in appropriately.
 
+-----------------------------------------------------------------------------------------------
 To Run:
 
-Options:
+Usage: java -jar igcsa.jar <options>
 
 -n, --name        Genome directory name, if not provided a random name is generated.
 -o, --overwrite   Overwrite genome directory if name already exists.
