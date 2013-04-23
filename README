@@ -1,1 +1,44 @@
-This file was created by JetBrains RubyMine 4.5.4 for binding GitHub repository
+-----------------------------------------------------------------------------------------------
+Disclaimer:
+
+This software is under development and provided as-is. We cannot guarantee that it is free of bugs,
+nor has it been tested on all systems.
+
+-----------------------------------------------------------------------------------------------
+Requirements:
+
+1. FASTA files from a reference genome.  Currently tested with human reference GRCh37 (any human reference will work).
+
+2. MySQL tables as defined by normal-genome.sql.  Filled with either analysis that provides bins separated by GC content and the
+variations that are defined or download <this> mysql dump.
+
+3. Copy genome.properties.example to genome.properties and fill in appropriately.
+
+-----------------------------------------------------------------------------------------------
+
+To Run:
+
+Usage: java -jar igcsa.jar <options>
+
+-n, --name        Genome directory name, if not provided a random name is generated.
+-o, --overwrite   Overwrite genome directory if name already exists.
+-c, --chromosome  List of chromosomes to use/mutate, comma-separated (e.g.  21,3,X). If not included chromosomes will be determined by
+the fasta files found in the dir.assembly directory (see genome.properties).
+-t, --threads     Number of concurrent threads, default is 5. Each thread handles a single chromosome.
+-h, --help        Print usage help.
+
+
+
+-- Example using the provided shell script: --
+
+# Generate mutations for chromosome 17, overwrite previous named run.
+start-igcsa.sh -n MyChr17 -o -c 17
+
+# Generate mutations for all chromosomes in the dir.assembly directory using 12 threads.  Don't overwrite.
+start-igcsa.sh -n MyGenome -t 12
+
+
+-- Example calling the jar file directly, props.path is the directory where genome.properties and log4j.properties both exist.  The shell
+script assumes this to be the same directory as the jar file: --
+
+java -Dprops.path=<properties path> -jar -Xms256m -Xmx1024m igcsa-jar-with-dependencies.jar -n MyGenome -t 12

@@ -152,8 +152,8 @@ public class InsilicoGenome
     Options options = new Options();
     options.addOption("n", "name", true, "Genome directory name, if not provided a random name is generated.");
     options.addOption("o", "overwrite", false, "Overwrite genome directory if name already exists.");
-    options.addOption("t", "threads", true, "Number of concurrent threads, default is 5.");
-    options.addOption("c", "chromosome", true, "List of chromosomes to include, use to generate/mutate sets of chromosomes.");
+    options.addOption("t", "threads", true, "Number of concurrent threads, default is 5. Each thread handles a single chromosome.");
+    options.addOption("c", "chromosome", true, "List of chromosomes to use/mutate, comma-separated (e.g.  21,3,X). If not included chromosomes will be determined by \n" + "the fasta files found in the dir.assembly directory (see genome.properties).");
     //options.addOption("v", "version", false, "");
     options.addOption("h", "help", false, "print usage help");
 
