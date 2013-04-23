@@ -1,4 +1,10 @@
 -----------------------------------------------------------------------------------------------
+Disclaimer:
+
+This software is under development and provided as-is. We cannot guarantee that it is free of bugs,
+nor has it been tested on all systems.
+
+-----------------------------------------------------------------------------------------------
 Requirements:
 
 1. FASTA files from a reference genome.  Currently tested with human reference GRCh37 (any human reference will work).
@@ -9,6 +15,7 @@ variations that are defined or download <this> mysql dump.
 3. Copy genome.properties.example to genome.properties and fill in appropriately.
 
 -----------------------------------------------------------------------------------------------
+
 To Run:
 
 Usage: java -jar igcsa.jar <options>
