@@ -21,7 +21,7 @@ the fasta files found in the dir.assembly directory (see genome.properties).
 
 
 
-Example using the provided shell script:
+-- Example using the provided shell script: --
 
 # Generate mutations for chromosome 17, overwrite previous named run.
 start-igcsa.sh -n MyChr17 -o -c 17
@@ -29,3 +29,8 @@ start-igcsa.sh -n MyChr17 -o -c 17
 # Generate mutations for all chromosomes in the dir.assembly directory using 12 threads.  Don't overwrite.
 start-igcsa.sh -n MyGenome -t 12
 
+
+-- Example calling the jar file directly, props.path is the directory where genome.properties and log4j.properties both exist.  The shell
+script assumes this to be the same directory as the jar file: --
+
+java -Dprops.path=<properties path> -jar -Xms256m -Xmx1024m igcsa-jar-with-dependencies.jar -n MyGenome -t 12
