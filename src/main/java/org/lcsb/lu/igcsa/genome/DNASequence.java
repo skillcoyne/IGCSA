@@ -26,7 +26,7 @@ public class DNASequence
   private String testNucleotides(String sequence) throws IllegalArgumentException
     {
     //if (sequence.length() <= 0) throw new IllegalArgumentException("No sequence provided.");
-    if (!validCharacters().matcher(sequence).matches())
+    if (sequence.length() > 0 && !validCharacters().matcher(sequence).matches())
       {
       log.warn("The sequence contains incorrect nucleotides, expected " + validCharacters() + " provided: " + sequence);
       sequence = "";
