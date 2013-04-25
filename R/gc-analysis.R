@@ -19,7 +19,7 @@ pvalues = as.data.frame(matrix(nrow=0, ncol=3))
 colnames(pvalues) = c('p.value', 'sampled.p.value', 'gc')
 # Does correlation tests against the two tops of the variation distribution (0 ~15)
 # on each chromosome
-file=c("chr10.txt")
+file="chr19.txt"
 for (i in 1:length(var_files))
   {
   file = var_files[i]

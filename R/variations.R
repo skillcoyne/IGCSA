@@ -15,7 +15,7 @@ source("lib/varplots.R")
 data_dir = "~/Data/VariationNormal"
 setwd(data_dir)
 
-plot=FALSE
+plot=TRUE
 
 ens_dir = paste(data_dir, "Frequencies/1000/Ensembl", sep="/")
 var_files = list.files(path=ens_dir, pattern=".txt")  
@@ -33,7 +33,7 @@ colnames(seq_ratios) = rnames
 colors=rainbow(length(var_files))
 #plot(0:300, ann=F, type='n', ylim=c(0,10))
 #par(mfrow=c(5,5))
-#var_files = c('chr9.txt')
+file = 'chr19.txt'
 for (i in 1:length(var_files))
   {
   
@@ -41,7 +41,7 @@ for (i in 1:length(var_files))
   chr = sub(".txt", "", file)
 
 print(chr)
-  chrdir = paste(getwd(), chr, sep="/")
+  chrdir = paste("~/Analysis/VariationNormal/newData", chr, sep="/")
   if (!file.exists(chrdir)) dir.create(chrdir)  
 
   # Variation & gc files
