@@ -1,4 +1,4 @@
-package org.lcsb.lu.igcsa.variation;
+package org.lcsb.lu.igcsa.variation.fragment;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.normal.Fragment;

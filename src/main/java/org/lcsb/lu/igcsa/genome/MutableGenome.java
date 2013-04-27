@@ -4,7 +4,7 @@ import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.normal.*;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.fasta.MutationWriter;
-import org.lcsb.lu.igcsa.variation.Variation;
+import org.lcsb.lu.igcsa.variation.fragment.Variation;
 
 import java.io.File;
 import java.io.IOException;
@@ -90,12 +90,12 @@ public class MutableGenome implements Genome
   useful ONLY for the cluster where multiple sequential writes are difficult.  In this case either the genome should only
    contain one chromosome or each chromosome may have to mutate sequentially due to the Java memory.
    */
-  public Mutable mutate(Chromosome chr, int window, FASTAWriter writer)
+  public SmallMutable mutate(Chromosome chr, int window, FASTAWriter writer)
     {
     try
       {
       // TODO variant types need to be cloned for each chromosome or else the mutations being generated are incorrect MAJOR PROBLEM
-      Mutable m = new Mutable(chr, window);
+      SmallMutable m = new SmallMutable(chr, window);
 
       m.setConnections(binDAO, variationDAO, sizeDAO);
 

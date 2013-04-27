@@ -2,7 +2,8 @@ package org.lcsb.lu.igcsa.genome;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
-import org.lcsb.lu.igcsa.variation.Variation;
+import org.lcsb.lu.igcsa.variation.fragment.Variation;
+import org.lcsb.lu.igcsa.variation.structural.StructuralVariation;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,8 +23,8 @@ public class Chromosome
   private File fasta;
   private FASTAReader reader;
   private List<Variation> variationList;
+  private List<StructuralVariation> structuralVariations;
 
-  private NavigableMap<Location, DNASequence> alteredSequence = new TreeMap<Location, DNASequence>();
 
   public Chromosome(String name)
     {
@@ -70,40 +71,16 @@ public class Chromosome
     return this.variationList;
     }
 
-  public String toString()
+  public void setStructuralVariations(List<StructuralVariation> structuralVariations)
     {
-    return Name;
+    this.structuralVariations = structuralVariations;
+    log.debug(getName() + "structural variations :" + this.structuralVariations.hashCode());
     }
 
-  /**
-   * Returns the sequence at the given location. If there is a mutated sequence
-   * for the given location it returns that. That location has to be exactly the same
-   * however.  This could be problematic so ...
-   * Otherwise reads it from the FASTA file.
-   *
-   * @param loc
-   * @return
-   */
-//  public DNASequence getSequence(Location loc)
-//    {
-//    String sequence = null;
-//    if (this.alteredSequence.containsKey(loc))
-//      {
-//      sequence = this.alteredSequence.get(loc).getSequence();
-//      }
-//    else
-//      {
-//      try
-//        {
-//        sequence = reader.readSequenceFromLocation(loc.getStart(), loc.getLength());
-//        }
-//      catch (IOException e)
-//        {
-//        e.printStackTrace();
-//        }
-//      }
-//    return new DNASequence(sequence);
-//    }
+  public List<StructuralVariation> getStructuralVariations()
+    {
+    return structuralVariations;
+    }
 
   /**
    * Get sequence in chunks from the FASTA file.  Each call will read sequentially from last call.
@@ -156,40 +133,5 @@ public class Chromosome
       }
     return fullSequence;
     }
-
-
-  /*
- I'm not certain this is a useful thing yet.
-  */
-  public void alterSequence(Location loc, DNASequence sequence)
-    {
-    this.alteredSequence.put(loc, sequence);
-    }
-
-  //  private void mergeAlteredSequences()
-  //    {
-  //    String sequence = retrieveFullSequence().getSequence();
-  //
-  //    int currentIndex = 0;
-  //    String newSequence = "";
-  //    // Basically if the beginning of the sequence hasn't been altered...
-  //    if (currentIndex < alteredSequence.firstEntry().getKey().getStart())
-  //      {
-  //      newSequence = sequence.substring(0, alteredSequence.firstEntry().getKey().getStart());
-  //      currentIndex = alteredSequence.firstEntry().getKey().getStart();
-  //      }
-  //
-  //    for(Map.Entry<Location, DNASequence> entry: this.alteredSequence.entrySet())
-  //      {
-  //      log.info(entry.getKey() + " : " + entry.getValue());
-  //
-  //      Location current = entry.getKey();
-  //
-  //      newSequence = newSequence + sequence.substring(current.getStart(), current.getEnd());
-  //
-  //
-  //      }
-  //    }
-
 
   }

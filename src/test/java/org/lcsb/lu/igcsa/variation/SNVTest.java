@@ -25,7 +25,7 @@ import static org.junit.Assert.*;
 public class SNVTest
     {
     @Autowired
-    private SNV SNV;
+    private org.lcsb.lu.igcsa.variation.fragment.SNV SNV;
 
     private char[] sequence = "ACTGCTTAGCG".toCharArray();
 

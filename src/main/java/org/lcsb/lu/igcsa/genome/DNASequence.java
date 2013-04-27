@@ -66,10 +66,16 @@ public class DNASequence
     this.sequence = sequence + testNucleotides(nuc);
     }
 
-  public void merge(DNASequence seq)
+  public void merge(DNASequence dnaSequence)
+    {
+    this.sequence = this.sequence + dnaSequence.toString();
+    }
+
+  public void merge(String seq)
     {
     this.sequence = this.sequence + seq;
     }
+
 
   public int getLength()
     {

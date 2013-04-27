@@ -8,27 +8,27 @@
     <bean id="variantList" class="java.util.ArrayList" scope="prototype">
         <constructor-arg>
             <list>
-                <bean id="Indel" class="org.lcsb.lu.igcsa.variation.Indel">
+                <bean id="Indel" class="org.lcsb.lu.igcsa.variation.fragment.Indel">
                     <property name="variationName" value="indel"/>
                     <property name="sizeVariation" value="#{SizeDAO.getByVariation('indel')}"/>
                 </bean>
-                <bean id="Deletion" class="org.lcsb.lu.igcsa.variation.Deletion">
+                <bean id="Deletion" class="org.lcsb.lu.igcsa.variation.fragment.Deletion">
                     <property name="variationName" value="deletion"/>
                     <property name="sizeVariation" value="#{SizeDAO.getByVariation('deletion')}"/>
                 </bean>
-                <bean id="Insertion" class="org.lcsb.lu.igcsa.variation.Insertion">
+                <bean id="Insertion" class="org.lcsb.lu.igcsa.variation.fragment.Insertion">
                     <property name="variationName" value="insertion"/>
                     <property name="sizeVariation" value="#{SizeDAO.getByVariation('insertion')}"/>
                 </bean>
-                <bean id="Substitution" class="org.lcsb.lu.igcsa.variation.Substitution">
+                <bean id="Substitution" class="org.lcsb.lu.igcsa.variation.fragment.Substitution">
                     <property name="variationName" value="substitution"/>
                     <property name="sizeVariation" value="#{SizeDAO.getByVariation('substitution')}"/>
                 </bean>
-                <bean id="TandemRepeat" class="org.lcsb.lu.igcsa.variation.TandemRepeat">
+                <bean id="TandemRepeat" class="org.lcsb.lu.igcsa.variation.fragment.TandemRepeat">
                     <property name="variationName" value="tandem_repeat"/>
                     <property name="sizeVariation" value="#{SizeDAO.getByVariation('tandem_repeat')}"/>
                 </bean>
-                <bean id="SNV" class="org.lcsb.lu.igcsa.variation.SNV">
+                <bean id="SNV" class="org.lcsb.lu.igcsa.variation.fragment.SNV">
                     <constructor-arg>
                         <map key-type="java.lang.Character">
                             <entry key="A" value="#{SNVDAO.getByNucleotide('A')}"/>
@@ -40,6 +40,15 @@
                     <property name="variationName" value="SNV"/>
                 </bean>
 
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <bean id="structuralVariations" class="java.util.ArrayList" scope="prototype">
+        <constructor-arg>
+            <list>
+                <bean id="CNVLoss" class="org.lcsb.lu.igcsa.variation.structural.CopyNumberLoss">
+                </bean>
             </list>
         </constructor-arg>
     </bean>

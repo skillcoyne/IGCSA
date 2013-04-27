@@ -1,9 +1,7 @@
-package org.lcsb.lu.igcsa.variation;
+package org.lcsb.lu.igcsa.variation.fragment;
 
+import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.genome.DNASequence;
-
-import org.apache.log4j.Logger
-;
 import org.lcsb.lu.igcsa.genome.Location;
 
 import java.util.LinkedHashMap;
@@ -14,21 +12,18 @@ import java.util.LinkedHashMap;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class Indel extends Variation
+public class TandemRepeat extends Variation
   {
-  static Logger log = Logger.getLogger(Indel.class.getName());
+  static Logger log = Logger.getLogger(TandemRepeat.class.getName());
 
   public DNASequence mutateSequence(String sequence)
     {
-    int count = this.fragment.getIndel();
+    int count = fragment.getTandemRepeat();
     int size = (Integer) this.sizeVariation.roll();
 
     lastMutations = new LinkedHashMap<Location, DNASequence>();
-
     log.debug(sequence.length() + " expected count " + count);
-
 
     return new DNASequence(sequence);
     }
-
   }

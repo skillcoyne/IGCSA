@@ -1,4 +1,4 @@
-package org.lcsb.lu.igcsa.variation;
+package org.lcsb.lu.igcsa.variation.fragment;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.genome.DNASequence;
@@ -7,7 +7,6 @@ import org.lcsb.lu.igcsa.prob.Frequency;
 
 import java.util.Map;
 import java.util.LinkedHashMap;
-import java.util.Random;
 import java.util.TreeSet;
 
 import static org.lcsb.lu.igcsa.genome.Nucleotides.*;
