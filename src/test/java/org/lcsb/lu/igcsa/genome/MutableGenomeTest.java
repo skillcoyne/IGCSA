@@ -6,8 +6,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
-import org.lcsb.lu.igcsa.prob.Frequency;
-import org.lcsb.lu.igcsa.variation.Variation;
+import org.lcsb.lu.igcsa.variation.fragment.Variation;
+import org.lcsb.lu.igcsa.variation.structural.StructuralVariation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -36,6 +36,7 @@ public class MutableGenomeTest
 
   private Genome testGenome;
   private List<Variation> variationList;
+  private List<StructuralVariation> structuralVariationList;
 
   @Autowired
   private Properties testProperties;
@@ -47,17 +48,12 @@ public class MutableGenomeTest
     fastaFile = new File(testUrl.toURI());
     outputFasta = new File(testProperties.getProperty("dir.insilico") + "/test.fasta");
 
-    Map<Object, Double> probs = new TreeMap<Object, Double>();
-    probs.put(1, 0.9897);
-    probs.put(5, 0.0086);
-    probs.put(10, 0.0017);
-    Frequency f = new Frequency(probs);
-
     // need to reload the genome each time or the add chromosome tests screw things up
     ApplicationContext context = new ClassPathXmlApplicationContext("test-spring-config.xml");
     testGenome = (Genome) context.getBean("testGenome");
-    variationList = (List<Variation>) context.getBean("testVariantList");
 
+    variationList = (List<Variation>) context.getBean("testVariantList");
+    structuralVariationList = (List<StructuralVariation>) context.getBean("testStructuralVariants");
 
     assertNotNull("Genome object failed to create", testGenome);
     }
@@ -87,7 +83,7 @@ public class MutableGenomeTest
     }
 
   @Test
-  public void testMutateChromosome() throws Exception
+  public void testSmallMutations() throws Exception
     {
     FASTAHeader header = new FASTAHeader(">gi|12345|Test case for mutating genomes");
     FASTAWriter writer = new FASTAWriter(outputFasta, header);
@@ -102,7 +98,7 @@ public class MutableGenomeTest
 
     assertEquals(testGenome.getChromosomes().length, 1);
 
-    Mutable m = testGenome.mutate(testGenome.getChromosomes()[0], 50, writer);
+    SmallMutable m = testGenome.mutate(testGenome.getChromosomes()[0], 50, writer);
     m.run();
 
     assertTrue(outputFasta.length() > origLength);
@@ -110,5 +106,22 @@ public class MutableGenomeTest
     Chromosome newChr = new Chromosome("19", outputFasta);
     assertNotSame(origChr.retrieveFullSequence(), newChr.retrieveFullSequence());
     }
+
+  @Test
+  public void testWithStructuralVariants() throws Exception
+    {
+    FASTAHeader header = new FASTAHeader(">gi|12345|Test case for mutating genomes");
+    FASTAWriter writer = new FASTAWriter(outputFasta, header);
+    long origLength = outputFasta.length();
+
+
+    Chromosome origChr = new Chromosome("19", fastaFile);
+    origChr.setVariantList(variationList);
+    origChr.setStructuralVariations(structuralVariationList);
+    testGenome.addChromosome(origChr);
+
+
+    }
+
 
   }

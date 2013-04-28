@@ -5,7 +5,8 @@ import org.lcsb.lu.igcsa.database.normal.*;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.fasta.Mutation;
 import org.lcsb.lu.igcsa.fasta.MutationWriter;
-import org.lcsb.lu.igcsa.variation.Variation;
+import org.lcsb.lu.igcsa.variation.fragment.Variation;
+import org.lcsb.lu.igcsa.variation.structural.StructuralVariation;
 
 import java.io.IOException;
 import java.util.*;
@@ -16,9 +17,9 @@ import java.util.*;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class Mutable implements Runnable
+public class SmallMutable implements Runnable
   {
-  static Logger log = Logger.getLogger(Mutable.class.getName());
+  static Logger log = Logger.getLogger(SmallMutable.class.getName());
 
   private Chromosome chromosome;
   private int window;
@@ -32,7 +33,7 @@ public class Mutable implements Runnable
   private FragmentVariationDAO variationDAO;
   private SizeDAO sizeDAO;
 
-  public Mutable(Chromosome chr, int window)
+  public SmallMutable(Chromosome chr, int window)
     {
     this.chromosome = chr;
     this.window = window;
@@ -55,7 +56,7 @@ public class Mutable implements Runnable
     {
     log.info("RUNNING mutations on chromosome " + chromosome.getName());
     if (binDAO == null || variationDAO == null || sizeDAO == null)
-      throw new RuntimeException("Missing database connections. Call Mutable.setConnections() before running");
+      throw new RuntimeException("Missing database connections. Call SmallMutable.setConnections() before running");
 
     int total = 0;
     log.debug(chromosome.getName());
@@ -75,7 +76,8 @@ public class Mutable implements Runnable
       {
       currentSequenceFragment = chromosome.readSequence(window);
       log.debug("MUTATING " + chromosome.getName() + " at " + location.toString());
-      DNASequence mutatedSequence = mutateSequenceAtLocation(chromosome, currentSequenceFragment, location);
+      DNASequence mutatedSequence = mutateFragment(chromosome, currentSequenceFragment, location);
+
       total += mutatedSequence.getLength();
       try
         {
@@ -105,7 +107,7 @@ public class Mutable implements Runnable
     }
 
   // Mutates the sequence based on the information provided in the database
-  private DNASequence mutateSequenceAtLocation(Chromosome chr, DNASequence sequence, Location location)
+  private DNASequence mutateFragment(Chromosome chr, DNASequence sequence, Location location)
     {
     DNASequence mutatedSequence = sequence;
     Random randomFragment = new Random();
@@ -129,7 +131,7 @@ public class Mutable implements Runnable
           variation.setMutationFragment(fragment);
           mutatedSequence = variation.mutateSequence(mutatedSequence);
 
-          if (mutationWriter != null)
+          if (mutationWriter != null)  // This isn't going to work when I add in location-based structural variation mutation
             writeVariations(chr, location, gcBin, variation, variation.getLastMutations());
           }
         }
@@ -173,5 +175,7 @@ public class Mutable implements Runnable
       }
 
     }
+
+
 
   }

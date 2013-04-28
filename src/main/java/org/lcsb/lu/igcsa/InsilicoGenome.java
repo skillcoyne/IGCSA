@@ -8,10 +8,9 @@ import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.Genome;
-import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.lcsb.lu.igcsa.utils.FileUtils;
 
-import org.lcsb.lu.igcsa.variation.Variation;
+import org.lcsb.lu.igcsa.variation.fragment.Variation;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -53,7 +52,7 @@ public class InsilicoGenome
     }
 
 
-  public InsilicoGenome(String[] args) throws Exception
+  public InsilicoGenome(String[] args) throws IOException
     {
     final long startTime = System.currentTimeMillis();
     init();
@@ -145,6 +144,14 @@ public class InsilicoGenome
     //context = new ClassPathXmlApplicationContext("spring-config.xml");
     genome = (Genome) context.getBean("genome");
     genomeProperties = (Properties) context.getBean("genomeProperties");
+
+    if (!genomeProperties.containsKey("dir.insilico") || !genomeProperties.containsKey("dir.assembly"))
+      {
+      log.error("dir.insilico or dir.assembly are missing from the properties file. Aborting.");
+      System.exit(-1);
+      }
+
+
     }
 
   private CommandLine parseCommandLine(String[] args)

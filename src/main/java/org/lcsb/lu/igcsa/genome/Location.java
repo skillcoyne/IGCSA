@@ -1,5 +1,7 @@
 package org.lcsb.lu.igcsa.genome;
 
+import org.apache.commons.lang.math.IntRange;
+import org.apache.commons.lang.math.Range;
 import org.apache.log4j.Logger;
 
 /**
@@ -15,9 +17,13 @@ public class Location implements Comparable<Location>
   private int start;
   private int end;
 
+  protected Range range;
+
   public Location(int s, int e) throws IllegalArgumentException
     {
     this.start = s; this.end = e;
+
+    range = new IntRange(s, e);
 
     if (start > end) throw new IllegalArgumentException("The start position should come before the end position.");
     }
@@ -35,6 +41,16 @@ public class Location implements Comparable<Location>
   public int getLength()
     {
     return end - start;
+    }
+
+  public boolean containsLocation(Location location)
+    {
+    return this.range.containsRange(location.range);
+    }
+
+  public boolean overlapsLocation(Location location)
+    {
+    return this.range.overlapsRange(location.range);
     }
 
   @Override
@@ -58,9 +74,14 @@ public class Location implements Comparable<Location>
     return super.toString() + ": <" + this.getStart() + "-" + this.getEnd() + ">";
     }
 
+  @Override
   public int compareTo(Location location)
     {
-    if (this.start == location.getStart() && this.end == location.getEnd()) return 0;
-    else return (this.start - location.getStart()) + (this.end - location.getEnd());
+    int compare = 0;
+    //if (this.equals(location)) return 0;
+    if ( (this.start == location.getStart() && this.end > location.getEnd() ) ||
+              (this.start > location.getStart()) ) compare = 1;
+    else if ( (this.start < location.getStart() ) ) compare = -1;
+    return compare;
     }
   }

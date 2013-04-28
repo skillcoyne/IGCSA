@@ -1,4 +1,4 @@
-package org.lcsb.lu.igcsa.variation;
+package org.lcsb.lu.igcsa.variation.fragment;
 
 import org.lcsb.lu.igcsa.genome.DNASequence;
 import static org.lcsb.lu.igcsa.genome.Nucleotides.*;

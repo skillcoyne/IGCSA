@@ -13,7 +13,8 @@ import java.io.*;
 public class FASTAWriter
   {
   static Logger log = Logger.getLogger(FASTAWriter.class.getName());
-
+  // ASCII line feed (LF), as char
+  private static final char LF = 0x001E;
   // 71 seems to be the usual, but I like round numbers and there's no standard for fasta
   private static final int lineLength = 70;
 
@@ -22,6 +23,7 @@ public class FASTAWriter
   private BufferedWriter bufferedWriter;
 
   private int totalCharacters = 0;
+  private int lines = 0;
 
   private FASTAHeader header;
 
@@ -32,7 +34,9 @@ public class FASTAWriter
     this.fasta = createFile(fasta);
     log.debug(fasta.getAbsolutePath());
     this.header = header;
-    writeString(">" + header.getAccession() + "|" + header.getLocus() + "|" + header.getDescription() + "\n");
+    //writeString(">" + header.getAccession() + "|" + header.getLocus() + "|" + header.getDescription() + "\n");
+    bufferedWriter.write(">" + header.getAccession() + "|" + header.getLocus() + "|" + header.getDescription());
+    bufferedWriter.flush();
     }
 
   public int sequenceLengthWritten()
@@ -43,29 +47,34 @@ public class FASTAWriter
   public void flush() throws IOException
     {
     totalCharacters += buffer.length();
-    writeString(buffer.toString() + "\n");
+    bufferedWriter.write(buffer.toString());
+    bufferedWriter.flush();
+    //writeString(buffer.toString() + "\n");
     buffer = new StringBuffer();
     }
 
 
   public void write(String str) throws IOException
     {
+
     for (char c : str.toCharArray())
       {
+      if ( (buffer.length() % lineLength) == 0 )
+        {
+        buffer.append('\n');
+        lines += 1;
+        }
+      if (lines == 1000) flush();
+
       buffer.append(c);
-      if (buffer.length() == lineLength) flush();
       }
     }
 
-  private void writeString(String str) throws IOException
-    {
-    bufferedWriter.write(str);
-    bufferedWriter.flush();
-    }
 
   public void close() throws IOException
     {
     log.info("Total sequence length written " + this.totalCharacters);
+    bufferedWriter.flush();
     bufferedWriter.close();
     fileWriter.close();
     }

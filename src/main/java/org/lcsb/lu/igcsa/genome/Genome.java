@@ -1,10 +1,8 @@
 package org.lcsb.lu.igcsa.genome;
 
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
-import org.lcsb.lu.igcsa.fasta.MutationWriter;
-import org.lcsb.lu.igcsa.variation.Variation;
+import org.lcsb.lu.igcsa.variation.fragment.Variation;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -34,5 +32,5 @@ public interface Genome
    */
   public Chromosome[] getChromosomes();
 
-  public abstract Mutable mutate(Chromosome chr, int window, FASTAWriter writer);
+  public abstract SmallMutable mutate(Chromosome chr, int window, FASTAWriter writer);
   }

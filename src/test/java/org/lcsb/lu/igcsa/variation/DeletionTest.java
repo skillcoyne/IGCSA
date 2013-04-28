@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.lcsb.lu.igcsa.database.normal.Fragment;
 import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.prob.Frequency;
+import org.lcsb.lu.igcsa.variation.fragment.Deletion;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
