@@ -214,6 +214,7 @@ public class InsilicoGenome
       }
     log.info("Structural variations step finished on " + tasks.size() + " chromosomes.");
 
+    org.apache.commons.io.FileUtils.copyDirectory(new File(tmpDir, "structural-variations"), genomeDirectory);
     structuralVariationExecutor.shutdown();
     }
 
