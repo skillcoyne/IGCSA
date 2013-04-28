@@ -61,7 +61,7 @@ public class MutableGenomeTest
   @After
   public void tearDown() throws Exception
     {
-    outputFasta.delete();
+    //outputFasta.delete();
     testGenome = null;
     }
 
@@ -115,13 +115,19 @@ public class MutableGenomeTest
     FASTAWriter writer = new FASTAWriter(outputFasta, header);
     long origLength = outputFasta.length();
 
-
     Chromosome origChr = new Chromosome("19", fastaFile);
-    origChr.setVariantList(variationList);
     origChr.setStructuralVariations(structuralVariationList);
     testGenome.addChromosome(origChr);
+    assertEquals(testGenome.getChromosomes().length, 1);
 
+    StructuralMutable m = testGenome.mutate(origChr, writer);
+    m.call();
 
+    assertTrue(outputFasta.length() > origLength);
+
+    Chromosome newChr = new Chromosome("19", outputFasta);
+    assertNotSame(origChr.retrieveFullSequence(), newChr.retrieveFullSequence());
+    assertTrue(origChr.retrieveFullSequence().getLength() > newChr.retrieveFullSequence().getLength());
     }
 
 

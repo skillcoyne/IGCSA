@@ -17,6 +17,14 @@ public class FASTAHeader
 
   private static final int MIN_ENTRIES = 3;
 
+
+  public FASTAHeader(String accession, String locus, String description)
+    {
+    this.accession = accession;
+    this.locus = locus;
+    this.description = description;
+    }
+
   public FASTAHeader(String line) throws IOException
     {
     if (!line.contains("|")) throw new IOException("Not the first line of a FASTA file: " + line);
@@ -55,6 +63,21 @@ public class FASTAHeader
   public String getDescription()
     {
     return description;
+    }
+
+  public void setAccession(String accession)
+    {
+    this.accession = accession;
+    }
+
+  public void setLocus(String locus)
+    {
+    this.locus = locus;
+    }
+
+  public void setDescription(String description)
+    {
+    this.description = description;
     }
 
   public String toString()

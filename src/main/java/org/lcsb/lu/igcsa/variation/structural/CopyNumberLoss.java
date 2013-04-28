@@ -16,10 +16,16 @@ public class CopyNumberLoss extends StructuralVariation
   @Override
   public DNASequence mutateSequence(String sequence)
     {
-    String chunkA = sequence.substring(0,variationLocation.getStart());
-    String chunkB = sequence.substring(variationLocation.getEnd(), sequence.length());
+    log.info("Losing " + variationLocation.getLength() + " from " + sequence.length());
 
-    DNASequence newSequence = new DNASequence(chunkA + chunkB);
+    DNASequence newSequence = new DNASequence("");
+    if (variationLocation.getLength() > sequence.length())
+      { // snp sequence out
+      String chunkA = sequence.substring(0,variationLocation.getStart()); // get sequence before
+      String chunkB = sequence.substring(variationLocation.getEnd(), sequence.length()); // get sequence after
+
+      newSequence = new DNASequence(chunkA + chunkB);
+      }
 
     log.debug("Original sequence length: " + sequence.length());
     log.debug("New sequence length: " + newSequence.getLength());

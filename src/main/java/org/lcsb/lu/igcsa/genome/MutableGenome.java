@@ -79,13 +79,20 @@ public class MutableGenome implements Genome
   public void addChromosome(Chromosome chr)
     {
     this.chromosomes.put(chr.getName(), chr);
-    log.debug("Added chromosome " + chr.getName() + ", have " + chromosomes.size() + " chromosomes");
+    log.info("Added chromosome " + chr.getName() + ", have " + chromosomes.size() + " chromosomes");
     }
 
   public void addChromosomes(Chromosome[] chromosomes)
     {
     for (Chromosome chromosome : chromosomes)
       this.addChromosome(chromosome);
+    }
+
+
+  public void replaceChromosome(Chromosome chr)
+    {
+    if (chromosomes.containsKey(chr.getName())) this.addChromosome(chr);
+    else log.warn("No chromosome " + chr.getName() + " to be replaces. Added instead.");
     }
 
   public boolean hasChromosome(String name)
@@ -98,10 +105,11 @@ public class MutableGenome implements Genome
     return chromosomes.values().toArray(new Chromosome[chromosomes.size()]);
     }
 
+  public Chromosome getChromosome(String name)
+    {
+    return chromosomes.get(name);
+    }
 
-  /* TODO write a mutate method that holds the chromosome in memory to write out at the end. This would require quite a lot of memory and
-   may make threading difficult/impossible as each thread would hold a chromosome in memory (~100mb).  Whole genome is ~4gb.
-   */
   public SmallMutable mutate(Chromosome chr, int window, FASTAWriter writer)
     {
     try
@@ -123,7 +131,20 @@ public class MutableGenome implements Genome
       }
     }
 
+  public StructuralMutable mutate(Chromosome chr, FASTAWriter writer)
+    {
+    try
+      {
+      StructuralMutable m = new StructuralMutable(chr);
 
-
-
+      File mutWriterPath = new File(writer.getFASTAFile().getParentFile().getAbsolutePath(), "structural-variations");
+      if (!mutWriterPath.exists() || !mutWriterPath.isDirectory()) mutWriterPath.mkdir();
+      m.setWriters(writer, new MutationWriter(new File(mutWriterPath, chr.getName() + "mutations.txt")));
+      return m;
+      }
+    catch (IOException e)
+      {
+      throw new RuntimeException(e);
+      }
+    }
   }

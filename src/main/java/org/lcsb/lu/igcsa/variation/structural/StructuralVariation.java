@@ -23,8 +23,6 @@ public abstract class StructuralVariation
   protected String variationName;
   protected Location variationLocation;
 
-  protected Location[] toFrom = new Location[2];
-
   protected DNASequence sequence = new DNASequence();
 
   public void addFragment(DNASequence seq)

@@ -28,6 +28,8 @@ public interface Genome
 
   public void addChromosome(Chromosome chromosome);
 
+  public void replaceChromosome(Chromosome chromosome);
+
   public boolean hasChromosome(String name);
 
   /**
@@ -36,5 +38,9 @@ public interface Genome
    */
   public Chromosome[] getChromosomes();
 
+  public Chromosome getChromosome(String name);
+
   public abstract SmallMutable mutate(Chromosome chr, int window, FASTAWriter writer);
+
+  public abstract StructuralMutable mutate(Chromosome chr, FASTAWriter writer);
   }

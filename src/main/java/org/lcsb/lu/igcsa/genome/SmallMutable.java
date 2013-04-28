@@ -18,7 +18,7 @@ import java.util.concurrent.Callable;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class SmallMutable implements Callable<Chromosome>
+public class SmallMutable extends Mutable
  //implements Runnable
   {
   static Logger log = Logger.getLogger(SmallMutable.class.getName());
@@ -26,9 +26,6 @@ public class SmallMutable implements Callable<Chromosome>
   private Chromosome chromosome;
   private int window;
   //private Collection<Variation> variations;
-
-  private FASTAWriter writer;
-  private MutationWriter mutationWriter;
 
   // Database connections
   private GCBinDAO binDAO;
@@ -41,12 +38,6 @@ public class SmallMutable implements Callable<Chromosome>
     this.window = window;
     }
 
-  public void setWriters(FASTAWriter writer, MutationWriter mutationWriter)
-    {
-    this.writer = writer;
-    this.mutationWriter = mutationWriter;
-    }
-
   public void setConnections(GCBinDAO bin, FragmentVariationDAO fragment, SizeDAO size)
     {
     this.binDAO = bin;
@@ -54,8 +45,6 @@ public class SmallMutable implements Callable<Chromosome>
     this.sizeDAO = size;
     }
 
-
-//  public void run()
   public Chromosome call()
     {
     log.info("RUNNING mutations on chromosome " + chromosome.getName());

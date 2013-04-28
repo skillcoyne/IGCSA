@@ -43,6 +43,7 @@ public class Chromosome
       {
       log.error(e);
       }
+    log.info("Created chr" + name + " with " + chrFastaFile);
     }
 
   public String getName()
