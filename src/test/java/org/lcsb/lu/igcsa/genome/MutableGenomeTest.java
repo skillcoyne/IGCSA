@@ -99,7 +99,8 @@ public class MutableGenomeTest
     assertEquals(testGenome.getChromosomes().length, 1);
 
     SmallMutable m = testGenome.mutate(testGenome.getChromosomes()[0], 50, writer);
-    m.run();
+    m.call();
+    //m.run();
 
     assertTrue(outputFasta.length() > origLength);
 

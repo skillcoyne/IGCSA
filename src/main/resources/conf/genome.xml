@@ -59,9 +59,6 @@
         <constructor-arg ref="GCBinDAO"></constructor-arg>
         <constructor-arg ref="FragmentDAO"></constructor-arg>
         <constructor-arg ref="SizeDAO"></constructor-arg>
-        <property name="buildName">
-            <value>${assembly}</value>
-        </property>
     </bean>
 
 </beans>

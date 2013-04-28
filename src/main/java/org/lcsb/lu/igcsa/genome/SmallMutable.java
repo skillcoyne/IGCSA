@@ -10,6 +10,7 @@ import org.lcsb.lu.igcsa.variation.structural.StructuralVariation;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.Callable;
 
 /**
  * org.lcsb.lu.igcsa.genome
@@ -17,7 +18,8 @@ import java.util.*;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class SmallMutable implements Runnable
+public class SmallMutable implements Callable<Chromosome>
+ //implements Runnable
   {
   static Logger log = Logger.getLogger(SmallMutable.class.getName());
 
@@ -52,7 +54,9 @@ public class SmallMutable implements Runnable
     this.sizeDAO = size;
     }
 
-  public void run()
+
+//  public void run()
+  public Chromosome call()
     {
     log.info("RUNNING mutations on chromosome " + chromosome.getName());
     if (binDAO == null || variationDAO == null || sizeDAO == null)
@@ -104,6 +108,7 @@ public class SmallMutable implements Runnable
       }
 
     log.info("FINISHED mutating chromosome " + chromosome.getName() + " sequence length " + total);
+    return chromosome;
     }
 
   // Mutates the sequence based on the information provided in the database

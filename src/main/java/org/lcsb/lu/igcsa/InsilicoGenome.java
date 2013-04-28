@@ -17,8 +17,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 
 /**
@@ -38,19 +37,16 @@ public class InsilicoGenome
 
   protected Genome genome;
 
-  private ExecutorService executorService;
-  private ApplicationContext context;
+  private ExecutorService smallMutationExcecutor;
+  private ExecutorService structuralVariationExecutor;
 
-  protected void print(String s)
-    {
-    System.out.println(s);
-    }
+
+  private ApplicationContext context;
 
   public static void main(String[] args) throws Exception
     {
     InsilicoGenome igAp = new InsilicoGenome(args);
     }
-
 
   public InsilicoGenome(String[] args) throws IOException
     {
@@ -58,50 +54,61 @@ public class InsilicoGenome
     init();
     CommandLine cl = parseCommandLine(args);
 
-    long time = java.lang.System.currentTimeMillis();
-    String genomeName = String.valueOf(new Random().nextInt(Math.abs((int) (time))));
+
+    String genomeName = String.valueOf(new Random().nextInt(Math.abs((int) (startTime))));
     boolean overwriteGenome = false;
 
+    // Genome name, overwrite
     if (cl.hasOption('n') || cl.hasOption("name")) genomeName = cl.getOptionValue('n');
     if (cl.hasOption('o') || cl.hasOption("overwrite")) overwriteGenome = true;
 
     List<String> chromosomes = new ArrayList<String>();
     if (cl.hasOption('c') || cl.hasOption("chromosome"))
       {
-      for (String c: cl.getOptionValue('c').split(","))
+      for (String c : cl.getOptionValue('c').split(","))
         chromosomes.add(c);
       }
 
+    // Set up the chromosomes in the genome that will be mutated.
     File fastaDir = new File(genomeProperties.getProperty("dir.assembly"));
     if (chromosomes.size() > 0)
       {
-      for (String c: chromosomes)
-        genome.addChromosome( new Chromosome(c, FileUtils.getFASTA(c, fastaDir) ) );
+      for (String c : chromosomes)
+        genome.addChromosome(new Chromosome(c, FileUtils.getFASTA(c, fastaDir)));
       }
-    else
-      {
-      genome.addChromosomes(FileUtils.getChromosomesFromFASTA(fastaDir));
-      }
+    else genome.addChromosomes(FileUtils.getChromosomesFromFASTA(fastaDir));
+
+
     log.info("Reference genome build: " + genome.getBuildName());
     log.info("Reference genome has: " + genome.getChromosomes().length + " chromosomes");
 
+    // No idea if this is a smart way to do it. But this sets up the threading. No reason to have more threads than chromosomes.
     int threads = 5;
     if (cl.hasOption('t') || cl.hasOption("threads")) threads = Integer.valueOf(cl.getOptionValue('t'));
+    if (threads > genome.getChromosomes().length) threads = genome.getChromosomes().length;
+    smallMutationExcecutor = Executors.newFixedThreadPool(threads);
+    structuralVariationExecutor = Executors.newFixedThreadPool(threads);
 
-    executorService = Executors.newFixedThreadPool(threads);
+    // set up the directory that the genome will write to
+    setupGenomeDirectory(genomeName, overwriteGenome);
 
-    createGenome(genomeName, overwriteGenome);
+    // Apply mutations!
+    applyMutations();
 
-    if (executorService.isTerminated())
+    // Apply structural variations
+    if (cl.hasOption('s') || cl.hasOption("structural-variation"))
+      applyStructuraVariations();
+
+    //if (smallMutationExcecutor.isShutdown())
       {
       final long elapsedTimeMillis = System.currentTimeMillis() - startTime;
       log.info("FINISHED creating genome " + genomeName);
-      log.info("Elapsed time (seconds): " + elapsedTimeMillis/1000);
+      log.info("Elapsed time (seconds): " + elapsedTimeMillis / 1000);
       }
+
     }
 
-
-  public void createGenome(String name, boolean overwrite) throws IOException
+  private void setupGenomeDirectory(String name, boolean overwrite) throws IOException
     {
     File genomeDirectory = new File(genomeProperties.getProperty("dir.insilico"), name);
 
@@ -111,27 +118,63 @@ public class InsilicoGenome
       for (File f : genomeDirectory.listFiles()) f.delete();
       genomeDirectory.delete();
       }
-    else if (genomeDirectory.exists() && !overwrite)
-      throw new IOException(genomeDirectory + " exists, cannot overwrite");
+    else if (genomeDirectory.exists() && !overwrite) throw new IOException(genomeDirectory + " exists, cannot overwrite");
 
     log.debug(genomeDirectory.getAbsolutePath());
 
+    genome.setGenomeDirectory(genomeDirectory);
+    genome.setBuildName(name);
+    }
+
+  /**
+   * Applies mutations first at the 1kb or less level then structural
+   *
+   * @throws IOException
+   */
+  public void applyMutations() throws IOException
+    {
+    CompletionService taskPool = new ExecutorCompletionService<String>(smallMutationExcecutor);
+
+    List<Future<Chromosome>> tasks = new ArrayList<Future<Chromosome>>();
     for (Chromosome chr : genome.getChromosomes()) //this could be done in threads, each chromosome can be mutated separately
       {
       log.debug(chr.getName());
+      FASTAHeader header = new FASTAHeader(">chromosome|" + chr.getName() + "|individual " + genome.getBuildName());
+      FASTAWriter writer = new FASTAWriter(new File(genome.getGenomeDirectory(), "chr" + chr.getName() + ".fa"), header);
+      chr.setVariantList((List<Variation>) context.getBean("variantList"));
+
+      Future<Chromosome> mutationF = taskPool.submit(genome.mutate(chr, windowSize, writer));
+      tasks.add(mutationF);
+      }
+
+    for (int i = 0; i < tasks.size(); i++)
+      {
       try
         {
-        FASTAHeader header = new FASTAHeader(">chromosome|" + chr.getName() + "|individual " + name);
-        FASTAWriter writer = new FASTAWriter(new File(genomeDirectory, "chr" + chr.getName() + ".fa"), header);
-        chr.setVariantList( (List<Variation>) context.getBean("variantList") );
-        executorService.execute(genome.mutate(chr, windowSize, writer));
+        Future<Chromosome> f = taskPool.take();
+        log.info("Small mutations finished on " + f.get().getName());
         }
-      catch (IOException e)
+      catch (InterruptedException e)
         {
-        e.printStackTrace();
+        log.error(e);
+        }
+      catch (ExecutionException e)
+        {
+        log.error(e);
         }
       }
-    executorService.shutdown();
+    log.info("Small mutation step finished on " + tasks.size() + " chromosomes.");
+    smallMutationExcecutor.shutdown();
+    }
+
+  /**
+   * Applies the larger, or location-based variations (>1kb).
+   */
+  public void applyStructuraVariations()
+    {
+    log.info("Apply SVs");
+
+    genome.getGenomeDirectory();
     }
 
   /*
@@ -139,19 +182,19 @@ public class InsilicoGenome
    */
   private void init()
     {
-    context = new ClassPathXmlApplicationContext(new String[] {"classpath*:spring-config.xml", "classpath*:/conf/genome.xml",
+    context = new ClassPathXmlApplicationContext(new String[]{"classpath*:spring-config.xml", "classpath*:/conf/genome.xml",
         "classpath*:/conf/database-config.xml"});
-    //context = new ClassPathXmlApplicationContext("spring-config.xml");
+
     genome = (Genome) context.getBean("genome");
     genomeProperties = (Properties) context.getBean("genomeProperties");
 
-    if (!genomeProperties.containsKey("dir.insilico") || !genomeProperties.containsKey("dir.assembly"))
+    if (!genomeProperties.containsKey("dir.insilico") ||
+        !genomeProperties.containsKey("dir.assembly") ||
+        !genomeProperties.containsKey("dir.tmp"))
       {
-      log.error("dir.insilico or dir.assembly are missing from the properties file. Aborting.");
+      log.error("One of the directory definitions (dir.insilico, dir.assembly, dir.tmp) are missing from the properties file. Aborting.");
       System.exit(-1);
       }
-
-
     }
 
   private CommandLine parseCommandLine(String[] args)
@@ -160,8 +203,11 @@ public class InsilicoGenome
     options.addOption("n", "name", true, "Genome directory name, if not provided a random name is generated.");
     options.addOption("o", "overwrite", false, "Overwrite genome directory if name already exists.");
     options.addOption("t", "threads", true, "Number of concurrent threads, default is 5. Each thread handles a single chromosome.");
-    options.addOption("c", "chromosome", true, "List of chromosomes to use/mutate, comma-separated (e.g.  21,3,X). If not included chromosomes will be determined by \n" + "the fasta files found in the dir.assembly directory (see genome.properties).");
-    //options.addOption("v", "version", false, "");
+    options.addOption("c", "chromosome", true, "List of chromosomes to use/mutate, comma-separated (e.g.  21,3," +
+                                               "X). If not included chromosomes will be determined by \n" + "the fasta files found in the" +
+                                               " dir.assembly directory (see genome.properties).");
+    options.addOption("s", "structural-variation", true, "Apply structural variations to genomes.");
+
     options.addOption("h", "help", false, "print usage help");
 
     CommandLineParser clp = new BasicParser();
@@ -183,8 +229,8 @@ public class InsilicoGenome
       }
 
     log.info("Running InsilicoGenome with the following parameters: ");
-    for (Option opt: cl.getOptions())
-      log.info( "\t-" + opt.getLongOpt() + " '" + opt.getValue("true") + "'");
+    for (Option opt : cl.getOptions())
+      log.info("\t-" + opt.getLongOpt() + " '" + opt.getValue("true") + "'");
 
     return cl;
     }

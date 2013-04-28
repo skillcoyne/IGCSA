@@ -18,21 +18,6 @@ import java.util.Collection;
  */
 public class FileUtils
   {
-  public static String directory(String[] orderedSubDir, int number)
-    {
-    String dirName = "";
-    for (String s : orderedSubDir)
-      {
-      if (dirName.equals(""))
-        dirName = s;
-      else
-        dirName = dirName + File.separator + s;
-      }
-    dirName = dirName + "-" + number;
-    return dirName;
-    }
-
-
   public static File getFASTA(String chromosome, File fastaDir) throws IOException
     {
     final String chr = "chr"+chromosome;
@@ -40,11 +25,9 @@ public class FileUtils
     {
     public boolean accept(File dir, String name)
       {
-      String lowercaseName = name.toLowerCase();
-      if (lowercaseName.endsWith(chr + ".fa") || lowercaseName.endsWith(chr + ".fasta") || (lowercaseName.endsWith(chr + ".fa.gz")))
-        return true;
-      else
-        return false;
+      for ( String suffix: new String[]{".fa", ".fasta", ".fa.gz", ".fasta.gz"} )
+        if (name.equalsIgnoreCase(chr+suffix)) return true;
+      return false;
       }
     };
 
@@ -75,11 +58,9 @@ public class FileUtils
     {
     public boolean accept(File dir, String name)
       {
-      String lowercaseName = name.toLowerCase();
-      if (lowercaseName.endsWith(".fa") || lowercaseName.endsWith(".fasta") || (lowercaseName.endsWith(".fa.gz")))
-        return true;
-      else
-        return false;
+      for ( String suffix: new String[]{".fa", ".fasta", ".fa.gz", ".fasta.gz"} )
+        if (name.endsWith(suffix)) return true;
+      return false;
       }
     };
 

@@ -35,14 +35,13 @@ public class CopyNumberLossTest
     {
     cnl = new CopyNumberLoss();
     cnl.setLocation(497, 532);
-    cnl.addFragment(new DNASequence(fastaSeq));
     assertNotNull(cnl);
     }
 
   @Test
   public void testMutateSequence() throws Exception
     {
-    DNASequence newSequence = cnl.mutateSequence();
+    DNASequence newSequence = cnl.mutateSequence(fastaSeq);
     assertNotSame(newSequence.getSequence(), fastaSeq);
     assertEquals(newSequence.getSequence().indexOf('-'), -1);
     }

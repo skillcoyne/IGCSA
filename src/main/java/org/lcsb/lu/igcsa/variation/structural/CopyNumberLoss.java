@@ -13,16 +13,15 @@ public class CopyNumberLoss extends StructuralVariation
   {
   static Logger log = Logger.getLogger(CopyNumberLoss.class.getName());
 
-  public DNASequence mutateSequence()
+  @Override
+  public DNASequence mutateSequence(String sequence)
     {
-    String sequenceToMutate = this.sequence.getSequence();
-
-    String chunkA = sequenceToMutate.substring(0,variationLocation.getStart());
-    String chunkB = sequenceToMutate.substring(variationLocation.getEnd(), sequenceToMutate.length());
+    String chunkA = sequence.substring(0,variationLocation.getStart());
+    String chunkB = sequence.substring(variationLocation.getEnd(), sequence.length());
 
     DNASequence newSequence = new DNASequence(chunkA + chunkB);
 
-    log.debug("Original sequence length: " + sequenceToMutate.length());
+    log.debug("Original sequence length: " + sequence.length());
     log.debug("New sequence length: " + newSequence.getLength());
 
     return newSequence;

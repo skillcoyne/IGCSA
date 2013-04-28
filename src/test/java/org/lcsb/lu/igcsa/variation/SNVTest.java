@@ -5,6 +5,7 @@ import org.junit.runner.RunWith;
 import org.lcsb.lu.igcsa.database.normal.Fragment;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.genome.DNASequence;
+import org.lcsb.lu.igcsa.variation.fragment.SNV;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -25,7 +26,7 @@ import static org.junit.Assert.*;
 public class SNVTest
     {
     @Autowired
-    private org.lcsb.lu.igcsa.variation.fragment.SNV SNV;
+    private SNV testSNV;
 
     private char[] sequence = "ACTGCTTAGCG".toCharArray();
 
@@ -35,16 +36,16 @@ public class SNVTest
       Fragment fragment = new Fragment();
       fragment.setSNV(3);
 
-      SNV.setMutationFragment(fragment);
+      testSNV.setMutationFragment(fragment);
 
       DNASequence oldSeq = new DNASequence(String.valueOf(sequence));
-      DNASequence newSeq = SNV.mutateSequence(oldSeq);
+      DNASequence newSeq = testSNV.mutateSequence(oldSeq);
 
       assertNotNull(newSeq);
       assertNotSame(newSeq.getSequence(), oldSeq.getSequence());
 
       // This is just testing that I kept the changes around
-      Map<Location, DNASequence> lastMutations = SNV.getLastMutations();
+      Map<Location, DNASequence> lastMutations = testSNV.getLastMutations();
       assertTrue(lastMutations.size() > 0);
       char[] newSeqChars = newSeq.getSequence().toCharArray();
       for (Location loc: lastMutations.keySet())

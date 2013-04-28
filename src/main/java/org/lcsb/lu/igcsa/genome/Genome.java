@@ -3,6 +3,7 @@ package org.lcsb.lu.igcsa.genome;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.variation.fragment.Variation;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -15,6 +16,9 @@ public interface Genome
   {
   public void setBuildName(String buildName);
   public String getBuildName();
+
+  public File getGenomeDirectory();
+  public void setGenomeDirectory(File genomeDirectory);
 
   public List<Variation> getVariantTypes();
 

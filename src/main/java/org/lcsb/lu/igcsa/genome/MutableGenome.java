@@ -31,6 +31,9 @@ public class MutableGenome implements Genome
   private FragmentVariationDAO variationDAO;
   private SizeDAO sizeDAO;
 
+  // Directory to output to
+  private File genomeDirectory;
+
   public MutableGenome(GCBinDAO gcBinDAO, FragmentVariationDAO variationDAO, SizeDAO sizeDAO)
     {
     this.binDAO = gcBinDAO;
@@ -63,6 +66,16 @@ public class MutableGenome implements Genome
     this.variantTypes = variantTypes;
     }
 
+  public File getGenomeDirectory()
+    {
+    return genomeDirectory;
+    }
+
+  public void setGenomeDirectory(File genomeDirectory)
+    {
+    this.genomeDirectory = genomeDirectory;
+    }
+
   public void addChromosome(Chromosome chr)
     {
     this.chromosomes.put(chr.getName(), chr);
@@ -86,9 +99,8 @@ public class MutableGenome implements Genome
     }
 
 
-  /* TODO write a mutate method that holds the chromosome in memory to write out at the end
-  useful ONLY for the cluster where multiple sequential writes are difficult.  In this case either the genome should only
-   contain one chromosome or each chromosome may have to mutate sequentially due to the Java memory.
+  /* TODO write a mutate method that holds the chromosome in memory to write out at the end. This would require quite a lot of memory and
+   may make threading difficult/impossible as each thread would hold a chromosome in memory (~100mb).  Whole genome is ~4gb.
    */
   public SmallMutable mutate(Chromosome chr, int window, FASTAWriter writer)
     {

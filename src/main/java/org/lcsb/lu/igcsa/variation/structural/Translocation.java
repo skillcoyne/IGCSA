@@ -16,7 +16,7 @@ public class Translocation extends StructuralVariation
   static Logger log = Logger.getLogger(Translocation.class.getName());
 
   // TODO: implement
-  public DNASequence mutateSequence()
+  public DNASequence mutateSequence(String sequence)
     {
     // not yet sure how to do a translocation.  It has to be able to move from one chromosome to another, or within a single chromosome.
     return this.sequence;
