@@ -11,13 +11,12 @@ import org.lcsb.lu.igcsa.genome.Genome;
 import org.lcsb.lu.igcsa.utils.FileUtils;
 
 import org.lcsb.lu.igcsa.variation.fragment.Variation;
-import org.lcsb.lu.igcsa.variation.structural.CopyNumberLoss;
+import org.lcsb.lu.igcsa.variation.structural.LargeDeletion;
 import org.lcsb.lu.igcsa.variation.structural.StructuralVariation;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
@@ -130,6 +129,7 @@ public class InsilicoGenome
       // important to replace chromosome with one that will read it's recently created mutated FASTA file or else structural variations
       // will be applied to the original FASTA and all small mutations will be lost.
       Chromosome mc = new Chromosome(c.getName(), new File(genome.getGenomeDirectory(), "chr" + c.getName() + ".fa"));
+      log.info(mc.getFASTA().getAbsolutePath());
       genome.replaceChromosome(mc);
       log.info("Small mutations finished on " + c.getName());
       }
@@ -153,7 +153,8 @@ public class InsilicoGenome
     FASTAWriter writer = new FASTAWriter(new File(tmpDir, "chr" + chr.getName() + ".fa"), header);
 
     // TODO  This whole bit will ultimately come from the database the same way small scale mutations do
-    StructuralVariation cnvLoss = new CopyNumberLoss();
+    StructuralVariation cnvLoss = new LargeDeletion();
+    cnvLoss.setVariationName("copy_number_loss");
     cnvLoss.setLocation(26500001, 59128983); // should be entire q arm
 
     List<StructuralVariation> svList = new ArrayList<StructuralVariation>(1);
@@ -172,12 +173,10 @@ public class InsilicoGenome
       log.info("SV finished for " + mc.getName());
       // won't quite work this way when fully implemented since writers are not attached to chromosomes...but possibly they should be.
       org.apache.commons.io.FileUtils.copyFileToDirectory(writer.getFASTAFile(), genome.getGenomeDirectory());
-      org.apache.commons.io.FileUtils.copyFile(mc.getSVFile(), genome.getSVMutationDirectory());
       }
+
     org.apache.commons.io.FileUtils.deleteDirectory(tmpDir);
-
     log.info("Structural variations step finished on " + tasks.size() + " chromosomes.");
-
     structuralVariationExecutor.shutdown();
     }
 

@@ -9,9 +9,10 @@ import org.lcsb.lu.igcsa.genome.DNASequence;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class CopyNumberLoss extends StructuralVariation
+public class LargeDeletion extends StructuralVariation
   {
-  static Logger log = Logger.getLogger(CopyNumberLoss.class.getName());
+  // TODO This should actually be applied first since it would make any subsequent mutations faster
+  static Logger log = Logger.getLogger(LargeDeletion.class.getName());
 
   @Override
   public DNASequence mutateSequence(String sequence)
@@ -19,8 +20,8 @@ public class CopyNumberLoss extends StructuralVariation
     log.info("Losing " + variationLocation.getLength() + " from " + sequence.length());
 
     DNASequence newSequence = new DNASequence("");
-    if (variationLocation.getLength() > sequence.length())
-      { // snp sequence out
+    if (sequence.length() > variationLocation.getLength())
+      { // snip sequence out
       String chunkA = sequence.substring(0,variationLocation.getStart()); // get sequence before
       String chunkB = sequence.substring(variationLocation.getEnd(), sequence.length()); // get sequence after
 
@@ -32,4 +33,6 @@ public class CopyNumberLoss extends StructuralVariation
 
     return newSequence;
     }
+
+
   }

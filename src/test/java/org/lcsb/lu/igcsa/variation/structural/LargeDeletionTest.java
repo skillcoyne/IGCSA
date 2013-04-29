@@ -12,9 +12,9 @@ import static org.junit.Assert.*;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class CopyNumberLossTest
+public class LargeDeletionTest
   {
-  static Logger log = Logger.getLogger(CopyNumberLossTest.class.getName());
+  static Logger log = Logger.getLogger(LargeDeletionTest.class.getName());
 
   private String fastaSeq =
       "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN" +
@@ -28,12 +28,13 @@ public class CopyNumberLossTest
           "GTCGCCATTTTAGCGTGATGACGCAGTGGATCTGACTTTGTGTCCGAGGGTCCAGAAGGGAGGGCTAGCT" +
           "AGGGAGGGCTAGCT";
 
-  private CopyNumberLoss cnl;
+  private StructuralVariation cnl;
 
   @Before
   public void setUp() throws Exception
     {
-    cnl = new CopyNumberLoss();
+    cnl = new LargeDeletion();
+    cnl.setVariationName("copy_number_loss");
     cnl.setLocation(497, 532);
     assertNotNull(cnl);
     }

@@ -47,7 +47,7 @@
     <bean id="structuralVariations" class="java.util.ArrayList" scope="prototype">
         <constructor-arg>
             <list>
-                <bean id="CNVLoss" class="org.lcsb.lu.igcsa.variation.structural.CopyNumberLoss">
+                <bean id="CNVLoss" class="org.lcsb.lu.igcsa.variation.structural.LargeDeletion">
                 </bean>
             </list>
         </constructor-arg>

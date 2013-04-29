@@ -6,6 +6,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
+import org.lcsb.lu.igcsa.genome.concurrency.SmallMutable;
+import org.lcsb.lu.igcsa.genome.concurrency.StructuralMutable;
 import org.lcsb.lu.igcsa.variation.fragment.Variation;
 import org.lcsb.lu.igcsa.variation.structural.StructuralVariation;
 import org.springframework.beans.factory.annotation.Autowired;

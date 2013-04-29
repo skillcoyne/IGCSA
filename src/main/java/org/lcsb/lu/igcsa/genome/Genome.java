@@ -1,10 +1,10 @@
 package org.lcsb.lu.igcsa.genome;
 
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
-import org.lcsb.lu.igcsa.variation.fragment.Variation;
+import org.lcsb.lu.igcsa.genome.concurrency.SmallMutable;
+import org.lcsb.lu.igcsa.genome.concurrency.StructuralMutable;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * org.lcsb.lu.igcsa.genome

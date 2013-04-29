@@ -4,7 +4,8 @@ import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.normal.*;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.fasta.MutationWriter;
-import org.lcsb.lu.igcsa.variation.fragment.Variation;
+import org.lcsb.lu.igcsa.genome.concurrency.SmallMutable;
+import org.lcsb.lu.igcsa.genome.concurrency.StructuralMutable;
 
 import java.io.File;
 import java.io.IOException;
@@ -121,7 +122,7 @@ public class MutableGenome implements Genome
     {
     try
       {
-      MutationWriter mutWriter = new MutationWriter(new File(smallMutDir, chr.getName() + "mutations.txt"));
+      MutationWriter mutWriter = new MutationWriter(new File(smallMutDir, chr.getName() + "mutations.txt"), MutationWriter.SMALL);
       // TODO variant types need to be cloned for each chromosome or else the mutations being generated are incorrect MAJOR PROBLEM -- not sure what this note was actually about...
       chr.setMutationsFile(writer.getFASTAFile());
 
@@ -140,7 +141,7 @@ public class MutableGenome implements Genome
     {
     try
       {
-      MutationWriter mutWriter = new MutationWriter( new File(svMutDir, chr.getName() + "mutations.txt") ) ;
+      MutationWriter mutWriter = new MutationWriter( new File(svMutDir, chr.getName() + "mutations.txt") , MutationWriter.SV) ;
       // TODO variant types need to be cloned for each chromosome or else the mutations being generated are incorrect MAJOR PROBLEM -- see note above...
       chr.setSVFile( mutWriter.getMutationFile() );
 

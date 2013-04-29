@@ -1,16 +1,15 @@
-package org.lcsb.lu.igcsa.genome;
+package org.lcsb.lu.igcsa.genome.concurrency;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.normal.*;
-import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.fasta.Mutation;
-import org.lcsb.lu.igcsa.fasta.MutationWriter;
+import org.lcsb.lu.igcsa.genome.Chromosome;
+import org.lcsb.lu.igcsa.genome.DNASequence;
+import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.variation.fragment.Variation;
-import org.lcsb.lu.igcsa.variation.structural.StructuralVariation;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.Callable;
 
 /**
  * org.lcsb.lu.igcsa.genome

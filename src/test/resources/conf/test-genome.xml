@@ -35,7 +35,7 @@
     <bean id="testStructuralVariants" class="java.util.ArrayList">
         <constructor-arg>
             <list>
-                <bean id="CNL" class="org.lcsb.lu.igcsa.variation.structural.CopyNumberLoss">
+                <bean id="CNL" class="org.lcsb.lu.igcsa.variation.structural.LargeDeletion">
                     <property name="variationName" value="copy_number_loss"/>
                     <property name="location">
                         <bean id="location" class="org.lcsb.lu.igcsa.genome.Location">

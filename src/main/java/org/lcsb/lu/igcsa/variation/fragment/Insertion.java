@@ -1,13 +1,14 @@
 package org.lcsb.lu.igcsa.variation.fragment;
 
 import org.lcsb.lu.igcsa.genome.DNASequence;
-import static org.lcsb.lu.igcsa.genome.Nucleotides.*;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.genome.Location;
 
 import java.util.LinkedHashMap;
 import java.util.Random;
+
+import static org.lcsb.lu.igcsa.genome.Nucleotides.*;
 
 /**
  * org.lcsb.lu.igcsa.variation
@@ -25,7 +26,6 @@ public class Insertion extends Variation
     int count = this.fragment.getInsertion();
     lastMutations = new LinkedHashMap<Location, DNASequence>();
 
-    // TODO really need size as well from the DB
     log.debug(sequence.length() + " expected count " + count);
 
     // TODO what is the general probability of occurrence for each nucleotide anyhow??

@@ -1,7 +1,13 @@
-package org.lcsb.lu.igcsa.genome;
+package org.lcsb.lu.igcsa.genome.concurrency;
 
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.database.normal.Bin;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
+import org.lcsb.lu.igcsa.fasta.Mutation;
+import org.lcsb.lu.igcsa.genome.Chromosome;
+import org.lcsb.lu.igcsa.genome.DNASequence;
+import org.lcsb.lu.igcsa.genome.Location;
+import org.lcsb.lu.igcsa.variation.fragment.Variation;
 import org.lcsb.lu.igcsa.variation.structural.StructuralVariation;
 
 import java.io.IOException;
@@ -83,6 +89,7 @@ public class StructuralMutable extends Mutable
         String sequence = mutatedFASTA.readSequenceFromLocation(loc.getStart(), loc.getLength());
         DNASequence mutatedSequence = variation.mutateSequence(sequence);
         this.writer.write(mutatedSequence.getSequence());
+        writeVariation(chromosome, loc, variation);
         total += mutatedSequence.getLength();
         }
       catch (IOException e)
@@ -102,6 +109,8 @@ public class StructuralMutable extends Mutable
         writer.write(seq);
         lastLocation += window;
         }
+      mutationWriter.flush();
+      mutationWriter.close();
       writer.flush();
       writer.close();
       }
@@ -114,4 +123,26 @@ public class StructuralMutable extends Mutable
 
     return chromosome;
     }
+
+
+  private void writeVariation(Chromosome chr, Location location, StructuralVariation variation)
+    {
+    if (mutationWriter != null)
+      {
+      Mutation mutation = new Mutation();
+      mutation.setChromosome(chr.getName());
+      mutation.setVariationType(variation.getVariationName());
+      mutation.setStartLocation(location.getStart());
+      mutation.setEndLocation(location.getEnd());
+      try
+        {
+        mutationWriter.write(mutation);
+        }
+      catch (IOException e)
+        {
+        log.error(e);
+        }
+      }
+    }
+
   }

@@ -1,8 +1,9 @@
-package org.lcsb.lu.igcsa.genome;
+package org.lcsb.lu.igcsa.genome.concurrency;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.fasta.MutationWriter;
+import org.lcsb.lu.igcsa.genome.Chromosome;
 
 import java.util.concurrent.Callable;
 
