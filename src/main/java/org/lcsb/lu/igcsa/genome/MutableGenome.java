@@ -24,15 +24,16 @@ public class MutableGenome implements Genome
 
   protected String buildName;
   protected HashMap<String, Chromosome> chromosomes = new HashMap<String, Chromosome>();
-  private List<Variation> variantTypes;
 
   // Database connections
   private GCBinDAO binDAO;
   private FragmentVariationDAO variationDAO;
   private SizeDAO sizeDAO;
 
-  // Directory to output to
+  // Directories to output to
   private File genomeDirectory;
+  private File smallMutDir;
+  private File svMutDir;
 
   public MutableGenome(GCBinDAO gcBinDAO, FragmentVariationDAO variationDAO, SizeDAO sizeDAO)
     {
@@ -56,16 +57,6 @@ public class MutableGenome implements Genome
     return this.buildName;
     }
 
-  public List<Variation> getVariantTypes()
-    {
-    return variantTypes;
-    }
-
-  public void setVariantTypes(List<Variation> variantTypes)
-    {
-    this.variantTypes = variantTypes;
-    }
-
   public File getGenomeDirectory()
     {
     return genomeDirectory;
@@ -74,6 +65,22 @@ public class MutableGenome implements Genome
   public void setGenomeDirectory(File genomeDirectory)
     {
     this.genomeDirectory = genomeDirectory;
+    }
+
+  public File getSmallMutationDirectory()
+    {
+    return smallMutDir;
+    }
+
+  public File getSVMutationDirectory()
+    {
+    return svMutDir;
+    }
+
+  public void setMutationDirectories(File smallMut, File svMut)
+    {
+    this.smallMutDir = smallMut;
+    this.svMutDir = svMut;
     }
 
   public void addChromosome(Chromosome chr)
@@ -114,15 +121,13 @@ public class MutableGenome implements Genome
     {
     try
       {
-      // TODO variant types need to be cloned for each chromosome or else the mutations being generated are incorrect MAJOR PROBLEM
+      MutationWriter mutWriter = new MutationWriter(new File(smallMutDir, chr.getName() + "mutations.txt"));
+      // TODO variant types need to be cloned for each chromosome or else the mutations being generated are incorrect MAJOR PROBLEM -- not sure what this note was actually about...
+      chr.setMutationsFile(writer.getFASTAFile());
+
       SmallMutable m = new SmallMutable(chr, window);
-
       m.setConnections(binDAO, variationDAO, sizeDAO);
-
-      File mutWriterPath = new File(writer.getFASTAFile().getParentFile().getAbsolutePath(), "mutations");
-      if (!mutWriterPath.exists() || !mutWriterPath.isDirectory()) mutWriterPath.mkdir();
-
-      m.setWriters(writer, new MutationWriter(new File(mutWriterPath, chr.getName() + "mutations.txt")));
+      m.setWriters(writer, mutWriter);
       return m;
       }
     catch (IOException e)
@@ -135,11 +140,12 @@ public class MutableGenome implements Genome
     {
     try
       {
-      StructuralMutable m = new StructuralMutable(chr);
+      MutationWriter mutWriter = new MutationWriter( new File(svMutDir, chr.getName() + "mutations.txt") ) ;
+      // TODO variant types need to be cloned for each chromosome or else the mutations being generated are incorrect MAJOR PROBLEM -- see note above...
+      chr.setSVFile( mutWriter.getMutationFile() );
 
-      File mutWriterPath = new File(writer.getFASTAFile().getParentFile().getAbsolutePath(), "structural-variations");
-      if (!mutWriterPath.exists() || !mutWriterPath.isDirectory()) mutWriterPath.mkdir();
-      m.setWriters(writer, new MutationWriter(new File(mutWriterPath, chr.getName() + "mutations.txt")));
+      StructuralMutable m = new StructuralMutable(chr);
+      m.setWriters(writer, mutWriter);
       return m;
       }
     catch (IOException e)

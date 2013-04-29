@@ -21,6 +21,8 @@ public class Chromosome
 
   private String Name;
   private File fasta;
+  private File mutations;
+  private File structVars;
   private FASTAReader reader;
   private List<Variation> variationList;
   private List<StructuralVariation> structuralVariations;
@@ -59,6 +61,26 @@ public class Chromosome
   public FASTAReader getFASTAReader()
     {
     return this.reader;
+    }
+
+  public File getMutationsFile()
+    {
+    return mutations;
+    }
+
+  public void setMutationsFile(File mutations)
+    {
+    this.mutations = mutations;
+    }
+
+  public File getSVFile()
+    {
+    return structVars;
+    }
+
+  public void setSVFile(File structVars)
+    {
+    this.structVars = structVars;
     }
 
   public void setVariantList(List<Variation> variants)

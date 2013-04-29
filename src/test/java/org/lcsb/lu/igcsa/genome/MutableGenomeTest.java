@@ -46,11 +46,17 @@ public class MutableGenomeTest
     {
     URL testUrl = ClassLoader.getSystemResource("fasta/test.fa");
     fastaFile = new File(testUrl.toURI());
-    outputFasta = new File(testProperties.getProperty("dir.insilico") + "/test.fasta");
 
     // need to reload the genome each time or the add chromosome tests screw things up
     ApplicationContext context = new ClassPathXmlApplicationContext("test-spring-config.xml");
     testGenome = (Genome) context.getBean("testGenome");
+
+    File insilicoTest = new File(testProperties.getProperty("dir.insilico"));
+    testGenome.setGenomeDirectory(insilicoTest);
+
+    testGenome.setMutationDirectories( new File(insilicoTest, "mutations"), new File(insilicoTest, "structural-variations") );
+
+    outputFasta = new File(testGenome.getGenomeDirectory(), "/test.fasta");
 
     variationList = (List<Variation>) context.getBean("testVariantList");
     structuralVariationList = (List<StructuralVariation>) context.getBean("testStructuralVariants");
@@ -61,7 +67,7 @@ public class MutableGenomeTest
   @After
   public void tearDown() throws Exception
     {
-    //outputFasta.delete();
+    org.apache.commons.io.FileUtils.deleteDirectory(testGenome.getGenomeDirectory());
     testGenome = null;
     }
 
@@ -89,9 +95,6 @@ public class MutableGenomeTest
     FASTAWriter writer = new FASTAWriter(outputFasta, header);
     long origLength = outputFasta.length();
 
-    assertNotNull(testGenome.getVariantTypes());
-    assertEquals(testGenome.getVariantTypes().size(), 3);
-
     Chromosome origChr = new Chromosome("19", fastaFile);
     origChr.setVariantList(variationList);
     testGenome.addChromosome(origChr);
@@ -100,7 +103,6 @@ public class MutableGenomeTest
 
     SmallMutable m = testGenome.mutate(testGenome.getChromosomes()[0], 50, writer);
     m.call();
-    //m.run();
 
     assertTrue(outputFasta.length() > origLength);
 

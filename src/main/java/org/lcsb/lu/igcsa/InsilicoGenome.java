@@ -17,6 +17,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
@@ -33,35 +34,36 @@ public class InsilicoGenome
   static Logger log = Logger.getLogger(InsilicoGenome.class.getName());
 
   protected Properties genomeProperties;
+  protected Genome genome;
 
   // Defaults
   private int windowSize = 1000;
-
-  protected Genome genome;
-
   private int threads = 5;
-
   private boolean applySV = false;
-  private boolean applySM = true;
+  private boolean applySM = false;
 
+  // Parallel execution
   private ExecutorService smallMutationExcecutor;
   private ExecutorService structuralVariationExecutor;
 
-
-  private File genomeDirectory;
-
+  // Spring
   private ApplicationContext context;
 
   public static void main(String[] args) throws Exception
     {
-    InsilicoGenome igAp = new InsilicoGenome(args);
-
-    }
-
-  public InsilicoGenome(String[] args) throws IOException
-    {
     final long startTime = System.currentTimeMillis();
 
+    InsilicoGenome igAp = new InsilicoGenome(args);
+    // Apply mutations!
+    igAp.applyMutations();
+
+    final long elapsedTimeMillis = System.currentTimeMillis() - startTime;
+    log.info("FINISHED mutating genome " + igAp.genome.getBuildName());
+    log.info("Elapsed time (seconds): " + elapsedTimeMillis / 1000);
+    }
+
+  public InsilicoGenome(String[] args) throws Exception
+    {
     init();
     CommandLine cl = parseCommandLine(args);
 
@@ -69,57 +71,41 @@ public class InsilicoGenome
     boolean overwriteGenome = false;
 
     // Genome name, overwrite
-    if (cl.hasOption('n') || cl.hasOption("name")) genomeName = cl.getOptionValue('n');
-    if (cl.hasOption('o') || cl.hasOption("overwrite")) overwriteGenome = true;
+    if (cl.hasOption('n') || cl.hasOption("name"))
+      genomeName = cl.getOptionValue('n');
+    if (cl.hasOption('o') || cl.hasOption("overwrite"))
+      overwriteGenome = true;
 
     List<String> chromosomes = new ArrayList<String>();
     if (cl.hasOption('c') || cl.hasOption("chromosome"))
-      {
+      { // get specific chromosome from command line if required
       for (String c : cl.getOptionValue('c').split(","))
         chromosomes.add(c);
       }
-
-    // Set up the chromosomes in the genome that will be mutated.
-    File fastaDir = new File(genomeProperties.getProperty("dir.assembly"));
-    if (chromosomes.size() > 0)
-      {
-      for (String c : chromosomes)
-        genome.addChromosome(new Chromosome(c, FileUtils.getFASTA(c, fastaDir)));
-      }
-    else genome.addChromosomes(FileUtils.getChromosomesFromFASTA(fastaDir));
-    log.info("Reference genome has: " + genome.getChromosomes().length + " chromosomes");
+    setupChromosomes(chromosomes);
 
     // No idea if this is a smart way to do it. But this sets up the threading. No reason to have more threads than chromosomes.
-    if (cl.hasOption('t') || cl.hasOption("threads")) threads = Integer.valueOf(cl.getOptionValue('t'));
-    if (threads > genome.getChromosomes().length) threads = genome.getChromosomes().length;
+    if (cl.hasOption('t') || cl.hasOption("threads"))
+      threads = Integer.valueOf(cl.getOptionValue('t'));
+    if (threads > genome.getChromosomes().length)
+      threads = genome.getChromosomes().length;
 
     // set up the directory that the genome will write to
     setupGenomeDirectory(genomeName, overwriteGenome);
     log.info("Reference genome build: " + genome.getBuildName());
-
-    // Apply mutations!
-    applyMutations();
-
-    final long elapsedTimeMillis = System.currentTimeMillis() - startTime;
-    log.info("FINISHED creating genome " + genome.getBuildName());
-    log.info("Elapsed time (seconds): " + elapsedTimeMillis / 1000);
     }
 
-  public void applyMutations() throws IOException
+  public void applyMutations() throws IOException, ExecutionException, InterruptedException
     {
     log.info("Applying mutations to " + genome.getBuildName());
-    //if (applySM)
+    if (applySM)
       applySmallMutations();
-    //if (applySV)
+    if (applySV)
       applyStructuraVariations();
     }
 
-  /**
-   * Applies mutations first at the 1kb or less level then structural
-   *
-   * @throws IOException
-   */
-  protected void applySmallMutations() throws IOException
+  // Applies mutations first at the 1kb or less level then structural
+  private void applySmallMutations() throws IOException, InterruptedException, ExecutionException
     {
     log.info("Apply fragment level mutations.");
     smallMutationExcecutor = Executors.newFixedThreadPool(threads);
@@ -139,49 +125,36 @@ public class InsilicoGenome
 
     for (int i = 0; i < tasks.size(); i++)
       {
-      try
-        {
-        Future<Chromosome> f = taskPool.take();
-        Chromosome c = f.get();
-        // important to replace chromosome with one that will read it's recently created mutated FASTA file or else structural variations
-        // will be applied to the original FASTA and all small mutations will be lost.
-        Chromosome mc = new Chromosome(c.getName(), new File(genome.getGenomeDirectory(), "chr" + c.getName() + ".fa"));
-        genome.replaceChromosome(mc);
-        log.info("Small mutations finished on " + c.getName());
-        }
-      catch (InterruptedException e)
-        {
-        log.error(e);
-        }
-      catch (ExecutionException e)
-        {
-        log.error(e);
-        }
+      Future<Chromosome> f = taskPool.take();
+      Chromosome c = f.get();
+      // important to replace chromosome with one that will read it's recently created mutated FASTA file or else structural variations
+      // will be applied to the original FASTA and all small mutations will be lost.
+      Chromosome mc = new Chromosome(c.getName(), new File(genome.getGenomeDirectory(), "chr" + c.getName() + ".fa"));
+      genome.replaceChromosome(mc);
+      log.info("Small mutations finished on " + c.getName());
       }
     log.info("Small mutation step finished on " + tasks.size() + " chromosomes.");
     smallMutationExcecutor.shutdown();
     }
 
-  /**
-   * Applies the larger, or location-based variations (>1kb).
-   */
-  protected void applyStructuraVariations() throws IOException
+   // Applies the larger, or location-based variations (>1kb).
+  private void applyStructuraVariations() throws IOException, InterruptedException, ExecutionException
     {
     log.info("Apply SVs");
     structuralVariationExecutor = Executors.newFixedThreadPool(threads);
     CompletionService taskPool = new ExecutorCompletionService<String>(structuralVariationExecutor);
 
-    File tmpDir = new File(genomeProperties.getProperty("dir.tmp"), genome.getBuildName());
+    File tmpDir = new File(genomeProperties.getProperty("dir.tmp"), genome.getGenomeDirectory().getName());
+
     // FOR NOW ONLY: apply a large deletion to one chromosome.
     Chromosome chr = genome.getChromosome("19");
-    FASTAHeader header = new FASTAHeader("chromosome " + chr.getName(), "with structural variation", genome.getBuildName());
 
+    FASTAHeader header = new FASTAHeader("chromosome " + chr.getName(), "with structural variation", genome.getBuildName());
     FASTAWriter writer = new FASTAWriter(new File(tmpDir, "chr" + chr.getName() + ".fa"), header);
 
     // TODO  This whole bit will ultimately come from the database the same way small scale mutations do
     StructuralVariation cnvLoss = new CopyNumberLoss();
-    //cnvLoss.setLocation(26500001, 59128983); // should be entire q arm
-    cnvLoss.setLocation(10589, 211178); // this should be about half of the test chromosome
+    cnvLoss.setLocation(26500001, 59128983); // should be entire q arm
 
     List<StructuralVariation> svList = new ArrayList<StructuralVariation>(1);
     svList.add(cnvLoss);
@@ -194,58 +167,64 @@ public class InsilicoGenome
 
     for (int i = 0; i < tasks.size(); i++)
       {
-      try
-        {
-        Future<Chromosome> f = taskPool.take();
-        Chromosome mc = f.get();
-        log.info("SV finished for " + mc.getName());
-        // won't quite work this way when fully implemented since writers are not attached to chromosomes...but possibly they should be.
-        org.apache.commons.io.FileUtils.copyFileToDirectory(writer.getFASTAFile(), genomeDirectory);
-        org.apache.commons.io.FileUtils.deleteDirectory(tmpDir);
-        }
-      catch (InterruptedException e)
-        {
-        log.error(e);
-        }
-      catch (ExecutionException e)
-        {
-        log.error(e);
-        }
+      Future<Chromosome> f = taskPool.take();
+      Chromosome mc = f.get();
+      log.info("SV finished for " + mc.getName());
+      // won't quite work this way when fully implemented since writers are not attached to chromosomes...but possibly they should be.
+      org.apache.commons.io.FileUtils.copyFileToDirectory(writer.getFASTAFile(), genome.getGenomeDirectory());
+      org.apache.commons.io.FileUtils.copyFile(mc.getSVFile(), genome.getSVMutationDirectory());
       }
+    org.apache.commons.io.FileUtils.deleteDirectory(tmpDir);
+
     log.info("Structural variations step finished on " + tasks.size() + " chromosomes.");
 
-    org.apache.commons.io.FileUtils.copyDirectory(new File(tmpDir, "structural-variations"), genomeDirectory);
     structuralVariationExecutor.shutdown();
     }
 
-  // Create the directory where new genome fasta files will be written to
+  // Create the directory where all fasta and mutation files will write
   private void setupGenomeDirectory(String name, boolean overwrite) throws IOException
     {
-    genomeDirectory = new File(genomeProperties.getProperty("dir.insilico"), name);
+    File genomeDirectory = new File(genomeProperties.getProperty("dir.insilico"), name);
 
     if (genomeDirectory.exists() && overwrite)
       {
       log.warn("Overwriting " + genomeDirectory.getAbsolutePath());
-      for (File f : genomeDirectory.listFiles()) f.delete();
-      genomeDirectory.delete();
+      org.apache.commons.io.FileUtils.deleteDirectory(genomeDirectory);
       }
-    else if (genomeDirectory.exists() && !overwrite) throw new IOException(genomeDirectory + " exists, cannot overwrite");
-
-    log.debug(genomeDirectory.getAbsolutePath());
+    else if (genomeDirectory.exists() && !overwrite)
+      throw new IOException(genomeDirectory + " exists, cannot overwrite");
 
     genome.setGenomeDirectory(genomeDirectory);
     genome.setBuildName(name);
+
+    File mutWriterPath = new File(genomeDirectory, "mutations");
+    if (!mutWriterPath.exists() || !mutWriterPath.isDirectory()) mutWriterPath.mkdir();
+
+    File svWriterPath = new File(genomeDirectory, "structural-variations");
+    if (!svWriterPath.exists() || !svWriterPath.isDirectory()) svWriterPath.mkdir();
+
+    genome.setMutationDirectories(mutWriterPath, svWriterPath);
     }
 
+  // Adds chromosomes to the genome.  Either from the command line, or from the assembly directory
+  private void setupChromosomes(List<String> chromosomes) throws IOException
+    {
+    // Set up the chromosomes in the genome that will be mutated.
+    File fastaDir = new File(genomeProperties.getProperty("dir.assembly"));
+    if (chromosomes.size() > 0)
+      {
+      for (String c : chromosomes)
+        genome.addChromosome(new Chromosome(c, FileUtils.getFASTA(c, fastaDir)));
+      }
+    else
+      genome.addChromosomes(FileUtils.getChromosomesFromFASTA(fastaDir));
+    log.info("Reference genome has: " + genome.getChromosomes().length + " chromosomes");
+    }
 
-
-  /*
-  Variable initialization. Most of it is done in the Spring configuration files.
-   */
+  // Variable initialization. Most of it is done in the Spring configuration files.
   private void init()
     {
-    context = new ClassPathXmlApplicationContext(new String[]{"classpath*:spring-config.xml", "classpath*:/conf/genome.xml",
-        "classpath*:/conf/database-config.xml"});
+    context = new ClassPathXmlApplicationContext(new String[]{"classpath*:spring-config.xml", "classpath*:/conf/genome.xml", "classpath*:/conf/database-config.xml"});
 
     genome = (Genome) context.getBean("genome");
     genomeProperties = (Properties) context.getBean("genomeProperties");
@@ -259,6 +238,7 @@ public class InsilicoGenome
       }
     }
 
+  // exactly what it sounds like...
   private CommandLine parseCommandLine(String[] args)
     {
     Options options = new Options();
@@ -266,10 +246,10 @@ public class InsilicoGenome
     options.addOption("o", "overwrite", false, "Overwrite genome directory if name already exists. [false]");
     options.addOption("t", "threads", true, "Number of concurrent threads. Each thread handles a single chromosome. [5]");
     options.addOption("c", "chromosome", true, "List of chromosomes to use/mutate, comma-separated (e.g.  21,3," +
-                                               "X). If not included chromosomes will be determined by \n" + "the fasta files found in the" +
-                                               " dir.assembly directory (see genome.properties).");
+        "X). If not included chromosomes will be determined by \n" + "the fasta files found in the" +
+        " dir.assembly directory (see genome.properties).");
     options.addOption("s", "structural-variation", false, "Apply structural variations to genomes. [false]");
-    options.addOption("f", "fragment-variation", true, "Apply small scale (fragment) variation to genomes. [true]");
+    options.addOption("f", "fragment-variation", false, "Apply small scale (fragment) variation to genomes. [false]");
 
     options.addOption("h", "help", false, "print usage help");
 
@@ -279,9 +259,15 @@ public class InsilicoGenome
     try
       {
       cl = clp.parse(options, args);
+      HelpFormatter help = new HelpFormatter();
       if (cl.hasOption('h') || cl.hasOption("help"))
         {
-        HelpFormatter help = new HelpFormatter();
+        help.printHelp("<jar file>", options);
+        System.exit(0);
+        }
+      if (!cl.hasOption('s') && !cl.hasOption('f'))
+        {
+        System.out.println("One of the following options is required: -s or -f");
         help.printHelp("<jar file>", options);
         System.exit(0);
         }
@@ -295,9 +281,10 @@ public class InsilicoGenome
     for (Option opt : cl.getOptions())
       log.info("\t-" + opt.getLongOpt() + " '" + opt.getValue("true") + "'");
 
-    applySV = Boolean.getBoolean(cl.getOptionValue('s', "false"));
-    if ( cl.hasOption('f') || cl.hasOption("fragment-variation") )
-      applySM = Boolean.getBoolean(cl.getOptionValue('f'));
+    if (cl.hasOption('s'))
+      applySV = true;
+    if (cl.hasOption('f'))
+      applySM = true;
 
     return cl;
     }

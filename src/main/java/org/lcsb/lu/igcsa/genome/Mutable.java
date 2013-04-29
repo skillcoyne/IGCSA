@@ -26,6 +26,16 @@ public abstract class Mutable implements Callable<Chromosome>
     this.mutationWriter = mutationWriter;
     }
 
+  public MutationWriter getMutationWriter()
+    {
+    return mutationWriter;
+    }
+
+  public FASTAWriter getFASTAWriter()
+    {
+    return writer;
+    }
+
 
   @Override
   public abstract Chromosome call() throws Exception;

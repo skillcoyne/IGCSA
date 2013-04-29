@@ -20,9 +20,9 @@ public interface Genome
   public File getGenomeDirectory();
   public void setGenomeDirectory(File genomeDirectory);
 
-  public List<Variation> getVariantTypes();
-
-  public void setVariantTypes(List<Variation> variantTypes);
+  public File getSmallMutationDirectory();
+  public File getSVMutationDirectory();
+  public void setMutationDirectories(File smallMut, File svMut);
 
   public void addChromosomes(Chromosome[] chromosomes);
 

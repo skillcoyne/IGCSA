@@ -54,11 +54,6 @@
         <constructor-arg ref="testGCBinDAO"></constructor-arg>
         <constructor-arg ref="testFragmentDAO"></constructor-arg>
         <constructor-arg ref="testSizeDAO"></constructor-arg>
-        <property name="buildName">
-            <value>${assembly}</value>
-        </property>
-        <!-- Variation classes -->
-        <property name="variantTypes" ref="testVariantList"/>
     </bean>
 
 

@@ -51,6 +51,7 @@ public class StructuralMutable extends Mutable
   Especially as there will be cases where sequence translocates from one chromosome to another.
   Which may mean that the variation class needs to know about writing?? Not sure about that.
    */
+  // PROBLEM: Reading in big chunks of FASTA file means that java runs out of heap space.
   public Chromosome call()
     {
     log.info("Running structural mutations on " + chromosome.getName());
