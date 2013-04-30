@@ -82,6 +82,7 @@ module GFF
 
     :private
     def read(cols)
+			cols.map!{|e| e.strip }
       (@chr, @source, @method, sp, ep, @score, @strand, @phase, @attributes) = cols[0..8]
       @other = cols[9..cols.length]
       feature_attributes()
@@ -97,6 +98,8 @@ module GFF
       attr = {}
       @attributes.split(/;/).each { |a|
         (name, value) = a.split(/=/)
+
+        name = "validation" if name.downcase.match(/validation/)
 
         if name.downcase.match(/dbxref/)
           xref = value.split(/:/)

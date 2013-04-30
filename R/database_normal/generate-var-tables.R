@@ -1,0 +1,70 @@
+# POST ANALYSIS SCRIPT
+# This script generates the database table that provides counts of each variation per 1kb fragment of the genome.
+
+
+rm(list=ls())
+
+setwd("~/workspace/IGCSA/R")
+source("lib/gc_functions.R")
+
+dir = "~/Data"
+ens_dir = paste(dir,"/VariationNormal/Frequencies/1000/Ensembl", sep="")
+var_files = list.files(path=ens_dir, pattern="*.txt")
+
+gc_dir = paste(dir, "/VariationNormal/GC/1000", sep="")
+gc_files = list.files(path=gc_dir, pattern="*-gc.txt")
+
+outdir = "~/Analysis/Database"
+if (!file.exists(outdir)) dir.create(outdir, recursive=T)
+
+all_bins = data.frame()
+colnames(all_bins) = c('id', 'chr', 'bin_id', 'min', 'max', 'total_fragments')
+
+chr_table_names = vector("character")
+app=F; cols=T
+#var_files = c('chr1.txt')
+for (file in var_files)
+  {
+  chr = sub(".txt", "", file)
+  chrnum = sub("chr", "", chr)
+  #if (chr == 'chrX' | chr == 'chrY') next
+  print(chr)
+  # Variation & gc files
+  gc_f = paste(gc_dir, paste(chr, "-gc.txt", sep=""), sep="/")
+  var_f = paste(ens_dir, file, sep="/")
+
+  data = load.data(gc_f, var_f)
+  vd = data$vars; gd = data$gc
+  cg = cbind(vd, gd)
+
+  binsize=10; variations = c(1:7)
+  #if (length(chr_table_names) <=0) chr_table_names = c()
+  
+  size = round(max(cg[,'GC'])/binsize)
+  bins = data.frame(chr=rep(chrnum, binsize), bin_id=0, min=0, max=0, total_fragments=0)  
+  chr_rows = data.frame()
+  for(i in 1:binsize)
+    {
+    max=i*size; min=max-size; 
+    
+    rows = cg[ which(cg[,'GC'] >= min & cg[,'GC'] < max) , variations]
+    bins[i, 'bin_id'] = i; bins[i, 'total_fragments'] = nrow(rows)
+    bins[i, 'min'] = min; bins[i, 'max'] = max
+    rows[,'bin_id'] = i; rows[, 'chr'] = chrnum
+
+    # reorder the rows for output
+    rows = rows[, c(9,8,variations) ] 
+    chr_rows = rbind(chr_rows, rows)
+    }
+  all_bins = rbind(all_bins, bins)
+
+  filename = paste(chr, "txt", sep=".")
+  #rownames(chr_rows) = c(1:nrow(chr_rows)) # reset rownames in order to use them as table indecies in the output
+  write.table(chr_rows, file=paste(outdir, 'variations-table.txt', sep="/"), sep="\t", row.names=F, quote=F, col.names=cols, append=app)
+  
+  rm(data,vd,gd,cg)
+  app=T; cols=F
+  }
+
+write.table(all_bins, file=paste(outdir, "gc_bins.txt", sep="/"), quote=F, row.name=T, col.names=NA, sep="\t")
+
