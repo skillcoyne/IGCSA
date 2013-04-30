@@ -8,7 +8,7 @@ fileout = args[2]
 chrinfofile = args[3]
 #window = as.numeric(args[3])
 
-filein = "~/Data/Ensembl/Variation/chromosomes/chr19.txt"
+#filein = "~/Data/Ensembl/Variation/chromosomes/chr19.txt"
 window = 1000
 
 print(paste("File in (should be from the ruby read_variations.rb script:", filein))
