@@ -8,13 +8,13 @@ setwd("~/workspace/IGCSA/R")
 source("lib/gc_functions.R")
 
 dir = "~/Data"
-ens_dir = paste(dir,"/VariationNormal/Frequencies/1000/Ensembl", sep="")
+ens_dir = "~/Data/VariationNormal/Frequencies/1000/Ensembl"
 var_files = list.files(path=ens_dir, pattern="*.txt")
 
-gc_dir = paste(dir, "/VariationNormal/GC/1000", sep="")
+gc_dir = "~/Data/VariationNormal/GC/1000"
 gc_files = list.files(path=gc_dir, pattern="*-gc.txt")
 
-outdir = "~/Analysis/Database"
+outdir = "~/Analysis/Database/normal"
 if (!file.exists(outdir)) dir.create(outdir, recursive=T)
 
 all_bins = data.frame()
@@ -22,7 +22,7 @@ colnames(all_bins) = c('id', 'chr', 'bin_id', 'min', 'max', 'total_fragments')
 
 chr_table_names = vector("character")
 app=F; cols=T
-#var_files = c('chr1.txt')
+file = 'chr10.txt'
 for (file in var_files)
   {
   chr = sub(".txt", "", file)
@@ -37,7 +37,9 @@ for (file in var_files)
   vd = data$vars; gd = data$gc
   cg = cbind(vd, gd)
 
-  binsize=10; variations = c(1:7)
+  last_var = which( colnames(cg) == 'GC' ) - 1
+  
+  binsize=10; variations = c(1:last_var)
   #if (length(chr_table_names) <=0) chr_table_names = c()
   
   size = round(max(cg[,'GC'])/binsize)
@@ -52,8 +54,8 @@ for (file in var_files)
     bins[i, 'min'] = min; bins[i, 'max'] = max
     rows[,'bin_id'] = i; rows[, 'chr'] = chrnum
 
-    # reorder the rows for output
-    rows = rows[, c(9,8,variations) ] 
+    # reorder the rows for output: chr, bin_id, [variations]
+    rows = rows[, c(length(rows), length(rows)-1,variations) ] 
     chr_rows = rbind(chr_rows, rows)
     }
   all_bins = rbind(all_bins, bins)

@@ -53,7 +53,7 @@ load.cpg<-function(cpgfile, cpgI.only=T)
 load.data<-function(gcfile, varfile)
   {
   gd = read.table(gcfile, header=T, sep="\t")
-  vd = read.table(varfile, header=T, sep="\t")
+  vd = read.table(varfile, header=T, sep="\t", row.names=1)
   
   # Get ratios for each bin  
   gd$UnkRatio = gd$Unk/gd$BPs

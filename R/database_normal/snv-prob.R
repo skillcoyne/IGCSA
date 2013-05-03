@@ -53,8 +53,8 @@ snv.vector<-function()
   return(vector(mode="numeric", length=4))
   }
 
-data_dir =  "~/Data/Ensembl/Variation/hapmap/chromosomes"
-outfile = "~/Analysis/Database/normal/hapmap/snv_table.txt"
+data_dir =  "~/Data/Ensembl/Variation/chromosomes"
+outfile = "~/Analysis/Database/normal/snv_table.txt"
 
 files = list.files(path=data_dir, pattern=".txt")  
 

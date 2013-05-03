@@ -4,20 +4,28 @@
 
 
 rm(list = ls())
-data_dir =  "~/Data/Ensembl/Variation/hapmap/chromosomes"
-files = list.files(path=data_dir, pattern=".txt")  
+data_dir =  "~/Data/Ensembl/chromosomes"
+files = list.files(path=data_dir, pattern="chr*")  
 
-out_dir = "~/Analysis/Database/normal/hapmap"
+out_dir = "~/Analysis/Database/normal"
 
 maxbp = c(10,seq(100,1000,100))
 
-variations= c(
-  "sequence_alteration",
-  "insertion",
-  "deletion",
-  "tandem_repeat"
-  )
-
+variation_rdata = paste(out_dir, "vars.Rdata", sep="/")
+if ( !file.exists(variation_rdata) ) 
+  { 
+  variations = vector(mode="character")
+  for (f in files)
+    {
+    filein = paste(data_dir, f, sep="/")
+    d = read.table(filein, header=T, sep="\t")
+    chr = as.character(d[1,1]);
+    variations = c(variations, as.vector(unique(d$var.type)))
+    variations = unique(variations)
+    }
+  save(variations, file=variation_rdata)
+  }
+load(variation_rdata) 
 
 size = as.data.frame(matrix(0, ncol=length(variations), nrow=length(maxbp), dimnames=list(maxbp, variations)))
 for (f in files)
@@ -50,7 +58,6 @@ for (var in colnames(size))
   {
   size[[var]] = size[[var]]/sum(size[[var]], na.rm=T)
   size[[var]] = round(size[[var]], 4)
-
 
   if (sum(size[[var]], na.rm=T) > 1)  size[1,var] = size[1,var] + (1-sum(size[[var]], na.rm=T))
   if (sum(size[[var]], na.rm=T) < 1)  size[1,var] = size[1,var] + (1-sum(size[[var]], na.rm=T))
