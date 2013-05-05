@@ -65,6 +65,7 @@ cntT = snv.vector()
 
 for (f in files)
   {
+  if (f == "chrY.txt" || f == "chrX.txt") next
   print(f)
   filein = paste(data_dir, f, sep="/")
   d = read.table(filein, header=T, sep="\t")
