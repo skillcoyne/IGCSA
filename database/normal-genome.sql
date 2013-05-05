@@ -1,7 +1,7 @@
-drop database if exists `normal_genome_variation`;
-create database `normal_genome_variation`;
+drop database if exists `normal_variation`;
+create database `normal_variation`;
 
-use `normal_genome_variation`;
+use `normal_variation`;
 
 create table `gc_bins` (
   `id` int(11) not null auto_increment,
@@ -14,33 +14,6 @@ create table `gc_bins` (
   index binindex (`chr`, `bin_id`)
 );
 
-create table `variations` (
-  `chr` varchar(12) not null,
-  `bin_id` int(11) not null,
-  `SNV` int(11) not null,
-  `deletion` int(11) not null,
-  `indel` int(11) not null,
-  `insertion` int(11) not null,
-  `sequence_alteration` int(11) not null,
-  `substitution` int(11) not null,
-  `tandem_repeat` int(11) not null,
-  `id` int(11) not null auto_increment,
-  primary key(`id`),
-  index varindex (`chr`, `bin_id`)
-);
-
-create table `variation_size_prob` (
-  `maxbp` int(11) not null,
-  `deletion` decimal(5,4) not null,
-  `indel` decimal(5,4) not null,
-  `insertion` decimal(5,4) not null,
-  `sequence_alteration` decimal(5,4) not null,
-  `substitution` decimal(5,4) not null,
-  `tandem_repeat` decimal(5,4) not null,
-  `id` int(11) not null auto_increment,
-  primary key(`id`)
-);
-
 create table `snv_prob` (
   `nucleotide` ENUM('A', 'C', 'G', 'T') not null,
   `prob_A` decimal(5,2) not null,
@@ -50,13 +23,35 @@ create table `snv_prob` (
   primary key(`nucleotide`)
 );
 
+create table `variation` (
+  `id` int(11) not null auto_increment,
+  `name` varchar(112) not null,
+  `class` varchar(224) not null,
+  primary key(`id`)
+);
 
+create table `variation_per_bin` (
+  `chr` varchar(12) not null,
+  `bin_id` int(11) not null,
+  `variation_id` int(11) not null,
+  `count` int(24) not null,
+  index vp_index(`chr`, `bin_id`, `variation_id`)
+);
 
+create table `variation_size_prob` (
+  `maxbp` int(11) not null,
+  `variation_id` int(11) not null,
+  `id` int(11) not null auto_increment,
+  primary key(`id`)
+);
 
-## load data local infile 'gc_bins.txt' into table normal_genome_variation.gc_bins ignore 1 lines;
+## load data local infile 'gc_bins.txt' into table normal_variation.gc_bins ignore 1 lines;
 
-## load data local infile 'variations-table.txt' into table normal_genome_variation.variations ignore 1 lines;
+## load data local infile 'variation.txt' into table normal_variation.variation;
 
-## load data local infile 'variation-size-table.txt' into table normal_genome_variation.variation_size_prob ignore 1 lines;
+## load data local infile 'variation_size_prob.txt' into table normal_variation.variation_size_prob ignore 1 lines;
 
-## load data local infile 'snv_table.txt' into table normal_genome_variation.snv_prob;
+## load data local infile 'snv_table.txt' into table normal_variation.snv_prob;
+
+## load data local infile 'variation_per_bin.txt' into table normal_variation.variation_per_bin ignore 1 lines;
+
