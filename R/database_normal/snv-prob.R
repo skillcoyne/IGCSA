@@ -53,10 +53,10 @@ snv.vector<-function()
   return(vector(mode="numeric", length=4))
   }
 
-data_dir =  "~/Data/Ensembl/Variation/chromosomes"
-outfile = "~/Analysis/Database/normal/snv_table.txt"
+data_dir =  "~/Data/Ensembl/chromosomes"
+files = list.files(path=data_dir, pattern="chr*")  
 
-files = list.files(path=data_dir, pattern=".txt")  
+outfile = "~/Analysis/Database/normal/snv_table.txt"
 
 cntA = snv.vector()
 cntC = snv.vector()
@@ -71,11 +71,11 @@ for (f in files)
   chr = as.character(d[1,1]);
   print(nrow(d))
   
-  cntA = cntA + count.snv(d[ d$var.type == 'SNV', ], 'A')
-  cntC = cntC + count.snv(d[ d$var.type == 'SNV', ], 'C')
-  cntG = cntG + count.snv(d[ d$var.type == 'SNV', ], 'G')
-  cntT = cntT + count.snv(d[ d$var.type == 'SNV', ], 'T')
-
+  cntA = colSums(rbind(cntA, count.snv(d[ d$var.type == 'SNV', ], 'A')))
+  cntC = colSums(rbind(cntC, count.snv(d[ d$var.type == 'SNV', ], 'C')))
+  cntG = colSums(rbind(cntG, count.snv(d[ d$var.type == 'SNV', ], 'G')))
+  cntT = colSums(rbind(cntT, count.snv(d[ d$var.type == 'SNV', ], 'T')))
+  
   rm(d)
   }
 

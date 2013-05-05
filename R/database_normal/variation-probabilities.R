@@ -65,7 +65,18 @@ for (var in colnames(size))
 
 size[ is.na(size) ] = 0
 
+db_size_table = data.frame()
+maxbp = rownames(size)
+for (i in 1:length(variations))
+  {
+  var = variations[i]
+  if (var == 'SNV') next  
+  print(size[,var])
+  db_size_table = rbind(db_size_table,  cbind(rownames(size), rep(i, nrow(size)), size[,var] ) )
+  }
+colnames(db_size_table) = c('maxbp', 'variation_id', 'frequency')
 
-write.table(size, quote=F, sep="\t", col.names=NA, row.names=T)
-write.table(size, file=paste(out_dir, "variation-size-table.txt", sep="/"), quote=F, sep="\t", col.names=NA, row.names=T)
+write.table(variations, file=paste(out_dir, "variation.txt", sep="/"), quote=F, row.names=T, col.names=F)
+write.table(db_size_table, file=paste(out_dir, "variation_size_prob.txt", sep="/"), quote=F, row.names=F, col.names=T, sep="\t")
+
 

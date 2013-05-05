@@ -17,17 +17,23 @@ gc_files = list.files(path=gc_dir, pattern="*-gc.txt")
 outdir = "~/Analysis/Database/normal"
 if (!file.exists(outdir)) dir.create(outdir, recursive=T)
 
-all_bins = data.frame()
-colnames(all_bins) = c('id', 'chr', 'bin_id', 'min', 'max', 'total_fragments')
+if (!file.exists(paste(outdir, "variation.txt", sep="/"))) 
+  {
+  print("Run the variation-probabilities.R script first to generate the variations table.")
+  exit(-1)
+  }
+variations = read.table(paste(outdir, "variation.txt", sep="/"), header=F, row.names=1)
 
+
+gc_bins = data.frame()
 chr_table_names = vector("character")
 app=F; cols=T
-file = 'chr10.txt'
+#file = 'chr10.txt'
 for (file in var_files)
   {
   chr = sub(".txt", "", file)
   chrnum = sub("chr", "", chr)
-  #if (chr == 'chrX' | chr == 'chrY') next
+  if (chr == 'chrX' | chr == 'chrY') next
   print(chr)
   # Variation & gc files
   gc_f = paste(gc_dir, paste(chr, "-gc.txt", sep=""), sep="/")
@@ -39,7 +45,7 @@ for (file in var_files)
 
   last_var = which( colnames(cg) == 'GC' ) - 1
   
-  binsize=10; variations = c(1:last_var)
+  binsize=10; chr_vars = c(1:last_var)
   #if (length(chr_table_names) <=0) chr_table_names = c()
   
   size = round(max(cg[,'GC'])/binsize)
@@ -49,24 +55,29 @@ for (file in var_files)
     {
     max=i*size; min=max-size; 
     
-    rows = cg[ which(cg[,'GC'] >= min & cg[,'GC'] < max) , variations]
+    rows = cg[ which(cg[,'GC'] >= min & cg[,'GC'] < max) , chr_vars]
     bins[i, 'bin_id'] = i; bins[i, 'total_fragments'] = nrow(rows)
     bins[i, 'min'] = min; bins[i, 'max'] = max
     rows[,'bin_id'] = i; rows[, 'chr'] = chrnum
-
     # reorder the rows for output: chr, bin_id, [variations]
-    rows = rows[, c(length(rows), length(rows)-1,variations) ] 
-    chr_rows = rbind(chr_rows, rows)
+    #rows = rows[, c(length(rows), length(rows)-1,chr_vars) ] 
+    for (var in colnames(rows[,chr_vars]))
+      {
+      var_id = which(variations == var)
+      chr_rows = rbind(chr_rows, cbind(rows[,c(length(rows), length(rows)-1)], rep(var_id, nrow(rows)), rows[, var] ) )
+      }
     }
-  all_bins = rbind(all_bins, bins)
+  colnames(chr_rows) = c('chr', 'bin_id', 'variation_id', 'count')
+  gc_bins = rbind(gc_bins, bins)
 
   filename = paste(chr, "txt", sep=".")
+  
   #rownames(chr_rows) = c(1:nrow(chr_rows)) # reset rownames in order to use them as table indecies in the output
-  write.table(chr_rows, file=paste(outdir, 'variations-table.txt', sep="/"), sep="\t", row.names=F, quote=F, col.names=cols, append=app)
+  write.table(chr_rows, file=paste(outdir, 'variation_per_bin.txt', sep="/"), sep="\t", row.names=F, quote=F, col.names=cols, append=app)
   
   rm(data,vd,gd,cg)
   app=T; cols=F
   }
-
-write.table(all_bins, file=paste(outdir, "gc_bins.txt", sep="/"), quote=F, row.name=T, col.names=NA, sep="\t")
+#colnames(gc_bins) = c('id', 'chr', 'bin_id', 'min', 'max', 'total_fragments')
+write.table(gc_bins, file=paste(outdir, "gc_bins.txt", sep="/"), quote=F, row.name=T, col.names=NA, sep="\t")
 
