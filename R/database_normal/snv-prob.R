@@ -53,8 +53,14 @@ snv.vector<-function()
   return(vector(mode="numeric", length=4))
   }
 
-data_dir =  "~/Data/Ensembl/chromosomes"
+data_dir =  "~/Data/Ensembl/Variation/chromosomes"
 files = list.files(path=data_dir, pattern="chr*")  
+
+if (length(files) <= 0) 
+  {
+  print("No files in data directory")
+  exit(-1)
+  }
 
 outfile = "~/Analysis/Database/normal/snv_table.txt"
 

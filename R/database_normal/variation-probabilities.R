@@ -4,7 +4,7 @@
 
 
 rm(list = ls())
-data_dir =  "~/Data/Ensembl/chromosomes"
+data_dir =  "~/Data/Ensembl/Variation/chromosomes"
 files = list.files(path=data_dir, pattern="chr*")  
 
 out_dir = "~/Analysis/Database/normal"
@@ -15,6 +15,7 @@ variation_rdata = paste(out_dir, "vars.Rdata", sep="/")
 if ( !file.exists(variation_rdata) ) 
   { 
   variations = vector(mode="character")
+  print("Getting variation names")
   for (f in files)
     {
     filein = paste(data_dir, f, sep="/")
