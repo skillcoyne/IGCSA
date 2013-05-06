@@ -4,16 +4,16 @@ import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.normal.SizeDAO;
 import org.lcsb.lu.igcsa.prob.Frequency;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * org.lcsb.lu.igcsa.database.normal
@@ -26,79 +26,69 @@ public class JDBCSizeDAO implements SizeDAO
   static Logger log = Logger.getLogger(JDBCSizeDAO.class.getName());
 
   private JdbcTemplate jdbcTemplate;
-  private DataSource dataSource;
-  private String tableName;
+  private String tableName = "variation_size_prob";
 
-  public DataSource getDataSource()
-    {
-    return dataSource;
-    }
+  private List<String> variations = new ArrayList<String>();
 
   public void setDataSource(DataSource dataSource)
     {
-    this.dataSource = dataSource;
-    //jdbcTemplate = new JdbcTemplate(dataSource);
-    }
-
-  public String getTableName()
-    {
-    return tableName;
-    }
-
-  public void setTableName(String tableName)
-    {
-    this.tableName = tableName;
+    jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
 
   public Map<String, Frequency> getAll() throws ProbabilityException
     {
-    String[] variations = new String[]{"deletion", "indel", "insertion", "sequence_alteration", "substitution", "tandem_repeat"};
     Map<String, Frequency> frequencyMap = new HashMap<String, Frequency>();
+    if (variations.size() <= 0)
+      getVariations();
+
     for (String var : variations)
       frequencyMap.put(var, this.getByVariation(var));
     return frequencyMap;
     }
 
+
   public Frequency getByVariation(String variation) throws ProbabilityException
     {
-    log.debug("******* Get by variation " + variation);
-    String sql = "SELECT maxbp, " + variation + " FROM " + this.tableName;
+    String sql = "SELECT vs.maxbp, vs.frequency " +
+        "FROM " + this.tableName + " vs INNER JOIN variation v ON vs.variation_id = v.id WHERE v.name = ?";
 
-    Connection conn = null;
-    try
+    Map<Object, Double> frequencies = (Map<Object, Double>) jdbcTemplate.query(sql, new Object[]{variation}, new ResultSetExtractor<Object>()
       {
-      conn = dataSource.getConnection();
-      PreparedStatement ps = conn.prepareStatement(sql);
-      ResultSet rs = ps.executeQuery();
-
-      Map<Object, Double> probs = new TreeMap<Object, Double>();
-
-      while (rs.next())
-        probs.put(rs.getInt("maxbp"), rs.getDouble(variation));
-
-      rs.close();
-      ps.close();
-      return new Frequency(probs);
-      }
-    catch (SQLException e)
-      {
-      throw new RuntimeException(e);
-      }
-    finally
-      {
-      if (conn != null)
+      public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
         {
-        try
+        Map<Object, Double> probs = new TreeMap<Object, Double>();
+
+        while (resultSet.next())
           {
-          conn.close();
+          probs.put(resultSet.getInt("maxbp"), resultSet.getDouble("frequency"));
           }
-        catch (SQLException e)
-          {
-          log.warn(e.getMessage());
-          }
+        return probs;
         }
-      }
+      });
+
+    return new Frequency(frequencies, 10000);
     }
+
+  private void getVariations()
+    {
+    String sql = "SELECT vs.maxbp, vs.frequency, v.name, v.class " +
+        "FROM " + this.tableName + " vs " +
+        "INNER JOIN variation v " +
+        "ON vs.variation_id = v.id ORDER BY v.name";
+
+    jdbcTemplate.query(sql, new ResultSetExtractor<Object>()
+    {
+    public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
+      {
+      while (resultSet.next())
+        {
+        variations.add(resultSet.getString("name"));
+        }
+      return null;
+      }
+    });
+    }
+
 
   }

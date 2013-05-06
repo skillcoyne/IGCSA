@@ -1,46 +1,41 @@
-package org.lcsb.lu.igcsa.database;
+package org.lcsb.lu.igcsa.utils;
 
+import org.apache.log4j.Logger;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.lcsb.lu.igcsa.database.normal.SNVProbabilityDAO;
 import org.lcsb.lu.igcsa.database.normal.SizeDAO;
-
-import org.lcsb.lu.igcsa.prob.Frequency;
+import org.lcsb.lu.igcsa.database.normal.VariationDAO;
+import org.lcsb.lu.igcsa.variation.fragment.Variation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.Map;
+import java.util.List;
 
 import static org.junit.Assert.*;
-
 /**
- * org.lcsb.lu.igcsa.database
+ * org.lcsb.lu.igcsa.utils
  * Author: sarah.killcoyne
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-
 @RunWith (SpringJUnit4ClassRunner.class)
 @ContextConfiguration (locations={"classpath:test-spring-config.xml"})
-public class JDBCSizeDAOTest
+public class VariantUtilsTest
   {
-
   @Autowired
-  private SizeDAO testSizeDAO;
+  private VariantUtils testVariantUtil;
 
   @Test
-  public void testGetByVariation() throws Exception
+  public void testGetVariantList() throws Exception
     {
-    Frequency frequency = testSizeDAO.getByVariation("deletion");
-    assertNotNull(frequency);
-    assertEquals(frequency.getProbabilities().size(), 2);
-    }
+    assertNotNull(testVariantUtil);
 
-  @Test
-  public void getAll() throws Exception
-    {
-    Map<String, Frequency> freq = testSizeDAO.getAll();
-    assertEquals(freq.size(), 5);
-    assertNotNull(freq.get("insertion"));
+    List<Variation> variationList = testVariantUtil.getVariantList("5");
+    assertNotNull(variationList);
+    assertEquals(variationList.size(), 3);
     }
   }

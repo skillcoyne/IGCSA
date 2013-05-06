@@ -1,10 +1,13 @@
 package org.lcsb.lu.igcsa.variation;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.lcsb.lu.igcsa.database.normal.Fragment;
+import org.lcsb.lu.igcsa.database.normal.SNVProbabilityDAO;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.genome.DNASequence;
+import org.lcsb.lu.igcsa.utils.VariantUtils;
 import org.lcsb.lu.igcsa.variation.fragment.SNV;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -26,15 +29,26 @@ import static org.junit.Assert.*;
 public class SNVTest
     {
     @Autowired
-    private SNV testSNV;
+    private SNVProbabilityDAO testSNVDAO;
 
+    private SNV testSNV;
     private char[] sequence = "ACTGCTTAGCG".toCharArray();
+
+    @Before
+    public void setup() throws Exception
+      {
+      testSNV = new SNV();
+      testSNV.setSnvFrequencies(testSNVDAO.getAll());
+      }
+
+
 
     @Test
     public void testMutate() throws Exception
       {
       Fragment fragment = new Fragment();
-      fragment.setSNV(3);
+      fragment.setVariation("SNV");
+      fragment.setCount(3);
 
       testSNV.setMutationFragment(fragment);
 

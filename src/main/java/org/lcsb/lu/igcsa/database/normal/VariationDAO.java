@@ -1,7 +1,6 @@
 package org.lcsb.lu.igcsa.database.normal;
 
-import org.lcsb.lu.igcsa.prob.Frequency;
-import org.lcsb.lu.igcsa.prob.ProbabilityException;
+import org.apache.log4j.Logger;
 
 import java.util.Map;
 
@@ -11,11 +10,11 @@ import java.util.Map;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public interface SNVProbabilityDAO
+public interface VariationDAO
   {
 
-  public Frequency getByNucleotide(String nucleotide) throws ProbabilityException;
+  public Variations getVariations();
 
-  public Map<Character, Frequency> getAll() throws ProbabilityException;
+  public Map<String, Class> getVariationsByChromosome(String chr);
 
   }

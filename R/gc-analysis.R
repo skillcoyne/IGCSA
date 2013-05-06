@@ -8,10 +8,10 @@ rm(list=ls())
 source("lib/gc_functions.R")
 
 dir = "~/Data"
-ens_dir = paste(dir,"/VariationNormal/Frequencies/1000/Ensembl", sep="")
+ens_dir = "~/Data/VariationNormal/Frequencies/1000/Ensembl"
 var_files = list.files(path=ens_dir, pattern="*.txt")
 
-gc_dir = paste(dir, "/VariationNormal/GC/1000", sep="")
+gc_dir = "~/Data/VariationNormal/GC/1000"
 gc_files = list.files(path=gc_dir, pattern="*-gc.txt")
 
 

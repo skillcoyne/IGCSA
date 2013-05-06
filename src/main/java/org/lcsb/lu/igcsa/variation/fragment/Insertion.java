@@ -23,7 +23,7 @@ public class Insertion extends Variation
 
   public DNASequence mutateSequence(String sequence)
     {
-    int count = this.fragment.getInsertion();
+    int count = this.fragment.getCount();
     lastMutations = new LinkedHashMap<Location, DNASequence>();
 
     log.debug(sequence.length() + " expected count " + count);

@@ -7,7 +7,6 @@ rm(list=ls())
 setwd("~/workspace/IGCSA/R")
 source("lib/gc_functions.R")
 
-dir = "~/Data"
 ens_dir = "~/Data/VariationNormal/Frequencies/1000/Ensembl"
 var_files = list.files(path=ens_dir, pattern="*.txt")
 
@@ -33,7 +32,7 @@ for (file in var_files)
   {
   chr = sub(".txt", "", file)
   chrnum = sub("chr", "", chr)
-  if (chr == 'chrX' | chr == 'chrY') next
+  #if (chr == 'chrX' | chr == 'chrY') next
   print(chr)
   # Variation & gc files
   gc_f = paste(gc_dir, paste(chr, "-gc.txt", sep=""), sep="/")
@@ -71,8 +70,6 @@ for (file in var_files)
   gc_bins = rbind(gc_bins, bins)
 
   filename = paste(chr, "txt", sep=".")
-  
-  #rownames(chr_rows) = c(1:nrow(chr_rows)) # reset rownames in order to use them as table indecies in the output
   write.table(chr_rows, file=paste(outdir, 'variation_per_bin.txt', sep="/"), sep="\t", row.names=F, quote=F, col.names=cols, append=app)
   
   rm(data,vd,gd,cg)

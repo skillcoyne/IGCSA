@@ -4,56 +4,16 @@
        xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-    <bean id="testSNV" class="org.lcsb.lu.igcsa.variation.fragment.SNV">
-        <constructor-arg>
-            <map key-type="java.lang.Character">
-                <entry key="A" value="#{testSNVDAO.getByNucleotide('A')}"/>
-                <entry key="C" value="#{testSNVDAO.getByNucleotide('C')}"/>
-                <entry key="T" value="#{testSNVDAO.getByNucleotide('T')}"/>
-                <entry key="G" value="#{testSNVDAO.getByNucleotide('G')}"/>
-            </map>
-        </constructor-arg>
-        <property name="variationName" value="SNV"/>
-    </bean>
-
-    <bean id="testVariantList" class="java.util.ArrayList">
-        <constructor-arg>
-            <list>
-                <bean id="Deletion" class="org.lcsb.lu.igcsa.variation.fragment.Deletion">
-                    <property name="variationName" value="deletion"/>
-                    <property name="sizeVariation" value="#{testSizeDAO.getByVariation('deletion')}"/>
-                </bean>
-                <bean id="Insertion" class="org.lcsb.lu.igcsa.variation.fragment.Insertion">
-                    <property name="variationName" value="insertion"/>
-                    <property name="sizeVariation" value="#{testSizeDAO.getByVariation('insertion')}"/>
-                </bean>
-                <ref bean="testSNV"/>
-            </list>
-        </constructor-arg>
-    </bean>
-
-    <bean id="testStructuralVariants" class="java.util.ArrayList">
-        <constructor-arg>
-            <list>
-                <bean id="CNL" class="org.lcsb.lu.igcsa.variation.structural.LargeDeletion">
-                    <property name="variationName" value="copy_number_loss"/>
-                    <property name="location">
-                        <bean id="location" class="org.lcsb.lu.igcsa.genome.Location">
-                            <constructor-arg value="497"/>
-                            <constructor-arg value="532"/>
-                        </bean>
-                    </property>
-                </bean>
-            </list>
-        </constructor-arg>
-    </bean>
-
-
     <!-- Reference Genome creation -->
     <bean id="testGenome" class="org.lcsb.lu.igcsa.genome.MutableGenome">
-        <constructor-arg ref="testGCBinDAO"></constructor-arg>
-        <constructor-arg ref="testFragmentDAO"></constructor-arg>
-        <constructor-arg ref="testSizeDAO"></constructor-arg>
+        <constructor-arg ref="testGCBinDAO" />
+        <constructor-arg ref="testFragmentDAO" />
+    </bean>
+
+    <bean id="testVariantUtil" class="org.lcsb.lu.igcsa.utils.VariantUtils">
+        <constructor-arg ref="testVariationDAO" />
+        <constructor-arg ref="testSizeDAO" />
+        <constructor-arg ref="testSNVDAO"/>
     </bean>
 
 

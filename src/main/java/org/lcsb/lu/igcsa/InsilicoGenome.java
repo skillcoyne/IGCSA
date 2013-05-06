@@ -8,11 +8,14 @@ import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.Genome;
+import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.lcsb.lu.igcsa.utils.FileUtils;
 
+import org.lcsb.lu.igcsa.utils.VariantUtils;
 import org.lcsb.lu.igcsa.variation.fragment.Variation;
 import org.lcsb.lu.igcsa.variation.structural.LargeDeletion;
 import org.lcsb.lu.igcsa.variation.structural.StructuralVariation;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -31,6 +34,8 @@ import java.util.concurrent.*;
 public class InsilicoGenome
   {
   static Logger log = Logger.getLogger(InsilicoGenome.class.getName());
+
+  public static VariantUtils variantUtils;
 
   protected Properties genomeProperties;
   protected Genome genome;
@@ -116,7 +121,9 @@ public class InsilicoGenome
       log.debug(chr.getName());
       FASTAHeader header = new FASTAHeader("chromosome " + chr.getName(), "fragment level mutations", genome.getBuildName());
       FASTAWriter writer = new FASTAWriter(new File(genome.getGenomeDirectory(), "chr" + chr.getName() + ".fa"), header);
-      chr.setVariantList((List<Variation>) context.getBean("variantList"));
+
+      if (chr.getVariantList().size() <= 0) // this should never happen but...
+        throw new RuntimeException("Missing variant list in chromosome " + chr.getName());
 
       Future<Chromosome> mutationF = taskPool.submit(genome.mutate(chr, windowSize, writer));
       tasks.add(mutationF);
@@ -206,14 +213,18 @@ public class InsilicoGenome
     }
 
   // Adds chromosomes to the genome.  Either from the command line, or from the assembly directory
-  private void setupChromosomes(List<String> chromosomes) throws IOException
+  private void setupChromosomes(List<String> chromosomes) throws IOException, ProbabilityException, InstantiationException, IllegalAccessException
     {
     // Set up the chromosomes in the genome that will be mutated.
     File fastaDir = new File(genomeProperties.getProperty("dir.assembly"));
     if (chromosomes.size() > 0)
       {
       for (String c : chromosomes)
-        genome.addChromosome(new Chromosome(c, FileUtils.getFASTA(c, fastaDir)));
+        {
+        Chromosome chromosome = new Chromosome(c, FileUtils.getFASTA(c, fastaDir));
+        chromosome.setVariantList(variantUtils.getVariantList(chromosome.getName()));
+        genome.addChromosome(chromosome);
+        }
       }
     else
       genome.addChromosomes(FileUtils.getChromosomesFromFASTA(fastaDir));
@@ -225,7 +236,9 @@ public class InsilicoGenome
     {
     context = new ClassPathXmlApplicationContext(new String[]{"classpath*:spring-config.xml", "classpath*:/conf/genome.xml", "classpath*:/conf/database-config.xml"});
 
+    // be nice to autowire this so I don't have to make calls into Spring but not important for now
     genome = (Genome) context.getBean("genome");
+    variantUtils = (VariantUtils) context.getBean("variantUtils");
     genomeProperties = (Properties) context.getBean("genomeProperties");
 
     if (!genomeProperties.containsKey("dir.insilico") ||
@@ -235,6 +248,7 @@ public class InsilicoGenome
       log.error("One of the directory definitions (dir.insilico, dir.assembly, dir.tmp) are missing from the properties file. Aborting.");
       System.exit(-1);
       }
+
     }
 
   // exactly what it sounds like...
@@ -247,8 +261,8 @@ public class InsilicoGenome
     options.addOption("c", "chromosome", true, "List of chromosomes to use/mutate, comma-separated (e.g.  21,3," +
         "X). If not included chromosomes will be determined by \n" + "the fasta files found in the" +
         " dir.assembly directory (see genome.properties).");
-    options.addOption("s", "structural-variation", false, "Apply structural variations to genomes. [false]");
-    options.addOption("f", "fragment-variation", false, "Apply small scale (fragment) variation to genomes. [false]");
+    options.addOption("s", "structural-variation", false, "Apply structural variations to genome. [false]");
+    options.addOption("f", "fragment-variation", false, "Apply small scale (fragment) variation to genome. [false]");
 
     options.addOption("h", "help", false, "print usage help");
 
@@ -266,7 +280,7 @@ public class InsilicoGenome
         }
       if (!cl.hasOption('s') && !cl.hasOption('f'))
         {
-        System.out.println("One of the following options is required: -s or -f");
+        System.out.println("One of the following (or both) options is required: -s or -f");
         help.printHelp("<jar file>", options);
         System.exit(0);
         }

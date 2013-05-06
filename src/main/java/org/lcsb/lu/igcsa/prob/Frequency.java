@@ -80,7 +80,7 @@ public class Frequency
 
   private double round(double p)
     {
-    return Math.round(p*rounder)/rounder;
+    return (double) Math.round(p*rounder)/rounder;
     }
 
   private void init(Map<Object, Double> probabilities) throws ProbabilityException

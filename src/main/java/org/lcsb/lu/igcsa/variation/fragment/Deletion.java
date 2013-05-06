@@ -20,7 +20,7 @@ public class Deletion extends Variation
 
   public DNASequence mutateSequence(String sequence)
     {
-    int count = this.fragment.getDeletion();
+    int count = this.fragment.getCount();
 
     lastMutations = new LinkedHashMap<Location, DNASequence>();
 

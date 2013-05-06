@@ -1,5 +1,7 @@
 package org.lcsb.lu.igcsa.database.normal;
 
+import java.util.List;
+
 /**
  * org.lcsb.lu.igcsa.database
  * Author: sarah.killcoyne
@@ -8,7 +10,10 @@ package org.lcsb.lu.igcsa.database.normal;
  */
 public interface FragmentVariationDAO
   {
+  public Fragment getVariationFragment(String chr, int binId, String variation, int fragmentNum);
 
-  public Fragment getFragment(String chr, int binId, int fragmentNum);
+  public Integer getVariationCount(String chr, int binId, String variation, int fragmentNum);
+
+  public List<Fragment> getFragment(String chr, int binId, int fragmentNum);
 
   }

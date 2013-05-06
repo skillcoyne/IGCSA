@@ -20,6 +20,7 @@ public class Inversion extends Variation
 
   public DNASequence mutateSequence(String sequence)
     {
+    int count = fragment.getCount();
     lastMutations = new LinkedHashMap<Location, DNASequence>();
 //    log.debug(sequence.length() + " expected count " + count);
     return new DNASequence(sequence);

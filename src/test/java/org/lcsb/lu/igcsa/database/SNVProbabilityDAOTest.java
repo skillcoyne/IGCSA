@@ -32,9 +32,8 @@ public class SNVProbabilityDAOTest
     Frequency freq = testSNVDAO.getByNucleotide("A");
     assertNotNull(freq);
 
-
     Map.Entry<Double, Object> first = freq.getProbabilities().firstEntry();
-    assertEquals( first.getKey().doubleValue(), 0.18, 0.0);
+    assertEquals( first.getKey().doubleValue(), 0.16, 0.0);
     assertEquals( first.getValue(), 'T');
 
     Map.Entry<Double, Object> last = freq.getProbabilities().lastEntry();

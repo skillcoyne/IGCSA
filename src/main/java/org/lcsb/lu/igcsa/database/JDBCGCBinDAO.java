@@ -3,7 +3,10 @@ package org.lcsb.lu.igcsa.database;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.normal.Bin;
 import org.lcsb.lu.igcsa.database.normal.GCBinDAO;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.RowMapper;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -26,8 +29,7 @@ public class JDBCGCBinDAO implements GCBinDAO
   static Logger log = Logger.getLogger(GCBinDAO.class.getName());
 
   private JdbcTemplate jdbcTemplate;
-  private DataSource dataSource;
-  private String tableName;
+  private String tableName = "gc_bins";
 
   private Map<String, Integer> maxBins = new HashMap<String, Integer>();
 
@@ -39,51 +41,25 @@ public class JDBCGCBinDAO implements GCBinDAO
 
   public void setDataSource(DataSource dataSource)
     {
-    this.dataSource = dataSource;
-    jdbcTemplate = new JdbcTemplate(dataSource); // TODO use the jdbcTemplate instead of the boilerplate code
+    jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
   private int maxBin(String chr)
     {
-    // this only really needs to be checked once
     if (!maxBins.containsKey(chr))
       {
-      String sql = "SELECT * FROM gc_bins WHERE chr = ? order by max desc limit 0,1";
-
-      Connection conn = null;
-      try
+      String sql = "SELECT * FROM " + tableName + " WHERE chr = ? ORDER BY max DESC LIMIT 0,1";
+      Bin gcBin = (Bin) jdbcTemplate.query(sql, new Object[]{chr}, new ResultSetExtractor<Object>()
         {
-        conn = dataSource.getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql);
-        ps.setString(1, chr);
-        ResultSet rs = ps.executeQuery();
-        int max = 0;
-        if (rs.next())
+        public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
           {
-          max = rs.getInt("max");
+          Bin gcBin = null;
+          if (resultSet.next())
+            gcBin = createBin(resultSet);
+          return gcBin;
           }
-        rs.close();
-        ps.close();
-        maxBins.put(chr, max);
-        }
-      catch (SQLException e)
-        {
-        throw new RuntimeException(e);
-        }
-      finally
-        {
-        if (conn != null)
-          {
-          try
-            {
-            conn.close();
-            }
-          catch (SQLException e)
-            {
-            log.warn(e.getMessage());
-            }
-          }
-        }
+        });
+      maxBins.put(chr, gcBin.getMax());
       }
     return maxBins.get(chr);
     }
@@ -93,140 +69,57 @@ public class JDBCGCBinDAO implements GCBinDAO
     int maxBin = maxBin(chr);
     log.debug("MAX BIN FOR " + chr + " = " + maxBin);
 
-    Connection conn = null;
+    String sql = "SELECT * FROM " + this.tableName + " WHERE chr = ? AND (min <= ? AND max >= ?)";
+    Object[] queryObj = new Object[]{chr, gcContent, gcContent};
 
-    try
+    if (maxBin < gcContent)
       {
-      conn = dataSource.getConnection();
-      String sql = "SELECT * FROM " + this.tableName + " WHERE chr = ? AND (min <= ? AND max >= ?)";
-      PreparedStatement ps = conn.prepareStatement(sql);
-      ps.setString(1, chr);
-      ps.setInt(2, gcContent);
-      ps.setInt(3, gcContent);
+      sql = "SELECT * FROM " + this.tableName + " WHERE chr = ? AND max = ?";
+      queryObj = new Object[]{chr, maxBin};
+      }
 
-      if (maxBin < gcContent)
+    return (Bin) jdbcTemplate.query(sql, queryObj, new ResultSetExtractor<Object>()
+      {
+      public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
         {
-        sql = "SELECT * FROM " + this.tableName + " WHERE chr = ? AND max = ?";
-        ps = conn.prepareStatement(sql);
-        ps.setString(1, chr);
-        ps.setInt(2, maxBin);
+        Bin gcBin = null;
+        if (resultSet.next())
+          gcBin = createBin(resultSet);
+        return gcBin;
         }
-
-      log.debug(sql);
-      log.debug(chr + ": gc " + gcContent);
-
-      Bin gcBin = null;
-      ResultSet rs = ps.executeQuery();
-
-      if (rs.next())
-        gcBin = createBin(rs);
-
-      rs.close();
-      ps.close();
-      ;
-      return gcBin;
-      }
-    catch (SQLException e)
-      {
-      throw new RuntimeException(e);
-      }
-    finally
-      {
-      if (conn != null)
-        {
-        try
-          {
-          conn.close();
-          }
-        catch (SQLException e)
-          {
-          log.warn(e.getMessage());
-          }
-        }
-      }
+      });
     }
 
   public Bin getBinById(String chr, int binId)
     {
     String sql = "SELECT * FROM " + this.tableName + " WHERE chr = ? AND bin_id = ?";
 
-    Connection conn = null;
-    try
+    return (Bin) jdbcTemplate.query(sql, new Object[]{chr, binId}, new ResultSetExtractor<Object>()
       {
-      conn = dataSource.getConnection();
-      PreparedStatement ps = conn.prepareStatement(sql);
-      ps.setString(1, chr);
-      ps.setInt(2, binId);
-      Bin gcBin = null;
-      ResultSet rs = ps.executeQuery();
-      if (rs.next())
+      public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
         {
-        gcBin = createBin(rs);
+        Bin gcBin = null;
+        if (resultSet.next())
+          gcBin = createBin(resultSet);
+        return gcBin;
         }
-      rs.close();
-      ps.close();
-      return gcBin;
-      }
-    catch (SQLException e)
-      {
-      throw new RuntimeException(e);
-      }
-    finally
-      {
-      if (conn != null)
-        {
-        try
-          {
-          conn.close();
-          }
-        catch (SQLException e)
-          {
-          log.warn(e.getMessage());
-          }
-        }
-      }
+      });
     }
 
   public Bin[] getBins(String chr)
     {
     String sql = "SELECT * FROM " + this.tableName + " WHERE chr = ?";
 
-    Connection conn = null;
-    try
+    return (Bin[]) jdbcTemplate.query(sql, new Object[]{chr}, new ResultSetExtractor<Object>()
       {
-      conn = dataSource.getConnection();
-      PreparedStatement ps = conn.prepareStatement(sql);
-      ps.setString(1, chr);
-
-      Collection<Bin> bins = new ArrayList<Bin>();
-      ResultSet rs = ps.executeQuery();
-      while (rs.next())
+      public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
         {
-        bins.add(createBin(rs));
+        Collection<Bin> bins = new ArrayList<Bin>();
+        while (resultSet.next())
+          bins.add(createBin(resultSet));
+        return bins.toArray(new Bin[bins.size()]);
         }
-      rs.close();
-      ps.close();
-
-      return bins.toArray(new Bin[bins.size()]);
-      }
-    catch (SQLException e)
-      {
-      throw new RuntimeException(e);
-      }
-    finally
-      {
-      if (conn != null)
-        {
-        try
-          {
-          conn.close();
-          }
-        catch (SQLException e)
-          {
-          log.warn(e.getMessage());
-          }
-        }
-      }
+      });
     }
 
   private Bin createBin(ResultSet rs) throws SQLException
@@ -241,3 +134,5 @@ public class JDBCGCBinDAO implements GCBinDAO
     }
 
   }
+
+

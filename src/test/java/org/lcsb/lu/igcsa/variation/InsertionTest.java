@@ -23,7 +23,6 @@ import static org.junit.Assert.assertTrue;
  */
 public class InsertionTest
   {
-  static Logger log = Logger.getLogger(InsertionTest.class.getName());
 
   private char[] sequence = "ACTGCTTAGCGTATAG".toCharArray();
 
@@ -34,7 +33,7 @@ public class InsertionTest
     {
     insertion = new Insertion();
     Fragment fragment = new Fragment();
-    fragment.setInsertion(2);
+    fragment.setCount(2);
 
     insertion.setMutationFragment(fragment);
 

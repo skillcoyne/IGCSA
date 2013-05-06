@@ -4,61 +4,17 @@
        xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-
-    <bean id="variantList" class="java.util.ArrayList" scope="prototype">
-        <constructor-arg>
-            <list>
-                <bean id="Indel" class="org.lcsb.lu.igcsa.variation.fragment.Indel">
-                    <property name="variationName" value="indel"/>
-                    <property name="sizeVariation" value="#{SizeDAO.getByVariation('indel')}"/>
-                </bean>
-                <bean id="Deletion" class="org.lcsb.lu.igcsa.variation.fragment.Deletion">
-                    <property name="variationName" value="deletion"/>
-                    <property name="sizeVariation" value="#{SizeDAO.getByVariation('deletion')}"/>
-                </bean>
-                <bean id="Insertion" class="org.lcsb.lu.igcsa.variation.fragment.Insertion">
-                    <property name="variationName" value="insertion"/>
-                    <property name="sizeVariation" value="#{SizeDAO.getByVariation('insertion')}"/>
-                </bean>
-                <bean id="Substitution" class="org.lcsb.lu.igcsa.variation.fragment.Substitution">
-                    <property name="variationName" value="substitution"/>
-                    <property name="sizeVariation" value="#{SizeDAO.getByVariation('substitution')}"/>
-                </bean>
-                <bean id="TandemRepeat" class="org.lcsb.lu.igcsa.variation.fragment.TandemRepeat">
-                    <property name="variationName" value="tandem_repeat"/>
-                    <property name="sizeVariation" value="#{SizeDAO.getByVariation('tandem_repeat')}"/>
-                </bean>
-                <bean id="SNV" class="org.lcsb.lu.igcsa.variation.fragment.SNV">
-                    <constructor-arg>
-                        <map key-type="java.lang.Character">
-                            <entry key="A" value="#{SNVDAO.getByNucleotide('A')}"/>
-                            <entry key="C" value="#{SNVDAO.getByNucleotide('C')}"/>
-                            <entry key="T" value="#{SNVDAO.getByNucleotide('T')}"/>
-                            <entry key="G" value="#{SNVDAO.getByNucleotide('G')}"/>
-                        </map>
-                    </constructor-arg>
-                    <property name="variationName" value="SNV"/>
-                </bean>
-
-            </list>
-        </constructor-arg>
-    </bean>
-
-    <bean id="structuralVariations" class="java.util.ArrayList" scope="prototype">
-        <constructor-arg>
-            <list>
-                <bean id="CNVLoss" class="org.lcsb.lu.igcsa.variation.structural.LargeDeletion">
-                </bean>
-            </list>
-        </constructor-arg>
-    </bean>
-
-
     <!-- Reference Genome creation -->
     <bean id="genome" class="org.lcsb.lu.igcsa.genome.MutableGenome">
         <constructor-arg ref="GCBinDAO"></constructor-arg>
         <constructor-arg ref="FragmentDAO"></constructor-arg>
-        <constructor-arg ref="SizeDAO"></constructor-arg>
     </bean>
+
+    <bean id="variantUtils" class="org.lcsb.lu.igcsa.utils.VariantUtils">
+        <constructor-arg ref="VariationDAO" />
+        <constructor-arg ref="SizeDAO" />
+        <constructor-arg ref="SNVDAO"/>
+    </bean>
+
 
 </beans>

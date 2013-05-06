@@ -2,6 +2,7 @@ package org.lcsb.lu.igcsa.utils;
 
 import org.lcsb.lu.igcsa.InsilicoGenome;
 import org.lcsb.lu.igcsa.genome.Chromosome;
+import org.lcsb.lu.igcsa.prob.ProbabilityException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -49,7 +50,7 @@ public class FileUtils
     return fastaChr;
     }
 
-  public static Chromosome[] getChromosomesFromFASTA(File fastaDir) throws FileNotFoundException
+  public static Chromosome[] getChromosomesFromFASTA(File fastaDir) throws FileNotFoundException, ProbabilityException, InstantiationException, IllegalAccessException
     {
     if (!fastaDir.exists())
       throw new FileNotFoundException("No such directory: " + fastaDir.getAbsolutePath());
@@ -67,8 +68,11 @@ public class FileUtils
     ArrayList<Chromosome> chromosomes = new ArrayList<Chromosome>();
     for (File file : listFASTAFiles(fastaDir, fastaFilter))
       {
-      String chr = getChromosomeFromFASTA(file);
-      chromosomes.add(new Chromosome(chr, file));
+      String name = getChromosomeFromFASTA(file);
+
+      Chromosome chr = new Chromosome(name, file);
+      chr.setVariantList(InsilicoGenome.variantUtils.getVariantList(chr.getName()));
+      chromosomes.add(chr);
       }
     return chromosomes.toArray(new Chromosome[chromosomes.size()]);
     }

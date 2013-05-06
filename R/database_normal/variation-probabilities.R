@@ -35,7 +35,6 @@ for (f in files)
   filein = paste(data_dir, f, sep="/")
   d = read.table(filein, header=T, sep="\t")
   chr = as.character(d[1,1]);
-  if(chr == "Y") next
   
   variation_types = unique(d$var.type)
   d$var.length = d$end - d$start

@@ -24,7 +24,7 @@ public class SNV extends Variation
 
   private Map<Character, Frequency> snvFrequencies;
 
-  public SNV(Map<Character, Frequency> frequencyMap)
+  public void setSnvFrequencies(Map<Character, Frequency> frequencyMap)
     {
     this.snvFrequencies = frequencyMap;
     }
@@ -40,7 +40,7 @@ public class SNV extends Variation
   */
   public DNASequence mutateSequence(String sequence)
     {
-    int count = this.fragment.getSNV();
+    int count = this.fragment.getCount();
     log.debug(sequence.length() + " expected count " + count);
 
     lastMutations = new LinkedHashMap<Location, DNASequence>();

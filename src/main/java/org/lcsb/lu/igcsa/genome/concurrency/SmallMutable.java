@@ -18,18 +18,16 @@ import java.util.*;
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
 public class SmallMutable extends Mutable
- //implements Runnable
+    //implements Runnable
   {
   static Logger log = Logger.getLogger(SmallMutable.class.getName());
 
   private Chromosome chromosome;
   private int window;
-  //private Collection<Variation> variations;
 
   // Database connections
   private GCBinDAO binDAO;
-  private FragmentVariationDAO variationDAO;
-  private SizeDAO sizeDAO;
+  private FragmentVariationDAO fragmentDAO;
 
   public SmallMutable(Chromosome chr, int window)
     {
@@ -37,17 +35,16 @@ public class SmallMutable extends Mutable
     this.window = window;
     }
 
-  public void setConnections(GCBinDAO bin, FragmentVariationDAO fragment, SizeDAO size)
+  public void setConnections(GCBinDAO bin, FragmentVariationDAO fragment)
     {
     this.binDAO = bin;
-    this.variationDAO = fragment;
-    this.sizeDAO = size;
+    this.fragmentDAO = fragment;
     }
 
   public Chromosome call()
     {
     log.info("RUNNING mutations on chromosome " + chromosome.getName());
-    if (binDAO == null || variationDAO == null || sizeDAO == null)
+    if (binDAO == null || fragmentDAO == null)
       throw new RuntimeException("Missing database connections. Call SmallMutable.setConnections() before running");
 
     int total = 0;
@@ -112,15 +109,20 @@ public class SmallMutable extends Mutable
       Bin gcBin = this.binDAO.getBinByGC(chr.getName(), sequence.calculateGC());
 
       log.debug(gcBin.toString());
-      // get random fragment within the GC bin
-      Fragment fragment = this.variationDAO.getFragment(chr.getName(), gcBin.getBinId(), randomFragment.nextInt(gcBin.getSize()));
-      if (totalNucleotides >= fragment.countSums())
+      // get random fragment within the GC bin for each variation
+      List<Fragment> fragmentList = fragmentDAO.getFragment(chr.getName(), gcBin.getBinId(), randomFragment.nextInt(gcBin.getSize()));
+      int fragmentSum = 0;
+      for (Fragment f : fragmentList)
+        fragmentSum += f.getCount();
+
+      if (totalNucleotides >= fragmentSum)
         {
-        log.debug("Chromosome " + chr.getName() + " MUTATING FRAGMENT " + fragment.toString());
         // apply the variations to the sequence, each of them needs to apply to the same fragment
         // it is possible that one could override another (e.g. a deletion removes SNVs)
         for (Variation variation : chr.getVariantList())
           {
+          Fragment fragment = fragmentDAO.getVariationFragment(chr.getName(), gcBin.getBinId(), variation.getVariationName(), randomFragment.nextInt(gcBin.getSize()));
+          log.debug("Chromosome " + chr.getName() + " MUTATING FRAGMENT " + fragment.toString());
           variation.setMutationFragment(fragment);
           mutatedSequence = variation.mutateSequence(mutatedSequence);
 
@@ -158,7 +160,7 @@ public class SmallMutable extends Mutable
         }
       try
         {
-        mutationWriter.write(mutationBuffer.toArray( new Mutation[mutationBuffer.size()] ));
+        mutationWriter.write(mutationBuffer.toArray(new Mutation[mutationBuffer.size()]));
         }
       catch (IOException e)
         {
@@ -168,7 +170,6 @@ public class SmallMutable extends Mutable
       }
 
     }
-
 
 
   }

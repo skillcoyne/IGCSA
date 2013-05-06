@@ -51,6 +51,7 @@ public class FASTAWriter
     bufferedWriter.flush();
     //writeString(buffer.toString() + "\n");
     buffer = new StringBuffer();
+    lines = 0;
     }
 
 

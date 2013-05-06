@@ -13,24 +13,24 @@
         <property name="password" value="${normal.genome.pwd}"/>
     </bean>
 
+    <bean id="VariationDAO" class="org.lcsb.lu.igcsa.database.JDBCVariationDAO">
+        <property name="dataSource" ref="normalDataSource"/>
+    </bean>
+
     <bean id="FragmentDAO" class="org.lcsb.lu.igcsa.database.JDBCFragmentVariationDAO">
         <property name="dataSource" ref="normalDataSource"/>
-        <property name="tableName" value="variations"/>
     </bean>
 
     <bean id="GCBinDAO" class="org.lcsb.lu.igcsa.database.JDBCGCBinDAO">
         <property name="dataSource" ref="normalDataSource"/>
-        <property name="tableName" value="gc_bins"/>
     </bean>
 
     <bean id="SizeDAO" class="org.lcsb.lu.igcsa.database.JDBCSizeDAO">
         <property name="dataSource" ref="normalDataSource"/>
-        <property name="tableName" value="variation_size_prob"/>
     </bean>
 
     <bean id="SNVDAO" class="org.lcsb.lu.igcsa.database.JDBCSNVProbabilityDAO">
         <property name="dataSource" ref="normalDataSource"/>
-        <property name="tableName" value="snv_prob"/>
     </bean>
 
 

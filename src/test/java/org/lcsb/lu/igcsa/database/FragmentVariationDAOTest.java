@@ -24,20 +24,32 @@ public class FragmentVariationDAOTest
   @Autowired
   private FragmentVariationDAO testFragmentDAO;
 
+//  @Test
+//  public void testGetFragment() throws Exception
+//    {
+//    Fragment frag = testFragmentDAO.getFragment("5", 1, 63);
+//    assertNull(frag);
+//
+//    frag = testFragmentDAO.getFragment("5", 6, 63);
+//    assertNotNull(frag);
+//
+//    assertEquals(frag.getSNV(), 27);
+//    assertEquals(frag.getDeletion(), 2);
+//    assertEquals(frag.getInsertion(), 4);
+//    assertEquals(frag.getSubstitution(), 0);
+//    assertEquals(frag.getSeqAlt(), 0);
+//    assertEquals(frag.getTandemRepeat(), 0);
+//    }
+
+
   @Test
-  public void testGetFragment() throws Exception
+  public void testVariationCount() throws Exception
     {
-    Fragment frag = testFragmentDAO.getFragment("5", 1, 63);
-    assertNull(frag);
+    int count = testFragmentDAO.getVariationCount("5", 1, "SNV", 63);
+    assertEquals(count, 0);
 
-    frag = testFragmentDAO.getFragment("5", 6, 63);
-    assertNotNull(frag);
-
-    assertEquals(frag.getSNV(), 27);
-    assertEquals(frag.getDeletion(), 2);
-    assertEquals(frag.getInsertion(), 4);
-    assertEquals(frag.getSubstitution(), 0);
-    assertEquals(frag.getSeqAlt(), 0);
-    assertEquals(frag.getTandemRepeat(), 0);
+    count = testFragmentDAO.getVariationCount("5", 6, "SNV", 64);
+    assertEquals(count, 4);
     }
+
   }

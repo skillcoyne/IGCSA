@@ -4,13 +4,18 @@ import junit.framework.TestCase;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.lcsb.lu.igcsa.database.normal.SizeDAO;
+import org.lcsb.lu.igcsa.database.normal.VariationDAO;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.File;
 import java.net.URL;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * org.lcsb.lu.igcsa.genome
@@ -18,7 +23,9 @@ import static org.junit.Assert.assertNotNull;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class ChromosomeTest extends TestCase
+@RunWith (SpringJUnit4ClassRunner.class)
+@ContextConfiguration (locations={"classpath:test-spring-config.xml"})
+public class ChromosomeTest
   {
   private Chromosome chromosome;
 

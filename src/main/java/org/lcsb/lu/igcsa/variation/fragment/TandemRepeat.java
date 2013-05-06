@@ -18,7 +18,7 @@ public class TandemRepeat extends Variation
 
   public DNASequence mutateSequence(String sequence)
     {
-    int count = fragment.getTandemRepeat();
+    int count = fragment.getCount();
     int size = (Integer) this.sizeVariation.roll();
 
     lastMutations = new LinkedHashMap<Location, DNASequence>();

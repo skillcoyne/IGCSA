@@ -23,10 +23,6 @@ import static org.junit.Assert.*;
  */
 public class DeletionTest
   {
-  static Logger log = Logger.getLogger(DeletionTest.class.getName());
-
-  @Autowired
-  private Properties testNormalProperties;
 
   private Deletion deletion;
 
@@ -38,7 +34,7 @@ public class DeletionTest
     {
     deletion = new Deletion();
     Fragment fragment = new Fragment();
-    fragment.setDeletion(3);
+    fragment.setCount(3);
 
     deletion.setMutationFragment(fragment);
 

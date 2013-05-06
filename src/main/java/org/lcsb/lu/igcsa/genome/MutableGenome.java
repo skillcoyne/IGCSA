@@ -6,6 +6,7 @@ import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.fasta.MutationWriter;
 import org.lcsb.lu.igcsa.genome.concurrency.SmallMutable;
 import org.lcsb.lu.igcsa.genome.concurrency.StructuralMutable;
+import org.lcsb.lu.igcsa.utils.VariantUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,20 +29,22 @@ public class MutableGenome implements Genome
 
   // Database connections
   private GCBinDAO binDAO;
-  private FragmentVariationDAO variationDAO;
-  private SizeDAO sizeDAO;
+  private FragmentVariationDAO fragmentVariationDAO;
+//  private SizeDAO sizeDAO;
+//  private VariationDAO variationDAO;
 
   // Directories to output to
   private File genomeDirectory;
   private File smallMutDir;
   private File svMutDir;
 
-  public MutableGenome(GCBinDAO gcBinDAO, FragmentVariationDAO variationDAO, SizeDAO sizeDAO)
+
+  public MutableGenome(GCBinDAO gcBinDAO, FragmentVariationDAO fragmentVariationDAO)
     {
     this.binDAO = gcBinDAO;
-    this.variationDAO = variationDAO;
-    this.sizeDAO = sizeDAO;
+    this.fragmentVariationDAO = fragmentVariationDAO;
     }
+
 
   protected MutableGenome(String buildName)
     {
@@ -96,7 +99,6 @@ public class MutableGenome implements Genome
       this.addChromosome(chromosome);
     }
 
-
   public void replaceChromosome(Chromosome chr)
     {
     if (chromosomes.containsKey(chr.getName())) this.addChromosome(chr);
@@ -127,7 +129,7 @@ public class MutableGenome implements Genome
       chr.setMutationsFile(writer.getFASTAFile());
 
       SmallMutable m = new SmallMutable(chr, window);
-      m.setConnections(binDAO, variationDAO, sizeDAO);
+      m.setConnections(binDAO, fragmentVariationDAO);
       m.setWriters(writer, mutWriter);
       return m;
       }

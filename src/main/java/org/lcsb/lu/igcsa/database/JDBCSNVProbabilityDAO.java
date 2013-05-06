@@ -4,7 +4,9 @@ import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.normal.SNVProbabilityDAO;
 import org.lcsb.lu.igcsa.prob.Frequency;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -25,78 +27,64 @@ public class JDBCSNVProbabilityDAO implements SNVProbabilityDAO
   static Logger log = Logger.getLogger(JDBCSNVProbabilityDAO.class.getName());
 
   private JdbcTemplate jdbcTemplate;
-  private DataSource dataSource;
-  private String tableName;
-
-  public DataSource getDataSource()
-    {
-    return dataSource;
-    }
+  private String tableName = "snv_prob";
 
   public void setDataSource(DataSource dataSource)
     {
-    this.dataSource = dataSource;
-    //jdbcTemplate = new JdbcTemplate(dataSource);
+    jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-  public String getTableName()
+  public Map<Character, Frequency> getAll() throws ProbabilityException
     {
-    return tableName;
+    String sql = "SELECT * FROM " + this.tableName;
+
+    return (Map<Character, Frequency>) jdbcTemplate.query(sql, new ResultSetExtractor<Object>()
+      {
+      public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
+        {
+        Map<Character, Frequency> frequencyMap = new HashMap<Character, Frequency>();
+        while (resultSet.next())
+          {
+          Map<Object, Double> probs = new HashMap<Object, Double>();
+          probs.put('A', resultSet.getDouble("prob_A"));
+          probs.put('C', resultSet.getDouble("prob_C"));
+          probs.put('G', resultSet.getDouble("prob_G"));
+          probs.put('T', resultSet.getDouble("prob_T"));
+          try
+            {
+            frequencyMap.put( resultSet.getString("nucleotide").charAt(0), new Frequency(probs) );
+            }
+          catch (ProbabilityException e)
+            {
+            log.error(e);
+            }
+          }
+        return frequencyMap;
+        }
+      });
     }
 
-  public void setTableName(String tableName)
-    {
-    this.tableName = tableName;
-    }
-
-  public Frequency getByNucleotide(String nucleotide)
+  public Frequency getByNucleotide(String nucleotide) throws ProbabilityException
     {
     String sql = "SELECT * FROM " + this.tableName + " WHERE nucleotide = ?";
 
-    Connection conn = null;
-    try
+    Map<Object, Double> probabilities = (Map<Object, Double>) jdbcTemplate.query(sql, new Object[]{nucleotide}, new ResultSetExtractor<Object>()
       {
-      conn = dataSource.getConnection();
-      PreparedStatement ps = conn.prepareStatement(sql);
-      ps.setString(1, nucleotide);
-
-      ResultSet rs = ps.executeQuery();
-
-      Map<Object, Double> probabilities = new HashMap<Object, Double>();
-
-      while (rs.next())
+      public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
         {
-        probabilities.put('A', rs.getDouble("prob_A"));
-        probabilities.put('C', rs.getDouble("prob_C"));
-        probabilities.put('G', rs.getDouble("prob_G"));
-        probabilities.put('T', rs.getDouble("prob_T"));
-        }
-      rs.close();
-      ps.close();
-      return new Frequency(probabilities);
-      }
-    catch (SQLException e)
-      {
-      throw new RuntimeException(e);
-      }
-    catch (ProbabilityException e)
-      {
-      throw new RuntimeException(e);
-      }
-    finally
-      {
-      if (conn != null)
-        {
-        try
+        Map<Object, Double> probs = new HashMap<Object, Double>();
+        if (resultSet.next())
           {
-          conn.close();
+          probs.put('A', resultSet.getDouble("prob_A"));
+          probs.put('C', resultSet.getDouble("prob_C"));
+          probs.put('G', resultSet.getDouble("prob_G"));
+          probs.put('T', resultSet.getDouble("prob_T"));
           }
-        catch (SQLException e)
-          {
-          log.warn(e.getMessage());
-          }
+        return probs;
         }
-      }
+      });
+
+    return new Frequency(probabilities);
     }
 
   }
