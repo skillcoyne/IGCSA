@@ -11,6 +11,7 @@ import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -58,10 +59,10 @@ public class JDBCVariationDAO implements VariationDAO
 
   public Map<String, Class> getVariationsByChromosome(String chr)
     {
-    String sql = "SELECT DISTINCT vp.chr, vp.variation_id, v.name, v.class " +
+    String sql = "SELECT v.id, vc.chr, v.name, v.class " +
         "FROM " + tableName + " v " +
-        "INNER JOIN variation_per_bin vp ON v.id = vp.variation_id " +
-        "WHERE vp.chr = ?";
+        "INNER JOIN variation_to_chr vc ON v.id = vc.variation_id " +
+        "WHERE vc.chr = ? ORDER BY vc.chr ASC, v.id ASC";
     log.debug("getVariationsByChromosome(" + chr + "): " + sql);
 
 
@@ -69,7 +70,7 @@ public class JDBCVariationDAO implements VariationDAO
       {
       public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
         {
-        Map<String, Class> variations = new HashMap<String, Class>();
+        Map<String, Class> variations = new LinkedHashMap<String, java.lang.Class>();
         while (resultSet.next())
           {
           try

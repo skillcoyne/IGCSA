@@ -46,11 +46,19 @@ create table `variation_size_prob` (
   primary key(`id`)
 );
 
+create table `variation_to_chr` (
+  `chr` varchar(12) not null,
+  `variation_id` int(11) not null
+);
+
+
 ## load data local infile 'gc_bins.txt' into table normal_variation.gc_bins ignore 1 lines;
 
-## load data local infile 'variation.txt' into table normal_variation.variation;
+## load data local infile 'variation.txt' into table normal_variation.variation ignore 1 lines;
 
 ## load data local infile 'variation_size_prob.txt' into table normal_variation.variation_size_prob ignore 1 lines;
+
+## load data local infile 'var_to_chr.txt' into table normal_variation.variation_to_chr ignore 1 lines;
 
 ## load data local infile 'snv_table.txt' into table normal_variation.snv_prob;
 

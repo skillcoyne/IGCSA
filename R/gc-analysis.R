@@ -7,7 +7,6 @@ rm(list=ls())
 
 source("lib/gc_functions.R")
 
-dir = "~/Data"
 ens_dir = "~/Data/VariationNormal/Frequencies/1000/Ensembl"
 var_files = list.files(path=ens_dir, pattern="*.txt")
 
@@ -78,7 +77,7 @@ for (i in 1:length(var_files))
 #write.table(pvalues, quote=F, sep="\t")
 
 
-
+gccol = which(colnames(gdvd) == 'GC')
 
 sd(gdvd$GCRatio)
 
@@ -99,9 +98,9 @@ chunk = gdvd[gdvd$GCRatio > low & gdvd$GCRatio <= mean,]
 chunk = gdvd[gdvd$GCRatio > mean & gdvd$GCRatio <= high,]
 chunk = gdvd[gdvd$GCRatio > high & gdvd$GCRatio <= highest,]
 nrow(chunk)
-cor.test(chunk[,6], chunk$GCRatio, m="p")
+cor.test(chunk[,gccol], chunk$GCRatio, m="p")
 
-colnames(chunk[,1:7])
+colnames(chunk)
 
 
 
