@@ -1,0 +1,15 @@
+To generate the database files for normal genome variation run the following in order.
+
+Steps:
+
+1. Download gvf files from Ensembl Homo_sapiens.gvf, all hapmap gvf files.
+2. In the Ruby directory run read_ensembl.rb on Homo_sapies.gvf and read_hapmap_gvf.rb on the hapmap files.  Be sure to set the var.props files appropriately before each run or the resulting chromosome files will overwrite each other.
+3. In the R directory run merge_chromosome_files.R
+4. In the R directory run the ensembl_freq.R script for each chromosome.  
+5. In the R/database_normal directory run the following in order:
+	a. variation-table.R
+  b. variation-probabilities.R
+  c. generate-var-tables.R
+  d. snv-prob.R
+
+The result of those files are text files formatted for loading into the MySQL database.  

@@ -8,7 +8,7 @@ import java.util.List;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public interface FragmentVariationDAO
+public interface FragmentDAO
   {
   public Fragment getVariationFragment(String chr, int binId, String variation, int fragmentNum);
 

@@ -24,7 +24,7 @@ public class JDBCVariationDAO implements VariationDAO
   static Logger log = Logger.getLogger(JDBCVariationDAO.class.getName());
 
   private JdbcTemplate jdbcTemplate;
-  private String tableName = "variation";
+  private final String tableName = "variation";
 
   public void setDataSource(DataSource dataSource)
     {
@@ -34,6 +34,7 @@ public class JDBCVariationDAO implements VariationDAO
   public Variations getVariations()
     {
     String sql = "SELECT * FROM " + tableName;
+    log.debug("getVariations(): " + sql);
     return (Variations) jdbcTemplate.query(sql, new ResultSetExtractor<Object>()
       {
       public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
@@ -61,6 +62,8 @@ public class JDBCVariationDAO implements VariationDAO
         "FROM " + tableName + " v " +
         "INNER JOIN variation_per_bin vp ON v.id = vp.variation_id " +
         "WHERE vp.chr = ?";
+    log.debug("getVariationsByChromosome(" + chr + "): " + sql);
+
 
     return (Map<String, Class>) jdbcTemplate.query(sql, new Object[]{chr}, new ResultSetExtractor<Object>()
       {

@@ -12,7 +12,7 @@
         <property name="password" value=""/>
     </bean>
 
-    <bean id="testFragmentDAO" class="org.lcsb.lu.igcsa.database.JDBCFragmentVariationDAO">
+    <bean id="testFragmentDAO" class="org.lcsb.lu.igcsa.database.JDBCFragmentDAO">
         <property name="dataSource" ref="testDS"/>
     </bean>
 

@@ -26,7 +26,7 @@ public class JDBCSizeDAO implements SizeDAO
   static Logger log = Logger.getLogger(JDBCSizeDAO.class.getName());
 
   private JdbcTemplate jdbcTemplate;
-  private String tableName = "variation_size_prob";
+  private final String tableName = "variation_size_prob";
 
   private List<String> variations = new ArrayList<String>();
 
@@ -35,9 +35,9 @@ public class JDBCSizeDAO implements SizeDAO
     jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-
   public Map<String, Frequency> getAll() throws ProbabilityException
     {
+    log.debug("getAll()");
     Map<String, Frequency> frequencyMap = new HashMap<String, Frequency>();
     if (variations.size() <= 0)
       getVariations();
@@ -52,6 +52,7 @@ public class JDBCSizeDAO implements SizeDAO
     {
     String sql = "SELECT vs.maxbp, vs.frequency " +
         "FROM " + this.tableName + " vs INNER JOIN variation v ON vs.variation_id = v.id WHERE v.name = ?";
+    log.debug("getByVariation("+ variation + "): " + sql);
 
     Map<Object, Double> frequencies = (Map<Object, Double>) jdbcTemplate.query(sql, new Object[]{variation}, new ResultSetExtractor<Object>()
       {
@@ -76,6 +77,7 @@ public class JDBCSizeDAO implements SizeDAO
         "FROM " + this.tableName + " vs " +
         "INNER JOIN variation v " +
         "ON vs.variation_id = v.id ORDER BY v.name";
+    log.debug(sql);
 
     jdbcTemplate.query(sql, new ResultSetExtractor<Object>()
     {

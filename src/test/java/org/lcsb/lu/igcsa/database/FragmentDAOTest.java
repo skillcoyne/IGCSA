@@ -2,8 +2,7 @@ package org.lcsb.lu.igcsa.database;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.lcsb.lu.igcsa.database.normal.Fragment;
-import org.lcsb.lu.igcsa.database.normal.FragmentVariationDAO;
+import org.lcsb.lu.igcsa.database.normal.FragmentDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -19,10 +18,10 @@ import static org.junit.Assert.*;
 
 @RunWith (SpringJUnit4ClassRunner.class)
 @ContextConfiguration (locations={"classpath:test-spring-config.xml"})
-public class FragmentVariationDAOTest
+public class FragmentDAOTest
   {
   @Autowired
-  private FragmentVariationDAO testFragmentDAO;
+  private FragmentDAO testFragmentDAO;
 
 //  @Test
 //  public void testGetFragment() throws Exception

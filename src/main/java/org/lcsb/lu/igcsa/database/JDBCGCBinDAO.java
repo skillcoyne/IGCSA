@@ -29,15 +29,9 @@ public class JDBCGCBinDAO implements GCBinDAO
   static Logger log = Logger.getLogger(GCBinDAO.class.getName());
 
   private JdbcTemplate jdbcTemplate;
-  private String tableName = "gc_bins";
+  private final String tableName = "gc_bins";
 
   private Map<String, Integer> maxBins = new HashMap<String, Integer>();
-
-
-  public void setTableName(String tableName)
-    {
-    this.tableName = tableName;
-    }
 
   public void setDataSource(DataSource dataSource)
     {
@@ -46,9 +40,11 @@ public class JDBCGCBinDAO implements GCBinDAO
 
   private int maxBin(String chr)
     {
+    log.debug("maxBin(" + chr + ")");
     if (!maxBins.containsKey(chr))
       {
       String sql = "SELECT * FROM " + tableName + " WHERE chr = ? ORDER BY max DESC LIMIT 0,1";
+      log.debug(sql);
       Bin gcBin = (Bin) jdbcTemplate.query(sql, new Object[]{chr}, new ResultSetExtractor<Object>()
         {
         public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
@@ -78,6 +74,7 @@ public class JDBCGCBinDAO implements GCBinDAO
       queryObj = new Object[]{chr, maxBin};
       }
 
+    log.debug("getBinByGC(" + chr + ", " + gcContent + "): " + sql);
     return (Bin) jdbcTemplate.query(sql, queryObj, new ResultSetExtractor<Object>()
       {
       public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
@@ -93,6 +90,7 @@ public class JDBCGCBinDAO implements GCBinDAO
   public Bin getBinById(String chr, int binId)
     {
     String sql = "SELECT * FROM " + this.tableName + " WHERE chr = ? AND bin_id = ?";
+    log.debug("getBinById(" + chr + ", " + binId + "): " + sql);
 
     return (Bin) jdbcTemplate.query(sql, new Object[]{chr, binId}, new ResultSetExtractor<Object>()
       {
@@ -109,6 +107,7 @@ public class JDBCGCBinDAO implements GCBinDAO
   public Bin[] getBins(String chr)
     {
     String sql = "SELECT * FROM " + this.tableName + " WHERE chr = ?";
+    log.debug("getBins(" + chr + "): " + sql);
 
     return (Bin[]) jdbcTemplate.query(sql, new Object[]{chr}, new ResultSetExtractor<Object>()
       {

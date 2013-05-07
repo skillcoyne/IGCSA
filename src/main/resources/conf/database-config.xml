@@ -17,7 +17,7 @@
         <property name="dataSource" ref="normalDataSource"/>
     </bean>
 
-    <bean id="FragmentDAO" class="org.lcsb.lu.igcsa.database.JDBCFragmentVariationDAO">
+    <bean id="FragmentDAO" class="org.lcsb.lu.igcsa.database.JDBCFragmentDAO">
         <property name="dataSource" ref="normalDataSource"/>
     </bean>
 

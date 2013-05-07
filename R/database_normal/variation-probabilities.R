@@ -14,17 +14,8 @@ maxbp = c(10,seq(100,1000,100))
 variation_rdata = paste(out_dir, "vars.Rdata", sep="/")
 if ( !file.exists(variation_rdata) ) 
   { 
-  variations = vector(mode="character")
-  print("Getting variation names")
-  for (f in files)
-    {
-    filein = paste(data_dir, f, sep="/")
-    d = read.table(filein, header=T, sep="\t")
-    chr = as.character(d[1,1]);
-    variations = c(variations, as.vector(unique(d$var.type)))
-    variations = unique(variations)
-    }
-  save(variations, file=variation_rdata)
+  print("The variation-table.R script must be run first. Exiting.")
+  exit(-1)
   }
 load(variation_rdata) 
 
@@ -76,7 +67,6 @@ for (i in 1:length(variations))
   }
 colnames(db_size_table) = c('maxbp', 'variation_id', 'frequency')
 
-write.table(variations, file=paste(out_dir, "variation.txt", sep="/"), quote=F, row.names=T, col.names=F)
 write.table(db_size_table, file=paste(out_dir, "variation_size_prob.txt", sep="/"), quote=F, row.names=F, col.names=T, sep="\t")
 
 

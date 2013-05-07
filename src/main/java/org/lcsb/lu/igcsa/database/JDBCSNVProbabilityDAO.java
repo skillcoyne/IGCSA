@@ -27,7 +27,7 @@ public class JDBCSNVProbabilityDAO implements SNVProbabilityDAO
   static Logger log = Logger.getLogger(JDBCSNVProbabilityDAO.class.getName());
 
   private JdbcTemplate jdbcTemplate;
-  private String tableName = "snv_prob";
+  private final String tableName = "snv_prob";
 
   public void setDataSource(DataSource dataSource)
     {
@@ -37,6 +37,7 @@ public class JDBCSNVProbabilityDAO implements SNVProbabilityDAO
   public Map<Character, Frequency> getAll() throws ProbabilityException
     {
     String sql = "SELECT * FROM " + this.tableName;
+    log.debug(sql);
 
     return (Map<Character, Frequency>) jdbcTemplate.query(sql, new ResultSetExtractor<Object>()
       {
@@ -67,6 +68,7 @@ public class JDBCSNVProbabilityDAO implements SNVProbabilityDAO
   public Frequency getByNucleotide(String nucleotide) throws ProbabilityException
     {
     String sql = "SELECT * FROM " + this.tableName + " WHERE nucleotide = ?";
+    log.debug("getByNucleotide(" + nucleotide + "): " + sql);
 
     Map<Object, Double> probabilities = (Map<Object, Double>) jdbcTemplate.query(sql, new Object[]{nucleotide}, new ResultSetExtractor<Object>()
       {

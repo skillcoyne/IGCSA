@@ -27,7 +27,7 @@ public class SmallMutable extends Mutable
 
   // Database connections
   private GCBinDAO binDAO;
-  private FragmentVariationDAO fragmentDAO;
+  private FragmentDAO fragmentDAO;
 
   public SmallMutable(Chromosome chr, int window)
     {
@@ -35,7 +35,7 @@ public class SmallMutable extends Mutable
     this.window = window;
     }
 
-  public void setConnections(GCBinDAO bin, FragmentVariationDAO fragment)
+  public void setConnections(GCBinDAO bin, FragmentDAO fragment)
     {
     this.binDAO = bin;
     this.fragmentDAO = fragment;
@@ -43,6 +43,7 @@ public class SmallMutable extends Mutable
 
   public Chromosome call()
     {
+    final long startTime = System.currentTimeMillis();
     log.info("RUNNING mutations on chromosome " + chromosome.getName());
     if (binDAO == null || fragmentDAO == null)
       throw new RuntimeException("Missing database connections. Call SmallMutable.setConnections() before running");
@@ -91,8 +92,8 @@ public class SmallMutable extends Mutable
       {
       log.error(e);
       }
-
-    log.info("FINISHED mutating chromosome " + chromosome.getName() + " sequence length " + total);
+    final long elapsedTime = System.currentTimeMillis() - startTime;
+    log.info("FINISHED mutating chromosome " + chromosome.getName() + " sequence length " + total + " time:" + elapsedTime/1000);
     return chromosome;
     }
 
