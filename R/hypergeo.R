@@ -20,7 +20,7 @@ rm(cpg_dir, cpg_file, dir, file)
 vector("numeric", 100)->vv
 for(i in 1:length(vv))
   {
-  vv[i]  =  sum(cg$SNV == i)
+  vv[i] = sum(cg$SNV == i)
   }
 plot(vv)
 

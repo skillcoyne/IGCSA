@@ -106,8 +106,8 @@ ks.test.all<-function(vars, chr)
     #test['pois', var] = format.pval(kpois$p.value, digits = 3)
     #test['norm', var] = format.pval(knorm$p.value, digits = 3)
     
-    test['pois', var] = kpois$p.value
-    test['norm', var] = knorm$p.value
+    test['ks.pois', var] = kpois$p.value
+    test['ks.norm', var] = knorm$p.value
     }
   return(as.data.frame(t(test)))
   }

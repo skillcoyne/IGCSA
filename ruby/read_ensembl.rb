@@ -5,7 +5,7 @@ require 'yaml'
 
 
 # --- Setup is the same for directory of VCF or a single file --- #
-cfg = YAML.load_file("resources/var.props")
+#cfg = YAML.load_file("resources/var.props")
 
 # --- Separate GVF into Chromosome specific files -- #
 unless ARGV.length < 1
@@ -17,9 +17,9 @@ end
 
 gvf_files = gvf_files.split(",")
 
-unless File.exists?dir
-  FileUtils.mkpath("#{dir}/chromosomes")
-end
+#unless File.exists?dir
+#  FileUtils.mkpath("#{dir}/chromosomes")
+#end
 
 puts gvf_files
 puts dir
@@ -48,6 +48,9 @@ gvf_files.each do |file|
     #next unless chrfh.has_key? gvf.chr
     #fh = chrfh[gvf.chr]
     records += 1
+
+    puts YAML::dump gvf
+
 
     unless gvf.score.nil?
       puts YAML::dump gvf
