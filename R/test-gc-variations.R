@@ -125,16 +125,17 @@ for(n in names(all_gc_tests))
 write(" # Correlation values by GC bins", file=filename, app=T)
 write.table(gc.cor, file=filename, app=T, col.name=T, row.name=T, quote=F, sep="\t")
 
+dev.off()
 
 
-png(filename=paste(out_dir, "whole-genome-bins.png", sep="/"), bg="white", height=900, width=900)
+png(filename=paste(out_dir, "whole-genome-bins.png", sep="/"), bg="white", height=600, width=900)
 rho = rho[order(as.numeric(rho[,'chr'])),]
-par(mfrow=c(2,1))
-plot(rho[,'bp.rho'], type='o', xaxt='n', col='blue', main="BP bin, rho", ylab='SNV', xlab='Chromosome', sub="Line = rho across genome")
-axis(1, at=1:nrow(rho), labels=rho$chr)
-abline(bp.cor['rho', 'SNV'], 0, col='red')
+#par(mfrow=c(2,1))
+#plot(rho[,'bp.rho'], type='o', xaxt='n', col='blue', main="BP bin, Correlation (rho)", ylab='SNV', xlab='Chromosomes', sub="Red line = correlation across whole genome")
+#axis(1, at=1:nrow(rho), labels=rho$chr)
+#abline(bp.cor['rho', 'SNV'], 0, col='red')
 
-plot(rho[,'gc.rho'], type='o', xaxt='n', col='blue', main="GC bin, rho", ylab='SNV', xlab='Chromosome')
+plot(rho[,'gc.rho'], type='o', xaxt='n', col='blue', main="GC bin, Correlation (rho)", ylab='SNV', xlab='Chromosomes')
 axis(1, at=1:nrow(rho), labels=rho$chr)
 abline(gc.cor['rho', 'SNV'], 0, col='red')
 dev.off()
