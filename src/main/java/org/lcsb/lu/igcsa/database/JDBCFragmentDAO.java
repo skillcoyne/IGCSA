@@ -80,7 +80,7 @@ public class JDBCFragmentDAO implements FragmentDAO
     return fragments;
     }
 
-  // TODO this could be caches for each chr/bin combination as it's fairly small
+  // TODO this could be cached for each chr/bin combination as it's fairly small
   private List<String> variationsInBin(String chr, int binId)
     {
     String sql = "SELECT distinct v.name FROM " + this.tableName + " as vpb " +

@@ -18,9 +18,10 @@ public class DNASequence
   private String sequence = "";
   private Location location;
 
-  // TODO Need to return a location to start mutations from in the case of gaps or unknown nucleotides. -- maybe
+  // Might be useful to return a location to start mutations from in the case of gaps or unknown nucleotides.
   private String testNucleotides(String sequence) throws IllegalArgumentException
     {
+    sequence = sequence.trim();
     if (sequence.length() > 0 && !validCharacters().matcher(sequence).matches())
       {
       log.warn("The sequence contains incorrect nucleotides, expected " + validCharacters() + " provided: " + sequence);

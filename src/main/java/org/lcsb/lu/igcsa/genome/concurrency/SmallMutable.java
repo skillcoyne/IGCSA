@@ -65,6 +65,7 @@ public class SmallMutable extends Mutable
     while (true)
       {
       currentSequenceFragment = chromosome.readSequence(window);
+
       log.debug("MUTATING " + chromosome.getName() + " at " + location.toString());
       DNASequence mutatedSequence = mutateFragment(chromosome, currentSequenceFragment, location);
 
@@ -104,8 +105,9 @@ public class SmallMutable extends Mutable
     Random randomFragment = new Random();
 
     // get the GC content in order to select the correct fragment bin
+    // might speed things up to skip anything that is > 70% (maybe less even) unknown/gap
     int totalNucleotides = sequence.calculateNucleotides();
-    if (totalNucleotides > 0)
+    if (totalNucleotides > (0.3*sequence.getLength()))
       {
       Bin gcBin = this.binDAO.getBinByGC(chr.getName(), sequence.calculateGC());
 
@@ -115,6 +117,7 @@ public class SmallMutable extends Mutable
       int fragmentSum = 0;
       for (Fragment f : fragmentList)
         fragmentSum += f.getCount();
+      log.debug(chr.getName() + " sum of variations for fragment " + fragmentSum );
 
       if (totalNucleotides >= fragmentSum)
         {
@@ -132,6 +135,7 @@ public class SmallMutable extends Mutable
           }
         }
       }
+    else log.debug("Fragment was > 70% unknown/gap, skipping mutation.");
     return mutatedSequence;
     }
 

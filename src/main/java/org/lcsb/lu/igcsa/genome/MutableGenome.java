@@ -29,8 +29,6 @@ public class MutableGenome implements Genome
   // Database connections
   private GCBinDAO binDAO;
   private FragmentDAO fragmentDAO;
-//  private SizeDAO sizeDAO;
-//  private VariationDAO variationDAO;
 
   // Directories to output to
   private File genomeDirectory;
@@ -124,7 +122,7 @@ public class MutableGenome implements Genome
     try
       {
       MutationWriter mutWriter = new MutationWriter(new File(smallMutDir, chr.getName() + "mutations.txt"), MutationWriter.SMALL);
-      // TODO variant types need to be cloned for each chromosome or else the mutations being generated are incorrect MAJOR PROBLEM -- not sure what this note was actually about...
+
       chr.setMutationsFile(writer.getFASTAFile());
 
       SmallMutable m = new SmallMutable(chr, window);

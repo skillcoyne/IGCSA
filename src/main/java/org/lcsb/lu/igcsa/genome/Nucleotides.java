@@ -1,5 +1,8 @@
 package org.lcsb.lu.igcsa.genome;
 
+import org.apache.commons.lang.StringUtils;
+
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -12,23 +15,23 @@ import java.util.regex.Pattern;
  */
 public enum Nucleotides
   {
-//  public static final String A = "A";
-//  public static final String C = "C";
-//  public static final String G = "G";
-//  public static final String T = "T";
-//  public static final char GAP= '-' ;
-//  public static final char UNKNOWN = 'N';
-//
-//  static final Pattern nucleotides = Pattern.compile("([ACTGNactgn-]+)");
-//  static final Pattern unknown = Pattern.compile("[Nn]+");
-//  static final Pattern gap = Pattern.compile("[-]+");
-
-
   A('A'),
   C('C'),
   T('T'),
   G('G'),
+  U('U'),
+  R('R'),
+  Y('Y'),
+  K('K'),
+  M('M'),
+  S('S'),
+  W('W'),
+//  B('B'),	//not A (i.e. C, G, T or U)	B comes after A
+//  D('D'),	//not C (i.e. A, G, T or U)	D comes after C
+//  H('H'),	//not G (i.e., A, C, T or U)	H comes after G
+//  V('V'),	//neither T nor U (i.e. A, C or G)	V comes after U
   UNKNOWN('N'),
+  MASKED('X'),
   GAP('-');
 
   private final char nucleotide;
@@ -43,15 +46,21 @@ public enum Nucleotides
     return this.nucleotide;
     }
 
-
   public String toString()
     {
     return String.valueOf(this.nucleotide);
     }
 
+  public static String all()
+    {
+    return StringUtils.join(Nucleotides.values());
+    }
+
   public static Pattern validCharacters()
     {
-    return Pattern.compile("([ACTGNactgn-]+)");
+    String regex = Nucleotides.all() + Nucleotides.all().toLowerCase();
+    return Pattern.compile("([" + regex + "]+)");
+    //return Pattern.compile("([ACTGNXMRYKactgnmxryk-]+)");
     }
 
   public static Pattern unknownNucleotides()

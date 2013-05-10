@@ -1,6 +1,6 @@
 To generate the database files for normal genome variation run the following in order.
 
-Steps:
+Steps (currently this requires a little bit of interacting with the code itself.  These scripts aren't "one button" ready):
 
 1. Download gvf files from Ensembl Homo_sapiens.gvf, all hapmap gvf files.
 2. In the Ruby directory run read_ensembl.rb on Homo_sapies.gvf and read_hapmap_gvf.rb on the hapmap files.  Be sure to set the var.props files appropriately before each run or the resulting chromosome files will overwrite each other.
