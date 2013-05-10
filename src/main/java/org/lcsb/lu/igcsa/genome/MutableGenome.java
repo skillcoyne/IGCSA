@@ -5,7 +5,6 @@ import org.lcsb.lu.igcsa.database.normal.*;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.fasta.MutationWriter;
 import org.lcsb.lu.igcsa.genome.concurrency.SmallMutable;
-import org.lcsb.lu.igcsa.genome.concurrency.StructuralMutable;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +32,6 @@ public class MutableGenome implements Genome
   // Directories to output to
   private File genomeDirectory;
   private File smallMutDir;
-  private File svMutDir;
 
 
   public MutableGenome(GCBinDAO gcBinDAO, FragmentDAO fragmentDAO)
@@ -73,15 +71,9 @@ public class MutableGenome implements Genome
     return smallMutDir;
     }
 
-  public File getSVMutationDirectory()
-    {
-    return svMutDir;
-    }
-
-  public void setMutationDirectories(File smallMut, File svMut)
+  public void setMutationDirectories(File smallMut)
     {
     this.smallMutDir = smallMut;
-    this.svMutDir = svMut;
     }
 
   public void addChromosome(Chromosome chr)
@@ -98,8 +90,10 @@ public class MutableGenome implements Genome
 
   public void replaceChromosome(Chromosome chr)
     {
-    if (chromosomes.containsKey(chr.getName())) this.addChromosome(chr);
-    else log.warn("No chromosome " + chr.getName() + " to be replaces. Added instead.");
+    if (chromosomes.containsKey(chr.getName()))
+      this.addChromosome(chr);
+    else
+      log.warn("No chromosome " + chr.getName() + " to be replaces. Added instead.");
     }
 
   public boolean hasChromosome(String name)
@@ -136,21 +130,4 @@ public class MutableGenome implements Genome
       }
     }
 
-  public StructuralMutable mutate(Chromosome chr, FASTAWriter writer)
-    {
-    try
-      {
-      MutationWriter mutWriter = new MutationWriter( new File(svMutDir, chr.getName() + "mutations.txt") , MutationWriter.SV) ;
-      // TODO variant types need to be cloned for each chromosome or else the mutations being generated are incorrect MAJOR PROBLEM -- see note above...
-      chr.setSVFile( mutWriter.getMutationFile() );
-
-      StructuralMutable m = new StructuralMutable(chr);
-      m.setWriters(writer, mutWriter);
-      return m;
-      }
-    catch (IOException e)
-      {
-      throw new RuntimeException(e);
-      }
-    }
   }

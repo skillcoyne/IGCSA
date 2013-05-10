@@ -12,10 +12,6 @@ import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.lcsb.lu.igcsa.utils.FileUtils;
 
 import org.lcsb.lu.igcsa.utils.VariantUtils;
-import org.lcsb.lu.igcsa.variation.fragment.Variation;
-import org.lcsb.lu.igcsa.variation.structural.LargeDeletion;
-import org.lcsb.lu.igcsa.variation.structural.StructuralVariation;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -43,8 +39,8 @@ public class InsilicoGenome
   // Defaults
   private int windowSize = 1000;
   private int threads = 5;
-  private boolean applySV = false;
-  private boolean applySM = false;
+  //  private boolean applySV = false;
+  //  private boolean applySM = false;
 
   // Parallel execution
   private ExecutorService smallMutationExcecutor;
@@ -102,10 +98,8 @@ public class InsilicoGenome
   public void applyMutations() throws IOException, ExecutionException, InterruptedException
     {
     log.info("Applying mutations to " + genome.getBuildName());
-    if (applySM)
-      applySmallMutations();
-    if (applySV)
-      applyStructuraVariations();
+    //    if (applySM)
+    applySmallMutations();
     }
 
   // Applies mutations first at the 1kb or less level then structural
@@ -144,48 +138,6 @@ public class InsilicoGenome
     smallMutationExcecutor.shutdown();
     }
 
-   // Applies the larger, or location-based variations (>1kb).
-  private void applyStructuraVariations() throws IOException, InterruptedException, ExecutionException
-    {
-    log.info("Apply SVs");
-    structuralVariationExecutor = Executors.newFixedThreadPool(threads);
-    CompletionService taskPool = new ExecutorCompletionService<String>(structuralVariationExecutor);
-
-    File tmpDir = new File(genomeProperties.getProperty("dir.tmp"), genome.getGenomeDirectory().getName());
-
-    // FOR NOW ONLY: apply a large deletion to one chromosome.
-    Chromosome chr = genome.getChromosome("19");
-
-    FASTAHeader header = new FASTAHeader("chromosome " + chr.getName(), "with structural variation", genome.getBuildName());
-    FASTAWriter writer = new FASTAWriter(new File(tmpDir, "chr" + chr.getName() + ".fa"), header);
-
-    // TODO  This whole bit will ultimately come from the database the same way small scale mutations do
-    StructuralVariation cnvLoss = new LargeDeletion();
-    cnvLoss.setVariationName("copy_number_loss");
-    cnvLoss.setLocation(26500001, 59128983); // should be entire q arm
-
-    List<StructuralVariation> svList = new ArrayList<StructuralVariation>(1);
-    svList.add(cnvLoss);
-    chr.setStructuralVariations(svList);
-    // ------------------
-
-    List<Future<Chromosome>> tasks = new ArrayList<Future<Chromosome>>();
-    Future<Chromosome> mutationF = taskPool.submit(genome.mutate(chr, writer));
-    tasks.add(mutationF);
-
-    for (int i = 0; i < tasks.size(); i++)
-      {
-      Future<Chromosome> f = taskPool.take();
-      Chromosome mc = f.get();
-      log.info("SV finished for " + mc.getName());
-      // won't quite work this way when fully implemented since writers are not attached to chromosomes...but possibly they should be.
-      org.apache.commons.io.FileUtils.copyFileToDirectory(writer.getFASTAFile(), genome.getGenomeDirectory());
-      }
-
-    org.apache.commons.io.FileUtils.deleteDirectory(tmpDir);
-    log.info("Structural variations step finished on " + tasks.size() + " chromosomes.");
-    structuralVariationExecutor.shutdown();
-    }
 
   // Create the directory where all fasta and mutation files will write
   private void setupGenomeDirectory(String name, boolean overwrite) throws IOException
@@ -204,12 +156,14 @@ public class InsilicoGenome
     genome.setBuildName(name);
 
     File mutWriterPath = new File(genomeDirectory, "mutations");
-    if (!mutWriterPath.exists() || !mutWriterPath.isDirectory()) mutWriterPath.mkdir();
+    if (!mutWriterPath.exists() || !mutWriterPath.isDirectory())
+      mutWriterPath.mkdir();
 
     File svWriterPath = new File(genomeDirectory, "structural-variations");
-    if (!svWriterPath.exists() || !svWriterPath.isDirectory()) svWriterPath.mkdir();
+    if (!svWriterPath.exists() || !svWriterPath.isDirectory())
+      svWriterPath.mkdir();
 
-    genome.setMutationDirectories(mutWriterPath, svWriterPath);
+    genome.setMutationDirectories(mutWriterPath);
     }
 
   // Adds chromosomes to the genome.  Either from the command line, or from the assembly directory
@@ -261,8 +215,8 @@ public class InsilicoGenome
     options.addOption("c", "chromosome", true, "List of chromosomes to use/mutate, comma-separated (e.g.  21,3," +
         "X). If not included chromosomes will be determined by \n" + "the fasta files found in the" +
         " dir.assembly directory (see genome.properties).");
-    options.addOption("s", "structural-variation", false, "Apply structural variations to genome. [false]");
-    options.addOption("f", "fragment-variation", false, "Apply small scale (fragment) variation to genome. [false]");
+    //options.addOption("s", "structural-variation", false, "Apply structural variations to genome. [false]");
+    //options.addOption("f", "fragment-variation", false, "Apply small scale (fragment) variation to genome. [false]");
 
     options.addOption("h", "help", false, "print usage help");
 
@@ -278,12 +232,12 @@ public class InsilicoGenome
         help.printHelp("<jar file>", options);
         System.exit(0);
         }
-      if (!cl.hasOption('s') && !cl.hasOption('f'))
-        {
-        System.out.println("One of the following (or both) options is required: -s or -f");
-        help.printHelp("<jar file>", options);
-        System.exit(0);
-        }
+      //      if (!cl.hasOption('s') && !cl.hasOption('f'))
+      //        {
+      //        System.out.println("One of the following (or both) options is required: -s or -f");
+      //        help.printHelp("<jar file>", options);
+      //        System.exit(0);
+      //        }
       }
     catch (ParseException e)
       {
@@ -294,10 +248,10 @@ public class InsilicoGenome
     for (Option opt : cl.getOptions())
       log.info("\t-" + opt.getLongOpt() + " '" + opt.getValue("true") + "'");
 
-    if (cl.hasOption('s'))
-      applySV = true;
-    if (cl.hasOption('f'))
-      applySM = true;
+    //    if (cl.hasOption('s'))
+    //      applySV = true;
+    //    if (cl.hasOption('f'))
+    //      applySM = true;
 
     return cl;
     }

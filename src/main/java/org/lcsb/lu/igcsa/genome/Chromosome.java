@@ -3,7 +3,6 @@ package org.lcsb.lu.igcsa.genome;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
 import org.lcsb.lu.igcsa.variation.fragment.Variation;
-import org.lcsb.lu.igcsa.variation.structural.StructuralVariation;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,7 +24,6 @@ public class Chromosome
   private File structVars;
   private FASTAReader reader;
   private List<Variation> variationList;
-  private List<StructuralVariation> structuralVariations;
 
 
   public Chromosome(String name)
@@ -94,16 +92,6 @@ public class Chromosome
     return this.variationList;
     }
 
-  public void setStructuralVariations(List<StructuralVariation> structuralVariations)
-    {
-    this.structuralVariations = structuralVariations;
-    log.debug(getName() + "structural variations :" + this.structuralVariations.hashCode());
-    }
-
-  public List<StructuralVariation> getStructuralVariations()
-    {
-    return structuralVariations;
-    }
 
   /**
    * Get sequence in chunks from the FASTA file.  Each call will read sequentially from last call.
@@ -152,7 +140,8 @@ public class Chromosome
       {
       currentSeq = this.readSequence(window).getSequence();
       fullSequence.addNucleotides(currentSeq);
-      if (currentSeq.length() < window) break;
+      if (currentSeq.length() < window)
+        break;
       }
     return fullSequence;
     }
