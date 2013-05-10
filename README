@@ -1,8 +1,7 @@
 -----------------------------------------------------------------------------------------------
 Disclaimer:
 
-This software is under development and provided as-is. We cannot guarantee that it is free of bugs,
-nor has it been tested on all systems.
+This software is under development and provided as-is. It is not guaranteed to be free of bugs, nor has it been exhaustively tested on all systems.
 
 -----------------------------------------------------------------------------------------------
 Requirements:
@@ -41,4 +40,4 @@ start-igcsa.sh -n MyGenome -t 12
 -- Example calling the jar file directly, props.path is the directory where genome.properties and log4j.properties both exist.  The shell
 script assumes this to be the same directory as the jar file: --
 
-java -Dprops.path=<properties path> -jar -Xms256m -Xmx1024m igcsa-jar-with-dependencies.jar -n MyGenome -t 12
+java -Dprops.path=<properties path> -jar -Xms1024m -Xmx2g igcsa-jar-with-dependencies.jar -n MyGenome -t 12
