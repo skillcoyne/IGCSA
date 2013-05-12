@@ -89,6 +89,12 @@
             <groupId>commons-dbcp</groupId>
             <artifactId>commons-dbcp</artifactId>
             <version>1.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.sql</groupId>
+                    <artifactId>jdbc-stdext</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
 
@@ -118,7 +124,6 @@
             <artifactId>spring-expression</artifactId>
             <version>${org.springframework.version}</version>
         </dependency>
-
     </dependencies>
 
 
