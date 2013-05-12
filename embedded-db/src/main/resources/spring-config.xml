@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation=
+               "http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/jdbc
+        http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+
+
+    <context:annotation-config/>
+
+    <!-- Properties -->
+    <bean id="dbProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+        <property name="ignoreResourceNotFound">
+            <value>true</value>
+        </property>
+        <property name="location" value="file:/Users/skillcoyne/workspace/IGCSA/embedded-db/src/main/resources/db.properties"/>
+    </bean>
+
+
+    <!-- Load in application properties reference -->
+    <bean id="applicationProperties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="properties" ref="dbProperties"/>
+    </bean>
+
+
+    <!-- Logging -->
+    <bean id="log4jInitialization" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="targetClass" value="org.springframework.util.Log4jConfigurer"/>
+        <property name="targetMethod" value="initLogging"/>
+        <property name="arguments">
+            <list>
+                <value>file:/Users/skillcoyne/workspace/IGCSA/embedded-db/src/main/resources/log4j.properties</value>
+            </list>
+        </property>
+
+    </bean>
+
+
+    <!--<jdbc:embedded-database id="variationDS" type="DERBY">-->
+    <!--<jdbc:script location="classpath:genome.sql"/>-->
+    <!--</jdbc:embedded-database>-->
+
+    <bean id="variationDS" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="${db.driver}"/>
+        <property name="url" value="jdbc:derby:${db.location}/${db.name};create=${db.create};shutdown=true"/>
+        <property name="username" value="igcsa"/>
+        <property name="password" value=""/>
+    </bean>
+
+    <jdbc:initialize-database data-source="variationDS" enabled="${db.create}">
+        <jdbc:script location="classpath:genome.sql"/>
+    </jdbc:initialize-database>
+
+    <bean id="gcBinDAO" class="org.lcsb.lu.igcsa.embedded.DAO.impl.JDBCGCBinDAO">
+        <property name="dataSource" ref="variationDS"/>
+        <property name="tableName" value="gc_bins"/>
+    </bean>
+
+    <bean id="variationDAO" class="org.lcsb.lu.igcsa.embedded.DAO.impl.JDBCVariationDAO">
+        <property name="dataSource" ref="variationDS"/>
+        <property name="tableName" value="variation"/>
+    </bean>
+
+    <bean id="fragmentDAO" class="org.lcsb.lu.igcsa.embedded.DAO.impl.JDBCFragmentDAO">
+        <property name="dataSource" ref="variationDS"/>
+        <property name="tableName" value="variation_per_bin"/>
+    </bean>
+
+    <bean id="snvDAO" class="org.lcsb.lu.igcsa.embedded.DAO.impl.JDBCSNVProbabilityDAO">
+        <property name="dataSource" ref="variationDS"/>
+        <property name="tableName" value="snv_prob"/>
+    </bean>
+
+    <bean id="chrVarDAO" class="org.lcsb.lu.igcsa.embedded.DAO.impl.JDBCChrVariationDAO">
+        <property name="dataSource" ref="variationDS"/>
+        <property name="tableName" value="variation_to_chr"/>
+    </bean>
+
+    <bean id="sizeDAO" class="org.lcsb.lu.igcsa.embedded.DAO.impl.JDBCSizeDAO">
+        <property name="dataSource" ref="variationDS"/>
+        <property name="tableName" value="variation_size_prob"/>
+    </bean>
+
+
+</beans>
