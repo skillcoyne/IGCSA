@@ -29,7 +29,7 @@ public class JDBCGCBinDAO extends DataLoadDAO
     while ((line = reader.readLine()) != null)
       {
       String[] db = line.split("\t");
-      if (db[0] == "") continue;
+      if (db[0].equals("")) continue;
 
       jdbcTemplate.update(sql, new Object[]{db[1], Integer.valueOf(db[2]), Double.valueOf(db[3]), Double.valueOf(db[4]),
           Integer.valueOf(db[5])});

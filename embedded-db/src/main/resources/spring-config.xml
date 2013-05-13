@@ -19,7 +19,8 @@
         <property name="ignoreResourceNotFound">
             <value>true</value>
         </property>
-        <property name="location" value="file:/Users/skillcoyne/workspace/IGCSA/embedded-db/src/main/resources/db.properties"/>
+        <property name="location" value="db.properties"/>
+        <!--<property name="location" value="file:/Users/sarah.killcoyne/workspace/IGCSA/embedded-db/src/main/resources/db.properties"/>-->
     </bean>
 
 
@@ -35,7 +36,7 @@
         <property name="targetMethod" value="initLogging"/>
         <property name="arguments">
             <list>
-                <value>file:/Users/skillcoyne/workspace/IGCSA/embedded-db/src/main/resources/log4j.properties</value>
+                <value>file:/Users/sarah.killcoyne/workspace/IGCSA/embedded-db/src/main/resources/log4j.properties</value>
             </list>
         </property>
 
@@ -48,7 +49,7 @@
 
     <bean id="variationDS" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="${db.driver}"/>
-        <property name="url" value="jdbc:derby:${db.location}/${db.name};create=${db.create};shutdown=true"/>
+        <property name="url" value="jdbc:derby:${db.location}/${db.name};create=${db.create}"/>
         <property name="username" value="igcsa"/>
         <property name="password" value=""/>
     </bean>

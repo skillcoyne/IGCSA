@@ -31,7 +31,7 @@ public class JDBCVariationDAO extends DataLoadDAO
     while ((line = reader.readLine()) != null)
       {
       String[] db = line.split("\t");
-      if (db[0] == "") continue;
+      if (db[0].equals("")) continue;
       jdbcTemplate.update(sql, new Object[]{db[1], db[2]});
       }
     }
