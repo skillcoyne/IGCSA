@@ -40,6 +40,8 @@ public class SNV extends Variation
   */
   public DNASequence mutateSequence(String sequence)
     {
+    long start = System.currentTimeMillis();
+
     int count = this.fragment.getCount();
     log.debug(sequence.length() + " expected count " + count);
 
@@ -71,6 +73,9 @@ public class SNV extends Variation
         ++totalSNPs;
         }
       }
+
+    long elapsed = System.currentTimeMillis() - start;
+    log.debug("Mutation took " + elapsed);
 
     return new DNASequence(String.valueOf(nucleotides));
     }

@@ -1,5 +1,8 @@
 package org.lcsb.lu.igcsa.database.normal;
 
+import org.apache.commons.lang.math.IntRange;
+import org.apache.commons.lang.math.Range;
+
 /**
  * org.lcsb.lu.igcsa.database
  * Author: sarah.killcoyne
@@ -63,4 +66,10 @@ public class Bin
     {
     this.binId = bin_id;
     }
+
+  public Range getRange()
+    {
+    return new IntRange(this.min, this.max);
+    }
+
   }

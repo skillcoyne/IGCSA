@@ -53,7 +53,7 @@ public class FASTAWriterTest
     writer = new FASTAWriter(fastaFile, new FASTAHeader(header));
     assertNotNull(writer);
     assertTrue(writer.getFASTAFile().exists());
-    assertEquals("Header is written, file length should be 68", writer.getFASTAFile().length(), header.length());
+    assertEquals(writer.getFASTAFile().length(), header.length());
     }
 
   @After

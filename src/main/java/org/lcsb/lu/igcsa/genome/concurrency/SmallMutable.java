@@ -66,7 +66,7 @@ public class SmallMutable extends Mutable
       {
       currentSequenceFragment = chromosome.readSequence(window);
 
-      log.debug("MUTATING " + chromosome.getName() + " at " + location.toString());
+      //log.debug("MUTATING " + chromosome.getName() + " at " + location.toString());
       DNASequence mutatedSequence = mutateFragment(chromosome, currentSequenceFragment, location);
 
       total += mutatedSequence.getLength();
@@ -94,30 +94,29 @@ public class SmallMutable extends Mutable
       log.error(e);
       }
     final long elapsedTime = System.currentTimeMillis() - startTime;
-    log.info("FINISHED mutating chromosome " + chromosome.getName() + " sequence length " + total + " time:" + elapsedTime/1000);
+    log.info("FINISHED mutating chromosome " + chromosome.getName() + " sequence length " + total + " time:" + elapsedTime / 1000);
     return chromosome;
     }
 
   // Mutates the sequence based on the information provided in the database
   private DNASequence mutateFragment(Chromosome chr, DNASequence sequence, Location location)
     {
+    long start = System.currentTimeMillis();
     DNASequence mutatedSequence = sequence;
     Random randomFragment = new Random();
 
     // get the GC content in order to select the correct fragment bin
     // might speed things up to skip anything that is > 70% (maybe less even) unknown/gap
     int totalNucleotides = sequence.calculateNucleotides();
-    if (totalNucleotides > (0.3*sequence.getLength()))
+    if (totalNucleotides > (0.3 * sequence.getLength()))
       {
-      Bin gcBin = this.binDAO.getBinByGC(chr.getName(), sequence.calculateGC());
+      Bin gcBin = this.binDAO.getBinByGC(chr.getName(), sequence.calculateGC()); // TODO some of these calls take > 20ms (not even most though)
 
-      log.debug(gcBin.toString());
       // get random fragment within the GC bin for each variation
       List<Fragment> fragmentList = fragmentDAO.getFragment(chr.getName(), gcBin.getBinId(), randomFragment.nextInt(gcBin.getSize()));
       int fragmentSum = 0;
       for (Fragment f : fragmentList)
         fragmentSum += f.getCount();
-      log.debug(chr.getName() + " sum of variations for fragment " + fragmentSum );
 
       if (totalNucleotides >= fragmentSum)
         {
@@ -135,7 +134,11 @@ public class SmallMutable extends Mutable
           }
         }
       }
-    else log.debug("Fragment was > 70% unknown/gap, skipping mutation.");
+    else
+      log.debug("Fragment was > 70% unknown/gap, skipping mutation.");
+    long elapsed = System.currentTimeMillis() - start;
+    log.debug(location.toString() + " took " + elapsed);
+
     return mutatedSequence;
     }
 

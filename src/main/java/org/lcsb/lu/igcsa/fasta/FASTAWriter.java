@@ -57,6 +57,7 @@ public class FASTAWriter
 
   public void write(String str) throws IOException
     {
+    if (lines == 1000) flush();
 
     for (char c : str.toCharArray())
       {
@@ -65,7 +66,6 @@ public class FASTAWriter
         buffer.append('\n');
         lines += 1;
         }
-      if (lines == 1000) flush();
 
       buffer.append(c);
       }

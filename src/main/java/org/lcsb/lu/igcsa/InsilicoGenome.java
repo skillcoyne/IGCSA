@@ -119,7 +119,7 @@ public class InsilicoGenome
     for (Chromosome chr : genome.getChromosomes()) //this could be done in threads, each chromosome can be mutated separately
       {
       log.debug(chr.getName());
-      FASTAHeader header = new FASTAHeader("chromosome " + chr.getName(), "fragment level mutations", genome.getBuildName());
+      FASTAHeader header = new FASTAHeader("igcsa", "chromosome " + chr.getName(), "fragment level mutations", genome.getBuildName());
       FASTAWriter writer = new FASTAWriter(new File(genome.getGenomeDirectory(), "chr" + chr.getName() + ".fa"), header);
 
       if (chr.getVariantList().size() <= 0) // this should never happen but...
@@ -156,7 +156,7 @@ public class InsilicoGenome
     // FOR NOW ONLY: apply a large deletion to one chromosome.
     Chromosome chr = genome.getChromosome("19");
 
-    FASTAHeader header = new FASTAHeader("chromosome " + chr.getName(), "with structural variation", genome.getBuildName());
+    FASTAHeader header = new FASTAHeader("igcsa", "chromosome " + chr.getName(), "with structural variation", genome.getBuildName());
     FASTAWriter writer = new FASTAWriter(new File(tmpDir, "chr" + chr.getName() + ".fa"), header);
 
     // TODO  This whole bit will ultimately come from the database the same way small scale mutations do

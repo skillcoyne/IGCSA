@@ -37,7 +37,7 @@ public class VariantUtils
     this.snvDAO = snvDAO;
     }
 
-  public List<Variation> getVariantList(String chr) throws IllegalAccessException, InstantiationException, ProbabilityException
+  public List<Variation> getVariantList(String chr) throws IllegalAccessException, ProbabilityException, InstantiationException
     {
     log.info("Getting variations for chromosome " + chr);
     if (!variantListByChr.containsKey(chr))
@@ -54,10 +54,18 @@ public class VariantUtils
           }
         else
           {
-          Variation variant = (Variation) entry.getValue().newInstance();
-          variant.setVariationName(entry.getKey());
-          variant.setSizeVariation( sizeDAO.getByVariation(entry.getKey()) );
-          variantList.add(variant);
+          Variation variant = null;
+          try
+            {
+            variant = (Variation) entry.getValue().newInstance();
+            variant.setVariationName(entry.getKey());
+            variant.setSizeVariation( sizeDAO.getByVariation(entry.getKey()) );
+            variantList.add(variant);
+            }
+          catch (InstantiationException e)
+            {
+            log.warn(entry.getKey() + " is not currently implemented." + e);
+            }
           }
         }
       variantListByChr.put(chr, variantList);

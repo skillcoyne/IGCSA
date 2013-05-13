@@ -23,6 +23,8 @@ public class Insertion extends Variation
 
   public DNASequence mutateSequence(String sequence)
     {
+    long start = System.currentTimeMillis();
+
     int count = this.fragment.getCount();
     lastMutations = new LinkedHashMap<Location, DNASequence>();
 
@@ -54,6 +56,9 @@ public class Insertion extends Variation
       sequence = newSequence;
       ++totalIns;
       }
+
+    long elapsed = System.currentTimeMillis() - start;
+    log.debug("Mutation took " + elapsed);
 
     return new DNASequence(sequence);
     }

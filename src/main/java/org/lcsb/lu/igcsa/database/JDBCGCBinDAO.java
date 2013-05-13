@@ -7,6 +7,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
+import sun.tools.tree.BinaryShiftExpression;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -32,6 +33,7 @@ public class JDBCGCBinDAO implements GCBinDAO
   private final String tableName = "gc_bins";
 
   private Map<String, Integer> maxBins = new HashMap<String, Integer>();
+  private Map<String, Bin[]> chrBins = new HashMap<String, Bin[]>();
 
   public void setDataSource(DataSource dataSource)
     {
@@ -43,39 +45,9 @@ public class JDBCGCBinDAO implements GCBinDAO
     log.debug("maxBin(" + chr + ")");
     if (!maxBins.containsKey(chr))
       {
-      String sql = "SELECT * FROM " + tableName + " WHERE chr = ? ORDER BY max DESC LIMIT 0,1";
+      String sql = "SELECT * FROM " + tableName + " WHERE chr = ? ORDER BY maximum DESC LIMIT 0,1";
       log.debug(sql);
       Bin gcBin = (Bin) jdbcTemplate.query(sql, new Object[]{chr}, new ResultSetExtractor<Object>()
-        {
-        public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
-          {
-          Bin gcBin = null;
-          if (resultSet.next())
-            gcBin = createBin(resultSet);
-          return gcBin;
-          }
-        });
-      maxBins.put(chr, gcBin.getMax());
-      }
-    return maxBins.get(chr);
-    }
-
-  public Bin getBinByGC(String chr, int gcContent)
-    {
-    int maxBin = maxBin(chr);
-    log.debug("MAX BIN FOR " + chr + " = " + maxBin);
-
-    String sql = "SELECT * FROM " + this.tableName + " WHERE chr = ? AND (min <= ? AND max >= ?)";
-    Object[] queryObj = new Object[]{chr, gcContent, gcContent};
-
-    if (maxBin < gcContent)
-      {
-      sql = "SELECT * FROM " + this.tableName + " WHERE chr = ? AND max = ?";
-      queryObj = new Object[]{chr, maxBin};
-      }
-
-    log.debug("getBinByGC(" + chr + ", " + gcContent + "): " + sql);
-    return (Bin) jdbcTemplate.query(sql, queryObj, new ResultSetExtractor<Object>()
       {
       public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
         {
@@ -85,6 +57,67 @@ public class JDBCGCBinDAO implements GCBinDAO
         return gcBin;
         }
       });
+      maxBins.put(chr, gcBin.getMax());
+      }
+    return maxBins.get(chr);
+    }
+
+  public Bin getBinByGC(String chr, int gcContent)
+    {
+//    long start = System.currentTimeMillis();
+
+    int maxBin = maxBin(chr);
+    //    log.debug("MAX BIN FOR " + chr + " = " + maxBin);
+    //
+    //    String sql = "SELECT * FROM " + this.tableName + " WHERE chr = ? AND (minimum <= ? AND maximum >= ?)";
+    //    Object[] queryObj = new Object[]{chr, gcContent, gcContent};
+    //
+    //    if (maxBin < gcContent)
+    //      {
+    //      sql = "SELECT * FROM " + this.tableName + " WHERE chr = ? AND maximum = ?";
+    //      queryObj = new Object[]{chr, maxBin};
+    //      }
+    //
+    //    log.debug("getBinByGC(" + chr + ", " + gcContent + "): " + sql);
+    //    Bin bin = (Bin) jdbcTemplate.query(sql, queryObj, new ResultSetExtractor<Object>()
+    //    {
+    //    public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
+    //      {
+    //      Bin gcBin = null;
+    //      if (resultSet.next())
+    //        gcBin = createBin(resultSet);
+    //      return gcBin;
+    //      }
+    //    });
+
+    Bin match = null;
+    if (maxBin < gcContent)
+      {
+      for (Bin bin : getBins(chr))
+        {
+        if (bin.getMax() == maxBin)
+          {
+          match = bin;
+          break;
+          }
+        }
+      }
+    else
+      {
+      for (Bin bin : getBins(chr))
+        {
+        if (bin.getRange().containsInteger(gcContent))
+          {
+          match = bin;
+          break;
+          }
+        }
+      }
+
+
+//    long elapse = System.currentTimeMillis() - start;
+//    log.info(chr + " " + gcContent + " time: " + elapse);
+    return match;
     }
 
   public Bin getBinById(String chr, int binId)
@@ -93,23 +126,26 @@ public class JDBCGCBinDAO implements GCBinDAO
     log.debug("getBinById(" + chr + ", " + binId + "): " + sql);
 
     return (Bin) jdbcTemplate.query(sql, new Object[]{chr, binId}, new ResultSetExtractor<Object>()
+    {
+    public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
       {
-      public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
-        {
-        Bin gcBin = null;
-        if (resultSet.next())
-          gcBin = createBin(resultSet);
-        return gcBin;
-        }
-      });
+      Bin gcBin = null;
+      if (resultSet.next())
+        gcBin = createBin(resultSet);
+      return gcBin;
+      }
+    });
     }
 
   public Bin[] getBins(String chr)
     {
-    String sql = "SELECT * FROM " + this.tableName + " WHERE chr = ?";
-    log.debug("getBins(" + chr + "): " + sql);
+    if (!chrBins.containsKey(chr))
+      {
 
-    return (Bin[]) jdbcTemplate.query(sql, new Object[]{chr}, new ResultSetExtractor<Object>()
+      String sql = "SELECT * FROM " + this.tableName + " WHERE chr = ?";
+      log.debug("getBins(" + chr + "): " + sql);
+
+      Bin[] bins = (Bin[]) jdbcTemplate.query(sql, new Object[]{chr}, new ResultSetExtractor<Object>()
       {
       public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
         {
@@ -119,6 +155,9 @@ public class JDBCGCBinDAO implements GCBinDAO
         return bins.toArray(new Bin[bins.size()]);
         }
       });
+      chrBins.put(chr, bins);
+      }
+    return chrBins.get(chr);
     }
 
   private Bin createBin(ResultSet rs) throws SQLException
@@ -126,11 +165,12 @@ public class JDBCGCBinDAO implements GCBinDAO
     Bin gcBin = new Bin();
     gcBin.setChr(rs.getString("chr"));
     gcBin.setBinId(rs.getInt("bin_id"));
-    gcBin.setMin(rs.getInt("min"));
-    gcBin.setMax(rs.getInt("max"));
+    gcBin.setMin(rs.getInt("minimum"));
+    gcBin.setMax(rs.getInt("maximum"));
     gcBin.setSize(rs.getInt("total_fragments"));
     return gcBin;
     }
+
 
   }
 

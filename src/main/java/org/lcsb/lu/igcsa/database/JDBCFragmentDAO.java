@@ -1,6 +1,7 @@
 package org.lcsb.lu.igcsa.database;
 
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.database.normal.Bin;
 import org.lcsb.lu.igcsa.database.normal.Fragment;
 import org.lcsb.lu.igcsa.database.normal.FragmentDAO;
 import org.springframework.dao.DataAccessException;
@@ -11,7 +12,9 @@ import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * org.lcsb.lu.igcsa.database
@@ -26,28 +29,52 @@ public class JDBCFragmentDAO implements FragmentDAO
   private JdbcTemplate jdbcTemplate;
   private final String tableName = "variation_per_bin";
 
+  // cache so that I can avoid expensive joins
+  private Map<String, List<String>> variationPerBin = new HashMap<String, List<String>>();
+  private Map<String, Integer> variations = new HashMap<String, Integer>();
+
   public void setDataSource(DataSource dataSource)
     {
     jdbcTemplate = new JdbcTemplate(dataSource);
+
+    String sql = "SELECT * FROM variation ORDER BY id";
+    variations = (Map<String, Integer>) jdbcTemplate.query(sql, new ResultSetExtractor<Object>()
+      {
+      @Override
+      public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
+        {
+        Map<String, Integer> vars = new HashMap<String, Integer>();
+        while (resultSet.next())
+          {
+          vars.put(resultSet.getString("name"), resultSet.getInt("id"));
+          }
+        return vars;
+        }
+      });
+
     }
+
 
   public Integer getVariationCount(String chr, int binId, String variation, int fragmentNum)
     {
-    String sql = "SELECT vpb.chr, vpb.bin_id, vpb.count, v.name FROM " +
-      this.tableName + " as vpb INNER JOIN variation as v on v.id = vpb.variation_id " +
-      "WHERE vpb.chr = ? AND vpb.bin_id = ? and v.name = ? LIMIT ?, 1";
+    int varId = variations.get(variation);
+
+    String sql = "SELECT * FROM " + tableName + " WHERE chr = ? AND bin_id = ? AND variation_id = ? LIMIT ?, 1";
+
     log.debug("getVariationCount(" + chr + ", " + binId + ", " + variation + ", " + fragmentNum + "): " + sql);
 
-    return (Integer) jdbcTemplate.query(sql, new Object[]{chr, binId, variation, fragmentNum}, new ResultSetExtractor<Object>()
+    int count = (Integer) jdbcTemplate.query(sql, new Object[]{chr, binId, varId, fragmentNum}, new ResultSetExtractor<Object>()
+    {
+    public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
       {
-      public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
-        {
-        int count = 0;
-        if (resultSet.next())
-          count = resultSet.getInt("count");
-        return count;
-        }
-      });
+      int count = 0;
+      if (resultSet.next())
+        count = resultSet.getInt("var_count");
+      return count;
+      }
+    });
+
+    return count;
     }
 
   public Fragment getVariationFragment(String chr, int binId, String variation, int fragmentNum)
@@ -65,9 +92,8 @@ public class JDBCFragmentDAO implements FragmentDAO
     {
     // for the given fragment get the variations
     List<String> variations = variationsInBin(chr, binId);
-
     List<Fragment> fragments = new ArrayList<Fragment>();
-    for (String var: variations)
+    for (String var : variations)
       {
       Fragment fragment = new Fragment();
       fragment.setBinId(binId);
@@ -80,15 +106,16 @@ public class JDBCFragmentDAO implements FragmentDAO
     return fragments;
     }
 
-  // TODO this could be cached for each chr/bin combination as it's fairly small
   private List<String> variationsInBin(String chr, int binId)
     {
-    String sql = "SELECT distinct v.name FROM " + this.tableName + " as vpb " +
-      "INNER JOIN variation as v ON v.id = vpb.variation_id " +
-      "WHERE vpb.chr = ? AND vpb.bin_id = ?";
-    log.debug("getVariationsInBin(" + chr + ", " + binId + "): " + sql);
+    if (!this.variationPerBin.containsKey(chr + binId))
+      {
+      String sql = "SELECT distinct v.name FROM " + this.tableName + " as vpb " +
+          "INNER JOIN variation as v ON v.id = vpb.variation_id " +
+          "WHERE vpb.chr = ? AND vpb.bin_id = ?";
+      log.debug("getVariationsInBin(" + chr + ", " + binId + "): " + sql);
 
-    return (List<String>) jdbcTemplate.query(sql, new Object[]{chr, binId}, new ResultSetExtractor<Object>()
+      List<String> vars = (List<String>) jdbcTemplate.query(sql, new Object[]{chr, binId}, new ResultSetExtractor<Object>()
       {
       public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
         {
@@ -100,6 +127,9 @@ public class JDBCFragmentDAO implements FragmentDAO
         return vars;
         }
       });
+      variationPerBin.put(chr + binId, vars);
+      }
+    return variationPerBin.get(chr+binId);
     }
 
   }

@@ -10,24 +10,28 @@ import java.io.IOException;
  */
 public class FASTAHeader
   {
+  private String db;
   private String accession;
   private String locus = "";
   private String description;
   private String asString;
 
   private static final int MIN_ENTRIES = 3;
+  private static final String separator = "|";
 
 
-  public FASTAHeader(String accession, String locus, String description)
+  public FASTAHeader(String db, String accession, String locus, String description)
     {
-    this.accession = accession;
-    this.locus = locus;
+    this.db = db;
+    this.accession = accession.replaceAll(" ", ".");
+    this.locus = locus.replaceAll(" ", ".");
     this.description = description;
+    this.asString = this.db + separator + this.accession + separator + this.locus + separator + this.description;
     }
 
   public FASTAHeader(String line) throws IOException
     {
-    if (!line.contains("|")) throw new IOException("Not the first line of a FASTA file: " + line);
+    if (!line.contains(separator)) throw new IOException("Not the first line of a FASTA file: " + line);
     parse(line);
     }
 
@@ -65,20 +69,20 @@ public class FASTAHeader
     return description;
     }
 
-  public void setAccession(String accession)
-    {
-    this.accession = accession;
-    }
-
-  public void setLocus(String locus)
-    {
-    this.locus = locus;
-    }
-
-  public void setDescription(String description)
-    {
-    this.description = description;
-    }
+//  public void setAccession(String accession)
+//    {
+//    this.accession = accession;
+//    }
+//
+//  public void setLocus(String locus)
+//    {
+//    this.locus = locus;
+//    }
+//
+//  public void setDescription(String description)
+//    {
+//    this.description = description;
+//    }
 
   public String toString()
     {

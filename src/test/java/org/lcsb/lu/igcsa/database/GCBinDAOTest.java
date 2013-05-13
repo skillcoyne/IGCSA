@@ -1,5 +1,7 @@
 package org.lcsb.lu.igcsa.database;
 
+import org.apache.commons.lang.math.IntRange;
+import org.apache.commons.lang.math.Range;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.lcsb.lu.igcsa.database.normal.Bin;
@@ -8,7 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.TreeMap;
+
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * org.lcsb.lu.igcsa.database
@@ -56,4 +61,37 @@ public class GCBinDAOTest
     assertEquals(bins[0].getMin(), 0);
     assertEquals(bins[bins.length-1].getMax(), 860);
     }
+
+  @Test
+  public void testTime() throws Exception
+    {
+    int gc = 360;
+    String chr = "9";
+
+    long s = System.currentTimeMillis();
+    Bin[] bins = testGCBinDAO.getBins(chr);
+    long e = System.currentTimeMillis() - s;
+
+    long s1 = System.currentTimeMillis();
+    testGCBinDAO.getBinByGC(chr, gc);
+    long e1 = System.currentTimeMillis() - s1;
+    assertTrue(e1 <= e);
+
+    long s2 = System.currentTimeMillis();
+    Bin b = testGCBinDAO.getBinByGC(chr, gc);
+    long e2 = System.currentTimeMillis() - s2;
+    assertTrue(e2 <= e);
+    assertTrue(e2 <= e1);
+
+    //System.out.println("" + e + " " + e1 + " " + e2);
+
+
+    assertEquals(b.getBinId(), 5);
+    assertEquals(b.getMin(), 340);
+    assertEquals(b.getMax(), 425);
+    assertEquals(b.getSize(), 57418);
+
+
+    }
+
   }
