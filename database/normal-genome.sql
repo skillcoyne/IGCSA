@@ -7,8 +7,8 @@ create table `gc_bins` (
   `id` int(11) not null auto_increment,
   `chr` varchar(12) not null,
   `bin_id` int(11) not null,
-  `min` int(11) not null,
-  `max` int(11) not null,
+  `minimum` int(11) not null,
+  `maximum` int(11) not null,
   `total_fragments` int(24) not null,
   primary key(`id`),
   index binindex (`chr`, `bin_id`)
@@ -34,7 +34,7 @@ create table `variation_per_bin` (
   `chr` varchar(12) not null,
   `bin_id` int(11) not null,
   `variation_id` int(11) not null,
-  `count` int(24) not null,
+  `var_count` int(24) not null,
   index vp_index(`chr`, `bin_id`, `variation_id`)
 );
 

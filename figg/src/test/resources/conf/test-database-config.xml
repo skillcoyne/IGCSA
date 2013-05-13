@@ -12,23 +12,23 @@
         <property name="password" value=""/>
     </bean>
 
-    <bean id="testFragmentDAO" class="org.lcsb.lu.igcsa.database.JDBCFragmentDAO">
+    <bean id="testFragmentDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCFragmentDAO">
         <property name="dataSource" ref="testDS"/>
     </bean>
 
-    <bean id="testVariationDAO" class="org.lcsb.lu.igcsa.database.JDBCVariationDAO">
+    <bean id="testVariationDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCVariationDAO">
         <property name="dataSource" ref="testDS"/>
     </bean>
 
-    <bean id="testGCBinDAO" class="org.lcsb.lu.igcsa.database.JDBCGCBinDAO">
+    <bean id="testGCBinDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCGCBinDAO">
         <property name="dataSource" ref="testDS"/>
     </bean>
 
-    <bean id="testSizeDAO" class="org.lcsb.lu.igcsa.database.JDBCSizeDAO">
+    <bean id="testSizeDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCSizeDAO">
         <property name="dataSource" ref="testDS"/>
     </bean>
 
-    <bean id="testSNVDAO" class="org.lcsb.lu.igcsa.database.JDBCSNVProbabilityDAO">
+    <bean id="testSNVDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCSNVProbabilityDAO">
         <property name="dataSource" ref="testDS"/>
     </bean>
 

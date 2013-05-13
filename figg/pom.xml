@@ -11,8 +11,6 @@
     <packaging>jar</packaging>
     <name>Fragment Insilico Geneome Generator</name>
 
-
-
     <build>
         <plugins>
             <plugin>

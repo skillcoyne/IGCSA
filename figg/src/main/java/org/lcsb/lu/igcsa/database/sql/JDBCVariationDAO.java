@@ -1,4 +1,4 @@
-package org.lcsb.lu.igcsa.database;
+package org.lcsb.lu.igcsa.database.sql;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.normal.VariationDAO;
@@ -69,7 +69,7 @@ public class JDBCVariationDAO implements VariationDAO
       {
       public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
         {
-        Map<String, Class> variations = new LinkedHashMap<String, java.lang.Class>();
+        Map<String, Class> variations = new LinkedHashMap<String, Class>();
         while (resultSet.next())
           {
           try

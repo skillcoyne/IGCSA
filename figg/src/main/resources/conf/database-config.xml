@@ -6,30 +6,40 @@
 
 
     <!-- Database for the NORMAL GENOME fragment tables, this doesn't have to be mysql.  These aren't particularly large -->
-    <bean id="normalDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+    <!--<bean id="normalDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">-->
+        <!--<property name="driverClassName" value="${normal.genome.driver}"/>-->
+        <!--<property name="url" value="jdbc:mysql://${normal.genome.host}:${normal.genome.port}/${normal.genome.db}"/>-->
+        <!--<property name="username" value="${normal.genome.user}"/>-->
+        <!--<property name="password" value="${normal.genome.pwd}"/>-->
+    <!--</bean>-->
+
+
+    <bean id="normalDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="${normal.genome.driver}"/>
-        <property name="url" value="jdbc:mysql://${normal.genome.host}:${normal.genome.port}/${normal.genome.db}"/>
+        <property name="url" value="${normal.genome.url}"/>
         <property name="username" value="${normal.genome.user}"/>
         <property name="password" value="${normal.genome.pwd}"/>
     </bean>
 
-    <bean id="VariationDAO" class="org.lcsb.lu.igcsa.database.JDBCVariationDAO">
+
+
+    <bean id="VariationDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCVariationDAO">
         <property name="dataSource" ref="normalDataSource"/>
     </bean>
 
-    <bean id="FragmentDAO" class="org.lcsb.lu.igcsa.database.JDBCFragmentDAO">
+    <bean id="FragmentDAO" class="org.lcsb.lu.igcsa.database.derby.JDBCFragmentDAO">
         <property name="dataSource" ref="normalDataSource"/>
     </bean>
 
-    <bean id="GCBinDAO" class="org.lcsb.lu.igcsa.database.JDBCGCBinDAO">
+    <bean id="GCBinDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCGCBinDAO">
         <property name="dataSource" ref="normalDataSource"/>
     </bean>
 
-    <bean id="SizeDAO" class="org.lcsb.lu.igcsa.database.JDBCSizeDAO">
+    <bean id="SizeDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCSizeDAO">
         <property name="dataSource" ref="normalDataSource"/>
     </bean>
 
-    <bean id="SNVDAO" class="org.lcsb.lu.igcsa.database.JDBCSNVProbabilityDAO">
+    <bean id="SNVDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCSNVProbabilityDAO">
         <property name="dataSource" ref="normalDataSource"/>
     </bean>
 

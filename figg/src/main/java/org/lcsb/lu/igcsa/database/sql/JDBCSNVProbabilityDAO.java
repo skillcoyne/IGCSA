@@ -1,4 +1,4 @@
-package org.lcsb.lu.igcsa.database;
+package org.lcsb.lu.igcsa.database.sql;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.normal.SNVProbabilityDAO;

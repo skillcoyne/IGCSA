@@ -1,9 +1,10 @@
-package org.lcsb.lu.igcsa.variation.fragment;
+package org.lcsb.lu.igcsa.variation.structural;
 
 import org.lcsb.lu.igcsa.genome.DNASequence;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.genome.Location;
+import org.lcsb.lu.igcsa.variation.fragment.Variation;
 
 import java.util.LinkedHashMap;
 
