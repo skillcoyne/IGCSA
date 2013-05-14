@@ -18,7 +18,6 @@ import java.util.*;
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
 public class SmallMutable extends Mutable
-    //implements Runnable
   {
   static Logger log = Logger.getLogger(SmallMutable.class.getName());
 
@@ -66,7 +65,6 @@ public class SmallMutable extends Mutable
       {
       currentSequenceFragment = chromosome.readSequence(window);
 
-      //log.debug("MUTATING " + chromosome.getName() + " at " + location.toString());
       DNASequence mutatedSequence = mutateFragment(chromosome, currentSequenceFragment, location);
 
       total += mutatedSequence.getLength();
@@ -113,31 +111,27 @@ public class SmallMutable extends Mutable
       Bin gcBin = this.binDAO.getBinByGC(chr.getName(), sequence.calculateGC()); // TODO some of these calls take > 20ms (not even most though)
 
       // get random fragment within the GC bin for each variation
-      List<Fragment> fragmentList = fragmentDAO.getFragment(chr.getName(), gcBin.getBinId(), randomFragment.nextInt(gcBin.getSize()));
-      int fragmentSum = 0;
-      for (Fragment f : fragmentList)
-        fragmentSum += f.getCount();
+      Map<String, Fragment> fragmentVarMap = fragmentDAO.getFragment(chr.getName(), gcBin.getBinId(), randomFragment.nextInt(gcBin.getSize()));
 
-      if (totalNucleotides >= fragmentSum)
+      // apply the variations to the sequence, each of them needs to apply to the same fragment
+      // it is possible that one could override another (e.g. a deletion removes SNVs)
+      for (Variation variation : chr.getVariantList())
         {
-        // apply the variations to the sequence, each of them needs to apply to the same fragment
-        // it is possible that one could override another (e.g. a deletion removes SNVs)
-        for (Variation variation : chr.getVariantList())
-          {
-          Fragment fragment = fragmentDAO.getVariationFragment(chr.getName(), gcBin.getBinId(), variation.getVariationName(), randomFragment.nextInt(gcBin.getSize()));
-          log.debug("Chromosome " + chr.getName() + " MUTATING FRAGMENT " + fragment.toString());
-          variation.setMutationFragment(fragment);
-          mutatedSequence = variation.mutateSequence(mutatedSequence);
+        Fragment fragment = fragmentVarMap.get(variation.getVariationName());
+        log.debug("Chromosome " + chr.getName() + " MUTATING FRAGMENT " + fragment.toString());
+        variation.setMutationFragment(fragment);
+        mutatedSequence = variation.mutateSequence(mutatedSequence);
 
-          if (mutationWriter != null)  // This isn't going to work when I add in location-based structural variation mutation
-            writeVariations(chr, location, gcBin, variation, variation.getLastMutations());
-          }
+        if (mutationWriter != null)  // This isn't going to work when I add in location-based structural variation mutation
+          writeVariations(chr, location, gcBin, variation, variation.getLastMutations());
         }
+
+      long elapsed = System.currentTimeMillis() - start;
+      log.info(location.toString() + " took " + elapsed);
       }
+
     else
       log.debug("Fragment was > 70% unknown/gap, skipping mutation.");
-    long elapsed = System.currentTimeMillis() - start;
-    log.debug(location.toString() + " took " + elapsed);
 
     return mutatedSequence;
     }

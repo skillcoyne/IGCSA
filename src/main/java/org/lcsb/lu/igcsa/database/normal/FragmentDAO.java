@@ -1,6 +1,7 @@
 package org.lcsb.lu.igcsa.database.normal;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * org.lcsb.lu.igcsa.database
@@ -14,6 +15,6 @@ public interface FragmentDAO
 
   public Integer getVariationCount(String chr, int binId, String variation, int fragmentNum);
 
-  public List<Fragment> getFragment(String chr, int binId, int fragmentNum);
+  public Map<String, Fragment> getFragment(String chr, int binId, int fragmentNum);
 
   }
