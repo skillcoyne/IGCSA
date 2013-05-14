@@ -4,12 +4,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.lcsb.lu.igcsa</groupId>
-    <artifactId>insilico-genome</artifactId>
+    <artifactId>figg</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
-    <name>Insilico Genome</name>
+    <name>Fragment Insilico Genome Generator</name>
     <properties>
-        <project.jar.name>igcsa</project.jar.name>
         <org.springframework.version>3.2.2.RELEASE</org.springframework.version>
     </properties>
 
@@ -69,10 +68,10 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
+                            <finalName>${project.artifactId}-${project.version}</finalName>
                             <descriptorRefs>
                                 <descriptorRef>jar-with-dependencies</descriptorRef>
                             </descriptorRefs>
-                            <finalName>${project.jar.name}-${project.version}</finalName>
                             <appendAssemblyId>false</appendAssemblyId>
                             <archive>
                                 <manifest>
@@ -83,13 +82,14 @@
                     </execution>
                     <execution>
                         <id>make-assembly</id>
-                        <!-- this is used for inheritance merges -->
                         <phase>package</phase>
-                        <!-- bind to the packaging phase -->
                         <goals>
                             <goal>single</goal>
                         </goals>
                         <configuration>
+                            <finalName>${project.artifactId}-${project.version}</finalName>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <attach>true</attach>
                             <descriptor>assembly.xml</descriptor>
                         </configuration>
                     </execution>
