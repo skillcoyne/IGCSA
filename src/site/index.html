@@ -1,0 +1,148 @@
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+  <meta name="verify-v1" content="6wo51xu6ARUrklKNbMeXjgoTCvR8I3C7/IESIFp0t10="/>
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <style type="text/css">
+    ol, ul {
+      margin: 0.5em;
+    }
+
+    li {
+      margin: 0;
+    }
+  </style>
+  <title>Fragment Insilico Genome Generator</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body>
+<div id="wrap">
+  <div id="header"><h1>Fragment Insilico Genome Generator</h1></div>
+  <div id="menu">
+    <ul>
+      <li><a href="index.shtml">Home</a></li>
+    </ul>
+  </div>
+
+  <div id="sidebar">
+    <h3>FIGG:</h3>
+    <ul>
+      <li><a href="http://sourceforge.net/projects/insilicogenome/">SF project page</a>
+      <li><a href="http://sourceforge.net/projects/insilicogenome/files/">SF download page</a>
+      <li><a href="https://github.com/skillcoyne/igcsa">Repository</a>
+    </ul>
+    <br>
+
+    <h3>Links:</h3>
+    <ul>
+      <li><a href="http://wwwen.uni.lu/lcsb/research/computational_biology">Computational Biology Group @LCSB</a></li>
+      <li><a href="http://wwwen.uni.lu/lcsb">Luxembourg Centre for Systems Biomedicine</a></li>
+    </ul>
+    <h3>Requirements:</h3>
+    <ul>
+      <li><a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">Java 1.6+</a></li>
+      <li><a href="http://dev.mysql.com/downloads/">MySQL 5.1</a></li>
+      <li><a href="http://hgdownload.cse.ucsc.edu/downloads.html">FASTA files</a></li>
+    </ul>
+  </div>
+
+  <div id="main">
+    <!-- BEGIN OF THE BODY -->
+    <h2>Introduction</h2>
+
+    <p>
+      FIGG is a genome simulation tool that uses known or theorized variation frequency across a genome to generate
+      new genomes in FASTA format while tracking applied mutations for use in analysis tools or population simulations.
+    </p>
+    <br>
+
+    <h2>FAQ</h2>
+    <dl>
+      <dt>How can I cite FIGG?</dt>
+      <dd>
+        The small-scale variation fragment mutation has been submitted to <a href="http://bioinformatics.oxfordjournals.org/">Bioinformatics</a>.
+        <ul>
+        </ul>
+      </dd>
+      <dt>Does this work with all genomes?</dt>
+      <dd>
+        Currently this has only been tested on human GRCh37. However, the tool itself should work with any genomic data in FASTA format.
+        The database tables will need to be generated based on your specific genome and known/hypothesized variation information and the
+        scripts available in the source download will require alteration to work for your files or new ones written.
+      </dd>
+      <dt>What data is provided?</dt>
+      <dd>
+        The data provided in the database tables were based on analysis of <a href="http://www.1000genomes.org/">1000Genomes</a> and <a href="http://hapmap.ncbi.nlm.nih.gov/">HapMap</a> variations called against human reference <a
+          href="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/chromosomes/">GRCh37 (hg19)</a>. These variation
+        tables can be used with any human genome sequence, however variation frequency may change between releases.
+      </dd>
+      <dt>Can I include specific variations at known locations?</dt>
+      <dd>
+        While the code is set up to support this, the current implementation does not provide for location based, or specific genomic alterations.
+        This may be added in the future.
+      </dd>
+    </dl>
+    <h2>Usage</h2>
+    <dl>
+      <dd>
+      <dt>Usage: java -jar igcsa.jar [options]</dt>
+        <pre>
+    -n, --name Genome directory name, if not provided a random name is generated.
+    -o, --overwrite Overwrite genome directory if name already exists.
+    -c, --chromosome List of chromosomes to use/mutate, comma-separated (e.g. 21,3,X). If not included chromosomes will be determined by
+    the fasta files found in the dir.assembly directory (see genome.properties).
+    -t, --threads Number of concurrent threads, default is 5. Each thread handles a single chromosome.
+    -h, --help Print usage help.
+        </pre>
+      </dd>
+      <dt>Examples using the provided shell script:</dt>
+      <dd>
+        Generate mutations for chromosome 17, overwrite previous named run.
+        <pre>start-igcsa.sh -n MyChr17 -o -c 17</pre>
+
+        Generate mutations for all chromosomes in the dir.assembly directory using 12 threads. Don't overwrite.
+        <pre>start-igcsa.sh -n MyGenome -t 12</pre>
+
+        Example calling the jar file directly, props.path is the directory where genome.properties and log4j.properties both exist. The shell
+        script assumes this to be the same directory as the jar file:
+
+        <pre>java -Dprops.path=[properties path] -jar -Xms256m -Xmx1024m igcsa.jar -n MyGenome -t 12</pre>
+
+      </dd>
+    </dl>
+    <h2>Software License</h2>
+    <dt><a href="http://www.apache.org/licenses/LICENSE-2.0.html">Apache License 2.0</a></dt>
+    <pre>
+      Copyright 2013 University of Luxembourg and the Luxembourg Centre for Systems Biomedicine
+
+      Licensed under the Apache License, Version 2.0 (the "License");
+      you may not use this file except in compliance with the License.
+      You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+      Unless required by applicable law or agreed to in writing, software
+      distributed under the License is distributed on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+      See the License for the specific language governing permissions and
+      limitations under the License.
+      </pre>
+    </p>
+
+    <!-- END OF THE BODY-->
+  </div>
+  <!-- BEGIN OF THE FOOTER -->
+  <div style="clear: both;"></div>
+  <div id="footer">
+    <hr/>
+    <p style="text-align: center;">
+      This work is supported by an AFR grant from the <a href="http://www.fnr.lu/">Fonds National de la Recherche Luxembourg</a>
+      <br>
+      Copyright 2013 <a href="http://uni.lu">University of Luxembourg</a> and the <a href="http://wwwen.uni.lu/lcsb">Luxembourg Centre for Systems Biomedicine</a>
+      <br>
+      Last modified: 2013-05-13</p>
+  </div>
+  <!-- END OF THE FOOTER -->
+</div>
+</body>
+</html>

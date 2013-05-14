@@ -177,4 +177,13 @@
         </repository>
     </repositories>
 
+
+    <!--<distributionManagement>-->
+        <!--<site>-->
+            <!--<id>website</id>-->
+            <!--<url>sftp://skillcoyne@web.sourceforge.net/home/project-web/insilicogenome</url>-->
+        <!--</site>-->
+    <!--</distributionManagement>-->
+
+
 </project>
