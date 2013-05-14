@@ -17,6 +17,41 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/resources</directory>
+                                    <filtering>true</filtering>
+                                    <includes>
+                                        <include>*.example</include>
+                                        <include>*.properties</include>
+                                        <include>*.sh</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>database</directory>
+                                    <filtering>true</filtering>
+                                    <excludes>
+                                        <exclude>README</exclude>
+                                    </excludes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.0</version>
                 <configuration>
@@ -39,7 +74,6 @@
                             </descriptorRefs>
                             <finalName>${project.jar.name}-${project.version}</finalName>
                             <appendAssemblyId>false</appendAssemblyId>
-
                             <archive>
                                 <manifest>
                                     <mainClass>org.lcsb.lu.igcsa.InsilicoGenome</mainClass>
@@ -48,11 +82,18 @@
                         </configuration>
                     </execution>
                     <execution>
+                        <id>make-assembly</id>
+                        <!-- this is used for inheritance merges -->
+                        <phase>package</phase>
+                        <!-- bind to the packaging phase -->
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <descriptor>assembly.xml</descriptor>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <descriptor>assembly.xml</descriptor>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -61,38 +102,6 @@
                 <configuration>
                     <skipTests>true</skipTests>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.6</version>
-                <executions>
-                    <execution>
-                        <id>copy-resources</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${basedir}/target</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>src/main/resources</directory>
-                                    <filtering>true</filtering>
-                                    <includes>
-                                        <include>*.example</include>
-                                        <include>*.properties</include>
-                                        <include>*.sh</include>
-                                    </includes>
-                                </resource>
-                                <resource>
-                                    <directory>database</directory>
-                                    <filtering>true</filtering>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
@@ -179,10 +188,10 @@
 
 
     <!--<distributionManagement>-->
-        <!--<site>-->
-            <!--<id>website</id>-->
-            <!--<url>sftp://skillcoyne@web.sourceforge.net/home/project-web/insilicogenome</url>-->
-        <!--</site>-->
+    <!--<site>-->
+    <!--<id>website</id>-->
+    <!--<url>sftp://skillcoyne@web.sourceforge.net/home/project-web/insilicogenome</url>-->
+    <!--</site>-->
     <!--</distributionManagement>-->
 
 

@@ -10,20 +10,15 @@
 
     <fileSets>
         <fileSet>
-            <directory>${project.basedir}</directory>
+            <directory>${project.build.directory}</directory>
             <outputDirectory>/</outputDirectory>
             <includes>
                 <include>README*</include>
                 <include>LICENSE*</include>
-            </includes>
-        </fileSet>
-        <fileSet>
-            <directory>${project.build.directory}</directory>
-            <outputDirectory>/</outputDirectory>
-            <includes>
                 <include>${project.jar.name}-${project.version}.jar</include>
                 <include>*.sh</include>
                 <include>*.properties*</include>
+                <include>*.sql</include>
             </includes>
         </fileSet>
     </fileSets>
