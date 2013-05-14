@@ -34,8 +34,7 @@ public class FASTAWriter
     this.fasta = createFile(fasta);
     log.debug(fasta.getAbsolutePath());
     this.header = header;
-    //writeString(">" + header.getAccession() + "|" + header.getLocus() + "|" + header.getDescription() + "\n");
-    bufferedWriter.write(">" + header.getAccession() + "|" + header.getLocus() + "|" + header.getDescription());
+    bufferedWriter.write(header.getFormattedHeader());
     bufferedWriter.flush();
     }
 

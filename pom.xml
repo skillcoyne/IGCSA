@@ -29,17 +29,17 @@
                             <outputDirectory>${basedir}/target</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>src/main/resources</directory>
+                                    <directory>src/dist-resources</directory>
                                     <filtering>true</filtering>
                                     <includes>
                                         <include>*.example</include>
-                                        <include>*.properties</include>
+                                        <include>log4j*</include>
                                         <include>*.sh</include>
                                     </includes>
                                 </resource>
                                 <resource>
                                     <directory>database</directory>
-                                    <filtering>true</filtering>
+                                    <filtering>false</filtering>
                                     <excludes>
                                         <exclude>README</exclude>
                                     </excludes>

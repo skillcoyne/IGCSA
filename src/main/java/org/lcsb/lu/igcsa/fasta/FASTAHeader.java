@@ -12,9 +12,9 @@ public class FASTAHeader
   {
   private String db;
   private String accession;
+  private String locusdb = "";
   private String locus = "";
-  private String description;
-  private String asString;
+  private String description = "";
 
   private static final int MIN_ENTRIES = 3;
   private static final String separator = "|";
@@ -22,11 +22,11 @@ public class FASTAHeader
 
   public FASTAHeader(String db, String accession, String locus, String description)
     {
-    this.db = db;
+    this.db = db.replaceAll(" ", ".");
     this.accession = accession.replaceAll(" ", ".");
-    this.locus = locus.replaceAll(" ", ".");
+    if (locus != null)
+      this.locus = locus;
     this.description = description;
-    this.asString = this.db + separator + this.accession + separator + this.locus + separator + this.description;
     }
 
   public FASTAHeader(String line) throws IOException
@@ -44,14 +44,20 @@ public class FASTAHeader
       throw new IOException("Missing parameters in header, expected " + MIN_ENTRIES + " found " + entries.length + " :" + line);
       }
 
-    this.accession = entries[0].replace(">", "") + entries[1];
+    this.db = entries[0].replace(">", "");
+    this.accession = entries[1];
     if (entries.length > MIN_ENTRIES)
       {
+      this.locusdb = entries[2];
       this.locus = entries[3];
       this.description = entries[entries.length-1];
       }
     else this.description = entries[entries.length-1];
-    asString = line;
+    }
+
+  public String getDB()
+    {
+    return this.db;
     }
 
   public String getAccession()
@@ -69,24 +75,18 @@ public class FASTAHeader
     return description;
     }
 
-//  public void setAccession(String accession)
-//    {
-//    this.accession = accession;
-//    }
-//
-//  public void setLocus(String locus)
-//    {
-//    this.locus = locus;
-//    }
-//
-//  public void setDescription(String description)
-//    {
-//    this.description = description;
-//    }
+  public String getFormattedHeader()
+    {
+    return ">" + toString();
+    }
 
   public String toString()
     {
-    return asString;
+    String str =  this.db + separator + this.accession + separator;
+    if (this.locusdb != null && !this.locusdb.equals(""))
+      str = str + this.locusdb + separator;
+    str = str + this.locus + separator + this.description;
+    return str;
     }
 
   }

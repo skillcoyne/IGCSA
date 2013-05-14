@@ -40,7 +40,7 @@ public class FASTAWriterTest
           "GTCGCCATTTTAGCGTGATGACGCAGTGGATCTGACTTTGTGTCCGAGGGTCCAGAAGGGAGGGCTAGCT" +
           "AGGGAGGGCTAGCT";
 
-  private String header = ">gi|12345|This is a sample test case that illustrates FASTA writing";
+  private FASTAHeader header;
 
   @Autowired
   private Properties testProperties;
@@ -50,10 +50,12 @@ public class FASTAWriterTest
     {
     fastaFile = new File(testProperties.getProperty("dir.insilico") + "/test.fasta");
 
-    writer = new FASTAWriter(fastaFile, new FASTAHeader(header));
+    header = new FASTAHeader("figg", "12345", null, "This is a sample test case that illustrates FASTA writing");
+
+    writer = new FASTAWriter(fastaFile, header);
     assertNotNull(writer);
     assertTrue(writer.getFASTAFile().exists());
-    assertEquals(writer.getFASTAFile().length(), header.length());
+    assertEquals(writer.getFASTAFile().length(), header.getFormattedHeader().length());
     }
 
   @After
@@ -86,7 +88,7 @@ public class FASTAWriterTest
     FASTAReader reader = new FASTAReader(fastaFile);
     assertTrue( reader.readSequence(seq.length()).equals(seq) );
 
-    assertEquals(writer.getFASTAFile().length(), header.length()+seq.length()+3);
+    assertEquals(writer.getFASTAFile().length(), header.getFormattedHeader().length()+seq.length()+3);
     }
 
   @Test
