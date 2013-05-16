@@ -13,6 +13,7 @@ import java.util.Properties;
 
 
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * org.lcsb.lu.igcsa.fasta
@@ -100,5 +101,36 @@ public class FASTAWriterTest
     FASTAReader reader = new FASTAReader(fastaFile);
     assertTrue( reader.readSequence(fastaSeq.length()).equals(fastaSeq) );
     }
+
+  @Test
+  public void testBuffer() throws Exception
+    {
+    String rep = "#" + repeat("GC", 34) + "*";
+    assertEquals(rep.length(), 70);
+
+    for (int i=0; i<100; i++)
+      writer.write(rep);
+
+    writer.flush();
+    FASTAReader reader = new FASTAReader(fastaFile);
+
+    int lines = 0;
+    String seq;
+    while(true)
+      {
+      lines +=1;
+      seq = reader.readSequence(rep.length());
+      System.out.println(lines + " " + seq + " " + seq.length());
+      if (seq.length() < rep.length()) break;
+      assertEquals(seq, rep);
+      }
+    assertEquals(lines, 99);
+    }
+
+  private static String repeat(String s, int times) {
+      if (times <= 0) return "";
+      else return s + repeat(s, times-1);
+  }
+
 
   }

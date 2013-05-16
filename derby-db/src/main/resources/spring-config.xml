@@ -19,7 +19,7 @@
         <property name="ignoreResourceNotFound">
             <value>true</value>
         </property>
-        <property name="location" value="db.properties"/>
+        <property name="location" value="classpath:db.properties"/>
     </bean>
 
     <!-- Load in application properties reference -->

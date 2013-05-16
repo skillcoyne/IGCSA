@@ -17,6 +17,7 @@ public class FASTAWriter
   private static final char LF = 0x001E;
   // 71 seems to be the usual, but I like round numbers and there's no standard for fasta
   private static final int lineLength = 70;
+  final private int lineBufferLength = 500;
 
   private File fasta;
   private FileWriter fileWriter;
@@ -34,7 +35,7 @@ public class FASTAWriter
     this.fasta = createFile(fasta);
     log.debug(fasta.getAbsolutePath());
     this.header = header;
-    bufferedWriter.write(header.getFormattedHeader());
+    bufferedWriter.write(header.getFormattedHeader() + "\n");
     bufferedWriter.flush();
     }
 
@@ -45,28 +46,30 @@ public class FASTAWriter
 
   public void flush() throws IOException
     {
+    log.info("Outputting " + buffer.length() + " characters to " + this.fasta.getName());
     totalCharacters += buffer.length();
     bufferedWriter.write(buffer.toString());
     bufferedWriter.flush();
-    //writeString(buffer.toString() + "\n");
     buffer = new StringBuffer();
-    lines = 0;
     }
 
 
   public void write(String str) throws IOException
     {
-    if (lines == 1000) flush();
-
     for (char c : str.toCharArray())
       {
-      if ( (buffer.length() % lineLength) == 0 )
+      if (buffer.length() > 0 && (buffer.length() % lineLength) == 0 )
         {
         buffer.append('\n');
         lines += 1;
         }
-
       buffer.append(c);
+      }
+
+    if (lines >= lineBufferLength && (buffer.length() % lineLength) == 0 )
+      {
+      flush();
+      lines = 0;
       }
     }
 
@@ -74,6 +77,8 @@ public class FASTAWriter
   public void close() throws IOException
     {
     log.info("Total sequence length written " + this.totalCharacters);
+    buffer.append("\n");
+    flush();
     bufferedWriter.flush();
     bufferedWriter.close();
     fileWriter.close();
