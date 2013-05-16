@@ -124,7 +124,7 @@ public class JDBCFragmentDAO implements FragmentDAO
   private List<String> variationsInBin(String chr, int binId)
     {
     if (!this.variationPerBin.containsKey(chr + binId))
-      {
+      {                     // TODO this query hangs on derby sometimes, on the cluster
       String sql = "SELECT distinct v.name FROM " + this.tableName + " as vpb " +
           "INNER JOIN variation as v ON v.id = vpb.variation_id " +
           "WHERE vpb.chr = ? AND vpb.bin_id = ?";

@@ -127,7 +127,7 @@ public class SmallMutable extends Mutable
         }
 
       long elapsed = System.currentTimeMillis() - start;
-      //log.info(location.toString() + " took " + elapsed);
+      log.info(location.toString() + " took " + elapsed);
       }
 
     else

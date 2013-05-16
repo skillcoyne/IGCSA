@@ -26,15 +26,12 @@ public class FASTAWriter
   private int totalCharacters = 0;
   private int lines = 0;
 
-  private FASTAHeader header;
-
   private StringBuffer buffer = new StringBuffer();
 
   public FASTAWriter(File fasta, FASTAHeader header) throws IOException
     {
     this.fasta = createFile(fasta);
     log.debug(fasta.getAbsolutePath());
-    this.header = header;
     bufferedWriter.write(header.getFormattedHeader() + "\n");
     bufferedWriter.flush();
     }
