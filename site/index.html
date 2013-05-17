@@ -110,6 +110,17 @@
 
       </dd>
     </dl>
+    <h2>Notes & Warnings</h2>
+    <dt>Derby Use</dt>
+    <dd>
+      The Derby database is provided in a separate zip package. It is recommended that if you use derby you do not connect to it as a zip
+      file. While this does work, it is considerably slower than connecting to the exploded directory. In the properties file the
+      connections would look like this:
+      <h3>As an exploded database:</h3>
+      <pre>normal.genome.url=jdbc:derby:/some/directory/normal_variation</pre>
+      <h3>As a zip file:</h3>
+      <pre>normal.genome.url=jdbc:derby:jar:(/some/directory/insilico-genome-derby.zip)insilico-genome-derby/normal_variation</pre>
+    </dd>
     <h2>Software License</h2>
     <dt><a href="http://www.apache.org/licenses/LICENSE-2.0.html">Apache License 2.0</a></dt>
     <pre>

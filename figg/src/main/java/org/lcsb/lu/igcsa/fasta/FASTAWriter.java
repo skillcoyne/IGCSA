@@ -43,7 +43,7 @@ public class FASTAWriter
 
   public void flush() throws IOException
     {
-    log.info("Outputting " + buffer.length() + " characters to " + this.fasta.getName());
+    log.debug("Outputting " + buffer.length() + " characters to " + this.fasta.getName());
     totalCharacters += buffer.length();
     bufferedWriter.write(buffer.toString());
     bufferedWriter.flush();
@@ -73,7 +73,7 @@ public class FASTAWriter
 
   public void close() throws IOException
     {
-    log.info("Total sequence length written " + this.totalCharacters);
+    log.debug("Total sequence length written " + this.totalCharacters);
     buffer.append("\n");
     flush();
     bufferedWriter.flush();

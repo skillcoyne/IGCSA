@@ -14,7 +14,6 @@ import org.lcsb.lu.igcsa.utils.FileUtils;
 import org.lcsb.lu.igcsa.utils.VariantUtils;
 import org.lcsb.lu.igcsa.variation.structural.LargeDeletion;
 import org.lcsb.lu.igcsa.variation.structural.StructuralVariation;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 

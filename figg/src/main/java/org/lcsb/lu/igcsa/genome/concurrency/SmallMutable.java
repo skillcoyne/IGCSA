@@ -130,8 +130,8 @@ public class SmallMutable extends Mutable
       log.info(location.toString() + " took " + elapsed);
       }
 
-    else
-      log.debug("Fragment was > 70% unknown/gap, skipping mutation.");
+    //else
+      //log.debug("Fragment was > 70% unknown/gap, skipping mutation.");
 
     return mutatedSequence;
     }
