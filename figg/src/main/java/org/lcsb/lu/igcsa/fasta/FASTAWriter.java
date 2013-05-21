@@ -45,6 +45,8 @@ public class FASTAWriter
     {
     log.debug("Outputting " + buffer.length() + " characters to " + this.fasta.getName());
     totalCharacters += buffer.length();
+    if (buffer.charAt(buffer.length()-1) != '\n')
+      buffer.append("\n");
     bufferedWriter.write(buffer.toString());
     bufferedWriter.flush();
     buffer = new StringBuffer();

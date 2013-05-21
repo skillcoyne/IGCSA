@@ -56,16 +56,16 @@ public class FASTAWriterTest
     writer = new FASTAWriter(fastaFile, header);
     assertNotNull(writer);
     assertTrue(writer.getFASTAFile().exists());
-    assertEquals(writer.getFASTAFile().length(), header.getFormattedHeader().length());
+    assertEquals(writer.getFASTAFile().length(), header.getFormattedHeader().length()+1);
     }
 
   @After
   public void tearDown() throws Exception
     {
-    writer.getFASTAFile().delete();
-    new File(writer.getFASTAFile().getParent()).delete();
-    assertFalse(writer.getFASTAFile().exists());
-    writer.close();
+//    writer.getFASTAFile().delete();
+//    new File(writer.getFASTAFile().getParent()).delete();
+//    assertFalse(writer.getFASTAFile().exists());
+//    writer.close();
     }
 
   @Test
@@ -126,6 +126,23 @@ public class FASTAWriterTest
       }
     assertEquals(lines, 99);
     }
+
+  @Test
+  public void testLongLine() throws Exception
+    {
+    String rep = "#" + repeat("GC", 34) + "*";
+    assertEquals(rep.length(), 70);
+
+    for (int i=0; i<1000; i++)
+      writer.write(rep);
+
+    writer.flush();
+    FASTAReader reader = new FASTAReader(fastaFile);
+
+
+
+    }
+
 
   private static String repeat(String s, int times) {
       if (times <= 0) return "";

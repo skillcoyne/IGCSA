@@ -13,7 +13,7 @@ dir.tmp=/Path/to/temp/output/dir
 
 # -- MySQL -- #
 normal.genome.driver=com.mysql.jdbc.Driver
-normal.genome.url=jdbc:mysql://localhost:3306/normal_genome_variation
+normal.genome.url=jdbc:mysql://localhost:3306/normal_variation
 normal.genome.user=myuser
 normal.genome.pwd=mypassword
 
