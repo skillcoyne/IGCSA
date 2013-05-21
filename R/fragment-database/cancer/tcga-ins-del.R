@@ -13,8 +13,10 @@ var.length<-function(df)
   }
 
 
-dir = "~/Data/TCGA"  
+dir = "/Volumes/Spark/Data/TCGA"  
 files = list.files(path=dir, pattern="chr*")    
+
+outdir = "/Volumes/Spark/Analysis/Database/cancer"
 
 for (file in files)
   {
@@ -28,7 +30,7 @@ for (file in files)
     var$SizeA1 = nchar( as.vector(var[,'TumorAllele1']) )  
     var$SizeA2 = nchar( as.vector(var[,'TumorAllele2']) ) 
   
-    if (var == 'INS')
+    if (v == 'INS')
       {
       if (!exists("insSize")) insSize = var[, c('SizeA1', 'SizeA2') ]
       else insSize = rbind(insSize, var[, c('SizeA1', 'SizeA2') ])
@@ -44,12 +46,7 @@ for (file in files)
 
 
 ## These aren't hugely different from the normal variation for insertions/deletions.  However, not seeing anything very large.  
-dels = var.length(delSize)
-ins = var.length(insSize)
+tcga_dels = var.length(delSize)
+tcga_ins = var.length(insSize)
 
-
-
-
-sum(dels[1:10])/sum(dels)
-round(sum(dels[11:99])/sum(dels), 4)
-
+save(tcga_dels, tcga_ins, file=paste(outdir, "tcga-ins-del.Rdata", sep="/"))

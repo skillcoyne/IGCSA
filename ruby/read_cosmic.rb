@@ -42,7 +42,7 @@ chrfh = Hash[chrs.map { |c| [c, File.open("#{dir}/chromosomes/chr#{c}.txt", 'w')
 chrfh.each_pair { |k, fh|
   fh.write(['chr', 'start', 'end',
             'var.type', 'ref.seq', 'var.seq',
-            'local.id', 'source', 'validation', 'clinical' ].join("\t") + "\n") }
+            'local.id', 'source' ].join("\t") + "\n") }
 
 unvalidated = 0
 records = 0
@@ -72,7 +72,7 @@ gvf_files.each do |file|
     #
       fh.write([gvf.chr, gvf.start_pos, gvf.end_pos,
               gvf.method, gvf.attributes[:reference_seq], gvf.attributes[:variant_seq],
-              local_id, gvf.source, gvf.attributes[:validation_states], gvf.attributes[:clinical_significance]].join("\t") + "\n")
+              local_id, gvf.source].join("\t") + "\n")
     #else
     #  unvalidated += 1
     #end

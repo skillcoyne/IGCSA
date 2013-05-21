@@ -4,10 +4,14 @@
 
 
 rm(list = ls())
-data_dir =  "~/Data/Ensembl/Variation/chromosomes"
+
+
+source("../lib/fragment_calc.R")
+
+data_dir =  "/Volumes/Spark/Data/Ensembl/Variation/chromosomes"
 files = list.files(path=data_dir, pattern="chr*")  
 
-out_dir = "~/Analysis/Database/normal"
+out_dir = "/Volumes/Spark/Analysis/Database/normal"
 
 maxbp = c(10,seq(100,1000,100))
 

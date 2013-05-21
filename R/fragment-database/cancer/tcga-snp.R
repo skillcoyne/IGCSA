@@ -31,7 +31,7 @@ prob.snv<-function(df, nuc)
   return(probs)  
   }
   
-dir = "~/Data/TCGA"  
+dir = "/Volumes/Spark/Data/TCGA"  
 files = list.files(path=dir, pattern="chr*")    
   
 alleleCols = c('RefAllele', 'TumorAllele1', 'TumorAllele2')
@@ -39,10 +39,14 @@ for (file in files)
   {
   print(file)
   d = read.table(paste(dir, file, sep="/"), header=T, sep="\t")
-  if (!exists('snps')) snps = d[d$VarType == 'SNP', alleleCols]
-  else snps = rbind(snps, d[d$VarType == 'SNP', alleleCols])
+  if (!exists('tcga_snps')) tcga_snps = d[d$VarType == 'SNP', alleleCols]
+  else tcga_snps = rbind(tcga_snps, d[d$VarType == 'SNP', alleleCols])
   rm(d)
   }
+
+outdir = "/Volumes/Spark/Analysis/Database/cancer"
+save(tcga_snps, file=paste(outdir, "tcga_snps.Rdata", sep="/"))
+
 
 A = prob.snv(snps, 'A')
 C = prob.snv(snps, 'C')
@@ -51,8 +55,8 @@ T = prob.snv(snps, 'T')
 
 all = rbind(A,C,G,T)
 
-outfile = "~/Analysis/Database/cancer/snv-prob.txt"
-write.table(all, file=outfile, quote=F, col.names=F, sep="\t")
+#outfile = "~/Analysis/Database/cancer/snv-prob.txt"
+#write.table(all, file=outfile, quote=F, col.names=F, sep="\t")
 
   
   
