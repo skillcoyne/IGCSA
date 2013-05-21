@@ -17,9 +17,9 @@ import java.util.*;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class SmallMutable extends Mutable
+public class FragmentMutable extends Mutable
   {
-  static Logger log = Logger.getLogger(SmallMutable.class.getName());
+  static Logger log = Logger.getLogger(FragmentMutable.class.getName());
 
   private Chromosome chromosome;
   private int window;
@@ -28,7 +28,7 @@ public class SmallMutable extends Mutable
   private GCBinDAO binDAO;
   private FragmentDAO fragmentDAO;
 
-  public SmallMutable(Chromosome chr, int window)
+  public FragmentMutable(Chromosome chr, int window)
     {
     this.chromosome = chr;
     this.window = window;
@@ -45,7 +45,7 @@ public class SmallMutable extends Mutable
     final long startTime = System.currentTimeMillis();
     log.info("RUNNING mutations on chromosome " + chromosome.getName());
     if (binDAO == null || fragmentDAO == null)
-      throw new RuntimeException("Missing database connections. Call SmallMutable.setConnections() before running");
+      throw new RuntimeException("Missing database connections. Call FragmentMutable.setConnections() before running");
 
     int total = 0;
     log.debug(chromosome.getName());

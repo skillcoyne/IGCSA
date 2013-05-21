@@ -105,6 +105,20 @@ public class Chromosome
     return structuralVariations;
     }
 
+  public DNASequence readSequence(int start, int end)
+    {
+    DNASequence seq = new DNASequence();
+    try
+      {
+      seq = new DNASequence(reader.readSequenceAtLocation(start, end));
+      }
+    catch (IOException e)
+      {
+      log.error(e);
+      }
+    return seq;
+    }
+
   /**
    * Get sequence in chunks from the FASTA file.  Each call will read sequentially from last call.
    * To get specific regions or any mutated sequences use Chromosome#getSequence(Location)

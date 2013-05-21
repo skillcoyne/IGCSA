@@ -12,8 +12,6 @@ import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.lcsb.lu.igcsa.utils.FileUtils;
 
 import org.lcsb.lu.igcsa.utils.VariantUtils;
-import org.lcsb.lu.igcsa.variation.structural.LargeDeletion;
-import org.lcsb.lu.igcsa.variation.structural.StructuralVariation;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -179,7 +177,7 @@ public class InsilicoGenome
     File svWriterPath = new File(genomeDirectory, "structural-variations");
     if (!svWriterPath.exists() || !svWriterPath.isDirectory()) svWriterPath.mkdir();
 
-    genome.setMutationDirectories(mutWriterPath, svWriterPath);
+    genome.setMutationDirectory(mutWriterPath, svWriterPath);
     }
 
   // Adds chromosomes to the genome.  Either from the command line, or from the assembly directory

@@ -16,6 +16,7 @@
     <modules>
         <module>derby-db</module>
         <module>figg</module>
+        <module>svigg</module>
     </modules>
 
     <build>

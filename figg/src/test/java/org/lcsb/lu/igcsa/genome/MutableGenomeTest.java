@@ -7,8 +7,7 @@ import org.junit.runner.RunWith;
 
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
-import org.lcsb.lu.igcsa.genome.concurrency.SmallMutable;
-import org.lcsb.lu.igcsa.genome.concurrency.StructuralMutable;
+import org.lcsb.lu.igcsa.genome.concurrency.FragmentMutable;
 import org.lcsb.lu.igcsa.utils.VariantUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -57,7 +56,7 @@ public class MutableGenomeTest
     File insilicoTest = new File(testProperties.getProperty("dir.insilico"));
     testGenome.setGenomeDirectory(insilicoTest);
 
-    testGenome.setMutationDirectories( new File(insilicoTest, "mutations"), new File(insilicoTest, "structural-variations") );
+    testGenome.setMutationDirectory(new File(insilicoTest, "mutations"), new File(insilicoTest, "structural-variations"));
 
     outputFasta = new File(testGenome.getGenomeDirectory(), "/test.fasta");
 
@@ -101,7 +100,7 @@ public class MutableGenomeTest
 
     assertEquals(testGenome.getChromosomes().length, 1);
 
-    SmallMutable m = testGenome.mutate(testGenome.getChromosomes()[0], 50, writer);
+    FragmentMutable m = testGenome.mutate(testGenome.getChromosomes()[0], 50, writer);
     m.call();
 
     assertTrue(outputFasta.length() > origLength);

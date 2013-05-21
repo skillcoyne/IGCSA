@@ -1,8 +1,7 @@
 package org.lcsb.lu.igcsa.genome;
 
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
-import org.lcsb.lu.igcsa.genome.concurrency.SmallMutable;
-import org.lcsb.lu.igcsa.genome.concurrency.StructuralMutable;
+import org.lcsb.lu.igcsa.genome.concurrency.Mutable;
 
 import java.io.File;
 
@@ -20,9 +19,8 @@ public interface Genome
   public File getGenomeDirectory();
   public void setGenomeDirectory(File genomeDirectory);
 
-  public File getSmallMutationDirectory();
-  public File getSVMutationDirectory();
-  public void setMutationDirectories(File smallMut, File svMut);
+  public File getMutationDirectory();
+  public void setMutationDirectory(File mutationDir);
 
   public void addChromosomes(Chromosome[] chromosomes);
 
@@ -40,7 +38,6 @@ public interface Genome
 
   public Chromosome getChromosome(String name);
 
-  public abstract SmallMutable mutate(Chromosome chr, int window, FASTAWriter writer);
+  public abstract Mutable mutate(Chromosome chr, int window, FASTAWriter writer);
 
-  public abstract StructuralMutable mutate(Chromosome chr, FASTAWriter writer);
   }
