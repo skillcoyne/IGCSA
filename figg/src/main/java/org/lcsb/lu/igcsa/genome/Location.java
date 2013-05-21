@@ -14,10 +14,18 @@ public class Location implements Comparable<Location>
   {
   static Logger log = Logger.getLogger(Location.class.getName());
 
+  private String chromosome = "";
+
   private int start;
   private int end;
 
   protected Range range;
+
+  public Location(String chr, int s, int e) throws IllegalArgumentException
+    {
+    this(s,e);
+    chromosome = chr;
+    }
 
   public Location(int s, int e) throws IllegalArgumentException
     {
@@ -26,6 +34,11 @@ public class Location implements Comparable<Location>
     range = new IntRange(s, e);
 
     if (start > end) throw new IllegalArgumentException("The start position should come before the end position.");
+    }
+
+  public String getChromosome()
+    {
+    return chromosome;
     }
 
   public int getStart()
@@ -71,7 +84,7 @@ public class Location implements Comparable<Location>
   @Override
   public String toString()
     {
-    return super.toString() + ": <" + this.getStart() + "-" + this.getEnd() + ">";
+    return super.toString() + ": <" + this.getChromosome() + " " + this.getStart() + "-" + this.getEnd() + ">";
     }
 
   @Override

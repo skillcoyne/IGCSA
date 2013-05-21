@@ -4,9 +4,7 @@ import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.genome.Location;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 /**
  * org.lcsb.lu.igcsa.variation
@@ -18,16 +16,28 @@ public abstract class StructuralVariation
   {
   static Logger log = Logger.getLogger(StructuralVariation.class.getName());
 
+  /*
+  An SV basically consists of one or more locations that are duplicated, deleted, inverted or merged
+   */
   protected LinkedHashMap<Location, DNASequence> lastMutations;
-  protected Random siteSelector = new Random();
   protected String variationName;
-  protected Location variationLocation;
+  protected List<Location> variationLocations = new LinkedList<Location>();
 
   protected DNASequence sequence = new DNASequence();
 
-  public void addFragment(DNASequence seq)
+  public void addLocation(Location loc)
     {
-    sequence.merge(seq);
+    variationLocations.add(loc);
+    }
+
+  public void setLocations(Collection<Location> locs)
+    {
+    variationLocations = new LinkedList<Location>(locs);
+    }
+
+  public List<Location> getLocations()
+    {
+    return variationLocations;
     }
 
   public void setVariationName(String name)
@@ -38,21 +48,6 @@ public abstract class StructuralVariation
   public String getVariationName()
     {
     return this.variationName;
-    }
-
-  public Location getLocation()
-    {
-    return variationLocation;
-    }
-
-  public void setLocation(Location variationLocation)
-    {
-    this.variationLocation = variationLocation;
-    }
-
-  public void setLocation(int s, int e)
-    {
-    this.variationLocation = new Location(s, e);
     }
 
   public Map<Location, DNASequence> getLastMutations()

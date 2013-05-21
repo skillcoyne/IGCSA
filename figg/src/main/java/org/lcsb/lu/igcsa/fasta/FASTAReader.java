@@ -52,11 +52,13 @@ public class FASTAReader
   public FASTAReader(File file) throws IOException
     {
     fasta = file;
-    if (!fasta.exists()) throw new FileNotFoundException("No such file: " + file.getAbsolutePath());
-    if (!fasta.canRead()) throw new IOException("Cannot read file " + file.getAbsolutePath());
+    if (!fasta.exists())
+      throw new FileNotFoundException("No such file: " + file.getAbsolutePath());
+    if (!fasta.canRead())
+      throw new IOException("Cannot read file " + file.getAbsolutePath());
 
     stream = open();
-    reader = new BufferedReader( new InputStreamReader( this.stream ) );
+    reader = new BufferedReader(new InputStreamReader(this.stream));
     getHeader();
     this.seqLineLength = this.readline().length();
     this.reset();
@@ -92,42 +94,52 @@ public class FASTAReader
     stream = open();
     }
 
+
+  public String readSequenceAtLocation(int start, int end) throws IOException
+    {
+    return readSequenceLength(start, end - start);
+    }
+
   /**
    * This method creates a new BufferedReader with each call so theoretically it should be capable of being
    * called on the same FASTAReader object
-   * @param start - Offset to start reading file from. The header offset will be added to this so the header line is always skipped.
+   *
+   * @param start       - Offset to start reading file from. The header offset will be added to this so the header line is always skipped.
    * @param charsToRead - Number of characters to read in (ignoring line feeds).
    * @return String containing the characters read. If the end of the file is found before the total number of characters is reached
-   * the characters read to that point will be returned.
+   *         the characters read to that point will be returned.
    * @throws IOException
    */
-  public String readSequenceFromLocation(int start, int charsToRead) throws IOException
+  public String readSequenceLength(int start, int charsToRead) throws IOException
     {
     InputStream is = open();
-    BufferedReader reader = new BufferedReader( new InputStreamReader(is) );
+    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
     /*
     Since every line has a line feed character, the start location needs to be incremented
     by the number of lines that have to be skipped or else the characters read in are off by 1 (or more)
     */
-    if (start > seqLineLength) start += Math.floor(start / seqLineLength);
+    if (start > seqLineLength)
+      start += Math.floor(start / seqLineLength);
 
     start += headerloc;
-    reader.skip(start);
+    reader.skip(start-1);
 
     StringBuffer sequence = new StringBuffer();
     char c;
-    while ((c = (char)reader.read()) != EOF && sequence.length() < charsToRead)
+    while ((c = (char) reader.read()) != EOF && sequence.length() < charsToRead)
       {
-      if (c == LINE_FEED || c == CARRIAGE_RETURN) continue;
+      if (c == LINE_FEED || c == CARRIAGE_RETURN)
+        continue;
       sequence.append(c);
       }
     reader.close();
-    return (sequence.toString().length() > 0)? sequence.toString(): null;
+    return (sequence.toString().length() > 0) ? sequence.toString() : null;
     }
 
 
   /**
    * Read and return chunks from the file in order. Each call will advance the read.
+   *
    * @param window
    * @return
    * @throws IOException
@@ -141,16 +153,21 @@ public class FASTAReader
       // header has already been read
       if (c == HEADER_IDENTIFIER)
         {
-        if (this.header == null) getHeader();
-        else this.skipline();
+        if (this.header == null)
+          getHeader();
+        else
+          this.skipline();
         continue;
         }
       // don't want the line separators
-      if (c == CARRIAGE_RETURN || c == LINE_FEED) continue;
+      if (c == CARRIAGE_RETURN || c == LINE_FEED)
+        continue;
       // shouldn't be an issue but it would mean we're done reading
-      if (c == RECORD_SEPARATOR) break;
+      if (c == RECORD_SEPARATOR)
+        break;
       buf.append(Character.toString(c));
-      if (buf.length() == window) break;
+      if (buf.length() == window)
+        break;
       }
     return buf.toString();
     }
@@ -160,6 +177,7 @@ public class FASTAReader
    * Mark the regions of "any" or N sequence starts/stops as well as gaps.
    * THIS READS THE ENTIRE FILE.  Does not keep it in memory, but for large fasta files
    * this could take a while.
+   *
    * @return
    * @throws IOException
    */
@@ -175,8 +193,10 @@ public class FASTAReader
       // header has already been read
       if (c == HEADER_IDENTIFIER)
         {
-        if (this.header == null) getHeader();
-        else this.skipline();
+        if (this.header == null)
+          getHeader();
+        else
+          this.skipline();
         }
 
       if (c == UNKNOWN.value() && c != lastChar)
@@ -225,7 +245,8 @@ public class FASTAReader
     while (true)
       {
       char last = this.read();
-      if (last == CARRIAGE_RETURN || last == LINE_FEED || last == RECORD_SEPARATOR || last == EOF) break;
+      if (last == CARRIAGE_RETURN || last == LINE_FEED || last == RECORD_SEPARATOR || last == EOF)
+        break;
       buf.append(String.valueOf(last));
       }
     return buf.toString();
@@ -238,7 +259,8 @@ public class FASTAReader
     while (true)
       {
       char last = this.read();
-      if (last == CARRIAGE_RETURN || last == LINE_FEED || last == RECORD_SEPARATOR || last == EOF) break;
+      if (last == CARRIAGE_RETURN || last == LINE_FEED || last == RECORD_SEPARATOR || last == EOF)
+        break;
       }
     }
 

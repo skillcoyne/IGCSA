@@ -1,6 +1,5 @@
 package org.lcsb.lu.igcsa.fasta;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,7 +63,7 @@ public class FASTAReaderTest
     int window = 100;
     int start = 0;
     String seq;
-    while((seq = reader.readSequenceFromLocation(start, window)) != null)
+    while((seq = reader.readSequenceLength(start, window)) != null)
       {
       int end = (start+window > fastaSeq.length())? (fastaSeq.length()): (start+window);
       assertEquals(seq, fastaSeq.substring(start, end));
@@ -79,17 +78,11 @@ public class FASTAReaderTest
     assertEquals(reader.getHeader().getClass(), FASTAHeader.class);
     }
 
-//  @Test
-//  public void testReadSequence() throws Exception
-//    {
-//    assertEquals(reader.readSequence(71, 81, true), "TGCAGCAAAG");
-//    assertEquals(reader.readSequence(1, 70, true), "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN");
-//    }
-
   @Test
   public void testRegions() throws Exception
     {
     reader.markRegions();
+
     assertNotNull(reader.getRepeatRegions());
     assertNotNull(reader.getGapRegions());
 
@@ -133,13 +126,13 @@ public class FASTAReaderTest
     String subSeq = fastaSeq.substring(0, 100);
 
     // This should allow me to retrieve the same sequence as many times as I like without advancing any read
-    String seqA = reader.readSequenceFromLocation(0, 100);
+    String seqA = reader.readSequenceLength(0, 100);
     assertEquals(seqA.length(), 100);
     assertEquals(seqA, subSeq);
-    String seqB = reader.readSequenceFromLocation(0, 100);
+    String seqB = reader.readSequenceLength(0, 100);
     assertEquals(seqA, seqB);
 
-    String seqC = reader.readSequenceFromLocation(45, 100);
+    String seqC = reader.readSequenceLength(45, 100);
     assertNotSame(seqA, seqC);
     assertEquals(seqC.length(), 100);
     }
@@ -151,7 +144,7 @@ public class FASTAReaderTest
     int window = 100;
     int start = 0;
     String seq;
-    while((seq = reader.readSequenceFromLocation(start, window)) != null)
+    while((seq = reader.readSequenceLength(start, window)) != null)
       {
       int end = (start+window > fastaSeq.length())? (fastaSeq.length()): (start+window);
       assertEquals(seq, fastaSeq.substring(start, end));
@@ -159,5 +152,27 @@ public class FASTAReaderTest
       }
     }
 
+  @Test
+  public void testJumpLocations() throws Exception
+    {
+    long start = System.currentTimeMillis();
+    String loc = "/Users/sarah.killcoyne/Data/FASTA/chr19.fa.gz";
+    File file = new File(loc);
+    FASTAReader reader = new FASTAReader(file);
+
+    String myo9b = reader.readSequenceAtLocation(17186591, 17324104); // MYO9B gene
+
+    String loc1 = "/Users/sarah.killcoyne/Downloads/myo9b.fasta";
+    FASTAReader reader1 = new FASTAReader(new File(loc1));
+
+    String ncbi_myo9b = reader1.readSequenceLength(0, 137513);
+
+    char[] myoChar = myo9b.toCharArray();
+    for (int i=0; i<myoChar.length; i++)
+      {
+      assertEquals(myo9b.charAt(i), ncbi_myo9b.charAt(i));
+      }
+
+    }
 
   }

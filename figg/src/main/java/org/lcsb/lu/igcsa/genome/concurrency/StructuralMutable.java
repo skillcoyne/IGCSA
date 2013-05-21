@@ -24,6 +24,10 @@ public class StructuralMutable extends Mutable
 
   private FASTAReader mutatedFASTA;
 
+  //private Map<Location, Chromosome>
+
+  public StructuralMutable()
+    {}
 
   public StructuralMutable(Chromosome chr)
     {
@@ -44,7 +48,7 @@ public class StructuralMutable extends Mutable
     NavigableMap<Location, StructuralVariation> locationMap = new TreeMap<Location, StructuralVariation>();
 
     for (StructuralVariation sv : chromosome.getStructuralVariations())
-      locationMap.put(sv.getLocation(), sv);
+      //locationMap.put(sv.getLocation(), sv);
 
     return locationMap;
     }
@@ -67,7 +71,7 @@ public class StructuralMutable extends Mutable
       {
       try
         {
-        String sequence = mutatedFASTA.readSequenceFromLocation(0, firstLocation.getStart());
+        String sequence = mutatedFASTA.readSequenceLength(0, firstLocation.getStart());
         this.writer.write(sequence);
         total += sequence.length();
         }
@@ -84,7 +88,7 @@ public class StructuralMutable extends Mutable
       StructuralVariation variation = entry.getValue();
       try
         {
-        String sequence = mutatedFASTA.readSequenceFromLocation(loc.getStart(), loc.getLength());
+        String sequence = mutatedFASTA.readSequenceLength(loc.getStart(), loc.getLength());
         DNASequence mutatedSequence = variation.mutateSequence(sequence);
         this.writer.write(mutatedSequence.getSequence());
         writeVariation(chromosome, loc, variation);
@@ -102,7 +106,7 @@ public class StructuralMutable extends Mutable
       {
       String seq = "";
       int window = 1000;
-      while ((seq = mutatedFASTA.readSequenceFromLocation(lastLocation, window)) != null)
+      while ((seq = mutatedFASTA.readSequenceLength(lastLocation, window)) != null)
         {
         writer.write(seq);
         lastLocation += window;

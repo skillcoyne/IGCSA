@@ -151,37 +151,9 @@ public class InsilicoGenome
 
     File tmpDir = new File(genomeProperties.getProperty("dir.tmp"), genome.getGenomeDirectory().getName());
 
-    // FOR NOW ONLY: apply a large deletion to one chromosome.
-    Chromosome chr = genome.getChromosome("19");
 
-    FASTAHeader header = new FASTAHeader("figg", "chr"+chr.getName(), "1kb mutations, with SV", genome.getBuildName());
-    FASTAWriter writer = new FASTAWriter(new File(tmpDir, "chr" + chr.getName() + ".fa"), header);
 
-    // TODO  This whole bit will ultimately come from the database the same way small scale mutations do
-    StructuralVariation cnvLoss = new LargeDeletion();
-    cnvLoss.setVariationName("copy_number_loss");
-    cnvLoss.setLocation(26500001, 59128983); // should be entire q arm
-
-    List<StructuralVariation> svList = new ArrayList<StructuralVariation>(1);
-    svList.add(cnvLoss);
-    chr.setStructuralVariations(svList);
-    // ------------------
-
-    List<Future<Chromosome>> tasks = new ArrayList<Future<Chromosome>>();
-    Future<Chromosome> mutationF = taskPool.submit(genome.mutate(chr, writer));
-    tasks.add(mutationF);
-
-    for (int i = 0; i < tasks.size(); i++)
-      {
-      Future<Chromosome> f = taskPool.take();
-      Chromosome mc = f.get();
-      log.info("SV finished for " + mc.getName());
-      // won't quite work this way when fully implemented since writers are not attached to chromosomes...but possibly they should be.
-      org.apache.commons.io.FileUtils.copyFileToDirectory(writer.getFASTAFile(), genome.getGenomeDirectory());
-      }
-
-    org.apache.commons.io.FileUtils.deleteDirectory(tmpDir);
-    log.info("Structural variations step finished on " + tasks.size() + " chromosomes.");
+//    log.info("Structural variations step finished on " + tasks.size() + " chromosomes.");
     structuralVariationExecutor.shutdown();
     }
 
