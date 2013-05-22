@@ -17,19 +17,20 @@ public class LargeDeletion extends StructuralVariation
   @Override
   public DNASequence mutateSequence(String sequence)
     {
-    log.info("Losing " + variationLocation.getLength() + " from " + sequence.length());
 
     DNASequence newSequence = new DNASequence("");
-    if (sequence.length() > variationLocation.getLength())
-      { // snip sequence out
-      String chunkA = sequence.substring(0,variationLocation.getStart()); // get sequence before
-      String chunkB = sequence.substring(variationLocation.getEnd(), sequence.length()); // get sequence after
-
-      newSequence = new DNASequence(chunkA + chunkB);
-      }
-
-    log.debug("Original sequence length: " + sequence.length());
-    log.debug("New sequence length: " + newSequence.getLength());
+//    log.info("Losing " + variationLocation.getLength() + " from " + sequence.length());
+//
+//    if (sequence.length() > variationLocation.getLength())
+//      { // snip sequence out
+//      String chunkA = sequence.substring(0,variationLocation.getStart()); // get sequence before
+//      String chunkB = sequence.substring(variationLocation.getEnd(), sequence.length()); // get sequence after
+//
+//      newSequence = new DNASequence(chunkA + chunkB);
+//      }
+//
+//    log.debug("Original sequence length: " + sequence.length());
+//    log.debug("New sequence length: " + newSequence.getLength());
 
     return newSequence;
     }

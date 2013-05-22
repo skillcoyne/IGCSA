@@ -35,7 +35,7 @@ public class LargeDeletionTest
     {
     cnl = new LargeDeletion();
     cnl.setVariationName("copy_number_loss");
-    cnl.setLocation(497, 532);
+    //cnl.setLocation(497, 532);
     assertNotNull(cnl);
     }
 

@@ -63,7 +63,7 @@ public class FASTAReaderTest
     int window = 100;
     int start = 0;
     String seq;
-    while((seq = reader.readSequenceLength(start, window)) != null)
+    while((seq = reader.readSequenceFromLocation(start, window)) != null)
       {
       int end = (start+window > fastaSeq.length())? (fastaSeq.length()): (start+window);
       assertEquals(seq, fastaSeq.substring(start, end));
@@ -76,23 +76,6 @@ public class FASTAReaderTest
   public void testHeader() throws Exception
     {
     assertEquals(reader.getHeader().getClass(), FASTAHeader.class);
-    }
-
-  @Test
-  public void testRegions() throws Exception
-    {
-    reader.markRegions();
-
-    assertNotNull(reader.getRepeatRegions());
-    assertNotNull(reader.getGapRegions());
-
-    assertEquals(reader.getRepeatRegions().length, 1);
-    assertEquals(reader.getRepeatRegions()[0].getStart(), 69);
-    assertEquals(reader.getRepeatRegions()[0].getEnd(), 69+70);
-
-    assertEquals(reader.getGapRegions().length, 1);
-    assertEquals(reader.getGapRegions()[0].getStart(), 586);
-    assertEquals(reader.getGapRegions()[0].getEnd(), 600);
     }
 
   @Test
@@ -120,22 +103,22 @@ public class FASTAReaderTest
     assertEquals(buf.toString(), fastaSeq);
     }
 
-  @Test
-  public void testReadFromLocation() throws Exception
-    {
-    String subSeq = fastaSeq.substring(0, 100);
-
-    // This should allow me to retrieve the same sequence as many times as I like without advancing any read
-    String seqA = reader.readSequenceLength(0, 100);
-    assertEquals(seqA.length(), 100);
-    assertEquals(seqA, subSeq);
-    String seqB = reader.readSequenceLength(0, 100);
-    assertEquals(seqA, seqB);
-
-    String seqC = reader.readSequenceLength(45, 100);
-    assertNotSame(seqA, seqC);
-    assertEquals(seqC.length(), 100);
-    }
+//  @Test
+//  public void testReadFromLocation() throws Exception
+//    {
+//    String subSeq = fastaSeq.substring(0, 100);
+//
+//    // This should allow me to retrieve the same sequence as many times as I like without advancing any read
+//    String seqA = reader.readSequenceLength(0, 100);
+//    assertEquals(seqA.length(), 100);
+//    assertEquals(seqA, subSeq);
+//    String seqB = reader.readSequenceLength(0, 100);
+//    assertEquals(seqA, seqB);
+//
+//    String seqC = reader.readSequenceLength(45, 100);
+//    assertNotSame(seqA, seqC);
+//    assertEquals(seqC.length(), 100);
+//    }
 
 
   @Test
@@ -144,7 +127,7 @@ public class FASTAReaderTest
     int window = 100;
     int start = 0;
     String seq;
-    while((seq = reader.readSequenceLength(start, window)) != null)
+    while((seq = reader.readSequenceFromLocation(start, window)) != null)
       {
       int end = (start+window > fastaSeq.length())? (fastaSeq.length()): (start+window);
       assertEquals(seq, fastaSeq.substring(start, end));
@@ -153,25 +136,103 @@ public class FASTAReaderTest
     }
 
   @Test
+  public void testReadFromLocation() throws Exception
+    {
+    // making sure that sequential reads don't overlap
+    assertEquals(reader.readSequenceFromLocation(71, 10), "TGCAGCAAAG");
+    assertEquals(reader.readSequenceFromLocation(81, 10), "AGTCAGCAAG");
+    assertNotNull(reader.readSequenceFromLocation(113, 10));
+
+    // make sure that I can jump back to a previous read location
+    assertEquals(reader.readSequenceFromLocation(71, 10), "TGCAGCAAAG");
+    }
+
+  @Test
+  public void testStreamToWriter() throws Exception
+    {
+    File fastaFile = new File(testProperties.getProperty("dir.insilico") + "/test.fasta");
+    FASTAHeader header = new FASTAHeader("figg", "12345", null, "This is a sample test case that illustrates FASTA stream read/write");
+
+    int charsToRead = 23;
+    assertEquals(reader.streamToWriter(charsToRead, new FASTAWriter(fastaFile, header)), charsToRead);
+
+    charsToRead = 114;
+    assertEquals(reader.streamToWriter(charsToRead, new FASTAWriter(fastaFile, header)), charsToRead);
+
+    assertEquals(reader.streamToWriter(140, 213, new FASTAWriter(fastaFile, header)), 213-140);
+
+    fastaFile.delete();
+    fastaFile.getParentFile().delete();
+    }
+
+
+  @Test
+  public void testSequentialReadStarting() throws Exception
+    {
+    int start = 71;
+    int end = 113;
+    int seqLength = end - start;
+    int window = 10;
+
+    String sequence = reader.readSequenceFromLocation(start, window);
+    assertEquals(sequence, "TGCAGCAAAG");
+    while (sequence.length() < seqLength)
+      {
+      String currSeq = reader.readSequence(window);
+      sequence = sequence + currSeq;
+      if (seqLength - sequence.length() < window ) window = seqLength - sequence.length();
+      }
+
+    assertEquals(sequence.length(), seqLength);
+    assertEquals(sequence, "TGCAGCAAAGAGTCAGCAAGAACACCGATAGGTACGTTTCCA");
+    }
+
+
+
+  @Test
   public void testJumpLocations() throws Exception
     {
-    long start = System.currentTimeMillis();
     String loc = "/Users/sarah.killcoyne/Data/FASTA/chr19.fa.gz";
     File file = new File(loc);
     FASTAReader reader = new FASTAReader(file);
 
-    String myo9b = reader.readSequenceAtLocation(17186591, 17324104); // MYO9B gene
+    //String myo9b = "";// = reader.readSequenceAtLocation(17186591, 17324104); // MYO9B gene
+
+    int start = 17186591;
+    int end = 17324104;
+    int seqLength = end-start;
+    int window = 100;
+    String myo9b = reader.readSequenceFromLocation(start, window);
+
+    assertEquals(myo9b, "CGGGGCGGAGCGGCTCGAGCAGCGGCGGGCTGGCAGGCGGTCGTCCGGCCGGGGACCCGGCCCGGGACCGGCGGCGCGCGGCGGCCGAGGCCAGGTGAGT");
+
+    while( myo9b.length() < seqLength)
+      {
+      String seq = reader.readSequence(window);
+      myo9b = myo9b + seq;
+      if (seqLength - myo9b.length() < window ) window = seqLength - myo9b.length();
+      }
+
+    assertEquals(myo9b.length(), seqLength);
 
     String loc1 = "/Users/sarah.killcoyne/Downloads/myo9b.fasta";
-    FASTAReader reader1 = new FASTAReader(new File(loc1));
+    reader = new FASTAReader(new File(loc1));
 
-    String ncbi_myo9b = reader1.readSequenceLength(0, 137513);
+    String ncbi_myo9b = "";
 
-    char[] myoChar = myo9b.toCharArray();
-    for (int i=0; i<myoChar.length; i++)
+    start = 0;
+    end = 137513;
+    window = 100;
+    seqLength = end - start;
+    while( ncbi_myo9b.length() < seqLength)
       {
-      assertEquals(myo9b.charAt(i), ncbi_myo9b.charAt(i));
+      String seq = reader.readSequence(window);
+      ncbi_myo9b = ncbi_myo9b + seq;
+      if (seqLength - ncbi_myo9b.length() < window ) window = seqLength - ncbi_myo9b.length();
       }
+
+    assertEquals(myo9b.length(), ncbi_myo9b.length());
+    assertEquals(myo9b, ncbi_myo9b);
 
     }
 

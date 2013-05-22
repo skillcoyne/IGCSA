@@ -19,20 +19,20 @@ public class LargeAddition extends StructuralVariation
     int count = 3;
 
     DNASequence newSequence = new DNASequence("");
-    if (sequence.length() > variationLocation.getLength())
-      { // snp sequence out
-      String pre = sequence.substring(0,variationLocation.getStart()); // get sequence before
-      String insertion = sequence.substring(variationLocation.getStart(), variationLocation.getEnd());
-      String post = sequence.substring(variationLocation.getEnd(), sequence.length()); // get sequence after
-
-      // put it together
-      newSequence.merge(pre);
-      for (int i=0; i<count; i++) newSequence.merge(insertion);
-      newSequence.merge(post);
-      }
-    else
-      for (int i=0; i<count; i++) newSequence.merge(sequence);
-
+//    if (sequence.length() > variationLocation.getLength())
+//      { // snp sequence out
+//      String pre = sequence.substring(0,variationLocation.getStart()); // get sequence before
+//      String insertion = sequence.substring(variationLocation.getStart(), variationLocation.getEnd());
+//      String post = sequence.substring(variationLocation.getEnd(), sequence.length()); // get sequence after
+//
+//      // put it together
+//      newSequence.merge(pre);
+//      for (int i=0; i<count; i++) newSequence.merge(insertion);
+//      newSequence.merge(post);
+//      }
+//    else
+//      for (int i=0; i<count; i++) newSequence.merge(sequence);
+//
     return newSequence;
     }
   }

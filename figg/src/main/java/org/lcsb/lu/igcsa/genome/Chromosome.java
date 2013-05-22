@@ -22,11 +22,8 @@ public class Chromosome
   private String Name;
   private File fasta;
   private File mutations;
-  private File structVars;
   private FASTAReader reader;
   private List<Variation> variationList;
-  private List<StructuralVariation> structuralVariations;
-
 
   public Chromosome(String name)
     {
@@ -73,16 +70,6 @@ public class Chromosome
     this.mutations = mutations;
     }
 
-  public File getSVFile()
-    {
-    return structVars;
-    }
-
-  public void setSVFile(File structVars)
-    {
-    this.structVars = structVars;
-    }
-
   public void setVariantList(List<Variation> variants)
     {
     this.variationList = variants;
@@ -94,23 +81,12 @@ public class Chromosome
     return this.variationList;
     }
 
-  public void setStructuralVariations(List<StructuralVariation> structuralVariations)
-    {
-    this.structuralVariations = structuralVariations;
-    log.debug(getName() + "structural variations :" + this.structuralVariations.hashCode());
-    }
-
-  public List<StructuralVariation> getStructuralVariations()
-    {
-    return structuralVariations;
-    }
-
   public DNASequence readSequence(int start, int end)
     {
     DNASequence seq = new DNASequence();
     try
       {
-      seq = new DNASequence(reader.readSequenceAtLocation(start, end));
+      seq = new DNASequence(reader.readSequenceFromLocation(start, end));
       }
     catch (IOException e)
       {

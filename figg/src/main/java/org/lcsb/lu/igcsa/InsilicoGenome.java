@@ -7,7 +7,9 @@ import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.genome.Chromosome;
+import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.genome.Genome;
+import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.lcsb.lu.igcsa.utils.FileUtils;
 
@@ -149,9 +151,58 @@ public class InsilicoGenome
 
     File tmpDir = new File(genomeProperties.getProperty("dir.tmp"), genome.getGenomeDirectory().getName());
 
+    File svWriterPath = new File(genome.getGenomeDirectory(), "structural-variations");
+    if (!svWriterPath.exists() || !svWriterPath.isDirectory()) svWriterPath.mkdir();
+    genome.setMutationDirectory(svWriterPath);
+
+    Chromosome chr17 = genome.getChromosome("17");
+    Chromosome chr11 = genome.getChromosome("11");
+
+    /**** DERIVATIVE - translocation of band 11q21 to 17, 17 will be the derivative ****/
+    FASTAHeader header = new FASTAHeader("figg", "chr17", "Derivative, 11q21 insert at 24000000", genome.getBuildName());
+    FASTAWriter writer = new FASTAWriter( new File(genome.getGenomeDirectory(), "chr17der.fa"), header );
+//
+//    chr17.getFASTAReader().reset();
+//    chr17.getFASTAReader().streamToWriter(24000000, writer);
+//
+//    DNASequence seq_11q21 = chr11.readSequence(92800001, 97200000);
+//    writer.write(seq_11q21.getSequence());
+//
+//    // read the rest of the file
+//    int window = 1000;
+//    DNASequence remainder;
+//    while (true)
+//      {
+//      remainder = chr17.readSequence(window);
+//      writer.write(remainder.getSequence());
+//      if (remainder.getLength() < window) break;
+//      }
+//    writer.close();
 
 
-//    log.info("Structural variations step finished on " + tasks.size() + " chromosomes.");
+    /*** Delete 7q22-7q32 ***/
+    // q22 98000001   q32 132600000
+    header = new FASTAHeader("figg", "chr7", "Delete q22-q32", genome.getBuildName());
+    writer = new FASTAWriter( new File(genome.getGenomeDirectory(), "chr7.fa"), header );
+
+    Chromosome chr7 = genome.getChromosome("7");
+    chr7.getFASTAReader().streamToWriter(98000001, writer);
+
+    String seq;
+    int start = 132600000;
+    int chars = 5000;
+    while(true)
+      {
+      log.info("Start: " + start);
+      seq = chr7.getFASTAReader().readSequenceFromLocation(start, chars);
+      writer.write(seq);
+      log.info("seq length: " + seq.length());
+      start += chars;
+      if (seq.length() < chars) break;
+      }
+    writer.close();
+
+
     structuralVariationExecutor.shutdown();
     }
 
@@ -174,10 +225,7 @@ public class InsilicoGenome
     File mutWriterPath = new File(genomeDirectory, "mutations");
     if (!mutWriterPath.exists() || !mutWriterPath.isDirectory()) mutWriterPath.mkdir();
 
-    File svWriterPath = new File(genomeDirectory, "structural-variations");
-    if (!svWriterPath.exists() || !svWriterPath.isDirectory()) svWriterPath.mkdir();
-
-    genome.setMutationDirectory(mutWriterPath, svWriterPath);
+    genome.setMutationDirectory(mutWriterPath);
     }
 
   // Adds chromosomes to the genome.  Either from the command line, or from the assembly directory

@@ -13,96 +13,22 @@ import java.io.File;
  * Copyright University of Luxembourg, Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class CancerGenome implements Genome
+public class CancerGenome
   {
   static Logger log = Logger.getLogger(CancerGenome.class.getName());
 
-  private String buildName;
 
-  public void CancerGenome()
-    { }
-
-  @Override
-  public void setBuildName(String buildName)
+  public void main(String args[])
     {
-    this.buildName = buildName;
+    new CancerGenome();
     }
 
-  @Override
-  public String getBuildName()
-    {
-    return this.buildName;
-    }
-
-  @Override
-  public File getGenomeDirectory()
-    {
-    return null;
-    }
-
-  @Override
-  public void setGenomeDirectory(File genomeDirectory)
+  public CancerGenome()
     {
 
-    }
 
-  @Override
-  public File getMutationDirectory()
-    {
-    return null;
-    }
-
-  @Override
-  public void setMutationDirectory(File smallMut)
-    {
 
     }
-
-  @Override
-  public void addChromosomes(Chromosome[] chromosomes)
-    {
-
-    }
-
-  @Override
-  public void addChromosome(Chromosome chromosome)
-    {
-
-    }
-
-  @Override
-  public void replaceChromosome(Chromosome chromosome)
-    {
-
-    }
-
-  @Override
-  public boolean hasChromosome(String name)
-    {
-    return false;
-    }
-
-  @Override
-  public Chromosome[] getChromosomes()
-    {
-    return new Chromosome[0];
-    }
-
-  @Override
-  public Chromosome getChromosome(String name)
-    {
-    return null;
-    }
-
-  @Override
-  public Mutable mutate(Chromosome chr, int window, FASTAWriter writer)
-    {
-    return null;
-    }
-
-
-
-
   }
 
 

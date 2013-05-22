@@ -43,7 +43,7 @@ public class FASTAWriter
 
   public void flush() throws IOException
     {
-    log.debug("Outputting " + buffer.length() + " characters to " + this.fasta.getName());
+    //log.debug("Outputting " + buffer.length() + " characters to " + this.fasta.getName());
     totalCharacters += buffer.length();
     if (buffer.charAt(buffer.length()-1) != '\n')
       buffer.append("\n");

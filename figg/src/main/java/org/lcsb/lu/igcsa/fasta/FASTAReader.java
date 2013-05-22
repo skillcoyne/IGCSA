@@ -45,10 +45,6 @@ public class FASTAReader
   private BufferedReader reader;
 
 
-  private Collection<Location> repeatRegions = new ArrayList<Location>();
-  private Collection<Location> gapRegions = new ArrayList<Location>();
-
-
   public FASTAReader(File file) throws IOException
     {
     fasta = file;
@@ -58,7 +54,7 @@ public class FASTAReader
       throw new IOException("Cannot read file " + file.getAbsolutePath());
 
     stream = open();
-    reader = new BufferedReader(new InputStreamReader(this.stream));
+    //reader = new BufferedReader(new InputStreamReader(this.stream));
     getHeader();
     this.seqLineLength = this.readline().length();
     this.reset();
@@ -67,7 +63,7 @@ public class FASTAReader
   private InputStream open() throws IOException
     {
     this.fileloc = 0L;
-    log.debug(fasta.getAbsolutePath() + " file location " + fileloc);
+    //log.debug(fasta.getAbsolutePath() + " file location " + fileloc);
 
     InputStream is = new FileInputStream(this.fasta);
     if (this.fasta.getName().endsWith("gz"))
@@ -95,9 +91,18 @@ public class FASTAReader
     }
 
 
-  public String readSequenceAtLocation(int start, int end) throws IOException
+//  public String readSequenceAtLocation(int start, int end) throws IOException
+//    {
+//    return readSequenceLength(start, end - start);
+//    }
+
+  private void skip(long loc) throws IOException
     {
-    return readSequenceLength(start, end - start);
+    while (loc > fileloc)
+      {
+      log.info("skipping " + this.fileloc);
+      this.read();
+      }
     }
 
   /**
@@ -105,15 +110,14 @@ public class FASTAReader
    * called on the same FASTAReader object
    *
    * @param start       - Offset to start reading file from. The header offset will be added to this so the header line is always skipped.
-   * @param charsToRead - Number of characters to read in (ignoring line feeds).
+
    * @return String containing the characters read. If the end of the file is found before the total number of characters is reached
    *         the characters read to that point will be returned.
    * @throws IOException
    */
-  public String readSequenceLength(int start, int charsToRead) throws IOException
+  public String readSequenceFromLocation(int start, int window) throws IOException
     {
-    InputStream is = open();
-    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+    log.info("file location "+ fileloc);
     /*
     Since every line has a line feed character, the start location needs to be incremented
     by the number of lines that have to be skipped or else the characters read in are off by 1 (or more)
@@ -122,20 +126,13 @@ public class FASTAReader
       start += Math.floor(start / seqLineLength);
 
     start += headerloc;
-    reader.skip(start-1);
 
-    StringBuffer sequence = new StringBuffer();
-    char c;
-    while ((c = (char) reader.read()) != EOF && sequence.length() < charsToRead)
-      {
-      if (c == LINE_FEED || c == CARRIAGE_RETURN)
-        continue;
-      sequence.append(c);
-      }
-    reader.close();
-    return (sequence.toString().length() > 0) ? sequence.toString() : null;
+    if (fileloc > start) this.reset();
+
+    this.skip(start-1);
+
+    return this.readSequence(window) ;
     }
-
 
   /**
    * Read and return chunks from the file in order. Each call will advance the read.
@@ -169,7 +166,52 @@ public class FASTAReader
       if (buf.length() == window)
         break;
       }
+
     return buf.toString();
+    }
+
+
+  public int streamToWriter(int start, int end, FASTAWriter writer) throws IOException
+    {
+    int charWindow = 1000;
+    int totalChars = end - start;
+    int count = 0;
+    if (charWindow > totalChars) charWindow = totalChars;
+
+    while(true)
+      {
+      String seq = this.readSequenceFromLocation(start, charWindow);
+      writer.write(seq);
+      count += seq.length();
+      start += charWindow;
+      if (start > end) start = end;
+      if (seq.length() >= totalChars) break;
+      }
+    writer.flush();
+    return count;
+    }
+
+  // will this hit out of mem error if the final location is too large? YEP
+  /*
+  Will read from whatever the last point was!
+   */
+  public int streamToWriter(int totalCharacters, FASTAWriter writer) throws IOException
+    {
+    int charactersRead = 0;
+    int window = 500;
+    if (window > totalCharacters) window = totalCharacters;
+
+    while(true)
+      {
+      String seq = this.readSequence(window);
+      writer.write(seq);
+      charactersRead += seq.length();
+      if ( (totalCharacters - charactersRead)/window < 1 ) window = totalCharacters - charactersRead;
+      if (seq.length() < window || charactersRead == totalCharacters) break;
+      }
+    log.info("File loc: " + this.fileloc + " total characters read: " + charactersRead);
+    writer.flush();
+    return charactersRead;
     }
 
 
@@ -181,61 +223,11 @@ public class FASTAReader
    * @return
    * @throws IOException
    */
-  public void markRegions() throws IOException, Exception
-    {
-    reset();
-    int repeatStart = 0;
-    int gapStart = 0;
-    char lastChar = '&'; // unlikely to be found in a fasta file that I am aware of
-    char c;
-    while ((c = this.read()) != EOF)
-      {
-      // header has already been read
-      if (c == HEADER_IDENTIFIER)
-        {
-        if (this.header == null)
-          getHeader();
-        else
-          this.skipline();
-        }
-
-      if (c == UNKNOWN.value() && c != lastChar)
-        {
-        repeatStart = (int) this.fileloc;
-        }
-      else if (lastChar == UNKNOWN.value() && c != lastChar)
-        {
-        this.repeatRegions.add(new Location(repeatStart, (int) this.fileloc));
-        repeatStart = 0;
-        }
-      else if (c == GAP.value() && c != lastChar)
-        {
-        gapStart = (int) this.fileloc;
-        }
-      else if (lastChar == GAP.value() && c != lastChar)
-        {
-        this.gapRegions.add(new Location(gapStart, (int) this.fileloc));
-        gapStart = 0;
-        }
-      lastChar = c;
-      }
-    }
 
   public long getLastLocation()
     {
     return this.fileloc;
     }
-
-  public Location[] getRepeatRegions()
-    {
-    return repeatRegions.toArray(new Location[repeatRegions.size()]);
-    }
-
-  public Location[] getGapRegions()
-    {
-    return gapRegions.toArray(new Location[gapRegions.size()]);
-    }
-
 
   private String readline() throws java.io.IOException
     {
