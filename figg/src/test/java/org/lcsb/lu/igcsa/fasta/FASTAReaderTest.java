@@ -63,7 +63,7 @@ public class FASTAReaderTest
     int window = 100;
     int start = 0;
     String seq;
-    while((seq = reader.readSequenceFromLocation(start, window)) != null)
+    while((seq = reader.readSequence(window)) != null)
       {
       int end = (start+window > fastaSeq.length())? (fastaSeq.length()): (start+window);
       assertEquals(seq, fastaSeq.substring(start, end));
@@ -103,31 +103,13 @@ public class FASTAReaderTest
     assertEquals(buf.toString(), fastaSeq);
     }
 
-//  @Test
-//  public void testReadFromLocation() throws Exception
-//    {
-//    String subSeq = fastaSeq.substring(0, 100);
-//
-//    // This should allow me to retrieve the same sequence as many times as I like without advancing any read
-//    String seqA = reader.readSequenceLength(0, 100);
-//    assertEquals(seqA.length(), 100);
-//    assertEquals(seqA, subSeq);
-//    String seqB = reader.readSequenceLength(0, 100);
-//    assertEquals(seqA, seqB);
-//
-//    String seqC = reader.readSequenceLength(45, 100);
-//    assertNotSame(seqA, seqC);
-//    assertEquals(seqC.length(), 100);
-//    }
-
-
   @Test
   public void testLoopRead() throws Exception
     {
     int window = 100;
     int start = 0;
     String seq;
-    while((seq = reader.readSequenceFromLocation(start, window)) != null)
+    while((seq = reader.readSequence(window)) != null)
       {
       int end = (start+window > fastaSeq.length())? (fastaSeq.length()): (start+window);
       assertEquals(seq, fastaSeq.substring(start, end));
@@ -189,51 +171,51 @@ public class FASTAReaderTest
 
 
 
-  @Test
-  public void testJumpLocations() throws Exception
-    {
-    String loc = "/Users/sarah.killcoyne/Data/FASTA/chr19.fa.gz";
-    File file = new File(loc);
-    FASTAReader reader = new FASTAReader(file);
-
-    //String myo9b = "";// = reader.readSequenceAtLocation(17186591, 17324104); // MYO9B gene
-
-    int start = 17186591;
-    int end = 17324104;
-    int seqLength = end-start;
-    int window = 100;
-    String myo9b = reader.readSequenceFromLocation(start, window);
-
-    assertEquals(myo9b, "CGGGGCGGAGCGGCTCGAGCAGCGGCGGGCTGGCAGGCGGTCGTCCGGCCGGGGACCCGGCCCGGGACCGGCGGCGCGCGGCGGCCGAGGCCAGGTGAGT");
-
-    while( myo9b.length() < seqLength)
-      {
-      String seq = reader.readSequence(window);
-      myo9b = myo9b + seq;
-      if (seqLength - myo9b.length() < window ) window = seqLength - myo9b.length();
-      }
-
-    assertEquals(myo9b.length(), seqLength);
-
-    String loc1 = "/Users/sarah.killcoyne/Downloads/myo9b.fasta";
-    reader = new FASTAReader(new File(loc1));
-
-    String ncbi_myo9b = "";
-
-    start = 0;
-    end = 137513;
-    window = 100;
-    seqLength = end - start;
-    while( ncbi_myo9b.length() < seqLength)
-      {
-      String seq = reader.readSequence(window);
-      ncbi_myo9b = ncbi_myo9b + seq;
-      if (seqLength - ncbi_myo9b.length() < window ) window = seqLength - ncbi_myo9b.length();
-      }
-
-    assertEquals(myo9b.length(), ncbi_myo9b.length());
-    assertEquals(myo9b, ncbi_myo9b);
-
-    }
-
+//  @Test
+//  public void testJumpLocations() throws Exception
+//    {
+//    String loc = "/Users/sarah.killcoyne/Data/FASTA/tmp/chr19.fa";
+//    File file = new File(loc);
+//    FASTAReader reader = new FASTAReader(file);
+//
+//    //String myo9b = "";// = reader.readSequenceAtLocation(17186591, 17324104); // MYO9B gene
+//
+//    int start = 17186591;
+//    int end = 17324104;
+//    int seqLength = end-start;
+//    int window = 100;
+//    String myo9b = reader.readSequenceFromLocation(start, window);
+//
+//    assertEquals(myo9b, "CGGGGCGGAGCGGCTCGAGCAGCGGCGGGCTGGCAGGCGGTCGTCCGGCCGGGGACCCGGCCCGGGACCGGCGGCGCGCGGCGGCCGAGGCCAGGTGAGT");
+//
+//    while( myo9b.length() < seqLength)
+//      {
+//      String seq = reader.readSequence(window);
+//      myo9b = myo9b + seq;
+//      if (seqLength - myo9b.length() < window ) window = seqLength - myo9b.length();
+//      }
+//
+//    assertEquals(myo9b.length(), seqLength);
+//
+//    String loc1 = "/Users/sarah.killcoyne/Downloads/myo9b.fasta";
+//    reader = new FASTAReader(new File(loc1));
+//
+//    String ncbi_myo9b = "";
+//
+//    start = 0;
+//    end = 137513;
+//    window = 100;
+//    seqLength = end - start;
+//    while( ncbi_myo9b.length() < seqLength)
+//      {
+//      String seq = reader.readSequence(window);
+//      ncbi_myo9b = ncbi_myo9b + seq;
+//      if (seqLength - ncbi_myo9b.length() < window ) window = seqLength - ncbi_myo9b.length();
+//      }
+//
+//    assertEquals(myo9b.length(), ncbi_myo9b.length());
+//    assertEquals(myo9b, ncbi_myo9b);
+//
+//    }
+//
   }

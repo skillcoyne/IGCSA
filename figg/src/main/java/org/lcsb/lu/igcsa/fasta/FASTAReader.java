@@ -1,14 +1,10 @@
 package org.lcsb.lu.igcsa.fasta;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.genome.Location;
 
 
 import java.io.*;
-import java.util.*;
 import java.util.zip.GZIPInputStream;
-
-import static org.lcsb.lu.igcsa.genome.Nucleotides.*;
 
 /**
  * org.lcsb.lu.igcsa.fasta
@@ -32,17 +28,9 @@ public class FASTAReader
   private final char COMMENT_IDENTIFIER = ';';
   private final char HEADER_IDENTIFIER = '>';
 
-
-  private long fileloc = 0L;
-  // this is actually the end of the header
-  private long headerloc = 0L;
-  private int seqLineLength;
-
   private File fasta;
-  private InputStream stream;
-  private FASTAHeader header;
 
-  private BufferedReader reader;
+  private BufferedFASTAReader reader;
 
 
   public FASTAReader(File file) throws IOException
@@ -53,56 +41,30 @@ public class FASTAReader
     if (!fasta.canRead())
       throw new IOException("Cannot read file " + file.getAbsolutePath());
 
-    stream = open();
-    //reader = new BufferedReader(new InputStreamReader(this.stream));
-    getHeader();
-    this.seqLineLength = this.readline().length();
-    this.reset();
+    openReader();
     }
 
-  private InputStream open() throws IOException
+
+  private void openReader() throws IOException
     {
-    this.fileloc = 0L;
-    //log.debug(fasta.getAbsolutePath() + " file location " + fileloc);
+    if (reader != null) reader.close();
 
     InputStream is = new FileInputStream(this.fasta);
-    if (this.fasta.getName().endsWith("gz"))
-      {
-      is = new GZIPInputStream(is);
-      }
-    return is;
+    if (this.fasta.getName().endsWith("gz")) is = new GZIPInputStream(is);
+
+    reader = new BufferedFASTAReader(new InputStreamReader(is));
     }
+
 
   public FASTAHeader getHeader() throws IOException
     {
-    if (header == null)
-      {
-      // there may not always be a header, though with chromosome files there really should be
-      header = new FASTAHeader(this.readline());
-      this.headerloc = this.fileloc;
-      }
-    return header;
+    return reader.getHeader();
     }
 
   public void reset() throws IOException
     {
-    stream.close();
-    stream = open();
-    }
-
-
-//  public String readSequenceAtLocation(int start, int end) throws IOException
-//    {
-//    return readSequenceLength(start, end - start);
-//    }
-
-  private void skip(long loc) throws IOException
-    {
-    while (loc > fileloc)
-      {
-      log.info("skipping " + this.fileloc);
-      this.read();
-      }
+    log.info("Resetting reader");
+    openReader();
     }
 
   /**
@@ -117,19 +79,11 @@ public class FASTAReader
    */
   public String readSequenceFromLocation(int start, int window) throws IOException
     {
-    log.info("file location "+ fileloc);
-    /*
-    Since every line has a line feed character, the start location needs to be incremented
-    by the number of lines that have to be skipped or else the characters read in are off by 1 (or more)
-    */
-    if (start > seqLineLength)
-      start += Math.floor(start / seqLineLength);
+    if (start < reader.getCurrentSequenceLocation())
+      openReader();
 
-    start += headerloc;
-
-    if (fileloc > start) this.reset();
-
-    this.skip(start-1);
+    log.debug("file location "+ reader.getCurrentSequenceLocation());
+    reader.skip(start);
 
     return this.readSequence(window) ;
     }
@@ -150,10 +104,7 @@ public class FASTAReader
       // header has already been read
       if (c == HEADER_IDENTIFIER)
         {
-        if (this.header == null)
-          getHeader();
-        else
-          this.skipline();
+        this.skipline();
         continue;
         }
       // don't want the line separators
@@ -166,11 +117,15 @@ public class FASTAReader
       if (buf.length() == window)
         break;
       }
+    String seq = buf.toString();
+    if (seq.length() <= 0) seq = null;
 
-    return buf.toString();
+    return seq;
     }
 
-
+  /*
+ Will read from whatever the last point was!
+  */
   public int streamToWriter(int start, int end, FASTAWriter writer) throws IOException
     {
     int charWindow = 1000;
@@ -191,7 +146,6 @@ public class FASTAReader
     return count;
     }
 
-  // will this hit out of mem error if the final location is too large? YEP
   /*
   Will read from whatever the last point was!
    */
@@ -209,7 +163,6 @@ public class FASTAReader
       if ( (totalCharacters - charactersRead)/window < 1 ) window = totalCharacters - charactersRead;
       if (seq.length() < window || charactersRead == totalCharacters) break;
       }
-    log.info("File loc: " + this.fileloc + " total characters read: " + charactersRead);
     writer.flush();
     return charactersRead;
     }
@@ -223,10 +176,9 @@ public class FASTAReader
    * @return
    * @throws IOException
    */
-
   public long getLastLocation()
     {
-    return this.fileloc;
+    return reader.getCurrentSequenceLocation();
     }
 
   private String readline() throws java.io.IOException
@@ -262,8 +214,7 @@ public class FASTAReader
     //byte read = (byte)stream.read();
     //if (read == 0x00) { read = (byte)stream.read(); }
     //return (char)read;
-    char c = (char) stream.read();
-    ++this.fileloc;
+    char c = (char) reader.read();
     return c;
     }
 
@@ -273,9 +224,9 @@ public class FASTAReader
    * @param c char given for value testing
    * @return boolean signaling if this character appears to be binary data instead of a printable ASCII character
    */
-  private boolean smellsLikeBinaryData(char c)
-    {
-    return (c < 0x40 || c > 0x7E);
-    }
+//  private boolean smellsLikeBinaryData(char c)
+//    {
+//    return (c < 0x40 || c > 0x7E);
+//    }
 
   }
