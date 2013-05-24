@@ -188,20 +188,17 @@ public class InsilicoGenome
     Chromosome chr7 = genome.getChromosome("7");
     chr7.getFASTAReader().streamToWriter(98000001, writer);
 
-    String seq;
+    // start at the end of the band and output to the end of the chromosome
     int start = 132600000;
     int chars = 5000;
+    writer.write(chr7.getFASTAReader().readSequenceFromLocation(start, chars));
     while(true)
       {
-      log.info("Start: " + start);
-      seq = chr7.getFASTAReader().readSequenceFromLocation(start, chars);
+      String seq = chr7.getFASTAReader().readSequence(chars);
       writer.write(seq);
-      log.info("seq length: " + seq.length());
-      start += chars;
       if (seq.length() < chars) break;
       }
     writer.close();
-
 
     structuralVariationExecutor.shutdown();
     }
