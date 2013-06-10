@@ -9,7 +9,7 @@
 
     <artifactId>figg</artifactId>
     <packaging>jar</packaging>
-    <name>Fragment Insilico Geneome Generator</name>
+    <name>Frequency-based Insilico Geneome Generator</name>
 
     <build>
         <plugins>

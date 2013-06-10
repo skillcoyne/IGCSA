@@ -35,11 +35,15 @@
 
 
     <!-- Database for CANCER GENOME tables?? -->
-    <!--<bean id="cancerDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">-->
-        <!--<property name="driverClassName" value="${cancer.genome.driver}"/>-->
-        <!--<property name="url" value="jdbc:mysql://${cancer.genome.host}:${cancer.genome.port}/${cancer.genome.db}"/>-->
-        <!--<property name="username" value="${cancer.genome.user}"/>-->
-        <!--<property name="password" value="${cancer.genome.pwd}"/>-->
-    <!--</bean>-->
+    <bean id="karyotypeDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="${karyotype.genome.driver}"/>
+        <property name="url" value="${karyotype.genome.url}"/>
+        <property name="username" value="${karyotype.genome.user}"/>
+        <property name="password" value="${karyotype.genome.pwd}"/>
+    </bean>
+
+    <bean id="BreakpointDAO" class="org.lcsb.lu.igcsa.database.sql.karyotype.JDBCBreakpointDAO">
+        <property name="dataSource" ref="karyotypeDataSource"/>
+    </bean>
 
 </beans>

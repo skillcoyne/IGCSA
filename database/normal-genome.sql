@@ -7,7 +7,7 @@ create table `gc_bins` (
   `id` int(11) not null auto_increment,
   `chr` varchar(12) not null,
   `bin_id` int(11) not null,
-  `minimu` int(11) not null,
+  `minimum` int(11) not null,
   `maximum` int(11) not null,
   `total_fragments` int(24) not null,
   primary key(`id`),

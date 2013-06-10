@@ -12,12 +12,12 @@
       margin: 0;
     }
   </style>
-  <title>Fragment Insilico Genome Generator</title>
+  <title>Frequency-based Insilico Genome Generator</title>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 </head>
 <body>
 <div id="wrap">
-  <div id="header"><h1>Fragment Insilico Genome Generator</h1></div>
+  <div id="header"><h1>Frequency-based Insilico Genome Generator</h1></div>
   <div id="menu">
     <ul>
       <li><a href="index.shtml">Home</a></li>
@@ -51,7 +51,7 @@
     <h2>Introduction</h2>
 
     <p>
-      FIGG is a genome simulation tool that uses known or theorized variation frequency across a genome to generate
+      FIGG is a genome simulation tool that uses known or theorized variation frequency, per a given fragment size and grouped by GC content across a genome to generate
       new genomes in FASTA format while tracking applied mutations for use in analysis tools or population simulations.
     </p>
     <br>
@@ -85,7 +85,7 @@
     <h2>Usage</h2>
     <dl>
       <dd>
-      <dt>Usage: java -jar igcsa.jar [options]</dt>
+      <dt>Usage: java -jar figg.jar [options]</dt>
         <pre>
     -n, --name Genome directory name, if not provided a random name is generated.
     -o, --overwrite Overwrite genome directory if name already exists.
