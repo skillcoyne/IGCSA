@@ -25,8 +25,8 @@ public class FASTAHeader
     this.db = db.replaceAll(" ", ".");
     this.accession = accession.replaceAll(" ", ".");
     if (locus != null)
-      this.locus = locus;
-    this.description = description;
+      this.locus = locus.replaceAll(" ", ".");
+    this.description = description.replaceAll(" ", ".");
     }
 
   public FASTAHeader(String line) throws IOException

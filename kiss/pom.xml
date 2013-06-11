@@ -8,7 +8,7 @@
         <version>1.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
+    <name>Karyotype Insilico Sequence Simulator</name>
     <artifactId>svigg</artifactId>
 
     <dependencies>

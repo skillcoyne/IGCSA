@@ -1,6 +1,4 @@
-package org.lcsb.lu.igcsa.database.karyotype;
-
-import org.apache.log4j.Logger;
+package org.lcsb.lu.igcsa.database;
 
 /**
  * org.lcsb.lu.igcsa.database.karyotype

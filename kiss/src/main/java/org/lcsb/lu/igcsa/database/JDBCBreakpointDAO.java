@@ -1,4 +1,4 @@
-package org.lcsb.lu.igcsa.database.sql.karyotype;
+package org.lcsb.lu.igcsa.database;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.karyotype.Breakpoint;
