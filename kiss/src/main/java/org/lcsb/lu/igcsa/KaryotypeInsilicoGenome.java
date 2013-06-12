@@ -148,7 +148,7 @@ public class KaryotypeInsilicoGenome
 
 
   // Adds chromosomes to the genome.  Either from the command line, or from the assembly directory
-  private void setupChromosomes(List<String> chromosomes) throws IOException, ProbabilityException, InstantiationException, IllegalAccessException
+  private void setupChromosomes(List<String> chromosomes) throws IOException, ProbabilityException, InstantiationException, IllegalAccessException, ClassNotFoundException
     {
     // Set up the chromosomes in the genome that will be mutated.
     File fastaDir = new File(genomeProperties.getProperty("dir.assembly"));

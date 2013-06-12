@@ -69,7 +69,11 @@ public abstract class Genome
 
   public void loseChromosome(String name)
     {
+    log.info(this.chromosomes.containsKey("Y"));
+
     this.chromosomes.remove(this.chromosomes.get(name));
+
+    log.info(chromosomes.size());
     }
 
   public void replaceChromosome(Chromosome chr)

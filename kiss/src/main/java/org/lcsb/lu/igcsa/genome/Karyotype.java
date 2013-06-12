@@ -62,40 +62,62 @@ public class Karyotype extends Genome
     return allosomes;
     }
 
+  public int ploidyCount(String chrName)
+    {
+    return this.chromosomeCount.get(chrName);
+    }
+
   @Override
   public void addChromosomes(Chromosome[] chromosomes)
     {
     super.addChromosomes(chromosomes);
     for (Chromosome chr: chromosomes)
       chromosomeCount.put(chr.getName(), 2);
+    adjustSex();
+    }
 
+  /**
+   * Do NOT use for aneuploidy
+   * @param chromosome
+   */
+  @Override
+  public void addChromosome(Chromosome chromosome)
+    {
+    super.addChromosome(chromosome);
+
+    chromosomeCount.put(chromosome.getName(), 2);
+
+    adjustSex();
+    }
+
+  public void chromosomeGain(String chromosome)
+    {
+    chromosomeCount.put(chromosome, chromosomeCount.get(chromosome)+1);
+    }
+
+  private void adjustSex()
+    {
     // Make sure males start with only one X and one Y
-    if (chromosomeCount.containsKey("X") && chromosomeCount.containsKey("Y"))
+    if (allosomes.equals("XY"))
       {
       chromosomeCount.put("X", 1);
       chromosomeCount.put("Y", 1);
       }
 
     // females don't need to have Y chromosome around
-    if (chromosomeCount.containsKey("X") && chromosomeCount.get("X") == 2)
+    if (allosomes.equals("XX"))
       loseChromosome("Y");
     }
 
-  @Override
-  public void addChromosome(Chromosome chromosome)
+  /**
+   * Use for aneuploidy
+   * @param name
+   */
+  public void chromosomeLoss(String name)
     {
-    super.addChromosome(chromosome);
-    if (!chromosomeCount.containsKey(chromosome.getName()))
-      chromosomeCount.put(chromosome.getName(), 2);
-    else
-      chromosomeCount.put(chromosome.getName(), chromosomeCount.get(chromosome.getName())+1);
-    }
-
-  @Override
-  public void loseChromosome(String name)
-    {
-    super.loseChromosome(name);
     chromosomeCount.put(name, chromosomeCount.get(name)-1);
+    if (chromosomeCount.get(name) == 0)
+      this.loseChromosome(name);
     }
 
   // TODO this is temporary, when I know how I want to get these from the real data this will change but it belongs in the karyotype class

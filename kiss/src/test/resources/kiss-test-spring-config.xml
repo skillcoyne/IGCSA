@@ -54,4 +54,10 @@
     </bean>
 
 
+    <bean id="testKaryotype" class="org.lcsb.lu.igcsa.genome.Karyotype">
+        <constructor-arg ref="testBPDAO"/>
+        <constructor-arg ref="testBandDAO"/>
+    </bean>
+
+
 </beans>
