@@ -1,6 +1,6 @@
 package org.lcsb.lu.igcsa.utils;
 
-import org.lcsb.lu.igcsa.InsilicoGenome;
+import org.lcsb.lu.igcsa.FragmentInsilicoGenome;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 
@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * org.lcsb.lu.igcsa.utils
@@ -70,7 +71,7 @@ public class FileUtils
       String name = getChromosomeFromFASTA(file);
 
       Chromosome chr = new Chromosome(name, file);
-      chr.setVariantList(InsilicoGenome.variantUtils.getVariantList(chr.getName()));
+      chr.setVariantList(FragmentInsilicoGenome.variantUtils.getVariantList(chr.getName()));
       chromosomes.add(chr);
       }
     return chromosomes.toArray(new Chromosome[chromosomes.size()]);
@@ -80,5 +81,8 @@ public class FileUtils
     {
     return fastaDir.listFiles(filter);
     }
+
+
+
 
   }

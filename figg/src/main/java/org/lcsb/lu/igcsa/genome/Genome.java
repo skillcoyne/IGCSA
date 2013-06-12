@@ -1,9 +1,13 @@
 package org.lcsb.lu.igcsa.genome;
 
+import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.genome.concurrency.Mutable;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * org.lcsb.lu.igcsa.genome
@@ -11,33 +15,82 @@ import java.io.File;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public interface Genome
+public abstract class Genome
   {
-  public void setBuildName(String buildName);
-  public String getBuildName();
+  static Logger log = Logger.getLogger(Genome.class.getName());
 
-  public File getGenomeDirectory();
-  public void setGenomeDirectory(File genomeDirectory);
+  protected String buildName;
+  protected File genomeDirectory;
+  protected File mutationDirectory;
 
-  public File getMutationDirectory();
-  public void setMutationDirectory(File mutationDir);
+  protected HashMap<String, Chromosome> chromosomes = new HashMap<String, Chromosome>();
 
-  public void addChromosomes(Chromosome[] chromosomes);
+  
+  public void setBuildName(String buildName)
+    {
+    this.buildName = buildName;
+    }
 
-  public void addChromosome(Chromosome chromosome);
+  public String getBuildName()
+    {
+    return this.buildName;
+    }
 
-  public void replaceChromosome(Chromosome chromosome);
+  public File getGenomeDirectory()
+    {
+    return this.genomeDirectory;
+    }
 
-  public boolean hasChromosome(String name);
+  public void setGenomeDirectory(File genomeDirectory)
+    {
+    this.genomeDirectory = genomeDirectory;
+    }
 
-  /**
-   * Exactly what it sounds like.
-   * @return
-   */
-  public Chromosome[] getChromosomes();
+  public File getMutationDirectory()
+    {
+    return this.mutationDirectory;
+    }
 
-  public Chromosome getChromosome(String name);
+  public void setMutationDirectory(File mutationDir)
+    {
+    this.mutationDirectory = mutationDir;
+    }
 
-  public abstract Mutable mutate(Chromosome chr, int window, FASTAWriter writer);
+  public void addChromosomes(Chromosome[] chromosomes)
+    {
+    for (Chromosome chr: chromosomes)
+      this.chromosomes.put(chr.getName(), chr);
+    }
+
+  public void addChromosome(Chromosome chromosome)
+    {
+    this.chromosomes.put(chromosome.getName(), chromosome);
+    }
+
+  public void loseChromosome(String name)
+    {
+    this.chromosomes.remove(this.chromosomes.get(name));
+    }
+
+  public void replaceChromosome(Chromosome chr)
+    {
+    if (chromosomes.containsKey(chr.getName())) this.addChromosome(chr);
+    else log.warn("No chromosome " + chr.getName() + " to be replaces. Added instead.");
+    }
+
+  public boolean hasChromosome(String name)
+    {
+    return this.chromosomes.containsKey(name);
+    }
+
+  public Chromosome[] getChromosomes()
+    {
+    return this.chromosomes.values().toArray(new Chromosome[chromosomes.values().size()]);
+    }
+
+  public Chromosome getChromosome(String name)
+    {
+    return this.chromosomes.get(name);
+    }
 
   }

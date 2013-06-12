@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- Logging -->
+    <bean id="log4jInitialization" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="targetClass" value="org.springframework.util.Log4jConfigurer"/>
+        <property name="targetMethod" value="initLogging"/>
+        <property name="arguments">
+            <list>
+                <value>classpath:test-log4j.xml</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="testProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+        <property name="ignoreResourceNotFound">
+            <value>true</value>
+        </property>
+        <property name="locations">
+            <list>
+                <value>classpath:test.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- Load in application properties reference -->
+    <bean id="ktProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+        <property name="location" value="classpath:karyotype.properties"/>
+    </bean>
+
+
+
+    <!-- Load in application properties reference -->
+    <bean id="applicationProperties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="location" value="classpath:test.properties"/>
+    </bean>
+
+    <!-- Database for the fragment tables, this doesn't have to be mysql.  These aren't particularly large -->
+    <bean id="testDS" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="${karyotype.genome.driver}"/>
+        <property name="url" value="${karyotype.genome.url}"/>
+        <property name="username" value="${karyotype.genome.user}"/>
+        <property name="password" value=""/>
+    </bean>
+
+    <bean id="testBPDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCBreakpointDAO">
+        <property name="dataSource" ref="testDS"/>
+    </bean>
+
+    <bean id="testBandDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCChromosomeBandDAO">
+        <property name="dataSource" ref="testDS"/>
+    </bean>
+
+
+</beans>

@@ -1,8 +1,8 @@
-package org.lcsb.lu.igcsa.database;
+package org.lcsb.lu.igcsa.database.sql;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.database.karyotype.Breakpoint;
-import org.lcsb.lu.igcsa.database.karyotype.BreakpointDAO;
+import org.lcsb.lu.igcsa.database.Breakpoint;
+import org.lcsb.lu.igcsa.database.BreakpointDAO;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;

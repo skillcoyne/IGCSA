@@ -1,6 +1,7 @@
 package org.lcsb.lu.igcsa.genome.concurrency;
 
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.aberrations.Aberration;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
 import org.lcsb.lu.igcsa.fasta.Mutation;
 import org.lcsb.lu.igcsa.genome.Chromosome;
@@ -24,15 +25,17 @@ public class StructuralMutable extends Mutable
 
   private FASTAReader mutatedFASTA;
 
-  //private Map<Location, Chromosome>
-
-  public StructuralMutable()
-    {}
+  private List<Aberration> aberrationList;
 
   public StructuralMutable(Chromosome chr)
     {
     this.chromosome = chr;
     this.mutatedFASTA = chromosome.getFASTAReader();
+    }
+
+  public void setAberrations(List<Aberration> aberrationList)
+    {
+    this.aberrationList = aberrationList;
     }
 
   public void setMutatedFASTA(FASTAReader reader)

@@ -36,7 +36,7 @@ public class MutableGenomeTest
   private File fastaFile;
   private File outputFasta;
 
-  private Genome testGenome;
+  private MutableGenome testGenome;
 
   @Autowired
   private VariantUtils testVariantUtils;
@@ -52,7 +52,7 @@ public class MutableGenomeTest
 
     // need to reload the genome each time or the add chromosome tests screw things up
     ApplicationContext context = new ClassPathXmlApplicationContext("test-spring-config.xml");
-    testGenome = (Genome) context.getBean("testGenome");
+    testGenome = (MutableGenome) context.getBean("testGenome");
 
     File insilicoTest = new File(testProperties.getProperty("dir.insilico"));
     testGenome.setGenomeDirectory(insilicoTest);

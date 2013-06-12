@@ -10,20 +10,26 @@ import java.io.File;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class DerivativeChromosome extends Chromosome
+public class DerivativeChromosome //extends Chromosome
   {
   static Logger log = Logger.getLogger(DerivativeChromosome.class.getName());
 
+  private String name;
+
+  private File fromFasta;
+  private File toFasta;
+
   public DerivativeChromosome(String name)
     {
-    super(name);
+    this.name = name;
     }
 
-  public DerivativeChromosome(String name, File chrFastaFile)
+  public DerivativeChromosome(String name, File from, File to)
     {
-    super(name, chrFastaFile);
+    this(name);
+    this.fromFasta = from;
+    this.toFasta = to;
     }
-
 
 
 

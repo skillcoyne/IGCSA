@@ -42,7 +42,11 @@
         <property name="password" value="${karyotype.genome.pwd}"/>
     </bean>
 
-    <bean id="BreakpointDAO" class="org.lcsb.lu.igcsa.database.JDBCBreakpointDAO">
+    <bean id="BreakpointDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCBreakpointDAO">
+        <property name="dataSource" ref="karyotypeDataSource"/>
+    </bean>
+
+    <bean id="BandDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCChromosomeBandDAO">
         <property name="dataSource" ref="karyotypeDataSource"/>
     </bean>
 
