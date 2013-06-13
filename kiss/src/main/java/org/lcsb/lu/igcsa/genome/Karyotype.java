@@ -13,10 +13,7 @@ import org.lcsb.lu.igcsa.utils.KaryotypePropertiesUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * org.lcsb.lu.igcsa.genome
@@ -38,6 +35,7 @@ public class Karyotype extends Genome
   private BreakpointDAO breakpointDAO;
 
   private List<Aberration> aberrationList = new ArrayList<Aberration>();
+  private Map<Chromosome, List<Aberration>> chromsomeAberrations = new HashMap<Chromosome, List<Aberration>>();
 
   //44,X,-Y,-6,t(11;14)(q13;q32),add(22)(q13)
   public Karyotype(BreakpointDAO bpDAO, ChromosomeBandDAO bandDAO)
@@ -123,7 +121,14 @@ public class Karyotype extends Genome
   // TODO this is temporary, when I know how I want to get these from the real data this will change but it belongs in the karyotype class
   public void setAberrations(Properties ktProperties) throws ClassNotFoundException, InstantiationException, IllegalAccessException
     {
-    aberrationList = KaryotypePropertiesUtil.getAberrationList(bandDAO, ktProperties);
+    try
+      {
+      aberrationList = KaryotypePropertiesUtil.getAberrationList(bandDAO, ktProperties);
+      }
+    catch (Exception e)
+      {
+      log.error(e);
+      }
     }
 
   public void addAbberation(Aberration abr)
@@ -135,6 +140,7 @@ public class Karyotype extends Genome
     {
     return this.aberrationList.toArray(new Aberration[aberrationList.size()]);
     }
+
 
   public StructuralMutable applyAberrations() throws IOException
     {
@@ -150,14 +156,20 @@ public class Karyotype extends Genome
         // 2. Create new fasta file IF APPLICABLE (derivatives or translocations)
         // 3. Give Mutable impl the new fasta file, with the aberration
         // 4. Call Aberration.apply
-        for (ChromosomeFragment fragment: abr.getFragments())
+        for (Map.Entry<String, TreeSet<Location>> entry: abr.getChromosomeLocations().entrySet())
           {
-          Chromosome chr = this.getChromosome(fragment.getChromosome());
+          Chromosome chr = this.getChromosome( entry.getKey() );
 
           FASTAHeader header = new FASTAHeader("figg", "chr"+chr.getName(), "karyotype.variation", this.getBuildName());
           // probably need to check filenames now that I could be creating multiple copies of chromosomes
           FASTAWriter writer = new FASTAWriter(new File(this.getGenomeDirectory(), "chr" + chr.getName() + "-kt.fa"), header);
           MutationWriter mutWriter = new MutationWriter(new File(this.mutationDirectory, chr.getName() + "-SVs.txt"), MutationWriter.SMALL);
+
+          log.info(chr.getName());
+          for ( Location loc: entry.getValue() )
+            {
+            log.info(loc.toString());
+            }
 
 
           //chr.setMutationsFile(writer.getFASTAFile());

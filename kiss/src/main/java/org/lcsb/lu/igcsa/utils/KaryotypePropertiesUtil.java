@@ -31,7 +31,7 @@ public class KaryotypePropertiesUtil
   {
   static Logger log = Logger.getLogger(KaryotypePropertiesUtil.class.getName());
 
-  public static List<Aberration> getAberrationList(ChromosomeBandDAO bandDAO, Properties properties) throws ClassNotFoundException, IllegalAccessException, InstantiationException
+  public static List<Aberration> getAberrationList(ChromosomeBandDAO bandDAO, Properties properties) throws Exception, IllegalAccessException, InstantiationException
     {
     List<Aberration> aberrationList = new ArrayList<Aberration>();
     for (String abrType: properties.stringPropertyNames())

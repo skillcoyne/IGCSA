@@ -16,6 +16,15 @@ public class Deletion extends Aberration
   @Override
   public void applyAberrations()
     {
+    try
+      {
+      checkOverlaps();
+      }
+    catch (Exception e)
+      {
+      log.error(e);
+      }
+
     log.info("Not yet implemented");
     }
   }
