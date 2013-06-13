@@ -15,13 +15,17 @@ import java.util.*;
  */
 public abstract class Aberration
   {
-  protected List<ChromosomeFragment> chromosomeFragments = new ArrayList<ChromosomeFragment>();
+  static Logger log = Logger.getLogger(Aberration.class.getName());
+  //protected List<ChromosomeFragment> chromosomeFragments = new ArrayList<ChromosomeFragment>();
 
   protected Map<String, TreeSet<Location>> chrLocations = new HashMap<String, TreeSet<Location>>();
 
-  public void addFragment(ChromosomeFragment fragment) throws Exception
+  /*
+  T
+   */
+  public void addFragment(ChromosomeFragment fragment)
     {
-    chromosomeFragments.add(fragment);
+    //chromosomeFragments.add(fragment);
     if (!chrLocations.containsKey(fragment.getChromosome()))
       chrLocations.put(fragment.getChromosome(), new TreeSet<Location>());
 
@@ -29,16 +33,22 @@ public abstract class Aberration
     list.add(fragment.getBandLocation());
     chrLocations.put(fragment.getChromosome(), list);
 
-    checkOverlaps();
-
+    try
+      {
+      checkOverlaps();
+      }
+    catch (Exception e)
+      {
+      log.error(fragment.getChromosome() + " " + fragment.getBandLocation().toString() + " overlaps other locations. Removing from aberrations.");
+      }
     }
 
-  public ChromosomeFragment[] getFragments()
-    {
-    return chromosomeFragments.toArray(new ChromosomeFragment[chromosomeFragments.size()]);
-    }
+//  public ChromosomeFragment[] getFragments()
+//    {
+//    return chromosomeFragments.toArray(new ChromosomeFragment[chromosomeFragments.size()]);
+//    }
 
-  public Map<String, TreeSet<Location>> getChromosomeLocations()
+  public Map<String, TreeSet<Location>> getFragmentLocations()
     {
     return chrLocations;
     }
@@ -49,10 +59,14 @@ public abstract class Aberration
     for (TreeSet<Location> locs: chrLocations.values())
       {
       Location lastLoc = null;
-      for (Location loc: locs)
+      Iterator<Location> locI = locs.iterator();
+      while (locI.hasNext())
+      //for (Location loc: locs)
         {
+        Location loc = locI.next();
         if (lastLoc != null && loc.overlapsLocation(lastLoc))
           {
+          locI.remove();
           throw new Exception("Locations overlap for " + this.getClass().getName() + " aberration cannot be applied");
           }
         lastLoc = loc;

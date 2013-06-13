@@ -25,6 +25,8 @@ Usage: java -jar igcsa.jar <options>
 -c, --chromosome  List of chromosomes to use/mutate, comma-separated (e.g.  21,3,X). If not included chromosomes will be determined by
 the fasta files found in the dir.assembly directory (see genome.properties).
 -t, --threads     Number of concurrent threads, default is 5. Each thread handles a single chromosome.
+-f
+-s
 -h, --help        Print usage help.
 
 
@@ -32,10 +34,10 @@ the fasta files found in the dir.assembly directory (see genome.properties).
 -- Example using the provided shell script: --
 
 # Generate mutations for chromosome 17, overwrite previous named run.
-start-igcsa.sh -n MyChr17 -o -c 17
+start-igcsa.sh -n MyChr17 -o -c 17 -f
 
 # Generate mutations for all chromosomes in the dir.assembly directory using 12 threads.  Don't overwrite.
-start-igcsa.sh -n MyGenome -t 12
+start-igcsa.sh -n MyGenome -t 12 -f
 
 
 -- Example calling the jar file directly, props.path is the directory where genome.properties and log4j.properties both exist.  The shell
