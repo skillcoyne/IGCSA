@@ -26,7 +26,7 @@ import java.util.Properties;
  */
 
 @RunWith (SpringJUnit4ClassRunner.class)
-@ContextConfiguration (locations={"classpath:kiss-test-spring-config.xml"})
+@ContextConfiguration (locations = {"classpath:kiss-test-spring-config.xml"})
 public class KaryotypeTest
   {
   static Logger log = Logger.getLogger(KaryotypeTest.class.getName());
@@ -67,7 +67,7 @@ public class KaryotypeTest
   @Test
   public void testAddChromosome() throws Exception
     {
-    for (String s: new String[]{"2", "5", "6", "X", "Y"})
+    for (String s : new String[]{"2", "5", "6", "X", "Y"})
       testKaryotype.addChromosome(new Chromosome(s));
 
     assertEquals(testKaryotype.getChromosomes().length, 5);
@@ -94,7 +94,7 @@ public class KaryotypeTest
   public void testAddAberration() throws Exception
     {
     Aberration aberration = new Addition();
-    aberration.addFragment( new ChromosomeFragment("6", "p22", new Location(15200001,30400000)));
+    aberration.addFragment(new ChromosomeFragment("6", "p22", new Location(15200001, 30400000)));
     testKaryotype.addAbberation(aberration);
     assertEquals(testKaryotype.getAberrations()[0], aberration);
     }
@@ -105,9 +105,12 @@ public class KaryotypeTest
     testKaryotype.addChromosome(new Chromosome("21", fastaFile));
     assertEquals(testKaryotype.getChromosome("21").getFASTA(), fastaFile);
 
+    // can't add overlapping aberrations of the same type
     Aberration aberration = new Addition();
-    aberration.addFragment( new ChromosomeFragment("21", "p12", new Location(2800001, 6800000)));
-    aberration.addFragment( new ChromosomeFragment("21", "p12f", new Location(4800001, 6800000)));
+    aberration.addFragment(new ChromosomeFragment("21", "p12", new Location(2800001, 6800000)));
+
+    aberration.addFragment(new ChromosomeFragment("21", "p12f", new Location(4800001, 6800000)));
+
     testKaryotype.addAbberation(aberration);
 
     assertEquals(testKaryotype.getAberrations().length, 1);

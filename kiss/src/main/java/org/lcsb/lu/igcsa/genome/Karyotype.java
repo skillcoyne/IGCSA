@@ -69,13 +69,14 @@ public class Karyotype extends Genome
   public void addChromosomes(Chromosome[] chromosomes)
     {
     super.addChromosomes(chromosomes);
-    for (Chromosome chr: chromosomes)
+    for (Chromosome chr : chromosomes)
       chromosomeCount.put(chr.getName(), 2);
     adjustSex();
     }
 
   /**
    * Do NOT use for aneuploidy
+   *
    * @param chromosome
    */
   @Override
@@ -90,7 +91,7 @@ public class Karyotype extends Genome
 
   public void chromosomeGain(String chromosome)
     {
-    chromosomeCount.put(chromosome, chromosomeCount.get(chromosome)+1);
+    chromosomeCount.put(chromosome, chromosomeCount.get(chromosome) + 1);
     }
 
   private void adjustSex()
@@ -103,19 +104,18 @@ public class Karyotype extends Genome
       }
 
     // females don't need to have Y chromosome around
-    if (allosomes.equals("XX"))
-      loseChromosome("Y");
+    if (allosomes.equals("XX")) loseChromosome("Y");
     }
 
   /**
    * Use for aneuploidy
+   *
    * @param name
    */
   public void chromosomeLoss(String name)
     {
-    chromosomeCount.put(name, chromosomeCount.get(name)-1);
-    if (chromosomeCount.get(name) == 0)
-      this.loseChromosome(name);
+    chromosomeCount.put(name, chromosomeCount.get(name) - 1);
+    if (chromosomeCount.get(name) == 0) this.loseChromosome(name);
     }
 
   // TODO this is temporary, when I know how I want to get these from the real data this will change but it belongs in the karyotype class
@@ -132,7 +132,7 @@ public class Karyotype extends Genome
     }
 
   public void addAbberation(Aberration abr)
-    {
+    { // e.g. Translocations should come after deletions, indels etc.
     this.aberrationList.add(abr);
     }
 
@@ -144,7 +144,7 @@ public class Karyotype extends Genome
 
   public StructuralMutable applyAberrations() throws IOException
     {
-    for (Aberration abr: aberrationList)
+    for (Aberration abr : aberrationList)
       {
       if (abr.getClass().equals(Translocation.class))
         {
@@ -156,19 +156,18 @@ public class Karyotype extends Genome
         // 2. Create new fasta file IF APPLICABLE (derivatives or translocations)
         // 3. Give Mutable impl the new fasta file, with the aberration
         // 4. Call Aberration.apply
-        for (Map.Entry<String, TreeSet<Location>> entry: abr.getChromosomeLocations().entrySet())
+        for (Map.Entry<String, TreeSet<Location>> entry : abr.getFragmentLocations().entrySet())
           {
-          Chromosome chr = this.getChromosome( entry.getKey() );
+          Chromosome chr = this.getChromosome(entry.getKey());
 
-          FASTAHeader header = new FASTAHeader("figg", "chr"+chr.getName(), "karyotype.variation", this.getBuildName());
+          FASTAHeader header = new FASTAHeader("figg", "chr" + chr.getName(), "karyotype.variation", this.getBuildName());
           // probably need to check filenames now that I could be creating multiple copies of chromosomes
           FASTAWriter writer = new FASTAWriter(new File(this.getGenomeDirectory(), "chr" + chr.getName() + "-kt.fa"), header);
           MutationWriter mutWriter = new MutationWriter(new File(this.mutationDirectory, chr.getName() + "-SVs.txt"), MutationWriter.SMALL);
 
-          log.info(chr.getName());
-          for ( Location loc: entry.getValue() )
+          for (Location loc : entry.getValue())
             {
-            log.info(loc.toString());
+            log.info(chr.getName() + " " + loc.toString() + " " + abr.getClass().getSimpleName());
             }
 
 
@@ -186,21 +185,22 @@ public class Karyotype extends Genome
       }
 
 
-//    try
-//      {
-//      MutationWriter mutWriter = new MutationWriter(new File(this.mutationDirectory, chr.getName() + "mutations.txt"), MutationWriter.SMALL);
-//
-//      chr.setMutationsFile(writer.getFASTAFile());
-//
-//      FragmentMutable m = new FragmentMutable(chr, window);
-//      m.setConnections(binDAO, fragmentDAO);
-//      m.setWriters(writer, mutWriter);
-//      return m;
-//      }
-//    catch (IOException e)
-//      {
-//      throw new RuntimeException(e);
-//      }
+    //    try
+    //      {
+    //      MutationWriter mutWriter = new MutationWriter(new File(this.mutationDirectory, chr.getName() + "mutations.txt"),
+    // MutationWriter.SMALL);
+    //
+    //      chr.setMutationsFile(writer.getFASTAFile());
+    //
+    //      FragmentMutable m = new FragmentMutable(chr, window);
+    //      m.setConnections(binDAO, fragmentDAO);
+    //      m.setWriters(writer, mutWriter);
+    //      return m;
+    //      }
+    //    catch (IOException e)
+    //      {
+    //      throw new RuntimeException(e);
+    //      }
 
 
     return null;

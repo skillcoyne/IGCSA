@@ -50,10 +50,10 @@ public class KaryotypePropertiesUtil
             Band band = bandDAO.getBandByChromosomeAndName(chrBand[0], chrBand[1]);
             AbrClass.addFragment(new ChromosomeFragment(band.getChromosomeName(), band.getBandName(), band.getLocation()));
             }
-          ChromosomeFragment lastFragment = AbrClass.getFragments()[AbrClass.getFragments().length-1];
-          // Terminal end  This takes the last breakpoint and finds terminal end of the chromosome, may turn out to be unnecessary
-          Band terminus = bandDAO.getTerminus(lastFragment.getChromosome(), lastFragment.getBand().substring(0,1));
-          AbrClass.addFragment(new ChromosomeFragment(terminus.getChromosomeName(), terminus.getBandName(), terminus.getLocation()));
+//          ChromosomeFragment lastFragment = AbrClass.getFragments()[AbrClass.getFragments().length-1];
+//          // Terminal end  This takes the last breakpoint and finds terminal end of the chromosome, may turn out to be unnecessary
+//          Band terminus = bandDAO.getTerminus(lastFragment.getChromosome(), lastFragment.getBand().substring(0,1));
+//          AbrClass.addFragment(new ChromosomeFragment(terminus.getChromosomeName(), terminus.getBandName(), terminus.getLocation()));
           }
         else
           {
