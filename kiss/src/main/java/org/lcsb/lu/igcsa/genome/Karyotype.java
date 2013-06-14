@@ -34,7 +34,7 @@ public class Karyotype extends Genome
   private ChromosomeBandDAO bandDAO;
   private BreakpointDAO breakpointDAO;
 
-  private List<Aberration> aberrationList = new ArrayList<Aberration>();
+  //private List<Aberration> aberrationList = new ArrayList<Aberration>();
   private Map<String, Aberration> aberrationMap = new LinkedHashMap<String, Aberration>();
 
   //44,X,-Y,-6,t(11;14)(q13;q32),add(22)(q13)
@@ -123,7 +123,7 @@ public class Karyotype extends Genome
     {
     try
       {
-      aberrationList = KaryotypePropertiesUtil.getAberrationList(bandDAO, ktProperties);
+      List<Aberration> aberrationList = KaryotypePropertiesUtil.getAberrationList(bandDAO, ktProperties);
       for (Aberration a: aberrationList)
         this.aberrationMap.put(a.getClass().getSimpleName(), a);
       }
@@ -135,14 +135,12 @@ public class Karyotype extends Genome
 
   public void addAbberation(Aberration abr)
     { // e.g. Translocations should come after deletions, indels etc.
-    this.aberrationList.add(abr);
-
     this.aberrationMap.put(abr.getClass().getSimpleName(), abr);
     }
 
-  public Aberration[] getAberrations()
+  public Collection<Aberration> getAberrations()
     {
-    return this.aberrationList.toArray(new Aberration[aberrationList.size()]);
+    return this.aberrationMap.values();
     }
 
   public Aberration getAberrationByType(String name)
@@ -152,7 +150,7 @@ public class Karyotype extends Genome
 
   public StructuralMutable applyAberrations() throws IOException
     {
-    for (Aberration abr : aberrationList)
+    for (Aberration abr : this.aberrationMap.values())
       {
       if (abr.getClass().equals(Translocation.class))
         {
