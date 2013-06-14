@@ -108,12 +108,12 @@ public class KaryotypeTest
     // can't add overlapping aberrations of the same type
     Aberration aberration = new Addition();
     aberration.addFragment(new ChromosomeFragment("21", "p12", new Location(2800001, 6800000)));
-
+    aberration.addFragment(new ChromosomeFragment("21", "q22", new Location(31500001, 48129895)));
     aberration.addFragment(new ChromosomeFragment("21", "p12f", new Location(4800001, 6800000)));
 
     testKaryotype.addAbberation(aberration);
 
-    assertEquals(testKaryotype.getAberrations().length, 1);
+    assertEquals(testKaryotype.getAberrationByType(Addition.class.getSimpleName()).getFragmentLocations().get("21").size(), 2);
 
     testKaryotype.applyAberrations();
     }
