@@ -40,7 +40,6 @@ public class BufferedFASTAReader extends BufferedReader
     fastaInfo();
     }
 
-
   private void fastaInfo()
     {
     try
@@ -52,7 +51,7 @@ public class BufferedFASTAReader extends BufferedReader
       mark(sequenceStartLocation);
       sequenceLineLength = this.readLine().length();
       reset();
-      currentSeqLoc = sequenceStartLocation;
+      currentSeqLoc = 1;
       }
     catch (IOException e)
       {
@@ -81,7 +80,6 @@ public class BufferedFASTAReader extends BufferedReader
     return currentSeqLoc;
     }
 
-
   @Override
   public int read() throws IOException
     {
@@ -98,25 +96,20 @@ public class BufferedFASTAReader extends BufferedReader
   @Override
   public long skip(long l) throws IOException
     {
-    if (l == currentSeqLoc) return currentSeqLoc;
+    if (getCurrentSequenceLocation() > l)
+      throw new IOException("Reader is ahead of skip location, reset reader to access this.");
+    if (l > 0 && l == getCurrentSequenceLocation()) return getCurrentSequenceLocation();
 
     /*
     Since every line has a line feed character, the start location needs to be incremented
     by the number of lines that have to be skipped or else the characters read in are off by 1 (or more)
     */
     if (l > sequenceLineLength)
-      l += Math.round(l/sequenceLineLength);
+      l += Math.floor(l/sequenceLineLength);
 
-
-    l += this.sequenceStartLocation-1;
-
-
-    if (currentSeqLoc > l)
-      throw new IOException("Reader is ahead of skip location, reset reader to access this.");
-    else
-      l = l - currentSeqLoc;
+    long s = l - currentSeqLoc;
 
     currentSeqLoc = l;
-    return super.skip(l);
+    return super.skip(s);
     }
   }

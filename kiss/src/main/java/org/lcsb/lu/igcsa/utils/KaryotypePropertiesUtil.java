@@ -6,6 +6,7 @@ import org.lcsb.lu.igcsa.aberrations.Aberration;
 import org.lcsb.lu.igcsa.aberrations.Translocation;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.database.ChromosomeBandDAO;
+import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.ChromosomeFragment;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.springframework.test.context.ContextConfiguration;
@@ -48,12 +49,10 @@ public class KaryotypePropertiesUtil
             {
             String[] chrBand = getChrBand(abr);
             Band band = bandDAO.getBandByChromosomeAndName(chrBand[0], chrBand[1]);
-            AbrClass.addFragment(new ChromosomeFragment(band.getChromosomeName(), band.getBandName(), band.getLocation()));
+            Translocation trans = (Translocation) AbrClass;
+            trans.addFragment(new ChromosomeFragment(band.getChromosomeName(), band.getBandName(), band.getLocation()),
+                                 new Chromosome(band.getChromosomeName()));
             }
-//          ChromosomeFragment lastFragment = AbrClass.getFragments()[AbrClass.getFragments().length-1];
-//          // Terminal end  This takes the last breakpoint and finds terminal end of the chromosome, may turn out to be unnecessary
-//          Band terminus = bandDAO.getTerminus(lastFragment.getChromosome(), lastFragment.getBand().substring(0,1));
-//          AbrClass.addFragment(new ChromosomeFragment(terminus.getChromosomeName(), terminus.getBandName(), terminus.getLocation()));
           }
         else
           {

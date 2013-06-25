@@ -36,10 +36,8 @@ public class FASTAReader
   public FASTAReader(File file) throws IOException
     {
     fasta = file;
-    if (!fasta.exists())
-      throw new FileNotFoundException("No such file: " + file.getAbsolutePath());
-    if (!fasta.canRead())
-      throw new IOException("Cannot read file " + file.getAbsolutePath());
+    if (!fasta.exists()) throw new FileNotFoundException("No such file: " + file.getAbsolutePath());
+    if (!fasta.canRead()) throw new IOException("Cannot read file " + file.getAbsolutePath());
 
     openReader();
     }
@@ -47,12 +45,14 @@ public class FASTAReader
 
   private void openReader() throws IOException
     {
-    if (reader != null) reader.close();
+
+    if (this.reader != null) reader.close();
 
     InputStream is = new FileInputStream(this.fasta);
     if (this.fasta.getName().endsWith("gz")) is = new GZIPInputStream(is);
 
     reader = new BufferedFASTAReader(new InputStreamReader(is));
+    log.debug("Opening FASTAReader for " + this.fasta.getAbsolutePath() + ", file location " + reader.getCurrentSequenceLocation());
     }
 
 
@@ -71,21 +71,21 @@ public class FASTAReader
    * This method creates a new BufferedReader with each call so theoretically it should be capable of being
    * called on the same FASTAReader object
    *
-   * @param start       - Offset to start reading file from. The header offset will be added to this so the header line is always skipped.
-
+   * @param start - Offset to start reading file from. The header offset will be added to this so the header line is always skipped.
    * @return String containing the characters read. If the end of the file is found before the total number of characters is reached
    *         the characters read to that point will be returned.
    * @throws IOException
    */
   public String readSequenceFromLocation(int start, int window) throws IOException
     {
-    if (start < reader.getCurrentSequenceLocation())
-      openReader();
+    if (start == 0) start = 1;
+    if (start < this.reader.getCurrentSequenceLocation()) openReader();
 
-    log.debug("file location "+ reader.getCurrentSequenceLocation());
-    reader.skip(start);
+    log.debug("file location " + reader.getCurrentSequenceLocation());
+    long skipped = reader.skip(start);
+    log.debug("skipped: " + skipped);
 
-    return this.readSequence(window) ;
+    return this.readSequence(window);
     }
 
   /**
@@ -108,18 +108,14 @@ public class FASTAReader
         continue;
         }
       // don't want the line separators
-      if (c == CARRIAGE_RETURN || c == LINE_FEED)
-        continue;
+      if (c == CARRIAGE_RETURN || c == LINE_FEED) continue;
       // shouldn't be an issue but it would mean we're done reading
-      if (c == RECORD_SEPARATOR)
-        break;
+      if (c == RECORD_SEPARATOR) break;
       buf.append(Character.toString(c));
-      if (buf.length() == window)
-        break;
+      if (buf.length() == window) break;
       }
     String seq = buf.toString();
     if (seq.length() <= 0) seq = null;
-
     return seq;
     }
 
@@ -130,19 +126,23 @@ public class FASTAReader
     {
     int charWindow = 1000;
     int totalChars = end - start;
+
     int count = 0;
     if (charWindow > totalChars) charWindow = totalChars;
 
-    while(true)
+    while (true)
       {
       String seq = this.readSequenceFromLocation(start, charWindow);
+      if (seq == null) return 0;
+
       writer.write(seq);
       count += seq.length();
       start += charWindow;
       if (start > end) start = end;
-      if (seq.length() >= totalChars) break;
+      if ((end - start) < charWindow) charWindow = end - start;
+      if (count >= totalChars || seq.length() < charWindow) break;
       }
-    writer.flush();
+
     return count;
     }
 
@@ -155,18 +155,17 @@ public class FASTAReader
     int window = 500;
     if (window > totalCharacters) window = totalCharacters;
 
-    while(true)
+    while (true)
       {
       String seq = this.readSequence(window);
       writer.write(seq);
       charactersRead += seq.length();
-      if ( (totalCharacters - charactersRead)/window < 1 ) window = totalCharacters - charactersRead;
+      if ((totalCharacters - charactersRead) / window < 1) window = totalCharacters - charactersRead;
       if (seq.length() < window || charactersRead == totalCharacters) break;
       }
     writer.flush();
     return charactersRead;
     }
-
 
   /**
    * Mark the regions of "any" or N sequence starts/stops as well as gaps.
@@ -189,13 +188,11 @@ public class FASTAReader
     while (true)
       {
       char last = this.read();
-      if (last == CARRIAGE_RETURN || last == LINE_FEED || last == RECORD_SEPARATOR || last == EOF)
-        break;
+      if (last == CARRIAGE_RETURN || last == LINE_FEED || last == RECORD_SEPARATOR || last == EOF) break;
       buf.append(String.valueOf(last));
       }
     return buf.toString();
     }
-
 
   private void skipline() throws java.io.IOException
     {
@@ -203,8 +200,7 @@ public class FASTAReader
     while (true)
       {
       char last = this.read();
-      if (last == CARRIAGE_RETURN || last == LINE_FEED || last == RECORD_SEPARATOR || last == EOF)
-        break;
+      if (last == CARRIAGE_RETURN || last == LINE_FEED || last == RECORD_SEPARATOR || last == EOF) break;
       }
     }
 
@@ -224,9 +220,9 @@ public class FASTAReader
    * @param c char given for value testing
    * @return boolean signaling if this character appears to be binary data instead of a printable ASCII character
    */
-//  private boolean smellsLikeBinaryData(char c)
-//    {
-//    return (c < 0x40 || c > 0x7E);
-//    }
+  //  private boolean smellsLikeBinaryData(char c)
+  //    {
+  //    return (c < 0x40 || c > 0x7E);
+  //    }
 
   }

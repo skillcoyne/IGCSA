@@ -1,11 +1,13 @@
 package org.lcsb.lu.igcsa.genome;
 
+import org.apache.derby.iapi.services.io.FileUtil;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.aberrations.Aberration;
 import org.lcsb.lu.igcsa.aberrations.Translocation;
 import org.lcsb.lu.igcsa.database.BreakpointDAO;
 import org.lcsb.lu.igcsa.database.ChromosomeBandDAO;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
+import org.lcsb.lu.igcsa.fasta.FASTAReader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.fasta.MutationWriter;
 import org.lcsb.lu.igcsa.genome.concurrency.StructuralMutable;
@@ -124,7 +126,7 @@ public class Karyotype extends Genome
     try
       {
       List<Aberration> aberrationList = KaryotypePropertiesUtil.getAberrationList(bandDAO, ktProperties);
-      for (Aberration a: aberrationList)
+      for (Aberration a : aberrationList)
         this.aberrationMap.put(a.getClass().getSimpleName(), a);
       }
     catch (Exception e)
@@ -154,7 +156,24 @@ public class Karyotype extends Genome
       {
       if (abr.getClass().equals(Translocation.class))
         {
+        Translocation trans = (Translocation) abr;
+        // TODO this might not be necessary in future, but currently the chromosome objects are lacking fasta files/readers
+        String derChrName = "der-";
+        Iterator<Map.Entry<ChromosomeFragment, Chromosome>> tI = trans.getFragments().entrySet().iterator();
+        while (tI.hasNext())
+          {
+          Map.Entry<ChromosomeFragment, Chromosome> entry = tI.next();
+          trans.addFragment(entry.getKey(), this.getChromosome(entry.getValue().getName()));
+          derChrName = derChrName + "." + entry.getValue().getName();
+          }
 
+        // translocations are a bit different in that the chromosome provided to "apply" isn't used
+        FASTAHeader header = new FASTAHeader("figg", derChrName, "karyotype.variation", this.getBuildName());
+        // probably need to check filenames now that I could be creating multiple copies of chromosomes
+        FASTAWriter writer = new FASTAWriter(new File(this.getGenomeDirectory(), derChrName + "-kt.fa"), header);
+        MutationWriter mutWriter = new MutationWriter(new File(this.mutationDirectory, derChrName + "-SVs.txt"), MutationWriter.SMALL);
+
+        trans.applyAberrations(null, writer, mutWriter);
         }
       else
         {
@@ -166,51 +185,31 @@ public class Karyotype extends Genome
           {
           Chromosome chr = this.getChromosome(entry.getKey());
 
-          FASTAHeader header = new FASTAHeader("figg", "chr" + chr.getName(), "karyotype.variation", this.getBuildName());
-          // probably need to check filenames now that I could be creating multiple copies of chromosomes
-          FASTAWriter writer = new FASTAWriter(new File(this.getGenomeDirectory(), "chr" + chr.getName() + "-kt.fa"), header);
+          File newFasta = ktChromosomeFile(this.getGenomeDirectory(), chr.getName());
+          FASTAHeader header = new FASTAHeader("figg", newFasta.getName().replaceAll("-kt.fa", ""), "karyotype.variation",
+                                               this.getBuildName());
+          FASTAWriter writer = new FASTAWriter(newFasta, header);
           MutationWriter mutWriter = new MutationWriter(new File(this.mutationDirectory, chr.getName() + "-SVs.txt"), MutationWriter.SMALL);
 
-          for (Location loc : entry.getValue())
-            {
-            log.info(chr.getName() + " " + loc.toString() + " " + abr.getClass().getSimpleName());
-            }
-
-
-          //chr.setMutationsFile(writer.getFASTAFile());
-          if (this.chromosomeCount.get(chr.getName()) > 1)
-            {
-            // copy whole FASTA file once (this could probably be done after all SVs have been written
-            }
-          StructuralMutable mutable = new StructuralMutable(chr);
-          mutable.setWriters(writer, mutWriter);
+          abr.applyAberrations(chr, writer, mutWriter);
           }
-
         }
-
       }
-
-
-    //    try
-    //      {
-    //      MutationWriter mutWriter = new MutationWriter(new File(this.mutationDirectory, chr.getName() + "mutations.txt"),
-    // MutationWriter.SMALL);
-    //
-    //      chr.setMutationsFile(writer.getFASTAFile());
-    //
-    //      FragmentMutable m = new FragmentMutable(chr, window);
-    //      m.setConnections(binDAO, fragmentDAO);
-    //      m.setWriters(writer, mutWriter);
-    //      return m;
-    //      }
-    //    catch (IOException e)
-    //      {
-    //      throw new RuntimeException(e);
-    //      }
-
 
     return null;
     }
 
+  //  need to check filenames now that I could be creating multiple copies of chromosomes
+  private File ktChromosomeFile(File dir, String chr)
+    {
+    File file = new File(dir, "chr" + chr + "-kt.fa");
+    int n = 1;
+    while (file.exists())
+      {
+      file = new File(dir, "chr" + chr + "." + n + "-kt.fa");
+      ++n;
+      }
+    return file;
+    }
 
   }

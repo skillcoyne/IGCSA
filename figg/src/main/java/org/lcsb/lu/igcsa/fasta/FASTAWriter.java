@@ -41,6 +41,7 @@ public class FASTAWriter
     return this.totalCharacters;
     }
 
+
   public void flush() throws IOException
     {
     //log.debug("Outputting " + buffer.length() + " characters to " + this.fasta.getName());

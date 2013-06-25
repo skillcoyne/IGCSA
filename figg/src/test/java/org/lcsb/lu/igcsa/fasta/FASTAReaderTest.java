@@ -1,5 +1,6 @@
 package org.lcsb.lu.igcsa.fasta;
 
+import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,6 +25,8 @@ import java.util.Properties;
 @ContextConfiguration (locations={"classpath:test-spring-config.xml"})
 public class FASTAReaderTest
   {
+  static Logger log = Logger.getLogger(FASTAReaderTest.class.getName());
+
   @Autowired
   private Properties testProperties;
 
@@ -120,13 +123,33 @@ public class FASTAReaderTest
   @Test
   public void testReadFromLocation() throws Exception
     {
+    assertEquals(reader.readSequenceFromLocation(1, 10), "NNNNNNNNNN");
     // making sure that sequential reads don't overlap
     assertEquals(reader.readSequenceFromLocation(71, 10), "TGCAGCAAAG");
     assertEquals(reader.readSequenceFromLocation(81, 10), "AGTCAGCAAG");
-    assertNotNull(reader.readSequenceFromLocation(113, 10));
+    assertEquals(reader.readSequenceFromLocation(113, 10), "GCTGCCTACG");
 
     // make sure that I can jump back to a previous read location
     assertEquals(reader.readSequenceFromLocation(71, 10), "TGCAGCAAAG");
+    }
+
+
+  @Test
+  public void testSkip() throws Exception
+    {
+    URL testUrl = ClassLoader.getSystemResource("fasta/wiki-text.fa");
+    FASTAReader reader = new FASTAReader(new File(testUrl.toURI()));
+    assertNotNull(reader);
+
+    assertEquals(reader.readSequenceFromLocation(1, 20), "Deoxyribonucleicacid");
+    assertEquals(reader.readSequenceFromLocation(21, 5), "(DNA)");
+    assertEquals(reader.readSequenceFromLocation(51, 7), "genetic");
+    assertEquals(reader.readSequenceFromLocation(144, 12), "AlongwithRNA");
+
+    //jump back to previous read location
+    assertEquals(reader.readSequenceFromLocation(21, 5), "(DNA)");
+    assertEquals(reader.readSequenceFromLocation(371, 15), "double-stranded");
+    assertEquals(reader.readSequenceFromLocation(120, 9), "organisms");
     }
 
   @Test
@@ -146,7 +169,6 @@ public class FASTAReaderTest
     fastaFile.delete();
     fastaFile.getParentFile().delete();
     }
-
 
   @Test
   public void testSequentialReadStarting() throws Exception

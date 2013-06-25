@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.lcsb.lu.igcsa.aberrations.Aberration;
 import org.lcsb.lu.igcsa.aberrations.Addition;
+import org.lcsb.lu.igcsa.aberrations.Deletion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -49,7 +50,7 @@ public class KaryotypeTest
     fastaFile = new File(testUrl.toURI());
 
 
-    File insilicoTest = new File(testProperties.getProperty("dir.insilico"));
+    File insilicoTest = new File(testProperties.getProperty("dir.karyotype"));
     testKaryotype.setGenomeDirectory(insilicoTest);
     testKaryotype.setMutationDirectory(new File(insilicoTest, "structural-variations"));
     testKaryotype.setBuildName("Karyotype Test");
@@ -96,7 +97,7 @@ public class KaryotypeTest
     Aberration aberration = new Addition();
     aberration.addFragment(new ChromosomeFragment("6", "p22", new Location(15200001, 30400000)));
     testKaryotype.addAbberation(aberration);
-    assertEquals(testKaryotype.getAberrations()[0], aberration);
+    assertEquals(testKaryotype.getAberrations().contains(aberration), aberration);
     }
 
   @Test
@@ -106,14 +107,14 @@ public class KaryotypeTest
     assertEquals(testKaryotype.getChromosome("21").getFASTA(), fastaFile);
 
     // can't add overlapping aberrations of the same type
-    Aberration aberration = new Addition();
+    Aberration aberration = new Deletion();
     aberration.addFragment(new ChromosomeFragment("21", "p12", new Location(2800001, 6800000)));
     aberration.addFragment(new ChromosomeFragment("21", "q22", new Location(31500001, 48129895)));
     aberration.addFragment(new ChromosomeFragment("21", "p12f", new Location(4800001, 6800000)));
 
     testKaryotype.addAbberation(aberration);
 
-    assertEquals(testKaryotype.getAberrationByType(Addition.class.getSimpleName()).getFragmentLocations().get("21").size(), 2);
+    assertEquals(testKaryotype.getAberrationByType(Deletion.class.getSimpleName()).getFragmentLocations().get("21").size(), 2);
 
     testKaryotype.applyAberrations();
     }
