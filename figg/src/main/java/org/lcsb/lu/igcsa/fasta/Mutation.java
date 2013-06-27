@@ -20,10 +20,17 @@ public class Mutation
   private String variationType;
   private String sequence;
   private int gcBin;
+  private int count;
 
 
   public Mutation()
     {}
+
+  public Mutation(String chromosome, int count)
+    {
+    this.chromosome = chromosome;
+    this.count = count;
+    }
 
   public Mutation(String chromosome, int startLocation, int endLocation, String variationType)
     {
@@ -31,6 +38,16 @@ public class Mutation
     this.startLocation = startLocation;
     this.endLocation = endLocation;
     this.variationType = variationType;
+    }
+
+  public int getCount()
+    {
+    return count;
+    }
+
+  public void setCount(int count)
+    {
+    this.count = count;
     }
 
   public int getGenomeId()

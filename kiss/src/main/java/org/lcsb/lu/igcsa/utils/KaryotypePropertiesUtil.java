@@ -1,8 +1,10 @@
 package org.lcsb.lu.igcsa.utils;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.junit.runner.RunWith;
 import org.lcsb.lu.igcsa.aberrations.Aberration;
+import org.lcsb.lu.igcsa.aberrations.Duplication;
 import org.lcsb.lu.igcsa.aberrations.Translocation;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.database.ChromosomeBandDAO;
@@ -44,6 +46,7 @@ public class KaryotypePropertiesUtil
 
       for (String abr: aberrations.split(","))
         {
+        // TRANSLOCATION
         if (AbrClass.getClass().getName().equals(Translocation.class.getName()))
           { //14(q32)->11(q13)
           Translocation trans = (Translocation) AbrClass;
@@ -76,7 +79,27 @@ public class KaryotypePropertiesUtil
 
       for (String abr: aberrations.split(","))
         {
-        if (!AbrClass.getClass().getName().equals(Translocation.class.getName()))
+        if (AbrClass.getClass().getName().equals(Translocation.class.getName())) continue;
+
+        if (AbrClass.getClass().getName().equals(Duplication.class.getName()))
+          { //12(q13:q22)
+          String chr = abr.substring(0, abr.indexOf("("));
+          String[] bands = abr.substring(abr.indexOf("(")+1, abr.indexOf(")")).split(":");
+
+          Band band = bandDAO.getBandByChromosomeAndName(chr, bands[0]);
+          Location loc1 = band.getLocation();
+
+          band = bandDAO.getBandByChromosomeAndName(chr, bands[1]);
+          Location loc2 = band.getLocation();
+
+          AbrClass.addFragment(new ChromosomeFragment(chr, StringUtils.join(bands, ""), new Location(loc1.getStart(), loc2.getEnd())));
+
+          if (!chrAbrMap.containsKey(chr))
+            chrAbrMap.put(chr, new ArrayList<Aberration>());
+
+          chrAbrMap.get(chr).add(AbrClass);
+          }
+        else
           {
           String[] chrBand = getChrBand(abr);
           Band band = bandDAO.getBandByChromosomeAndName(chrBand[0], chrBand[1]);

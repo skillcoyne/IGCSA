@@ -6,6 +6,8 @@ import org.lcsb.lu.igcsa.aberrations.Aberration;
 import org.lcsb.lu.igcsa.aberrations.Translocation;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
+import org.lcsb.lu.igcsa.fasta.Mutation;
+import org.lcsb.lu.igcsa.fasta.MutationWriter;
 import org.lcsb.lu.igcsa.genome.*;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.lcsb.lu.igcsa.utils.FileUtils;
@@ -55,23 +57,32 @@ public class KaryotypeInsilicoGenome
   public void applyMutations()
     {
     log.info("Apply SVs");
-    File tmpDir = new File(genomeProperties.getProperty("dir.tmp"), genome.getGenomeDirectory().getName());
+    //File tmpDir = new File(genomeProperties.getProperty("dir.tmp"), genome.getGenomeDirectory().getName());
 
     File svWriterPath = new File(genome.getGenomeDirectory(), "structural-variations");
     if (!svWriterPath.exists() || !svWriterPath.isDirectory()) svWriterPath.mkdir();
+
     genome.setMutationDirectory(svWriterPath);
 
-//    try
-//      {
-//      genome.applyAberrations();
-//      }
-//    catch (IOException e)
-//      {
-//      e.printStackTrace();
-//      }
+    try
+      {
+      genome.applyAberrations();
 
-    for (Chromosome c: genome.getChromosomes())
-      log.info(c.getName() + " " + genome.ploidyCount(c.getName()));
+      MutationWriter ploidyWriter = new MutationWriter(new File(svWriterPath, "normal-ploidy.txt"), MutationWriter.PLOIDY);
+
+      for (Chromosome c: genome.getChromosomes())
+        {
+        if (genome.ploidyCount(c.getName()) > 0)
+          org.apache.commons.io.FileUtils.copyFile( c.getFASTA(), new File( genome.getGenomeDirectory(), "chr" + c.getName() + ".fa"));
+
+        ploidyWriter.write(new Mutation(c.getName(), genome.ploidyCount(c.getName())));
+        }
+      ploidyWriter.close();
+      }
+    catch (IOException e)
+      {
+      e.printStackTrace();
+      }
 
     }
 

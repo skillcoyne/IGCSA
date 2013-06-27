@@ -19,6 +19,7 @@ public class MutationWriter
 
   public static final int SMALL = 1;
   public static final int SV = 2;
+  public static final int PLOIDY = 3;
 
   private File mutationFile;
   private FileWriter fileWriter;
@@ -26,6 +27,7 @@ public class MutationWriter
 
   private String smallMutHeader = "Chromosome\tFragment\tGCBin\tStartLoc\tEndLoc\tVariation\tSequence\n";
   private String svMutHeader = "Chromosome\tStartLoc\tEndLoc\tVariation\n";
+  private String ploidyHeader = "Chromosome\tPloidyCount\n";
 
   private int type = 1;
 
@@ -36,12 +38,20 @@ public class MutationWriter
     {
     this.mutationFile = mutationFile;
     createFile(mutationFile);
-    if (type == SMALL)
-      buffer.append(smallMutHeader);
-    if (type == SV)
-      buffer.append(svMutHeader);
-    this.type = type;
 
+    switch (type)
+      {
+      case SMALL:
+        buffer.append(smallMutHeader);
+        break;
+      case SV:
+        buffer.append(svMutHeader);
+        break;
+      case PLOIDY:
+        buffer.append(ploidyHeader);
+        break;
+      }
+    this.type = type;
     flush();
     }
 
@@ -79,22 +89,25 @@ public class MutationWriter
 
   private void addToBuffer(Mutation mutation)
     {
-    if (type == SMALL)
+    buffer.append(mutation.getChromosome() + "\t");
+    switch (type)
       {
-      buffer.append(mutation.getChromosome() + "\t");
-      buffer.append(mutation.getFragment() + "\t");
-      buffer.append(mutation.getGCBin() + "\t");
-      buffer.append(mutation.getStartLocation() + "\t");
-      buffer.append(mutation.getEndLocation() + "\t");
-      buffer.append(mutation.getVariationType() + "\t");
-      buffer.append(mutation.getSequence() + "\n");
-      }
-    else
-      {
-      buffer.append(mutation.getChromosome() + "\t");
-      buffer.append(mutation.getStartLocation() + "\t");
-      buffer.append(mutation.getEndLocation() + "\t");
-      buffer.append(mutation.getVariationType() + "\n");
+      case SMALL:
+        buffer.append(mutation.getFragment() + "\t");
+        buffer.append(mutation.getGCBin() + "\t");
+        buffer.append(mutation.getStartLocation() + "\t");
+        buffer.append(mutation.getEndLocation() + "\t");
+        buffer.append(mutation.getVariationType() + "\t");
+        buffer.append(mutation.getSequence() + "\n");
+        break;
+      case SV:
+        buffer.append(mutation.getStartLocation() + "\t");
+        buffer.append(mutation.getEndLocation() + "\t");
+        buffer.append(mutation.getVariationType() + "\n");
+        break;
+      case PLOIDY:
+        buffer.append(mutation.getCount() + "\n");
+        break;
       }
     }
 

@@ -149,6 +149,8 @@ public class Karyotype extends Genome
   public void addDerivativeChromosome(DerivativeChromosome chr)
     {
     this.derivativeChromosomes.add(chr);
+    if (this.ploidyCount(chr.getName()) > 1)
+      chromosomeLoss(chr.getName());
     }
 
   public DerivativeChromosome[] getDerivativeChromosomes()
