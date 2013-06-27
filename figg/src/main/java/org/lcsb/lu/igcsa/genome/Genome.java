@@ -67,7 +67,7 @@ public abstract class Genome
     this.chromosomes.put(chromosome.getName(), chromosome);
     }
 
-  public void loseChromosome(String name)
+  public void removeChromosome(String name)
     {
     this.chromosomes.remove(name);
     }

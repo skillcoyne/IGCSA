@@ -18,6 +18,9 @@ public class ChromosomeFragment
 
   public ChromosomeFragment(String chromosome, String band, Location bandLocation)
     {
+    if (chromosome == null || band == null || bandLocation == null)
+      throw new IllegalArgumentException("Missing expected arguments");
+
     this.chromosome = chromosome;
     this.band = band;
     this.bandLocation = bandLocation;
@@ -36,5 +39,11 @@ public class ChromosomeFragment
   public Location getBandLocation()
     {
     return bandLocation;
+    }
+
+  @Override
+  public String toString()
+    {
+    return super.toString() + " " + chromosome + band + " <" + bandLocation.getStart() + "-" + bandLocation.getEnd() + ">";
     }
   }

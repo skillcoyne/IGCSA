@@ -2,6 +2,7 @@ package org.lcsb.lu.igcsa;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.aberrations.Aberration;
 import org.lcsb.lu.igcsa.aberrations.Translocation;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
@@ -53,102 +54,29 @@ public class KaryotypeInsilicoGenome
 
   public void applyMutations()
     {
-
-    }
-
-
-
-  // Applies the larger, or location-based variations (>1kb).
-  private void applyStructuraVariations() throws IOException, InterruptedException, ExecutionException
-    {
     log.info("Apply SVs");
-    //    structuralVariationExecutor = Executors.newFixedThreadPool(threads);
-    //    CompletionService taskPool = new ExecutorCompletionService<String>(structuralVariationExecutor);
-
     File tmpDir = new File(genomeProperties.getProperty("dir.tmp"), genome.getGenomeDirectory().getName());
 
     File svWriterPath = new File(genome.getGenomeDirectory(), "structural-variations");
     if (!svWriterPath.exists() || !svWriterPath.isDirectory()) svWriterPath.mkdir();
     genome.setMutationDirectory(svWriterPath);
 
-    Chromosome from = genome.getChromosome("11");
-    Chromosome to = genome.getChromosome("14");
+//    try
+//      {
+//      genome.applyAberrations();
+//      }
+//    catch (IOException e)
+//      {
+//      e.printStackTrace();
+//      }
 
-    /**** DERIVATIVE - translocation of band 11q21 to 17, 17 will be the derivative ****/
-    FASTAHeader header = new FASTAHeader("figg", "chr14", "11q13->14q32", genome.getBuildName());
-    FASTAWriter writer = new FASTAWriter( new File(genome.getGenomeDirectory(), "chr14der.fa"), header );
+    for (Chromosome c: genome.getChromosomes())
+      log.info(c.getName() + " " + genome.ploidyCount(c.getName()));
 
-    //44,X,-Y,-6,t(11;14)(q13;q32),add(22)(q13),del(7)(q22)
-    //    Karyotype karyotype = new Karyotype(44, "XY", genome);
-    //    karyotype.loseAneuploidy(genome.getChromosome("Y"));
-    //    karyotype.loseAneuploidy(genome.getChromosome("6"));
-
-    genome.loseChromosome("Y");
-    genome.loseChromosome("6");
-
-    /*
-    TODO Karyotype is looking like it should be an implementation of Genome with aberrations tied to it.  There's too much calling of chromosomes going on here
-     */
-
-    // Band names don't actually matter, just locations
-    //    Translocation translocation = new Translocation(from, to);
-    //
-    //    translocation.addFragment( new ChromosomeFragment(from, "q13", new Location(63400001, 77100000)) );
-    //    translocation.addFragment( new ChromosomeFragment(to, "q32", new Location(89800001, 107349540)) );
-    //
-    //    Deletion deletion = new Deletion(genome.getChromosome("7"));
-    //    deletion.addFragment( new ChromosomeFragment( genome.getChromosome("7"), "q22", new Location(98000001, 159138663) ) );
-    //
-    //    Addition addition = new Addition(genome.getChromosome("22"));
-    //    addition.addFragment( new ChromosomeFragment( genome.getChromosome("22"), "q13", new Location(37600001, 51304566)));
-
-
-    //
-    //    chr17.getFASTAReader().reset();
-    //    chr17.getFASTAReader().streamToWriter(24000000, writer);
-    //
-    //    DNASequence seq_11q21 = chr11.readSequence(92800001, 97200000);
-    //    writer.write(seq_11q21.getSequence());
-    //
-    //    // read the rest of the file
-    //    int window = 1000;
-    //    DNASequence remainder;
-    //    while (true)
-    //      {
-    //      remainder = chr17.readSequence(window);
-    //      writer.write(remainder.getSequence());
-    //      if (remainder.getLength() < window) break;
-    //      }
-    //    writer.close();
-
-
-    /*** Delete 7q22-7q32 ***/
-    // q22 98000001   q32 132600000
-    header = new FASTAHeader("figg", "chr7", "Delete q22-q32", genome.getBuildName());
-    writer = new FASTAWriter( new File(genome.getGenomeDirectory(), "chr7.fa"), header );
-
-    Chromosome chr7 = genome.getChromosome("7");
-    chr7.getFASTAReader().streamToWriter(98000001, writer);
-
-    // start at the end of the band and output to the end of the chromosome
-    int start = 132600000;
-    int chars = 5000;
-    writer.write(chr7.getFASTAReader().readSequenceFromLocation(start, chars));
-    while(true)
-      {
-      String seq = chr7.getFASTAReader().readSequence(chars);
-      writer.write(seq);
-      if (seq.length() < chars) break;
-      }
-    writer.close();
-
-    //structuralVariationExecutor.shutdown();
     }
 
-
-
   // Adds chromosomes to the genome.  Either from the command line, or from the assembly directory
-  private void setupChromosomes(List<String> chromosomes) throws IOException, ProbabilityException, InstantiationException, IllegalAccessException, ClassNotFoundException
+  private void setupChromosomes(List<String> chromosomes) throws Exception, ProbabilityException, InstantiationException, IllegalAccessException, ClassNotFoundException
     {
     // Set up the chromosomes in the genome that will be mutated.
     File fastaDir = new File(genomeProperties.getProperty("dir.assembly"));
@@ -176,19 +104,19 @@ public class KaryotypeInsilicoGenome
     handleAneuploidy();
     genome.setAberrations(karyotypeProperties);
 
-
-    log.info("Karyotype genome has: " + genome.getChromosomes().length + " chromosomes");
+    log.info("Karyotype genome has: " + genome.getChromosomes().length + " chromosomes and " + genome.getDerivativeChromosomes().length +
+     " derivative chromosomes");
     }
 
   // TODO this will change to when I figure out how I'm pull the information from the database
   private void handleAneuploidy()
     {
     for (String chr :karyotypeProperties.getProperty("gain").split(","))
-      genome.addChromosome(new Chromosome(chr));
+      genome.chromosomeGain(chr);
     karyotypeProperties.remove("gain");
 
     for (String chr :karyotypeProperties.getProperty("loss").split(","))
-      genome.loseChromosome(chr);
+      genome.chromosomeLoss(chr);
     karyotypeProperties.remove("loss");
     }
 
@@ -212,9 +140,7 @@ public class KaryotypeInsilicoGenome
       throw new IllegalArgumentException(genomeDirectory.getAbsolutePath() + " was not created.");
 
     genome.setGenomeDirectory(genomeDirectory);
+    genome.setBuildName(name + " karyotype");
     }
-
-
-
 
   }

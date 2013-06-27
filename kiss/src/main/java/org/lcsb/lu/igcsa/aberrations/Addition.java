@@ -5,12 +5,11 @@ import org.lcsb.lu.igcsa.fasta.FASTAReader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.fasta.Mutation;
 import org.lcsb.lu.igcsa.fasta.MutationWriter;
-import org.lcsb.lu.igcsa.genome.Chromosome;
+import org.lcsb.lu.igcsa.genome.DerivativeChromosome;
 import org.lcsb.lu.igcsa.genome.Location;
 
 import java.io.IOException;
 import java.util.Random;
-import java.util.TreeSet;
 
 /**
  * org.lcsb.lu.igcsa.aberrations
@@ -32,16 +31,17 @@ public class Addition extends Aberration
   static Logger log = Logger.getLogger(Addition.class.getName());
 
   @Override
-  public void applyAberrations(Chromosome chr, FASTAWriter writer, MutationWriter mutationWriter)
+  public void applyAberrations(DerivativeChromosome derivativeChromosome, FASTAWriter writer, MutationWriter mutationWriter)
     {
-    Location breakpoint = getLocationsForChromosome(chr).first();
+    Location breakpoint = getLocationsForChromosome(derivativeChromosome).first();
 
-    FASTAReader reader = chr.getFASTAReader();
+    FASTAReader reader = derivativeChromosome.getChromosomes().iterator().next().getFASTAReader();
 
     // an "add" tacks on unknown genomic content at the breakpoint.
     try
       {
-      reader.streamToWriter(0, breakpoint.getEnd(), writer);
+      reader.reset(); // make sure we start from 0
+      reader.streamToWriter(breakpoint.getEnd(), writer);
 
       int unkLength = new Random().nextInt(1000);
       StringBuffer newSeq = new StringBuffer(unkLength);
@@ -52,14 +52,16 @@ public class Addition extends Aberration
       writer.write(newSeq.toString());
       writer.flush();
 
-
-      // TODO mutation writer needs to be specific for SVs too
+      if (mutationWriter != null)
+        {
+        mutationWriter.write(new Mutation(derivativeChromosome.getChromosomes().iterator().next().getName(), breakpoint.getEnd(),
+                                          breakpoint.getEnd()+newSeq.length(), "add"));
+        mutationWriter.close();
+        }
       }
     catch (IOException e)
       {
       e.printStackTrace();
       }
-
-
     }
   }

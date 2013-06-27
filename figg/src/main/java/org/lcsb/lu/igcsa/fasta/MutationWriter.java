@@ -72,6 +72,7 @@ public class MutationWriter
 
   public void close() throws IOException
     {
+    bufferedWriter.flush();
     bufferedWriter.close();
     fileWriter.close();
     }

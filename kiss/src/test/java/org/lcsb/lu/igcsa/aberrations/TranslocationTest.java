@@ -10,6 +10,7 @@ import org.lcsb.lu.igcsa.fasta.FASTAReader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.ChromosomeFragment;
+import org.lcsb.lu.igcsa.genome.DerivativeChromosome;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -95,7 +96,7 @@ public class TranslocationTest
     abr.addFragment(new ChromosomeFragment(chr1.getName(), "dna", new Location(0, 20)), chr1);
     abr.addFragment(new ChromosomeFragment(chr2.getName(), "climate", new Location(993, 1023)), chr2);
 
-    abr.applyAberrations(new Chromosome("derivative"), writer, null);
+    abr.applyAberrations(new DerivativeChromosome("derivative"), writer, null);
 
     assertTrue(writer.getFASTAFile().length() > 20);
 

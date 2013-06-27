@@ -12,18 +12,15 @@ import org.lcsb.lu.igcsa.genome.Location;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
+import java.util.*;
 
 
 /**
- * org.lcsb.lu.igcsa.utils
- * Author: sarah.killcoyne
- * Copyright Luxembourg Centre for Systems Biomedicine 2013
- * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
- */
+* org.lcsb.lu.igcsa.utils
+* Author: sarah.killcoyne
+* Copyright Luxembourg Centre for Systems Biomedicine 2013
+* Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
+*/
 
 /**
  * Reads the karyotype.properties file, returns list of Aberration objects
@@ -32,9 +29,13 @@ public class KaryotypePropertiesUtil
   {
   static Logger log = Logger.getLogger(KaryotypePropertiesUtil.class.getName());
 
-  public static List<Aberration> getAberrationList(ChromosomeBandDAO bandDAO, Properties properties) throws Exception, IllegalAccessException, InstantiationException
+  // ridiculous, but temporary
+  public static Object[] getTranslocations(ChromosomeBandDAO bandDAO, Properties properties, Map<String,
+      Chromosome> chromosomeMap) throws Exception
     {
-    List<Aberration> aberrationList = new ArrayList<Aberration>();
+    List<Aberration> translocationList = new ArrayList<Aberration>();
+
+    Set<String> chromosomes = new LinkedHashSet<String>();
     for (String abrType: properties.stringPropertyNames())
       {
       Aberration AbrClass = (Aberration) Class.forName(abrType).newInstance();
@@ -45,32 +46,57 @@ public class KaryotypePropertiesUtil
         {
         if (AbrClass.getClass().getName().equals(Translocation.class.getName()))
           { //14(q32)->11(q13)
+          Translocation trans = (Translocation) AbrClass;
           for (String breakpoint: abr.split("->"))
             {
-            String[] chrBand = getChrBand(abr);
+            String[] chrBand = getChrBand(breakpoint);
             Band band = bandDAO.getBandByChromosomeAndName(chrBand[0], chrBand[1]);
-            Translocation trans = (Translocation) AbrClass;
+
             trans.addFragment(new ChromosomeFragment(band.getChromosomeName(), band.getBandName(), band.getLocation()),
-                                 new Chromosome(band.getChromosomeName()));
+                              chromosomeMap.get(band.getChromosomeName()));
+
+            chromosomes.add(band.getChromosomeName());
             }
+          translocationList.add(trans);
           }
-        else
+        }
+      }
+    return (translocationList.size() > 0)? ( new Object[]{chromosomes, translocationList} ): null;
+    }
+
+  public static Map<String, List<Aberration>> getAberrationList(ChromosomeBandDAO bandDAO, Properties properties) throws Exception
+    {
+    Map<String, List<Aberration>> chrAbrMap = new HashMap<String, List<Aberration>>();
+
+    for (String abrType: properties.stringPropertyNames())
+      {
+      Aberration AbrClass = (Aberration) Class.forName(abrType).newInstance();
+
+      String aberrations = properties.getProperty(abrType);
+
+      for (String abr: aberrations.split(","))
+        {
+        if (!AbrClass.getClass().getName().equals(Translocation.class.getName()))
           {
           String[] chrBand = getChrBand(abr);
           Band band = bandDAO.getBandByChromosomeAndName(chrBand[0], chrBand[1]);
           AbrClass.addFragment(new ChromosomeFragment(band.getChromosomeName(), band.getBandName(), band.getLocation()));
+
+          if (!chrAbrMap.containsKey(band.getChromosomeName()))
+            chrAbrMap.put(band.getChromosomeName(), new ArrayList<Aberration>());
+
+          chrAbrMap.get(band.getChromosomeName()).add(AbrClass);
           }
         }
-      aberrationList.add(AbrClass);
       }
-    return aberrationList;
+
+    return chrAbrMap;
     }
 
   private static String[] getChrBand(String s)
     {
     String chr = s.substring(0, s.indexOf("("));
     String band = s.substring(s.indexOf("(")+1, s.indexOf(")"));
-
     return new String[]{chr, band};
     }
 

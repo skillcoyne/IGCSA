@@ -6,6 +6,7 @@ import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.fasta.MutationWriter;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.ChromosomeFragment;
+import org.lcsb.lu.igcsa.genome.DerivativeChromosome;
 import org.lcsb.lu.igcsa.genome.Location;
 
 import java.io.IOException;
@@ -24,12 +25,9 @@ public abstract class Aberration
 
   protected Map<String, TreeSet<Location>> chrLocations = new HashMap<String, TreeSet<Location>>();
 
-  /*
-  T
-   */
   public void addFragment(ChromosomeFragment fragment)
     {
-    //chromosomeFragments.add(fragment);
+    log.info("Adding fragment " + fragment.toString());
     if (!chrLocations.containsKey(fragment.getChromosome())) chrLocations.put(fragment.getChromosome(), new TreeSet<Location>());
 
     TreeSet<Location> list = chrLocations.get(fragment.getChromosome());
@@ -64,7 +62,6 @@ public abstract class Aberration
       Location lastLoc = null;
       Iterator<Location> locI = locs.iterator();
       while (locI.hasNext())
-        //for (Location loc: locs)
         {
         Location loc = locI.next();
         if (lastLoc != null && loc.overlapsLocation(lastLoc))
@@ -81,7 +78,7 @@ public abstract class Aberration
   protected void writeRemainder(FASTAReader reader, int startLocation, FASTAWriter writer, MutationWriter mutationWriter) throws IOException
     {
     // write the remainder of the file
-    int window = 1000;
+    int window = 5000;
     String seq = reader.readSequenceFromLocation(startLocation, window);
     if (seq != null)
       {
@@ -94,7 +91,6 @@ public abstract class Aberration
       }
     }
 
-
-  public abstract void applyAberrations(Chromosome chr, FASTAWriter writer, MutationWriter mutationWriter);
+  public abstract void applyAberrations(DerivativeChromosome derivativeChromosome, FASTAWriter writer, MutationWriter mutationWriter);
 
   }

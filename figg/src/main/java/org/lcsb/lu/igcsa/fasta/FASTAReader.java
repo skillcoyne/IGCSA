@@ -147,24 +147,24 @@ public class FASTAReader
     }
 
   /*
-  Will read from whatever the last point was!
+  Read from last point and output directly to the writer.
    */
-  public int streamToWriter(int totalCharacters, FASTAWriter writer) throws IOException
+  public int streamToWriter(int end, FASTAWriter writer) throws IOException
     {
-    int charactersRead = 0;
-    int window = 500;
-    if (window > totalCharacters) window = totalCharacters;
+    long window = 1000;
+    if (end < window)
+      window = end;
 
-    while (true)
+    int count = 0;
+    String seq;
+    while (window > 0 && (seq = readSequence((int) window)) != null )
       {
-      String seq = this.readSequence(window);
       writer.write(seq);
-      charactersRead += seq.length();
-      if ((totalCharacters - charactersRead) / window < 1) window = totalCharacters - charactersRead;
-      if (seq.length() < window || charactersRead == totalCharacters) break;
+      count += seq.length();
+      if (end - count < window)
+        window = end - count;
       }
-    writer.flush();
-    return charactersRead;
+    return count;
     }
 
   /**

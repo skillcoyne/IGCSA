@@ -71,7 +71,8 @@ public class FileUtils
       String name = getChromosomeFromFASTA(file);
 
       Chromosome chr = new Chromosome(name, file);
-      chr.setVariantList(FragmentInsilicoGenome.variantUtils.getVariantList(chr.getName()));
+      // TODO fix this, karytoype doesn't care but small-variations require the list
+      //chr.setVariantList(FragmentInsilicoGenome.variantUtils.getVariantList(chr.getName()));
       chromosomes.add(chr);
       }
     return chromosomes.toArray(new Chromosome[chromosomes.size()]);

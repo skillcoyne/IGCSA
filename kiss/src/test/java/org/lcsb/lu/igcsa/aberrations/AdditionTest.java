@@ -10,6 +10,7 @@ import org.lcsb.lu.igcsa.fasta.FASTAReader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.ChromosomeFragment;
+import org.lcsb.lu.igcsa.genome.DerivativeChromosome;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -74,9 +75,10 @@ public class AdditionTest
   public void testApplyAberrations() throws Exception
     {
     Chromosome chr = new Chromosome("test", fastaFile);
+    DerivativeChromosome dchr = new DerivativeChromosome("test", chr);
 
     abr.addFragment(new ChromosomeFragment("test", "XARM", new Location(1136, 1988)));
-    abr.applyAberrations(chr, writer, null);
+    abr.applyAberrations(dchr, writer, null);
 
     FASTAReader reader = new FASTAReader(writer.getFASTAFile());
     String str = reader.readSequenceFromLocation(1989, 852);

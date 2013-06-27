@@ -22,6 +22,17 @@ public class Mutation
   private int gcBin;
 
 
+  public Mutation()
+    {}
+
+  public Mutation(String chromosome, int startLocation, int endLocation, String variationType)
+    {
+    this.chromosome = chromosome;
+    this.startLocation = startLocation;
+    this.endLocation = endLocation;
+    this.variationType = variationType;
+    }
+
   public int getGenomeId()
     {
     return genomeId;

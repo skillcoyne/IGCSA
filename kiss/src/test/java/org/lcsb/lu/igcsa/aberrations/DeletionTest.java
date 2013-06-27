@@ -10,6 +10,7 @@ import org.lcsb.lu.igcsa.fasta.FASTAReader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.ChromosomeFragment;
+import org.lcsb.lu.igcsa.genome.DerivativeChromosome;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -66,10 +67,12 @@ public class DeletionTest
   public void testApplyAberrations() throws Exception
     {
     Chromosome chr = new Chromosome("test", fastaFile);
+    DerivativeChromosome dchr = new DerivativeChromosome("test", chr);
+
     abr.addFragment(new ChromosomeFragment("test", "XARM", new Location(980, 1050)));
     abr.addFragment(new ChromosomeFragment("test", "XARM", new Location(4332, 4341)));
 
-    abr.applyAberrations(chr, writer, null);
+    abr.applyAberrations(dchr, writer, null);
 
     FASTAReader reader = new FASTAReader(writer.getFASTAFile());
 
@@ -87,7 +90,8 @@ public class DeletionTest
     abr.addFragment(new ChromosomeFragment("test", "XARM", new Location(4464, 4473)));
     try
       {
-      abr.applyAberrations(new Chromosome("test", fastaFile), writer, null);
+      Chromosome chr = new Chromosome("test", fastaFile);
+      abr.applyAberrations(new DerivativeChromosome("test", chr), writer, null);
       }
     catch (IllegalArgumentException ae)
       {

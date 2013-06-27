@@ -10,6 +10,7 @@ import org.lcsb.lu.igcsa.fasta.FASTAReader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.ChromosomeFragment;
+import org.lcsb.lu.igcsa.genome.DerivativeChromosome;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -69,6 +70,7 @@ public class InversionTest
   public void testApplyAndWriteChromosome() throws Exception
     {
     Chromosome chr = new Chromosome("test", fastaFile);
+    DerivativeChromosome dchr = new DerivativeChromosome("test", chr);
 
     abr = new Inversion();
     assertNotNull(abr);
@@ -79,7 +81,7 @@ public class InversionTest
 
     abr.addFragment( new ChromosomeFragment(chr.getName(), "viruses", new Location(136, 143)));
     abr.addFragment( new ChromosomeFragment(chr.getName(), "allknown", new Location(217, 225)));
-    abr.applyAberrations(chr, writer, null);
+    abr.applyAberrations(dchr, writer, null);
 
     assertTrue(writer.getFASTAFile().length() > 17);
     FASTAReader newreader = new FASTAReader(writer.getFASTAFile());
@@ -92,6 +94,7 @@ public class InversionTest
   public void testLongFragments() throws Exception
     {
     Chromosome chr = new Chromosome("test", fastaFile);
+    DerivativeChromosome dchr = new DerivativeChromosome("test", chr);
 
     abr = new Inversion();
     assertNotNull(abr);
@@ -101,7 +104,7 @@ public class InversionTest
     assertTrue(origLongText.length() > 100);
 
     abr.addFragment(new ChromosomeFragment(chr.getName(), "longtext", new Location(144, 1251)));
-    abr.applyAberrations(chr, writer, null);
+    abr.applyAberrations(dchr, writer, null);
 
     assertTrue(writer.getFASTAFile().length() > 17);
     FASTAReader newreader = new FASTAReader(writer.getFASTAFile());
