@@ -158,6 +158,10 @@ public class Karyotype extends Genome
     return this.derivativeChromosomes.toArray(new DerivativeChromosome[this.derivativeChromosomes.size()]);
     }
 
+
+  /*
+  TODO: Note that the FASTAReader in each chromosome is NOT thread-safe. There is only a single reader pointer for each chromosome so at the moment this isn't multi-threaded. This wouldn't necessarily be difficult to implement. But I'm not sure if it's a simple case of returning a new reader each time getREADER is called on a chromosome since I would then have to be very careful to be aware of when I called that method.  It's also possible that disk I/O could cause these to all slow down and currently sequentially mutating chromosomes is fast enough.
+    */
   public StructuralMutable applyAberrations() throws IOException
     {
     for (DerivativeChromosome dchr : this.derivativeChromosomes)
@@ -208,7 +212,6 @@ public class Karyotype extends Genome
     }
 
   //  need to check filenames now that I could be creating multiple copies of chromosomes
-
   private File ktChromosomeFile(File dir, String chr)
     {
     File file = new File(dir, chr + "-der.fa");

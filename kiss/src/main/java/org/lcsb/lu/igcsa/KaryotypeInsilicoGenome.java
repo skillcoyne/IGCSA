@@ -73,7 +73,7 @@ public class KaryotypeInsilicoGenome
       for (Chromosome c: genome.getChromosomes())
         {
         if (genome.ploidyCount(c.getName()) > 0)
-          org.apache.commons.io.FileUtils.copyFile( c.getFASTA(), new File( genome.getGenomeDirectory(), "chr" + c.getName() + ".fa"));
+          org.apache.commons.io.FileUtils.copyFile( c.getFASTA(), new File( genome.getGenomeDirectory(), c.getFASTA().getName()));
 
         ploidyWriter.write(new Mutation(c.getName(), genome.ploidyCount(c.getName())));
         }
