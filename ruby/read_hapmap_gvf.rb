@@ -4,20 +4,27 @@ require_relative 'lib/utils'
 require 'yaml'
 
 
-# --- Setup is the same for directory of VCF or a single file --- #
-cfg = YAML.load_file("resources/var.props")
+# --- Separate GVF into Chromosome specific files -- #
+unless ARGV.length < 1
+  gvf_file_dir = ARGV[0]
+else
+  warn "Usage: #{$0} <gvf file dir>"
+end
+
+gvf_files = Dir["#{gvf_file_dir}/*.gvf*"]
+
+chromosomes_dir = "#{gvf_file_dir}/chromosomes"
+
+FileUtils.mkpath(chromosomes_dir) unless File.exists?chromosomes_dir
 
 # --- Separate GVF into Chromosome specific files -- #
 # Am assuming this contains just the hapmap gvfs
-dir = cfg['variation.dir']
-gvf_files = Dir["#{dir}/*.gvf"]
-
 
 chrs = ("1".."22").to_a
 chrs.push('X')
 chrs.push('Y')
 
-chrfh = Hash[chrs.map { |c| [c, File.open("#{dir}/chromosomes/chr#{c}.txt", 'w')] }]
+chrfh = Hash[chrs.map { |c| [c, File.open("#{chromosomes_dir}/chr#{c}.txt", 'w')] }]
 chrfh.each_pair { |k, fh|
   fh.write(['chr', 'start', 'end',
             'var.type', 'ref.seq', 'var.seq',
@@ -54,9 +61,6 @@ gvf_files.each do |file|
     else
       unvalidated += 1
     end
-
-
-
 
     local_id = gvf.attributes[:id]
     if gvf.source.eql?'dbSNP'

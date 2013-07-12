@@ -4,28 +4,18 @@ require_relative 'lib/utils'
 require 'yaml'
 
 
-# --- Setup is the same for directory of VCF or a single file --- #
-#cfg = YAML.load_file("resources/var.props")
-
 # --- Separate GVF into Chromosome specific files -- #
 unless ARGV.length < 1
-  gvf_files = ARGV[0]
-  dir = ARGV[1]
+  gvf_file_dir = ARGV[0]
 else
-  warn "Usage: #{$0} <gvf files, separated by comma> <dir to output> "
+  warn "Usage: #{$0} <gvf file dir>"
 end
 
-gvf_files = gvf_files.split(",")
+gvf_files = Dir["#{gvf_file_dir}/*.gvf*"]
 
-if File.exists?dir
-  FileUtils.mkpath("#{dir}/chromosomes")
-else
-  raise "#{dir} doesn't exist. Exiting."
-end
+chromosomes_dir = "#{gvf_file_dir}/chromosomes"
 
-puts gvf_files
-puts dir
-
+FileUtils.mkpath(chromosomes_dir) unless File.exists?chromosomes_dir
 
 sources ={
     'dbSNP' => 'dbsnp_137',
@@ -38,7 +28,7 @@ chrs = ("1".."22").to_a
 chrs.push('X')
 chrs.push('Y')
 
-chrfh = Hash[chrs.map { |c| [c, File.open("#{dir}/chromosomes/chr#{c}.txt", 'w')] }]
+chrfh = Hash[chrs.map { |c| [c, File.open("#{chromosomes_dir}/chr#{c}.txt", 'w')] }]
 chrfh.each_pair { |k, fh|
   fh.write(['chr', 'start', 'end',
             'var.type', 'ref.seq', 'var.seq',
@@ -84,4 +74,4 @@ chrfh.each_pair{|k, fh| fh.close }
 
 #puts "Total unvalidated #{unvalidated} of #{records}"
 
-puts "Validated? #{count}"
+#puts "Validated? #{count}"

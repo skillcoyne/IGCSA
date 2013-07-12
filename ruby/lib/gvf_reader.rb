@@ -1,4 +1,5 @@
 require 'yaml'
+require 'zlib'
 
 module GFF
 
@@ -17,7 +18,15 @@ module GFF
     def initialize(file, chr = [])
       @gvf = file
       regions = {}
-      @fh = File.open(@gvf, 'r')
+
+      puts File.basename(file)
+
+      if File.basename(file, "gz")
+        @fh = Zlib::GzipReader.new(File.new(file, 'r'))
+      else
+        @fh = File.open(@gvf, 'r')
+      end
+
       @fh.each_with_index do |line, index|
         line.chomp!
         get_date(line) if index.eql? 2
