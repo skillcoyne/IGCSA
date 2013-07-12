@@ -42,7 +42,7 @@ gvf_files.each do |file|
     next unless chrfh.has_key? gvf.chr
     fh = chrfh[gvf.chr]
 
-    if   gvf.attributes[:validation].nil? ||
+    if   gvf.attributes[:validation].nil? or
          gvf.attributes[:validation].match(/unknown|suspected|-/)
       unvalidated += 1
       next
@@ -53,6 +53,7 @@ gvf_files.each do |file|
 
       source = File.basename(file, '.gvf')
       source = source.sub("CSHL-HAPMAP-", "") if source.downcase.match(/hapmap/)
+      source = source.sub("1000GENOMES-phase_1_", "") if source.downcase.match(/1000genomes/)
 
 
       fh.write([gvf.chr, gvf.start_pos, gvf.end_pos,

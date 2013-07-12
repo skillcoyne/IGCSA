@@ -44,13 +44,18 @@ gvf_files.each do |file|
     records += 1
 
     #unless gvf.score.nil?
-    #  puts YAML::dump gvf
     #end
 
     local_id = gvf.attributes[:id]
     if gvf.source.eql?"dbSNP"
       local_id = gvf.attributes[:dbsnp_137]
     end
+
+    if gvf.attributes[:validation]
+      puts YAML::dump gvf
+      exit
+    end
+
 
     if gvf.attributes[:validation] and gvf.attributes[:validation].match(/1000Genome|HapMap/)
       count_ids[local_id] = 0 unless count_ids.has_key?local_id

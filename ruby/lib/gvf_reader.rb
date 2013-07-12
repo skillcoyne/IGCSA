@@ -50,6 +50,7 @@ module GFF
       gvf = nil
       begin
       line = @fh.readline
+
       gvf =  GVF.new(line, @fh.lineno)
       rescue EOFError => e
         puts "End of file reached"
@@ -108,7 +109,7 @@ module GFF
       @attributes.split(/;/).each { |a|
         (name, value) = a.split(/=/)
 
-        name = "validation" if name.downcase.match(/validation/)
+        name = "validation" if name.downcase.match(/validation|evidence_values/)
 
         if name.downcase.match(/dbxref/)
           xref = value.split(/:/)
