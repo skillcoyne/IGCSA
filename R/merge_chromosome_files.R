@@ -37,11 +37,13 @@ for (c in chrs)
     else all_ids = ids
     all_ids = unique(all_ids)
     print(nrow(all_ids))
-    rm(ids)
+    rm(ids, d)
     }
   
 	all_ids = all_ids[order(all_ids$start),]
 	write.table(all_ids, file=paste(outdir, file, sep="/"), col.names=T, row.names=F, quote=F, sep="\t")	
+  
+  rm(all_ids)
 	}
 
 
