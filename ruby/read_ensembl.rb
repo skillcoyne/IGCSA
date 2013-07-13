@@ -51,12 +51,6 @@ gvf_files.each do |file|
       local_id = gvf.attributes[:dbsnp_137]
     end
 
-    if gvf.attributes[:validation]
-      puts YAML::dump gvf
-      exit
-    end
-
-
     if gvf.attributes[:validation] and gvf.attributes[:validation].match(/1000Genome|HapMap/)
       count_ids[local_id] = 0 unless count_ids.has_key?local_id
       count_ids[local_id] += 1

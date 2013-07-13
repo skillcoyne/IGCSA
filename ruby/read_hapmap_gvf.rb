@@ -49,9 +49,12 @@ gvf_files.each do |file|
     end
 
     if gvf.attributes[:validation].match(/1000Genome|HapMap/)
-      count += 1
+  	  local_id = gvf.attributes[:id]
+    	if gvf.source.eql?'dbSNP'
+      	local_id = gvf.attributes[:dbsnp_137]
+			end    
 
-      source = File.basename(file, '.gvf')
+  		source = File.basename(file, '.gvf')
       source = source.sub("CSHL-HAPMAP-", "") if source.downcase.match(/hapmap/)
       source = source.sub("1000GENOMES-phase_1_", "") if source.downcase.match(/1000genomes/)
 
@@ -63,14 +66,6 @@ gvf_files.each do |file|
       unvalidated += 1
     end
 
-    local_id = gvf.attributes[:id]
-    if gvf.source.eql?'dbSNP'
-      local_id = gvf.attributes[:dbsnp_137]
-    end
-
-    fh.write([gvf.chr, gvf.start_pos, gvf.end_pos,
-              gvf.method, gvf.attributes[:reference_seq], gvf.attributes[:variant_seq],
-              local_id, gvf.attributes[:variant_freq], population, gvf.source].join("\t") + "\n")
   end
 end
 

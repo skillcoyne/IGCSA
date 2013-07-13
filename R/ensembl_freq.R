@@ -1,6 +1,7 @@
 ## 
 ## Script counts variations by fragment across the chromosome
 ##
+rm(list=ls())
 
 args = commandArgs(trailingOnly = TRUE)
 filein = args[1]
@@ -19,7 +20,7 @@ print(paste("Chromosome info file:", chrinfofile))
 chr_info = read.table(chrinfofile, header=T, sep="\t")
 #chr_info = read.table("~/workspace/IGCSA/ruby/resources/chromosome_gene_info_2012.txt", header=T, sep="\t")
 
-d = read.table(filein, header=T, sep=" ")
+d = read.table(filein, header=T, sep="\t")
 chr = as.character(d[1,1]);
 
 variation_types = unique(d$var.type)
