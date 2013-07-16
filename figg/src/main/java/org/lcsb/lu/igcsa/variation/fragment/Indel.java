@@ -16,6 +16,9 @@ import java.util.Random;
 
 /*
 An insertion and a deletion, affecting 2 or more nucleotides
+
+TODO need to change how this works.  Currently sequence_alterations are being considered indels as SA is a generic term
+
  */
 public class Indel extends Variation
   {

@@ -14,7 +14,8 @@
             <includes>
                 <include>README*</include>
                 <include>LICENSE*</include>
-                <include>${project.artifactId}-${project.version}.jar</include>
+                <!--<include>${project.artifactId}-${project.version}.jar</include>-->
+                <include>*-${project.version}.jar</include>
                 <include>*.sh</include>
                 <include>*.properties</include>
                 <include>*.example</include>

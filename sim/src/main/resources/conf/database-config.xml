@@ -35,19 +35,19 @@
 
 
     <!-- Database for CANCER GENOME tables?? -->
-    <bean id="karyotypeDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-        <property name="driverClassName" value="${karyotype.genome.driver}"/>
-        <property name="url" value="${karyotype.genome.url}"/>
-        <property name="username" value="${karyotype.genome.user}"/>
-        <property name="password" value="${karyotype.genome.pwd}"/>
-    </bean>
+    <!--<bean id="karyotypeDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">-->
+        <!--<property name="driverClassName" value="${karyotype.genome.driver}"/>-->
+        <!--<property name="url" value="${karyotype.genome.url}"/>-->
+        <!--<property name="username" value="${karyotype.genome.user}"/>-->
+        <!--<property name="password" value="${karyotype.genome.pwd}"/>-->
+    <!--</bean>-->
 
-    <bean id="BreakpointDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCBreakpointDAO">
-        <property name="dataSource" ref="karyotypeDataSource"/>
-    </bean>
+    <!--<bean id="BreakpointDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCBreakpointDAO">-->
+        <!--<property name="dataSource" ref="karyotypeDataSource"/>-->
+    <!--</bean>-->
 
-    <bean id="BandDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCChromosomeBandDAO">
-        <property name="dataSource" ref="karyotypeDataSource"/>
-    </bean>
+    <!--<bean id="BandDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCChromosomeBandDAO">-->
+        <!--<property name="dataSource" ref="karyotypeDataSource"/>-->
+    <!--</bean>-->
 
 </beans>

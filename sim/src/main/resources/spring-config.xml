@@ -36,7 +36,7 @@
         <property name="ignoreResourceNotFound">
             <value>false</value>
         </property>
-        <property name="location" value="file:${props.path}/karyotype.properties"/>
+        <!--<property name="location" value="file:${props.path}/karyotype.properties"/>-->
     </bean>
 
 
@@ -49,6 +49,6 @@
 
     <import resource="classpath:conf/database-config.xml"/>
     <import resource="classpath:conf/genome.xml"/>
-    <import resource="classpath:conf/karyotype.xml"/>
+    <!--<import resource="classpath:conf/karyotype.xml"/>-->
 
 </beans>

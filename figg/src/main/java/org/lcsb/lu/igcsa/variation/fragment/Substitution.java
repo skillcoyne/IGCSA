@@ -16,11 +16,13 @@ import java.util.Random;
 
 import static org.lcsb.lu.igcsa.genome.Nucleotides.*;
 
+/*
+A sequence alteration where the length of the change in the variant is the same as that of the reference.
+
+TODO it's actually more complicated than this.  The reference sequence is 1 - n bp's long, and the replacement is 1 - n, but they don't necessarily match in length.  Either one can be longer than the other.  So...
+*/
 public class Substitution extends Variation
   {
-  /*
-  A sequence alteration where the length of the change in the variant is the same as that of the reference.
-   */
   static Logger log = Logger.getLogger(Substitution.class.getName());
 
   @Override
@@ -30,7 +32,7 @@ public class Substitution extends Variation
     lastMutations = new LinkedHashMap<Location, DNASequence>();
 
     log.debug(sequence.length() + " expected count " + count);
-    for (int i = 0; i <= count; i++)
+    for (int i = 0; i < count; i++)
       {
       // TODO what is the general probability of occurrence for each nucleotide anyhow??
       char[] validNucleotides = {A.value(), C.value(), T.value(), G.value()};
@@ -45,6 +47,7 @@ public class Substitution extends Variation
           {
           site = siteSelector.nextInt(sequence.length() - size);
           newLoc = new Location(site, site + size);
+          log.info("Site: " + site);
           }
         }
       StringBuffer buf = new StringBuffer();

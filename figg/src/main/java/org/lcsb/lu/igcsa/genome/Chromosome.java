@@ -1,20 +1,20 @@
-package org.lcsb.lu.igcsa.genome;
-
-import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.fasta.FASTAReader;
-import org.lcsb.lu.igcsa.variation.fragment.Variation;
-import org.lcsb.lu.igcsa.variation.structural.StructuralVariation;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-
 /**
  * org.lcsb.lu.igcsa.genome
  * Author: skillcoyne
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
+
+package org.lcsb.lu.igcsa.genome;
+
+import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.fasta.FASTAReader;
+import org.lcsb.lu.igcsa.variation.fragment.Variation;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+
 public class Chromosome
   {
   static Logger log = Logger.getLogger(Chromosome.class.getName());

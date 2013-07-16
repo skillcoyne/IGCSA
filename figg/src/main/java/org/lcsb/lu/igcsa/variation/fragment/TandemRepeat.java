@@ -25,7 +25,7 @@ public class TandemRepeat extends Variation
 
     int count = this.fragment.getCount();
 
-    for (int i = 0; i <= count; i++)
+    for (int i = 0; i < count; i++)
       {
       int size = (Integer) this.sizeVariation.roll();
       int siteStart = getStartSite(sequence.length(), size);

@@ -44,7 +44,6 @@ public abstract class Variation
 
     public void setSizeVariation(Frequency frequency)
       {
-      log.info(frequency.getProbabilities().toString());
       this.sizeVariation = frequency;
       }
 

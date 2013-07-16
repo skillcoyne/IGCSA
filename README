@@ -25,11 +25,11 @@ Usage: java -jar igcsa.jar <options>
 -c, --chromosome  List of chromosomes to use/mutate, comma-separated (e.g.  21,3,X). If not included chromosomes will be determined by
 the fasta files found in the dir.assembly directory (see genome.properties).
 -t, --threads     Number of concurrent threads, default is 5. Each thread handles a single chromosome.
--f
--s
+-f, --fragment    Apply fragment (small) level variations, default is false.
+-s, --SV          Apply karyotype level variations, default is false.
 -h, --help        Print usage help.
 
-
+Note: One or both of the of the variation options is required (-f -s).
 
 -- Example using the provided shell script: --
 
@@ -41,6 +41,6 @@ start-igcsa.sh -n MyGenome -t 12 -f
 
 
 -- Example calling the jar file directly, props.path is the directory where genome.properties and log4j.properties both exist.  The shell
-script assumes this to be the same directory as the jar file: --
+script assumes this to be the same directory as the jar file, but it must be provided when calling the jar directly: --
 
-java -Dprops.path=<properties path> -jar -Xms256m -Xmx1024m igcsa-jar-with-dependencies.jar -n MyGenome -t 12
+java -Dprops.path=<properties path> -jar -Xms256m -Xmx1024m ${build.finalName}-${project.version}.jar -n MyGenome -t 12 -f

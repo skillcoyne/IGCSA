@@ -1,7 +1,14 @@
+/**
+ * sim
+ * Author: sarah.killcoyne
+ * Copyright Luxembourg Centre for Systems Biomedicine 2013
+ * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
+ */
+package org.lcsb.lu.igcsa;
+
+
 import org.apache.log4j.Logger;
 import org.apache.commons.cli.*;
-import org.lcsb.lu.igcsa.FragmentInsilicoGenome;
-import org.lcsb.lu.igcsa.KaryotypeInsilicoGenome;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -10,12 +17,6 @@ import java.io.IOException;
 import java.util.Properties;
 
 
-/**
- * sim
- * Author: sarah.killcoyne
- * Copyright Luxembourg Centre for Systems Biomedicine 2013
- * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
- */
 public class GenomeSimulator
   {
   static Logger log = Logger.getLogger(GenomeSimulator.class.getName());
@@ -110,8 +111,8 @@ public class GenomeSimulator
     options.addOption("c", "chromosome", true, "List of chromosomes to use/mutate, comma-separated (e.g.  21,3," +
         "X). If not included chromosomes will be determined by \n" + "the fasta files found in the" +
         " dir.assembly directory (see genome.properties).");
-    options.addOption("s", "structural-variation", false, "Apply structural variations to genome. [false]");
-    options.addOption("f", "fragment-variation", false, "Apply small scale (fragment) variation to genome. [false]");
+    options.addOption("s", "SV", false, "Apply structural variations to genome. [false]");
+    options.addOption("f", "fragment", false, "Apply small scale (fragment) variation to genome. [false]");
 
     options.addOption("h", "help", false, "print usage help");
 
