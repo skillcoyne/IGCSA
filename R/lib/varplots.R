@@ -3,14 +3,14 @@ plotVariations<-function(vars, chr, end)
   {
   varnames = names(vars[1:end])
   plot(vars[[1]], type='n', ann=F)
-  colors = rainbow(ncol(vars))
+  colors = rainbow(length(varnames))
   names(colors) = varnames
   for(var in varnames)
     {
     lines(vars[[var]], type='h', col=colors[var])  
     }
   lines(vars$Unk, type='h', col="grey")
-  
+
   legend("topright", legend=append(varnames, 'Unknown Sequence'), col=append(colors, 'grey'), fill=append(colors,'grey'))
   title(main=paste(chr, sep=""), ylab="Variation Count per bin", xlab="Chromosome position, 1kb bins")
   }

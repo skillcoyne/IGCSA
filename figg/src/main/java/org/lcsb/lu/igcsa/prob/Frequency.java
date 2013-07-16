@@ -62,7 +62,6 @@ public class Frequency
   public Object roll()
     {
     double p = this.generator.nextDouble();
-    //log.debug("Rolled: " + p);
 
     if (p >= totalValue) return objProbabilities.lastEntry().getValue();
     else return objProbabilities.higherEntry(p).getValue();

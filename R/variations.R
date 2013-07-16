@@ -16,7 +16,7 @@ source("lib/varplots.R")
 data_dir = "~/Data/VariationNormal"
 
 
-plot=FALSE
+plot=TRUE
 
 ens_dir = paste(data_dir, "Frequencies/1000/Ensembl", sep="/")
 var_files = list.files(path=ens_dir, pattern=".txt")  

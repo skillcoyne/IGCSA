@@ -8,7 +8,7 @@ import org.lcsb.lu.igcsa.database.ChromosomeBandDAO;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.fasta.MutationWriter;
-import org.lcsb.lu.igcsa.genome.concurrency.StructuralMutable;
+import org.lcsb.lu.igcsa.genome.concurrency.Mutable;
 import org.lcsb.lu.igcsa.utils.KaryotypePropertiesUtil;
 
 import java.io.File;
@@ -162,7 +162,7 @@ public class Karyotype extends Genome
   /*
   TODO: Note that the FASTAReader in each chromosome is NOT thread-safe. There is only a single reader pointer for each chromosome so at the moment this isn't multi-threaded. This wouldn't necessarily be difficult to implement. But I'm not sure if it's a simple case of returning a new reader each time getREADER is called on a chromosome since I would then have to be very careful to be aware of when I called that method.  It's also possible that disk I/O could cause these to all slow down and currently sequentially mutating chromosomes is fast enough.
     */
-  public StructuralMutable applyAberrations() throws IOException
+  public Mutable applyAberrations() throws IOException
     {
     for (DerivativeChromosome dchr : this.derivativeChromosomes)
       {
