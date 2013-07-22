@@ -36,19 +36,24 @@
         <property name="ignoreResourceNotFound">
             <value>false</value>
         </property>
-        <!--<property name="location" value="file:${props.path}/karyotype.properties"/>-->
+        <property name="location" value="file:${props.path}/karyotype.properties"/>
     </bean>
-
 
 
     <!-- Load in application properties reference -->
     <bean id="applicationProperties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-        <property name="properties" ref="genomeProperties"/>
-    </bean>
+        <property name="propertiesArray">
+            <list>
+                <ref bean="genomeProperties"/>
+                <ref bean="karyotypeProperties"/>
+            </list>
+        </property>
+        <!--<property name="properties" ref="genomeProperties"/>-->
 
+    </bean>
 
     <import resource="classpath:conf/database-config.xml"/>
     <import resource="classpath:conf/genome.xml"/>
-    <!--<import resource="classpath:conf/karyotype.xml"/>-->
+    <import resource="classpath:conf/karyotype.xml"/>
 
 </beans>

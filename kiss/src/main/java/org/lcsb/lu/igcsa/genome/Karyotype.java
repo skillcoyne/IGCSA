@@ -1,10 +1,12 @@
 package org.lcsb.lu.igcsa.genome;
 
+import org.apache.commons.math3.distribution.PoissonDistribution;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.aberrations.Aberration;
 import org.lcsb.lu.igcsa.aberrations.Translocation;
 import org.lcsb.lu.igcsa.database.BreakpointDAO;
 import org.lcsb.lu.igcsa.database.ChromosomeBandDAO;
+import org.lcsb.lu.igcsa.dist.ContinuousDistribution;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.fasta.MutationWriter;
@@ -36,6 +38,9 @@ public class Karyotype extends Genome
 
   private List<DerivativeChromosome> derivativeChromosomes = new ArrayList<DerivativeChromosome>();
 
+  private ContinuousDistribution ploidyDist;
+  private ContinuousDistribution aberrationDist;
+
   //private List<Aberration> aberrationList = new ArrayList<Aberration>();
   //private Map<String, Aberration> aberrationMap = new LinkedHashMap<String, Aberration>();
 
@@ -44,6 +49,18 @@ public class Karyotype extends Genome
     {
     this.bandDAO = bandDAO;
     this.breakpointDAO = bpDAO;
+    }
+
+  public Karyotype(ContinuousDistribution ploidyDist, ContinuousDistribution aberrationDist)
+    {
+    this.ploidyDist = ploidyDist;
+    this.aberrationDist = aberrationDist;
+    }
+
+  public void setDistributions(ContinuousDistribution ploidyDist, ContinuousDistribution aberrationDist)
+    {
+    this.ploidyDist = ploidyDist;
+    this.aberrationDist = aberrationDist;
     }
 
   public void setKaryotypeDefinition(int ploidy, String allosomes)
@@ -123,27 +140,34 @@ public class Karyotype extends Genome
   // TODO this is temporary, when I know how I want to get these from the real data this will change but it belongs in the karyotype class
   public void setAberrations(Properties ktProperties) throws Exception, InstantiationException, IllegalAccessException
     {
-    Map<String, List<Aberration>> aberrationMap = KaryotypePropertiesUtil.getAberrationList(bandDAO, ktProperties);
-    for (Map.Entry<String, List<Aberration>> entry : aberrationMap.entrySet())
-      {
-      Chromosome chr = this.getChromosome(entry.getKey());
-      DerivativeChromosome derChr = new DerivativeChromosome(chr.getName(), chr);
-      derChr.setAberrationList(entry.getValue());
+    int ploidyDiff = (int) ploidyDist.sample(); // how many are added/removed...now which ones??
 
-      this.addDerivativeChromosome(derChr);
-      }
+    int aberrationCount = (int) aberrationDist.sample(); // total aberrations to apply...now which ones??
 
-    Object[] translocations = KaryotypePropertiesUtil.getTranslocations(bandDAO, ktProperties, this.chromosomes);
-    if (translocations != null)
-      {
-      Set<String> chrs = (Set<String>) translocations[0];
-      DerivativeChromosome derChr = new DerivativeChromosome(chrs.iterator().next());
-      for (String chrName: chrs)
-        derChr.addChromosome(this.getChromosome(chrName));
-      derChr.setAberrationList((List<Aberration>) translocations[1]);
 
-      this.addDerivativeChromosome(derChr);
-      }
+
+
+//    Map<String, List<Aberration>> aberrationMap = KaryotypePropertiesUtil.getAberrationList(bandDAO, ktProperties);
+//    for (Map.Entry<String, List<Aberration>> entry : aberrationMap.entrySet())
+//      {
+//      Chromosome chr = this.getChromosome(entry.getKey());
+//      DerivativeChromosome derChr = new DerivativeChromosome(chr.getName(), chr);
+//      derChr.setAberrationList(entry.getValue());
+//
+//      this.addDerivativeChromosome(derChr);
+//      }
+//
+//    Object[] translocations = KaryotypePropertiesUtil.getTranslocations(bandDAO, ktProperties, this.chromosomes);
+//    if (translocations != null)
+//      {
+//      Set<String> chrs = (Set<String>) translocations[0];
+//      DerivativeChromosome derChr = new DerivativeChromosome(chrs.iterator().next());
+//      for (String chrName: chrs)
+//        derChr.addChromosome(this.getChromosome(chrName));
+//      derChr.setAberrationList((List<Aberration>) translocations[1]);
+//
+//      this.addDerivativeChromosome(derChr);
+//      }
     }
 
   public void addDerivativeChromosome(DerivativeChromosome chr)

@@ -112,7 +112,7 @@ public class KaryotypeInsilicoGenome
       genome.addChromosomes(FileUtils.getChromosomesFromFASTA(fastaDir));
 
     // TODO set up aberrations, which are a bit different from variations as done in the fragment generator
-    handleAneuploidy();
+    //handleAneuploidy();
     genome.setAberrations(karyotypeProperties);
 
     log.info("Karyotype genome has: " + genome.getChromosomes().length + " chromosomes and " + genome.getDerivativeChromosomes().length +
@@ -122,13 +122,13 @@ public class KaryotypeInsilicoGenome
   // TODO this will change to when I figure out how I'm pull the information from the database
   private void handleAneuploidy()
     {
-    for (String chr :karyotypeProperties.getProperty("gain").split(","))
-      genome.chromosomeGain(chr);
-    karyotypeProperties.remove("gain");
-
-    for (String chr :karyotypeProperties.getProperty("loss").split(","))
-      genome.chromosomeLoss(chr);
-    karyotypeProperties.remove("loss");
+//    for (String chr :karyotypeProperties.getProperty("gain").split(","))
+//      genome.chromosomeGain(chr);
+//    karyotypeProperties.remove("gain");
+//
+//    for (String chr :karyotypeProperties.getProperty("loss").split(","))
+//      genome.chromosomeLoss(chr);
+//    karyotypeProperties.remove("loss");
     }
 
   // get all beans
