@@ -3,7 +3,7 @@ package org.lcsb.lu.igcsa.database;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.lcsb.lu.igcsa.database.normal.SNVProbabilityDAO;
-import org.lcsb.lu.igcsa.prob.Frequency;
+import org.lcsb.lu.igcsa.prob.Probability;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -29,7 +29,7 @@ public class SNVProbabilityDAOTest
   @Test
   public void testGetByNucleotide() throws Exception
     {
-    Frequency freq = testSNVDAO.getByNucleotide("A");
+    Probability freq = testSNVDAO.getByNucleotide("A");
     assertNotNull(freq);
 
     Map.Entry<Double, Object> first = freq.getProbabilities().firstEntry();

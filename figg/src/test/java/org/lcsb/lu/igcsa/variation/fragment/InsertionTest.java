@@ -1,13 +1,10 @@
 package org.lcsb.lu.igcsa.variation.fragment;
 
-import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import org.lcsb.lu.igcsa.database.normal.Fragment;
 import org.lcsb.lu.igcsa.genome.DNASequence;
-import org.lcsb.lu.igcsa.prob.Frequency;
-import org.lcsb.lu.igcsa.variation.fragment.Insertion;
-import org.lcsb.lu.igcsa.variation.fragment.Variation;
+import org.lcsb.lu.igcsa.prob.Probability;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -42,7 +39,7 @@ public class InsertionTest
     probs.put(1, 0.9897);
     probs.put(5, 0.0086);
     probs.put(10, 0.0017);
-    Frequency f = new Frequency(probs);
+    Probability f = new Probability(probs);
 
     insertion.setSizeVariation(f);
     }

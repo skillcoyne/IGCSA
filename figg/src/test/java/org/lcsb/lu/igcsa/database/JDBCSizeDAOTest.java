@@ -4,7 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.lcsb.lu.igcsa.database.normal.SizeDAO;
 
-import org.lcsb.lu.igcsa.prob.Frequency;
+import org.lcsb.lu.igcsa.prob.Probability;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -31,15 +31,15 @@ public class JDBCSizeDAOTest
   @Test
   public void testGetByVariation() throws Exception
     {
-    Frequency frequency = testSizeDAO.getByVariation("deletion");
-    assertNotNull(frequency);
-    assertEquals(frequency.getProbabilities().size(), 2);
+    Probability probability = testSizeDAO.getByVariation("deletion");
+    assertNotNull(probability);
+    assertEquals(probability.getProbabilities().size(), 2);
     }
 
   @Test
   public void getAll() throws Exception
     {
-    Map<String, Frequency> freq = testSizeDAO.getAll();
+    Map<String, Probability> freq = testSizeDAO.getAll();
     assertEquals(freq.size(), 5);
     assertNotNull(freq.get("insertion"));
     }

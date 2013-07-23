@@ -24,33 +24,45 @@ public class ContinuousDistribution
   private PoissonDistribution poissonDistribution;
   private NormalDistribution normalDistribution;
 
+  private static int NORMAL = 0;
+  private static int POISSON = 1;
   /**
    * Creates a continuous Normal distribution with the given mean and standard deviation.
+   *
    * @param mean
    * @param stdev
    */
   public ContinuousDistribution(double mean, double stdev)
     {
     normalDistribution = new NormalDistribution(mean, stdev);
+    log.debug("Normal: " + normalDistribution.getMean() + ", " + normalDistribution.getStandardDeviation());
     }
 
   /**
    * Creates a continuous Poisson distribution with the given mean.
+   *
    * @param lambda
    */
   public ContinuousDistribution(double lambda)
     {
     poissonDistribution = new PoissonDistribution(lambda);
+    log.debug("Poisson: " + poissonDistribution.getMean());
     }
 
   public double sample()
     {
+    double samp = -1.0;
     if (normalDistribution != null)
-      return normalDistribution.sample();
+      {
+      while (samp < 0)
+        samp = Math.round(normalDistribution.sample());
+      }
     else
-      return poissonDistribution.sample();
-    }
+      while (samp < 0)
+        samp = poissonDistribution.sample();
 
+    return samp;
+    }
 
 
 

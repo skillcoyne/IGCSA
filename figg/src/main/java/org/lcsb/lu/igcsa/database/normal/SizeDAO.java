@@ -1,7 +1,6 @@
 package org.lcsb.lu.igcsa.database.normal;
 
-import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.prob.Frequency;
+import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 
 import java.util.Map;
@@ -15,8 +14,8 @@ import java.util.Map;
 public interface SizeDAO
   {
 
-  public Map<String, Frequency> getAll() throws ProbabilityException;
+  public Map<String, Probability> getAll() throws ProbabilityException;
 
-  public Frequency getByVariation(String variation) throws ProbabilityException;
+  public Probability getByVariation(String variation) throws ProbabilityException;
 
   }

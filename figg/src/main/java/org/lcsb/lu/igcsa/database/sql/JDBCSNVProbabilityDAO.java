@@ -2,7 +2,7 @@ package org.lcsb.lu.igcsa.database.sql;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.normal.SNVProbabilityDAO;
-import org.lcsb.lu.igcsa.prob.Frequency;
+import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -32,16 +32,16 @@ public class JDBCSNVProbabilityDAO implements SNVProbabilityDAO
     jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-  public Map<Character, Frequency> getAll() throws ProbabilityException
+  public Map<Character, Probability> getAll() throws ProbabilityException
     {
     String sql = "SELECT * FROM " + this.tableName;
     log.debug(sql);
 
-    return (Map<Character, Frequency>) jdbcTemplate.query(sql, new ResultSetExtractor<Object>()
+    return (Map<Character, Probability>) jdbcTemplate.query(sql, new ResultSetExtractor<Object>()
       {
       public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
         {
-        Map<Character, Frequency> frequencyMap = new HashMap<Character, Frequency>();
+        Map<Character, Probability> frequencyMap = new HashMap<Character, Probability>();
         while (resultSet.next())
           {
           Map<Object, Double> probs = new HashMap<Object, Double>();
@@ -51,7 +51,7 @@ public class JDBCSNVProbabilityDAO implements SNVProbabilityDAO
           probs.put('T', resultSet.getDouble("prob_T"));
           try
             {
-            frequencyMap.put( resultSet.getString("nucleotide").charAt(0), new Frequency(probs) );
+            frequencyMap.put( resultSet.getString("nucleotide").charAt(0), new Probability(probs) );
             }
           catch (ProbabilityException e)
             {
@@ -63,7 +63,7 @@ public class JDBCSNVProbabilityDAO implements SNVProbabilityDAO
       });
     }
 
-  public Frequency getByNucleotide(String nucleotide) throws ProbabilityException
+  public Probability getByNucleotide(String nucleotide) throws ProbabilityException
     {
     String sql = "SELECT * FROM " + this.tableName + " WHERE nucleotide = ?";
     log.debug("getByNucleotide(" + nucleotide + "): " + sql);
@@ -84,7 +84,7 @@ public class JDBCSNVProbabilityDAO implements SNVProbabilityDAO
         }
       });
 
-    return new Frequency(probabilities);
+    return new Probability(probabilities);
     }
 
   }

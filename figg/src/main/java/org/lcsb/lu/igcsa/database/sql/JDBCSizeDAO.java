@@ -2,7 +2,7 @@ package org.lcsb.lu.igcsa.database.sql;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.normal.SizeDAO;
-import org.lcsb.lu.igcsa.prob.Frequency;
+import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -33,10 +33,10 @@ public class JDBCSizeDAO implements SizeDAO
     jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-  public Map<String, Frequency> getAll() throws ProbabilityException
+  public Map<String, Probability> getAll() throws ProbabilityException
     {
     log.debug("getAll()");
-    Map<String, Frequency> frequencyMap = new HashMap<String, Frequency>();
+    Map<String, Probability> frequencyMap = new HashMap<String, Probability>();
     if (variations.size() <= 0)
       getVariations();
 
@@ -46,7 +46,7 @@ public class JDBCSizeDAO implements SizeDAO
     }
 
 
-  public Frequency getByVariation(String variation) throws ProbabilityException
+  public Probability getByVariation(String variation) throws ProbabilityException
     {
     String sql = "SELECT vs.maxbp, vs.frequency " +
         "FROM " + this.tableName + " vs INNER JOIN variation v ON vs.variation_id = v.id WHERE v.name = ?";
@@ -66,7 +66,7 @@ public class JDBCSizeDAO implements SizeDAO
         }
       });
 
-    return new Frequency(frequencies, 10000);
+    return new Probability(frequencies, 4);
     }
 
   private void getVariations()

@@ -13,7 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.lcsb.lu.igcsa.database.normal.Fragment;
 import org.lcsb.lu.igcsa.genome.DNASequence;
-import org.lcsb.lu.igcsa.prob.Frequency;
+import org.lcsb.lu.igcsa.prob.Probability;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -46,7 +46,7 @@ public class TandemRepeatTest
     probs.put(3, 0.9897);
     probs.put(7, 0.0086);
     probs.put(10, 0.0017);
-    Frequency f = new Frequency(probs);
+    Probability f = new Probability(probs);
 
     tandemRpt.setSizeVariation(f);
     }

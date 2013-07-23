@@ -35,7 +35,7 @@ CREATE TABLE variation_per_bin (
 CREATE TABLE variation_size_prob (
   maxbp INT NOT NULL,
   variation_id INT NOT NULL,
-  frequency DECIMAL(5,4) NOT NULL,
+  probability DECIMAL(5,4) NOT NULL,
   id INT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
   PRIMARY KEY (id)
 );

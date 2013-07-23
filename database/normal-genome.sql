@@ -41,7 +41,7 @@ create table `variation_per_bin` (
 create table `variation_size_prob` (
   `maxbp` int(11) not null,
   `variation_id` int(11) not null,
-  `frequency` decimal(5,4) not null,
+  `probability` decimal(5,4) not null,
   `id` int(11) not null auto_increment,
   primary key(`id`)
 );

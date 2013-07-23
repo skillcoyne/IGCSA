@@ -10,7 +10,7 @@ dir.tmp=/Path/to/temp/output/dir
 
 
 # Window size (to calculate GC content)
-# NOTE: This should NOT be changed unless all of the frequency information is rerun using a new window (see Ruby and R code)
+# NOTE: This should NOT be changed unless all of the probability information is rerun using a new window (see Ruby and R code)
 window=1000
 
 

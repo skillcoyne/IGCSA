@@ -1,6 +1,6 @@
 package org.lcsb.lu.igcsa.database.normal;
 
-import org.lcsb.lu.igcsa.prob.Frequency;
+import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 
 import java.util.Map;
@@ -14,8 +14,8 @@ import java.util.Map;
 public interface SNVProbabilityDAO
   {
 
-  public Frequency getByNucleotide(String nucleotide) throws ProbabilityException;
+  public Probability getByNucleotide(String nucleotide) throws ProbabilityException;
 
-  public Map<Character, Frequency> getAll() throws ProbabilityException;
+  public Map<Character, Probability> getAll() throws ProbabilityException;
 
   }

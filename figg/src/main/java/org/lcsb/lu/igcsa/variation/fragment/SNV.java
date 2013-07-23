@@ -3,7 +3,7 @@ package org.lcsb.lu.igcsa.variation.fragment;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.genome.Location;
-import org.lcsb.lu.igcsa.prob.Frequency;
+import org.lcsb.lu.igcsa.prob.Probability;
 
 import java.util.Map;
 import java.util.LinkedHashMap;
@@ -22,14 +22,14 @@ public class SNV extends Variation
   {
   static Logger log = Logger.getLogger(SNV.class.getName());
 
-  private Map<Character, Frequency> snvFrequencies;
+  private Map<Character, Probability> snvFrequencies;
 
-  public void setSnvFrequencies(Map<Character, Frequency> frequencyMap)
+  public void setSnvFrequencies(Map<Character, Probability> frequencyMap)
     {
     this.snvFrequencies = frequencyMap;
     }
 
-  public Map<Character, Frequency> getSNVFrequencies()
+  public Map<Character, Probability> getSNVFrequencies()
     {
     return this.snvFrequencies;
     }
@@ -64,7 +64,7 @@ public class SNV extends Variation
       char n = nucleotides[nIndex];
       if (n == GAP.value() || n == UNKNOWN.value()) continue;
 
-      Frequency f = snvFrequencies.get(n);
+      Probability f = snvFrequencies.get(n);
       char newN = (Character) f.roll();
       if (newN != n)
         {

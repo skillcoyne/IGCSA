@@ -11,6 +11,7 @@ import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.fasta.MutationWriter;
 import org.lcsb.lu.igcsa.genome.concurrency.Mutable;
+import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.utils.KaryotypePropertiesUtil;
 
 import java.io.File;
@@ -141,9 +142,28 @@ public class Karyotype extends Genome
   public void setAberrations(Properties ktProperties) throws Exception, InstantiationException, IllegalAccessException
     {
     int ploidyDiff = (int) ploidyDist.sample(); // how many are added/removed...now which ones??
+    log.info("Total aneuploid chromosomes: " + ploidyDiff);
+
+    Probability ploidyProbability = KaryotypePropertiesUtil.temporaryGetPloidyProbability();
+    Map<Object, Probability> gainLoss = KaryotypePropertiesUtil.tempGetGainLossProb();
+    for (int i=0; i<=ploidyDiff; i++)
+      {
+      String chr = (String) ploidyProbability.roll();
+      if (gainLoss.get(chr).roll().equals("gain"))
+        this.chromosomeGain(chr);
+      else
+        this.chromosomeLoss(chr);
+      }
 
     int aberrationCount = (int) aberrationDist.sample(); // total aberrations to apply...now which ones??
+    log.info("Total aberrations: " + aberrationCount);
 
+    Probability chrBreakProb = KaryotypePropertiesUtil.temporaryGetChromosomeProbabilities();
+    for (int i=0; i<=aberrationCount; i++)
+      {
+      String chr = (String) chrBreakProb.roll();
+      // TODO get breakpoints next
+      }
 
 
 
