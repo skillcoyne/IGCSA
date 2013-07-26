@@ -28,36 +28,38 @@ for(i in length(probs):1)
 
 bp_chr_counts = vector("numeric", 23)
 names(bp_chr_counts) = chromosomes
-bp_samples = matrix(data = 0, ncol=1, nrow=nrow(d), dimnames=list(paste(d$chr,d$band,sep="")))
+
+bp_selected = d[,c('chr','band')]
+bp_selected$count = 0
 for (i in 1:1000)
   {
   n = roll(d$p)
   chr = as.character(d[n,'chr']) 
   band = as.character(d[n,'band'])
-  key = paste(chr,band,sep="")
-  bp_samples[key,] = bp_samples[key,]+1
+  print( paste(chr, band) )
+  bp_selected[which(bp_selected$chr == chr & bp_selected$band == band), 'count'] = bp_selected[which(bp_selected$chr == chr & bp_selected$band == band), 'count']+1
   bp_chr_counts[chr] = bp_chr_counts[chr] + 1
   }
-bp_samples = sort(bp_samples[ which(bp_samples > 0), ])
-plot(bp_samples)
-text(bp_samples, labels=names(bp_samples), pos=1)
+bp_selected = bp_selected[ order(bp_selected$count),]
+plot(bp_selected$count, type='h')
+text(bp_selected$count, labels=names(paste(bp_selected$chr, bp_selected$band, sep="")), pos=1)
 sort(bp_chr_counts)
 
 ## Select chromosome then select breakpoints from within that chromosome
 c = read.table("chr_instability_prob.txt", header=F, sep="\t")
 colnames(c) = c('chr','probs')
 c = c[order(c$probs),]
-
 c = set.probs(c[,2], c)
 
 selected = d[,c('chr','band')]
 selected$count = 0
-for (i in 1:1000)
+for (i in 1:100)
   {
   chrs = vector("numeric", sample(1:10,1))
   for (jj in 1:length(chrs))
     chrs[jj] = c[roll(c$p),'chr']
-  chrs
+  chrs = unique(chrs)
+  print(chrs)
 
   for (chr in chrs)
     {
