@@ -98,9 +98,6 @@ public class ProbabilityTest
   @Test
   public void testRounding() throws Exception
     {
-    //    nucleotides.put("F", 0.9632);
-    //    nucleotides.put("G", 0.0367);
-
     nucleotides.put("1", 0.0467956972956594);
     nucleotides.put("2", 0.0193356563896674);
     nucleotides.put("3", 0.0314559503067949);
@@ -143,5 +140,23 @@ public class ProbabilityTest
       if (entry.getValue().equals(max))
         assertEquals(entry.getKey(), "21");
       }
+    }
+
+  @Test
+  public void testSumLessThanOne() throws Exception
+    {
+    Probability p = new Probability( new Object[]{"P","Q","R","S"}, new double[]{0.01465, 0.00366, 0.00749, 0.00509});
+    HashMap<String, Double> count = new HashMap<String, Double>();
+    for (String s: new String[]{"P","Q","R","S"})
+      count.put(s, 0.0);
+    int n = 0;
+    for(int i=0;i<1000; i++)
+      {
+      String s = (String) p.roll();
+      if (s != null)
+        count.put(s, count.get(s)+1);
+      else ++n;
+      }
+    assertTrue(n > (900));
     }
   }

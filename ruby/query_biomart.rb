@@ -8,19 +8,16 @@ hsgene = biomart.datasets['hsapiens_gene_ensembl']
 
 
 filters = {
-    'chromosome_name' => 1,
-    'chromosomal_region' => ['1:28000000'], #p36
+    'chromosome_name' => 2,
+    #'chromosomal_region' => ['1:28000000'], #p36
     #'chromosomal_region' => ['28000001:34600000'], #p35
     'status' => ["KNOWN"]
 }
 
 attributes = [
     'ensembl_gene_id',
-    'external_gene_id',
+    'ensembl_peptide_id',
     'gene_biotype',
-    'start_position',
-    'end_position',
-    'band'
 ]
 
 
@@ -31,7 +28,14 @@ results = hsgene.search(
 ).select! { |e| e['gene_biotype'].eql? 'protein_coding' }
 
 unless results.nil?
+
+  puts results.map{|e| e['ensembl_gene_id']}.uniq.length
+
+  puts results.map{|e| e['ensembl_peptide_id']}.uniq.length
+
+
   puts results.length
+#  puts YAML::dump results
 else
   puts "No results"
 end

@@ -249,4 +249,27 @@ public class KaryotypePropertiesUtil
     }
 
 
+  public static Map<Object, Probability> tempCentromereProb()
+    {
+    Map<Object, Probability> prob = new HashMap<Object, Probability>();
+
+
+    try
+      {
+      prob.put("21", new Probability(new Object[]{"p11", "p12", "q11"}, new double[]{0.0382, 0.0035, 0.0292}));
+      prob.put("17", new Probability(new Object[]{"p11", "p12", "q11", "q12"}, new double[]{0.01465, 0.00366, 0.00749, 0.00509}));
+
+
+      return prob;
+      }
+    catch (ProbabilityException e)
+      {
+      e.printStackTrace();
+      }
+
+
+    return null;
+    }
+
+
   }

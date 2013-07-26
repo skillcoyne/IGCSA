@@ -141,30 +141,43 @@ public class Karyotype extends Genome
   // TODO this is temporary, when I know how I want to get these from the real data this will change but it belongs in the karyotype class
   public void setAberrations(Properties ktProperties) throws Exception, InstantiationException, IllegalAccessException
     {
+    // Add or remove chromosomes
     int ploidyDiff = (int) ploidyDist.sample(); // how many are added/removed...now which ones??
     log.info("Total aneuploid chromosomes: " + ploidyDiff);
-
     Probability ploidyProbability = KaryotypePropertiesUtil.temporaryGetPloidyProbability();
     Map<Object, Probability> gainLoss = KaryotypePropertiesUtil.tempGetGainLossProb();
-    for (int i=0; i<=ploidyDiff; i++)
+
+    for (int i=0; i<ploidyDiff; i++)
       {
       String chr = (String) ploidyProbability.roll();
+      if (!gainLoss.containsKey(chr)) continue;
       if (gainLoss.get(chr).roll().equals("gain"))
         this.chromosomeGain(chr);
       else
         this.chromosomeLoss(chr);
+      gainLoss.remove(chr);
       }
 
+    // Start creating aberrations
     int aberrationCount = (int) aberrationDist.sample(); // total aberrations to apply...now which ones??
     log.info("Total aberrations: " + aberrationCount);
 
     Probability chrBreakProb = KaryotypePropertiesUtil.temporaryGetChromosomeProbabilities();
-    for (int i=0; i<=aberrationCount; i++)
+
+    for (int i=0; i<aberrationCount; i++)
       {
       String chr = (String) chrBreakProb.roll();
+      log.info("Break chr " + chr);
+
+      if (KaryotypePropertiesUtil.tempCentromereProb().containsKey(chr))
+        {
+        Probability centromereBreak = KaryotypePropertiesUtil.tempCentromereProb().get(chr);
+        log.info("centromere: " + centromereBreak.roll());
+        }
+
       // TODO get breakpoints next
       }
-
+      System.exit(-1);
 
 
 //    Map<String, List<Aberration>> aberrationMap = KaryotypePropertiesUtil.getAberrationList(bandDAO, ktProperties);
