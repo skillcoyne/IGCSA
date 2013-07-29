@@ -37,7 +37,6 @@ the fasta files found in the dir.assembly directory (see genome.properties).
 
 -h, --help        Print usage help.
 
-Note: One or both of the of the variation options is required (-f -s).
 
 -- Example using the provided shell script: --
 

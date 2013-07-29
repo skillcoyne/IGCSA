@@ -17,6 +17,7 @@
                 <!--<include>${project.artifactId}-${project.version}.jar</include>-->
                 <include>*-${project.version}.jar</include>
                 <include>*.sh</include>
+                <include>*.bat</include>
                 <include>*.properties</include>
                 <include>*.example</include>
                 <include>*.sql</include>
