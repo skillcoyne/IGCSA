@@ -33,24 +33,27 @@
                                 <resource>
                                     <directory>${basedir}/dist-resources</directory>
                                     <filtering>true</filtering>
-                                    <includes>
-                                        <include>*.example</include>
-                                        <include>log4j*</include>
-                                        <include>*.sh</include>
-                                    </includes>
+                                    <excludes>
+                                        <exclude>karyotype.*</exclude>
+                                        <exclude>*.example</exclude>
+                                    </excludes>
                                 </resource>
+
                                 <!-- Only if you want to build the derby embedded version, maybe this is a profiles thing -->
                                 <resource>
-                                    <directory>../embedded-db/target</directory>
+                                    <directory>../derby-db/target</directory>
                                     <filtering>false</filtering>
                                     <includes>
                                         <include>*.zip</include>
                                     </includes>
                                 </resource>
-                                <resource>
-                                    <directory>database</directory>
-                                    <filtering>false</filtering>
-                                </resource>
+                                <!--<resource>-->
+                                    <!--<directory>../database</directory>-->
+                                    <!--<includes>-->
+                                        <!--<include>normal-genome.sql</include>-->
+                                    <!--</includes>-->
+                                    <!--<filtering>false</filtering>-->
+                                <!--</resource>-->
                                 <resource>
                                     <directory>../</directory>
                                     <filtering>true</filtering>
@@ -98,6 +101,23 @@
                             <attach>true</attach>
                             <descriptor>assembly.xml</descriptor>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <configuration>
+                            <tasks>
+                                <!-- Using an ant task to deflate webinstaller.zip -->
+                                <unzip src="${project.basedir}/target/db.zip" dest="${project.basedir}/target"/>
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>

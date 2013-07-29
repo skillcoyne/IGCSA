@@ -12,7 +12,7 @@
     <artifactId>derby-db</artifactId>
 
     <properties>  <!-- This should be in a profile -->
-        <db.file.dir>/Users/skillcoyne/Analysis/Database/normal</db.file.dir>
+        <db.file.dir>${env.HOME}/Analysis/Database/normal</db.file.dir>
     </properties>
 
     <build>
@@ -73,7 +73,7 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
-                            <finalName>${parent.artifactId}-derby</finalName>
+                            <finalName>db</finalName>
                             <appendAssemblyId>false</appendAssemblyId>
                             <attach>true</attach>
                             <descriptor>assembly.xml</descriptor>

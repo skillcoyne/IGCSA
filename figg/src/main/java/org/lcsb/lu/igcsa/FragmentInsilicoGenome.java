@@ -45,20 +45,6 @@ public class FragmentInsilicoGenome
   // Spring
   private ApplicationContext context;
 
-//  public static void main(String[] args) throws Exception
-//    {
-//    final long startTime = System.currentTimeMillis();
-//
-//    FragmentInsilicoGenome igAp = new FragmentInsilicoGenome(args);
-//    // Apply mutations!
-//    igAp.applyMutations();
-//
-//    final long elapsedTimeMillis = System.currentTimeMillis() - startTime;
-//    log.info("FINISHED mutating genome " + igAp.genome.getBuildName());
-//    log.info("Elapsed time (seconds): " + elapsedTimeMillis / 1000);
-//    }
-
-
   public FragmentInsilicoGenome(ApplicationContext context, CommandLine cl) throws Exception
     {
     this.context = context;
@@ -131,7 +117,7 @@ public class FragmentInsilicoGenome
     File genomeDirectory = new File(genomeProperties.getProperty("dir.insilico"), name);
 
     if (!genomeDirectory.exists())
-      throw new IllegalArgumentException(genomeDirectory.getAbsolutePath() + " was not created.");
+      throw new IllegalArgumentException(genomeDirectory.getAbsolutePath() + " does not exist.");
 
     genome.setGenomeDirectory(genomeDirectory);
     genome.setBuildName(name);
@@ -147,6 +133,10 @@ public class FragmentInsilicoGenome
     {
     // Set up the chromosomes in the genome that will be mutated.
     File fastaDir = new File(genomeProperties.getProperty("dir.assembly"));
+    log.info("Reading FASTA directory " + fastaDir.getAbsolutePath());
+    if (!fastaDir.exists() || !fastaDir.canRead())
+      throw new IOException("FASTA directory does not exist or is not readable: " + fastaDir.getAbsolutePath());
+
     if (chromosomes.size() > 0)
       {
       for (String c : chromosomes)
@@ -164,8 +154,6 @@ public class FragmentInsilicoGenome
   // Variable initialization. Most of it is done in the Spring configuration files.
   private void init() throws Exception
     {
-    //context = new ClassPathXmlApplicationContext(new String[]{"classpath*:spring-config.xml", "classpath*:/conf/genome.xml", "classpath*:/conf/database-config.xml"});
-
     // be nice to autowire this so I don't have to make calls into Spring but not important for now
     genome = (MutableGenome) context.getBean("genome");
     variantUtils = (VariantUtils) context.getBean("variantUtils");

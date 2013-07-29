@@ -41,7 +41,7 @@ for (i in 1:1000)
   bp_chr_counts[chr] = bp_chr_counts[chr] + 1
   }
 bp_selected = bp_selected[ order(bp_selected$count),]
-plot(bp_selected$count, type='h')
+plot(bp_selected$count, type='h', main="Direct BP Selection")
 text(bp_selected$count, labels=names(paste(bp_selected$chr, bp_selected$band, sep="")), pos=1)
 sort(bp_chr_counts)
 
@@ -75,7 +75,7 @@ for (i in 1:100)
     }
   }
 selected = selected[order(selected$count), ]
-plot(selected$count, type='h')
+plot(selected$count, type='h', main="2 part selection, chr->bp")
 text(selected$count,labels=paste(selected$chr, selected$band, sep=""))
 
 chr_counts = vector("numeric", 23)

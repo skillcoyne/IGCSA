@@ -16,7 +16,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
-
+/**
+ * Main class for running the simulator.
+ */
 public class GenomeSimulator
   {
   static Logger log = Logger.getLogger(GenomeSimulator.class.getName());
@@ -70,7 +72,14 @@ public class GenomeSimulator
   // Create the directory where all fasta and mutation files will write
   private void setupGenomeDirectory(String name, boolean overwrite) throws IOException
     {
-    File genomeDirectory = new File(genomeProperties.getProperty("dir.insilico"), name);
+    File insilicoDir = new File(genomeProperties.getProperty("dir.insilico"));
+    if (!insilicoDir.exists())
+      {
+      log.info("Creating insilico data directory at " + insilicoDir.getAbsolutePath());
+      insilicoDir.mkdirs();
+      }
+
+    File genomeDirectory = new File(insilicoDir, name);
 
     if (genomeDirectory.exists() && overwrite)
       {
@@ -92,10 +101,10 @@ public class GenomeSimulator
 
     if (!genomeProperties.containsKey("dir.insilico") ||
         !genomeProperties.containsKey("dir.assembly") ||
-        !genomeProperties.containsKey("dir.karyotype") ||
+//        !genomeProperties.containsKey("dir.karyotype") ||
         !genomeProperties.containsKey("dir.tmp"))
       {
-      log.error("One of the directory definitions (dir.insilico, dir.assembly, dir.karyotype, dir.tmp) are missing from the properties file. Aborting.");
+      log.error("One of the directory definitions (dir.insilico, dir.assembly,dir.tmp) are missing from the properties file. Aborting.");
       System.exit(-1);
       }
     }

@@ -33,7 +33,8 @@ public class FileUtils
     };
 
     File[] files = listFASTAFiles(fastaDir, fastaFilter);
-    if (files.length > 1) throw new IOException("Multiple fasta files identified for chromosome " + chromosome);
+    if (files.length > 1) throw new IOException("Multiple FASTA files identified for chromosome " + chromosome);
+    if (files.length <= 0) throw new IOException("No FASTA file found for chromosome " + chromosome + " in directory " + fastaDir.getAbsolutePath());
 
     return files[0];
     }
@@ -52,8 +53,8 @@ public class FileUtils
 
   public static Chromosome[] getChromosomesFromFASTA(File fastaDir) throws FileNotFoundException, ProbabilityException, InstantiationException, IllegalAccessException
     {
-    if (!fastaDir.exists())
-      throw new FileNotFoundException("No such directory: " + fastaDir.getAbsolutePath());
+    if (!fastaDir.exists() || !fastaDir.canRead())
+      throw new FileNotFoundException("FASTA directory does not exist or is not readable " + fastaDir.getAbsolutePath());
 
     FilenameFilter fastaFilter = new FilenameFilter()
     {
@@ -80,7 +81,9 @@ public class FileUtils
 
   private static File[] listFASTAFiles(File fastaDir, FilenameFilter filter) throws FileNotFoundException
     {
-    return fastaDir.listFiles(filter);
+    File[] fastaFiles = fastaDir.listFiles(filter);
+    if (fastaFiles.length <= 0) throw new FileNotFoundException("No FASTA files found in directory (.fa, .fasta, .fa.gz, .fasta.gz) " + fastaDir);
+    return fastaFiles;
     }
 
 

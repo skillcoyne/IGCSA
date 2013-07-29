@@ -20,7 +20,14 @@
                 <include>*.properties</include>
                 <include>*.example</include>
                 <include>*.sql</include>
-                <include>*.zip</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>${project.build.directory}</directory>
+            <outputDirectory>/</outputDirectory>
+            <includes>
+                <include>data/**</include>
+                <include>db/**</include>
             </includes>
         </fileSet>
     </fileSets>

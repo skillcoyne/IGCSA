@@ -4,6 +4,35 @@
        xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
+    <!-- Database for the NORMAL GENOME fragment tables, this doesn't have to be mysql.  These aren't particularly large -->
+    <bean id="normalDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource" lazy-init="true">
+        <property name="driverClassName" value="${normal.genome.driver}"/>
+        <property name="url" value="${normal.genome.url}"/>
+        <property name="username" value="${normal.genome.user}"/>
+        <property name="password" value="${normal.genome.pwd}"/>
+    </bean>
+
+    <bean id="VariationDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCVariationDAO" lazy-init="true">
+        <property name="dataSource" ref="normalDataSource"/>
+    </bean>
+
+    <bean id="FragmentDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCFragmentDAO" lazy-init="true">
+        <property name="dataSource" ref="normalDataSource"/>
+    </bean>
+
+    <bean id="GCBinDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCGCBinDAO" lazy-init="true">
+        <property name="dataSource" ref="normalDataSource"/>
+    </bean>
+
+    <bean id="SizeDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCSizeDAO" lazy-init="true">
+        <property name="dataSource" ref="normalDataSource"/>
+    </bean>
+
+    <bean id="SNVDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCSNVProbabilityDAO" lazy-init="true">
+        <property name="dataSource" ref="normalDataSource"/>
+    </bean>
+
+
     <!-- Reference Genome creation -->
     <bean id="genome" class="org.lcsb.lu.igcsa.genome.MutableGenome" lazy-init="true">
         <constructor-arg ref="GCBinDAO"></constructor-arg>

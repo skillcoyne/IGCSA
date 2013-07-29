@@ -9,10 +9,18 @@ Requirements:
 
 1. FASTA files from a reference genome.  Currently tested with human reference GRCh37 (any human reference will work).
 
-2. MySQL tables as defined by normal-genome.sql.  Filled with either analysis that provides bins separated by GC content and the
-variations that are defined or download <this> mysql dump.
+2. Database filled with either analysis that provides bins separated by GC content and the
+variations that are defined. The installation comes with a Derby database pre-defined. MySQL database dump is available
+ for download if preferred (derby is recommended for cluster setup).
 
-3. Copy genome.properties.example to genome.properties and fill in appropriately.
+3. Alter genome.properties file appropriately to change the input FASTA directory (dir.assembly), output mutated genome
+ directory (dir.insilico), or database connection information. Provided setup expects FASTA files in the ${build.finalName}-${project.version}/data/FASTA
+  directory and all output files will be written to ${build.finalName}-${project.version}/data/Insilico.
+
+
+Note:
+
+The example installation includes a FASTA file for chromosome 22 from GRCh37 and pre-defined Derby database.
 
 -----------------------------------------------------------------------------------------------
 
@@ -25,19 +33,19 @@ Usage: java -jar igcsa.jar <options>
 -c, --chromosome  List of chromosomes to use/mutate, comma-separated (e.g.  21,3,X). If not included chromosomes will be determined by
 the fasta files found in the dir.assembly directory (see genome.properties).
 -t, --threads     Number of concurrent threads, default is 5. Each thread handles a single chromosome.
--f, --fragment    Apply fragment (small) level variations, default is false.
--s, --SV          Apply karyotype level variations, default is false.
+-f, --fragment    Apply fragment (small) level variations, default is true.
+
 -h, --help        Print usage help.
 
 Note: One or both of the of the variation options is required (-f -s).
 
 -- Example using the provided shell script: --
 
-# Generate mutations for chromosome 17, overwrite previous named run.
-start-igcsa.sh -n MyChr17 -o -c 17 -f
+# Generate mutations for chromosome 22, overwrite previous named run.
+figg.sh -n MyChr17 -o -c 22
 
 # Generate mutations for all chromosomes in the dir.assembly directory using 12 threads.  Don't overwrite.
-start-igcsa.sh -n MyGenome -t 12 -f
+figg.sh -n MyGenome -t 12
 
 
 -- Example calling the jar file directly, props.path is the directory where genome.properties and log4j.properties both exist.  The shell
