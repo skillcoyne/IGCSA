@@ -1,3 +1,3 @@
 set PPATH=%CD%
 
-time java -Dprops.path=%PPATH% -jar -Xms1024m -Xmx2g ${build.finalName}-${project.version}.jar -f %*
+java -Dprops.path=%PPATH% -jar -Xms512m -Xmx1g ${build.finalName}-${project.version}.jar -f %*
