@@ -1,90 +1,65 @@
+rm(list=ls())
 
-roll<-function(probs)
-  {
-  rand = runif(1,0,1)
-  match = probs[probs >= rand]
-  row = match[1]
-  return(which(probs == row))
-  }
+source("lib/selection.R")
 
-set.probs<-function(probs, df)
-  {
-  for(i in length(probs):1)
-    df[i,'p']<-sum(probs[i:1])
-  return(df)
-  }
+# --------------------------------------- #
 
 dir = "~/Analysis/Database/cancer"
 setwd(dir)
 
-chromosomes = c(1:22,'X')
-## Select breakpoints directly
-d = read.table("all-bp-prob.txt", header=T, sep="\t")
-d = d[order(d$bp.prob),]
+all_bp_d = read.table("all-bp-prob.txt", header=T, sep="\t")
+chr_d = read.table("chr_instability_prob.txt", header=F, sep="\t")
+colnames(chr_d) = c('chr','probs')
 
-probs = d$bp.prob
-for(i in length(probs):1)
-  d[i,'p']<-sum(probs[i:1])
+centromeres = read.table("centromeres-probs.txt", header=T, sep="\t")
+centromeres = centromeres[order(centromeres[,'bp.prob']),]
+centromeres = set.probs(centromeres[,'bp.prob'],centromeres)
 
-bp_chr_counts = vector("numeric", 23)
-names(bp_chr_counts) = chromosomes
+cent_bp = select.bp(centromeres[,c('chr','band','bp.prob','p')], s=sample(1:3,1))$bp
+cent_bp = cent_bp[which(cent_bp$count > 0), c('chr','band')]
+print(cent_bp)
 
-bp_selected = d[,c('chr','band')]
-bp_selected$count = 0
-for (i in 1:1000)
-  {
-  n = roll(d$p)
-  chr = as.character(d[n,'chr']) 
-  band = as.character(d[n,'band'])
-  print( paste(chr, band) )
-  bp_selected[which(bp_selected$chr == chr & bp_selected$band == band), 'count'] = bp_selected[which(bp_selected$chr == chr & bp_selected$band == band), 'count']+1
-  bp_chr_counts[chr] = bp_chr_counts[chr] + 1
-  }
-bp_selected = bp_selected[ order(bp_selected$count),]
-plot(bp_selected$count, type='h', main="Direct BP Selection")
-text(bp_selected$count, labels=names(paste(bp_selected$chr, bp_selected$band, sep="")), pos=1)
-sort(bp_chr_counts)
+consensus_counts = vector("numeric", 20)
+for (i in 1:length(consensus_counts))
+{
+## -- Test 1, select breakpoints directly from the previously calculated probability -- ##
+direct.bp = select.bp(all_bp_d[,c('chr','band','bp.prob')], s=1000) # number of bps per karyotype ranges from 0 - 70, average = 1
+direct.bp
 
-## Select chromosome then select breakpoints from within that chromosome
-c = read.table("chr_instability_prob.txt", header=F, sep="\t")
-colnames(c) = c('chr','probs')
-c = c[order(c$probs),]
-c = set.probs(c[,2], c)
+## -- Select chromosomes based on previously calculated probability then select breakpoints from within that chromosome, again probability based -- ##
+chr.bp = select.chr(chr_d, all_bp_d[,c('chr','band','per.chr.prob')], s=sample(1:12,1))
+chr.bp
 
-selected = d[,c('chr','band')]
-selected$count = 0
-for (i in 1:100)
-  {
-  chrs = vector("numeric", sample(1:10,1))
-  for (jj in 1:length(chrs))
-    chrs[jj] = c[roll(c$p),'chr']
-  chrs = unique(chrs)
-  print(chrs)
+s = merge(chr.bp$bp, direct.bp$bp, by=c('chr','band'))
+top = s[ s$count.x >= mean(s$count.x)+1.5*sd(s$count.x) & s$count.y >= mean(s$count.y)+1.5*sd(s$count.y) ,]
+top
 
-  for (chr in chrs)
-    {
-    sub = d[d$chr == chr, c('band','per.chr.prob')]
-    sub = sub[order(sub$per.chr.prob),]
-    sub = set.probs(sub[,2], sub)
-    bp = vector("character", sample(1:nrow(sub)-1, 1))
-    for (ii in 1:length(bp))
-      {
-      band = as.character( sub[roll(sub$p), 'band'] )
-      selected[ which(selected$'chr' == chr & selected$'band' == band), 'count'] = selected[ which(selected$'chr' == chr & selected$'band' == band), 'count'] + 1
-      }
-    }
-  }
-selected = selected[order(selected$count), ]
-plot(selected$count, type='h', main="2 part selection, chr->bp")
-text(selected$count,labels=paste(selected$chr, selected$band, sep=""))
+consensus_counts[i] = nrow(chr.bp$bp)
+}
 
-chr_counts = vector("numeric", 23)
-names(chr_counts) = chromosomes
-for (i in chromosomes)
-  chr_counts[i] = sum( selected[ selected$chr == i, 'count']  )
+summary(consensus_counts)
 
-plot(sort(chr_counts), type='o')
-text(sort(chr_counts), labels=names(sort(chr_counts)), pos=2)
+if (exists("bands")) bands = rbind(bands, top)
+else bands = top
 
-sort(chr_counts)
-sort(bp_chr_counts)
+rm(top, direct.bp, chr.bp, s)
+  } 
+
+#counted = unique(bands[,c('chr','band')])
+#counted$count = 0
+#for (r in 1:nrow(bands))
+# {
+#  b = which(counted[,'chr'] == bands[r,'chr'] & counted[,'band'] == bands[r,'band'] )
+#  counted[ b, 'count'] = counted[b,'count'] + 1
+#  }
+#counted = counted[order(-counted$count),]
+
+#write.table(counted, row.name=F, sep="\t", quote=F)
+
+#plot(counted$count, type='h', xaxt='n')
+#axis(1,at=counted$count, labels=paste(counted$chr, counted$band, sep=""))
+
+#c2 = read.table("consensus-1.txt", header=T)
+#plot(c2$count, type='h', xaxt='n')
+#axis(1,at=c2$count, labels=paste(c2$chr, c2$band, sep=""))
+

@@ -18,6 +18,7 @@
         <module>figg</module>
         <module>kiss</module>
         <module>sim</module>
+        <module>kiss-derby</module>
     </modules>
 
     <build>

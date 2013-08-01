@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation=
+               "http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/jdbc
+        http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+
+
+    <context:annotation-config/>
+
+    <!-- Properties -->
+    <bean id="dbProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+        <property name="ignoreResourceNotFound">
+            <value>true</value>
+        </property>
+        <property name="location" value="classpath:db.properties"/>
+    </bean>
+
+    <!-- Load in application properties reference -->
+    <bean id="applicationProperties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="properties" ref="dbProperties"/>
+    </bean>
+
+    <!-- Logging -->
+    <bean id="log4jInitialization" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="targetClass" value="org.springframework.util.Log4jConfigurer"/>
+        <property name="targetMethod" value="initLogging"/>
+        <property name="arguments">
+            <list>
+                <value>classpath:log4j.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="kissDS" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="${db.driver}"/>
+        <property name="url" value="jdbc:derby:${db.location}/${db.name};create=${db.create}"/>
+        <property name="username" value="${db.username}"/>
+        <property name="password" value=""/>
+    </bean>
+
+    <jdbc:initialize-database data-source="kissDS" enabled="${db.create}">
+        <jdbc:script location="classpath:genome.sql"/>
+    </jdbc:initialize-database>
+
+    <bean id="chrDAO" class="org.lcsb.lu.igcsa.embedded.kiss.DAO.impl.JDBCChromosomeProbDAO">
+        <property name="dataSource" ref="kissDS"/>
+        <property name="tableName" value="chromosomes"/>
+    </bean>
+
+    <bean id="centromereDAO" class="org.lcsb.lu.igcsa.embedded.kiss.DAO.impl.JDBCCentromereProbsDAO">
+        <property name="dataSource" ref="kissDS"/>
+        <property name="tableName" value="centromeres"/>
+    </bean>
+
+    <bean id="bpDAO" class="org.lcsb.lu.igcsa.embedded.kiss.DAO.impl.JDBCBreakpointProbsDAO">
+        <property name="dataSource" ref="kissDS"/>
+        <property name="tableName" value="breakpoints"/>
+    </bean>
+
+    <bean id="ploidyDAO" class="org.lcsb.lu.igcsa.embedded.kiss.DAO.impl.JDBCAneuploidyProbDAO">
+        <property name="dataSource" ref="kissDS"/>
+        <property name="tableName" value="aneuploidy"/>
+    </bean>
+
+
+</beans>

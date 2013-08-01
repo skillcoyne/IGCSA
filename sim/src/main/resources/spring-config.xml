@@ -31,13 +31,13 @@
         <property name="location" value="file:${props.path}/genome.properties"/>
     </bean>
 
-    <!--&lt;!&ndash; Properties &ndash;&gt;-->
-    <!--<bean id="karyotypeProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">-->
-        <!--<property name="ignoreResourceNotFound">-->
-            <!--<value>false</value>-->
-        <!--</property>-->
-        <!--<property name="location" value="file:${props.path}/karyotype.properties"/>-->
-    <!--</bean>-->
+    <!-- Properties -->
+    <bean id="karyotypeProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+        <property name="ignoreResourceNotFound">
+            <value>false</value>
+        </property>
+        <property name="location" value="file:${props.path}/karyotype.properties"/>
+    </bean>
 
 
     <!-- Load in application properties reference -->
@@ -45,7 +45,7 @@
         <property name="propertiesArray">
             <list>
                 <ref bean="genomeProperties"/>
-                <!--<ref bean="karyotypeProperties"/>-->
+                <ref bean="karyotypeProperties"/>
             </list>
         </property>
         <!--<property name="properties" ref="genomeProperties"/>-->
@@ -54,6 +54,6 @@
 
     <!--<import resource="classpath:conf/database-config.xml"/>-->
     <import resource="classpath:conf/genome.xml"/>
-    <!--<import resource="classpath:conf/karyotype.xml"/>-->
+    <import resource="classpath:conf/karyotype.xml"/>
 
 </beans>
