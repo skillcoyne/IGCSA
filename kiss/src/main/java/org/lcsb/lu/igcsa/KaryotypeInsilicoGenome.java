@@ -113,6 +113,8 @@ public class KaryotypeInsilicoGenome
 
     // TODO set up aberrations, which are a bit different from variations as done in the fragment generator
     //handleAneuploidy();
+
+
     genome.setAberrations(karyotypeProperties);
 
     log.info("Karyotype genome has: " + genome.getChromosomes().length + " chromosomes and " + genome.getDerivativeChromosomes().length +

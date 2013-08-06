@@ -2,7 +2,7 @@
 CREATE TABLE chromosomes (
   id INT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
   chr VARCHAR(12) NOT NULL,
-  prob DECIMAL(5,2) NOT NULL,
+  prob DECIMAL(5,5) NOT NULL,
   PRIMARY KEY (id)
 );
 
@@ -10,7 +10,7 @@ CREATE TABLE centromeres (
   id INT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
   chr VARCHAR(12) NOT NULL,
   band VARCHAR(12) NOT NULL,
-  prob DECIMAL(5,2) NOT NULL,
+  prob DECIMAL(5,5) NOT NULL,
   PRIMARY KEY (id)
 );
 
@@ -19,8 +19,8 @@ CREATE TABLE breakpoints (
   id INT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
   chr VARCHAR(12) NOT NULL,
   band VARCHAR(12) NOT NULL,
-  bp_prob DECIMAL(5,2) NOT NULL,
-  per_chr_prob DECIMAL(5,2) NOT NULL,
+  bp_prob DECIMAL(5,5) NOT NULL,
+  per_chr_prob DECIMAL(5,5) NOT NULL,
   PRIMARY KEY (id)
 );
 
@@ -28,7 +28,17 @@ CREATE TABLE breakpoints (
 CREATE TABLE aneuploidy (
   id INT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
   chr VARCHAR(12) NOT NULL,
-  gain_prob DECIMAL(5,2) NOT NULL,
-  loss_prob DECIMAL(5,2) NOT NULL,
+  gain_prob DECIMAL(5,5) NOT NULL,
+  loss_prob DECIMAL(5,5) NOT NULL,
   PRIMARY KEY (id)
 );
+
+CREATE TABLE karyotype_probabilities (
+  id INT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
+  prob_type VARCHAR(12) CONSTRAINT type_ck CHECK (prob_type IN ('aberration', 'aneuploidy', 'breakpoint')) NOT NULL,
+  min_count INT NOT NULL,
+  max_count INT NOT NULL,
+  prob DECIMAL(5,5) NOT NULL,
+  PRIMARY KEY (id)
+);
+

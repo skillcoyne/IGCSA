@@ -1,11 +1,13 @@
 package org.lcsb.lu.igcsa.genome;
 
+import org.apache.commons.lang.math.IntRange;
 import org.apache.commons.math3.distribution.PoissonDistribution;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.aberrations.Aberration;
 import org.lcsb.lu.igcsa.aberrations.Translocation;
 import org.lcsb.lu.igcsa.database.BreakpointDAO;
 import org.lcsb.lu.igcsa.database.ChromosomeBandDAO;
+import org.lcsb.lu.igcsa.database.KaryotypeDAO;
 import org.lcsb.lu.igcsa.dist.ContinuousDistribution;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
@@ -37,32 +39,39 @@ public class Karyotype extends Genome
   private ChromosomeBandDAO bandDAO;
   private BreakpointDAO breakpointDAO;
 
+  private KaryotypeDAO karyotypeDAO;
+
   private List<DerivativeChromosome> derivativeChromosomes = new ArrayList<DerivativeChromosome>();
 
-  private ContinuousDistribution ploidyDist;
-  private ContinuousDistribution aberrationDist;
+//  private ContinuousDistribution ploidyDist;
+//  private ContinuousDistribution aberrationDist;
 
   //private List<Aberration> aberrationList = new ArrayList<Aberration>();
   //private Map<String, Aberration> aberrationMap = new LinkedHashMap<String, Aberration>();
 
+  public Karyotype(KaryotypeDAO daos)
+    {
+    this.karyotypeDAO = daos;
+    }
+
   //44,X,-Y,-6,t(11;14)(q13;q32),add(22)(q13)
-  public Karyotype(BreakpointDAO bpDAO, ChromosomeBandDAO bandDAO)
-    {
-    this.bandDAO = bandDAO;
-    this.breakpointDAO = bpDAO;
-    }
+//  public Karyotype(BreakpointDAO bpDAO, ChromosomeBandDAO bandDAO)
+//    {
+//    this.bandDAO = bandDAO;
+//    this.breakpointDAO = bpDAO;
+//    }
 
-  public Karyotype(ContinuousDistribution ploidyDist, ContinuousDistribution aberrationDist)
-    {
-    this.ploidyDist = ploidyDist;
-    this.aberrationDist = aberrationDist;
-    }
+//  public Karyotype(ContinuousDistribution ploidyDist, ContinuousDistribution aberrationDist)
+//    {
+//    this.ploidyDist = ploidyDist;
+//    this.aberrationDist = aberrationDist;
+//    }
 
-  public void setDistributions(ContinuousDistribution ploidyDist, ContinuousDistribution aberrationDist)
-    {
-    this.ploidyDist = ploidyDist;
-    this.aberrationDist = aberrationDist;
-    }
+//  public void setDistributions(ContinuousDistribution ploidyDist, ContinuousDistribution aberrationDist)
+//    {
+//    this.ploidyDist = ploidyDist;
+//    this.aberrationDist = aberrationDist;
+//    }
 
   public void setKaryotypeDefinition(int ploidy, String allosomes)
     {
@@ -141,43 +150,71 @@ public class Karyotype extends Genome
   // TODO this is temporary, when I know how I want to get these from the real data this will change but it belongs in the karyotype class
   public void setAberrations(Properties ktProperties) throws Exception, InstantiationException, IllegalAccessException
     {
+    /* This occurs in several steps:
+    ---- 1 ----  Per karyotype probabilities
+    (A) select the number of aberrations that should occur
+    (B) select the number of aneuploidy's that should occur
+    (C) select the number of breakpoints that should occur???
+    */
+    IntRange maxAberrations = (IntRange) karyotypeDAO.getGeneralKarytoypeDAO().getProbabilityClass("aberration").roll();
+    IntRange maxPloidy = (IntRange) karyotypeDAO.getGeneralKarytoypeDAO().getProbabilityClass("aneuploidy").roll();
+    IntRange maxBreakpoints = (IntRange) karyotypeDAO.getGeneralKarytoypeDAO().getProbabilityClass("breakpoint").roll();
+
+
+    /*
+    ---- 2 ----
+    (A) select a number of chromosomes to have aberrations (1A)
+    (B) select the number of breakpoints within those chromosomes (1C)
+    (C) select specific polyploidic chromosomes
+    ---- 3 ----
+    Apply (2C)
+    Apply 2(A,B) based on some rules??
+     */
+
+    /* --- 2C --- */
+    // um...somewhere I have when to choose gain/loss
+    String gainChr = (String) this.karyotypeDAO.getAneuploidyDAO().getGains().roll();
+    String loseChr = (String) this.karyotypeDAO.getAneuploidyDAO().getLosses().roll();
+
+
+
     // Add or remove chromosomes
-    int ploidyDiff = (int) ploidyDist.sample(); // how many are added/removed...now which ones??
-    log.info("Total aneuploid chromosomes: " + ploidyDiff);
-    Probability ploidyProbability = KaryotypePropertiesUtil.temporaryGetPloidyProbability();
-    Map<Object, Probability> gainLoss = KaryotypePropertiesUtil.tempGetGainLossProb();
-
-    for (int i=0; i<ploidyDiff; i++)
-      {
-      String chr = (String) ploidyProbability.roll();
-      if (!gainLoss.containsKey(chr)) continue;
-      if (gainLoss.get(chr).roll().equals("gain"))
-        this.chromosomeGain(chr);
-      else
-        this.chromosomeLoss(chr);
-      gainLoss.remove(chr);
-      }
-
-    // Start creating aberrations
-    int aberrationCount = (int) aberrationDist.sample(); // total aberrations to apply...now which ones??
-    log.info("Total aberrations: " + aberrationCount);
-
-    Probability chrBreakProb = KaryotypePropertiesUtil.temporaryGetChromosomeProbabilities();
-
-    for (int i=0; i<aberrationCount; i++)
-      {
-      String chr = (String) chrBreakProb.roll();
-      log.info("Break chr " + chr);
-
-      if (KaryotypePropertiesUtil.tempCentromereProb().containsKey(chr))
-        {
-        Probability centromereBreak = KaryotypePropertiesUtil.tempCentromereProb().get(chr);
-        log.info("centromere: " + centromereBreak.roll());
-        }
-
-      // TODO get breakpoints next
-      }
-      System.exit(-1);
+//    int ploidyDiff = (int) ploidyDist.sample(); // how many are added/removed...now which ones??
+//    log.info("Total aneuploid chromosomes: " + ploidyDiff);
+//    Probability ploidyProbability = KaryotypePropertiesUtil.temporaryGetPloidyProbability();
+//    Map<Object, Probability> gainLoss = KaryotypePropertiesUtil.tempGetGainLossProb();
+//
+//    for (int i=0; i<ploidyDiff; i++)
+//      {
+//      String chr = (String) ploidyProbability.roll();
+//      if (!gainLoss.containsKey(chr)) continue;
+//      if (gainLoss.get(chr).roll().equals("gain"))
+//        this.chromosomeGain(chr);
+//      else
+//        this.chromosomeLoss(chr);
+//      gainLoss.remove(chr);
+//      }
+//
+//    // Start creating aberrations
+//    int aberrationCount = (int) aberrationDist.sample(); // total aberrations to apply...now which ones??
+//    log.info("Total aberrations: " + aberrationCount);
+//
+//    Probability chrBreakProb = KaryotypePropertiesUtil.temporaryGetChromosomeProbabilities();
+//
+//    for (int i=0; i<aberrationCount; i++)
+//      {
+//      String chr = (String) chrBreakProb.roll();
+//      log.info("Break chr " + chr);
+//
+//      if (KaryotypePropertiesUtil.tempCentromereProb().containsKey(chr))
+//        {
+//        Probability centromereBreak = KaryotypePropertiesUtil.tempCentromereProb().get(chr);
+//        log.info("centromere: " + centromereBreak.roll());
+//        }
+//
+//      // TODO get breakpoints next
+//      }
+//      System.exit(-1);
 
 
 //    Map<String, List<Aberration>> aberrationMap = KaryotypePropertiesUtil.getAberrationList(bandDAO, ktProperties);

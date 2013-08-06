@@ -21,6 +21,12 @@ public class Band
   public Band()
     {}
 
+  public Band(String chr, String band)
+    {
+    this.chromosomeName = chr;
+    this.bandName = band;
+    }
+
   public String getChromosomeName()
     {
     return chromosomeName;
@@ -49,5 +55,11 @@ public class Band
   public void setLocation(Location location)
     {
     this.location = location;
+    }
+
+  @Override
+  public String toString()
+    {
+    return "<" + this.chromosomeName + this.bandName + ">" + " " + this.getClass().getName() + this.hashCode();
     }
   }

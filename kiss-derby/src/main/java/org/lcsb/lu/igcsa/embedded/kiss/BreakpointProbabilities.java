@@ -51,6 +51,7 @@ public class BreakpointProbabilities
     loadPairs.put("centromereDAO", "centromere.probabilities");
     loadPairs.put("bpDAO", "bp.probabilities");
     loadPairs.put("ploidyDAO", "ploidy.probabilities");
+    loadPairs.put("karyotypeDAO", "karyotype.probabilities");
 
     for(Map.Entry<String, String> entry: loadPairs.entrySet())
       {

@@ -68,6 +68,10 @@
         <property name="dataSource" ref="kissDS"/>
         <property name="tableName" value="aneuploidy"/>
     </bean>
-
+    
+    <bean id="karyotypeDAO" class="org.lcsb.lu.igcsa.embedded.kiss.DAO.impl.JDBCKaryotypeGeneralProbDAO">
+        <property name="dataSource" ref="kissDS"/>
+        <property name="tableName" value="karyotype_probabilities"/>
+    </bean>
 
 </beans>

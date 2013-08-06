@@ -1,0 +1,85 @@
+/**
+ * org.lcsb.lu.igcsa.database.sql
+ * Author: sarah.killcoyne
+ * Copyright University of Luxembourg and Luxembourg Centre for Systems Biomedicine 2013
+ * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
+ */
+
+
+package org.lcsb.lu.igcsa.database.sql;
+
+import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.database.AneuploidyDAO;
+import org.lcsb.lu.igcsa.prob.Probability;
+import org.lcsb.lu.igcsa.prob.ProbabilityException;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
+
+import javax.sql.DataSource;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+
+public class JDBCAneuploidyDAO implements AneuploidyDAO
+  {
+  static Logger log = Logger.getLogger(JDBCAneuploidyDAO.class.getName());
+
+  private JdbcTemplate jdbcTemplate;
+
+  private String tableName = "aneuploidy";
+  private boolean isDerby = false;
+
+  public void setDataSource(DataSource dataSource)
+    {
+    jdbcTemplate = new JdbcTemplate(dataSource);
+
+    try
+      {
+      String dbName = dataSource.getConnection().getMetaData().getDatabaseProductName();
+      if (dbName.equals("Apache Derby"))
+        {
+        log.info(dbName);
+        isDerby = true;
+        }
+      }
+    catch (SQLException e)
+      {
+      throw new RuntimeException(e);
+      }
+    }
+
+  @Override
+  public Probability getGains() throws ProbabilityException
+    {
+    return getProbabilities("gain_prob");
+    }
+
+  @Override
+  public Probability getLosses() throws ProbabilityException
+    {
+    return getProbabilities("loss_prob");
+    }
+
+
+  private Probability getProbabilities(String column) throws ProbabilityException
+    {
+    final String col = column;
+    String sql = "SELECT chr, " + col + " FROM " + this.tableName;
+    Map<Object, Double> probabilities = (Map<Object, Double>) jdbcTemplate.query(sql, new ResultSetExtractor<Object>()
+    {
+    @Override
+    public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
+      {
+      Map<Object, Double> probs = new HashMap<Object, Double>();
+      while (resultSet.next())
+        probs.put(resultSet.getString("chr"), resultSet.getDouble(col));
+
+      return probs;
+      }
+    });
+    return new Probability(probabilities);
+    }
+
+  }
