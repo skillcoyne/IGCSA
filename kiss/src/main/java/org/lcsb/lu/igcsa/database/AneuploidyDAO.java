@@ -15,9 +15,10 @@ import org.lcsb.lu.igcsa.prob.ProbabilityException;
 public interface AneuploidyDAO
   {
 
-  public Probability getGains() throws ProbabilityException;
+  public Probability getGainLoss(String chromosome) throws ProbabilityException;
 
-  public Probability getLosses() throws ProbabilityException;
+  public Probability getChromosomeProbabilities() throws ProbabilityException;
+
 
 
   }

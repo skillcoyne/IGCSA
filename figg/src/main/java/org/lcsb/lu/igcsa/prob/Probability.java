@@ -2,12 +2,7 @@ package org.lcsb.lu.igcsa.prob;
 
 import org.apache.log4j.Logger;
 
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.Random;
-import java.util.TreeMap;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
 
 
 /**
@@ -21,31 +16,49 @@ public class Probability
   static Logger log = Logger.getLogger(Probability.class.getName());
 
   private Random generator;
-  private double totalValue = 1.0; // since it's never allowed to sum to anything other than 1.0....
+  private double totalValue; // = 1.0; // since it's never allowed to sum to anything other than 1.0....
 
   protected NavigableMap<Double, Object> objProbabilities = new TreeMap<Double, Object>();
 
   private int decimalPlaces = 2;
 
+  /**
+   *
+   * @param objects
+   * @param probabilities
+   * @throws ProbabilityException
+   */
   public Probability(Object[] objects, double[] probabilities) throws ProbabilityException
     {
     if (objects.length != probabilities.length)
       throw new IllegalArgumentException("Arrays must match.");
-        if ( !isSumOne(probabilities) )
-          throw new ProbabilityException("Sum of probabilities did not equal 1.");
 
-    this.generator = new Random();
+    Map<Object, Double> probs = new HashMap<Object, Double>();
+    for (int i=0; i<probabilities.length; i++)
+      probs.put( objects[i], probabilities[i] );
 
-    double total = 0.0;
-    for (int i = 0; i < probabilities.length; i++)
-      {
-      objProbabilities.put(probabilities[i] + total, objects[i]);
-      total = total + probabilities[i];
-      }
+    this.init(probs);
+    }
 
-//    double sum = isSumOne(probabilities);
-//    if (sum > 0)
-//      addNullEntry(sum);
+  /**
+   *
+   * @param objects
+   * @param probabilities
+   * @param precision
+   * @throws ProbabilityException
+   */
+  public Probability(Object[] objects, double[] probabilities, int precision) throws ProbabilityException
+    {
+    this.decimalPlaces = precision;
+
+    if (objects.length != probabilities.length)
+      throw new IllegalArgumentException("Arrays must match.");
+
+    Map<Object, Double> probs = new HashMap<Object, Double>();
+    for (int i=0; i<probabilities.length; i++)
+      probs.put( objects[i], probabilities[i] );
+
+    this.init(probs);
     }
 
   /**
@@ -58,19 +71,6 @@ public class Probability
   public Probability(Map<Object, Double> probabilities) throws ProbabilityException
     {
     this.init(probabilities);
-    if ( !isSumOne(probabilities.values()) ) throw new ProbabilityException("Sum of probabilities did not equal 1.");
-    this.generator = new Random();
-
-    double total = 0.0;
-    for (Map.Entry<Object, Double> entry : probabilities.entrySet())
-      {
-      objProbabilities.put(entry.getValue() + total, entry.getKey());
-      total = entry.getValue() + total;
-      }
-
-//    double sum = isSumOne(probabilities.values());
-//    if (sum > 0)
-//      addNullEntry(sum);
     }
 
   /**
@@ -78,34 +78,15 @@ public class Probability
    * A cumulative probability table is generated from this.
    *
    * @param probabilities
-   * @param decimalPlaces
+   * @param precision
    * @throws ProbabilityException
    */
-  public Probability(Map<Object, Double> probabilities, int decimalPlaces) throws ProbabilityException
+  public Probability(Map<Object, Double> probabilities, int precision) throws ProbabilityException
     {
-    this.decimalPlaces = decimalPlaces;
+    this.decimalPlaces = precision;
     this.init(probabilities);
-    if (!isSumOne(probabilities.values()))
-    throw new ProbabilityException("Sum of probabilities did not equal 1.");
-    this.generator = new Random();
-
-    double total = 0.0;
-    for (Map.Entry<Object, Double> entry : probabilities.entrySet())
-      {
-      objProbabilities.put(round(entry.getValue() + total, decimalPlaces), entry.getKey());
-      total = entry.getValue() + total;
-      }
-
-//    double sum = isSumOne(probabilities.values());
-//    if (sum > 0)
-//      addNullEntry(sum);
     }
 
-//  private void addNullEntry(double e)
-//    {
-//    log.debug("Sum of probabilities did not equal 1, adding null key for remainder.");
-//    objProbabilities.put(e, null);
-//    }
 
   public NavigableMap<Double, Object> getProbabilities()
     {
@@ -121,21 +102,8 @@ public class Probability
   public Object roll()
     {
     double p = this.generator.nextDouble();
-    if (p >= totalValue || p >= objProbabilities.lastEntry().getKey())
-      return objProbabilities.lastEntry().getValue();
-    else
-      return objProbabilities.higherEntry(p).getValue();
-    }
-
-  private boolean isSumOne(double[] doubles)
-    {
-    double sum = 0;
-
-    for (int i = 0; i < doubles.length; i++)
-      sum += doubles[i];
-    sum = round(sum, 2);
-
-    return (sum == 1.0)? (true): (false);
+    if (p >= totalValue) return objProbabilities.lastEntry().getValue();
+    else return objProbabilities.higherEntry(p).getValue();
     }
 
   private boolean isSumOne(Collection<Double> doubles)
@@ -146,7 +114,7 @@ public class Probability
       sum += ip.next();
     sum = round(sum, 2);
 
-    return (sum == 1.0)? (true): (false);
+    return (sum == 1.0) ? (true) : (false);
     }
 
   private static double round(double d, int dec)
@@ -155,19 +123,26 @@ public class Probability
     return (double) Math.round(d * places) / places;
     }
 
-    private void init(Map<Object, Double> probabilities) throws ProbabilityException
-      {
-      if ( !isSumOne(probabilities.values()) ) throw new ProbabilityException("Sum of probabilities did not equal 1.");
-      this.generator = new Random();
+  /**
+   * Initialize the tree map of probabilities.
+   * @param probabilities
+   * @throws ProbabilityException
+   */
+  private void init(Map<Object, Double> probabilities) throws ProbabilityException
+    {
+    if (!isSumOne(probabilities.values()))
+      throw new ProbabilityException("Sum of probabilities did not equal 1.");
+    this.generator = new Random();
 
-      double total = 0.0;
-      for (Map.Entry<Object, Double> entry: probabilities.entrySet())
-        {
-        objProbabilities.put( round(entry.getValue()+total, this.decimalPlaces), entry.getKey() );
-        total = round(total + entry.getValue(), this.decimalPlaces);
-        }
-      this.totalValue = round(total, this.decimalPlaces);
+    double total = 0.0;
+    for (Map.Entry<Object, Double> entry : probabilities.entrySet())
+      {
+      objProbabilities.put(round(entry.getValue() + total, this.decimalPlaces), entry.getKey());
+      total = round(total + entry.getValue(), this.decimalPlaces);
       }
+    this.totalValue = round(total, this.decimalPlaces);
+    }
+
 
 
   }

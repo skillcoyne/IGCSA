@@ -51,22 +51,30 @@ public class JDBCAneuploidyDAO implements AneuploidyDAO
     }
 
   @Override
-  public Probability getGains() throws ProbabilityException
+  public Probability getGainLoss(String chromosome) throws ProbabilityException
     {
-    return getProbabilities("gain_prob");
+    String sql = "SELECT chr, gain, loss FROM " + this.tableName + " WHERE chr = ?";
+    Map<Object, Double> probabilities = (Map<Object, Double>) jdbcTemplate.query(sql, new Object[]{chromosome}, new ResultSetExtractor<Object>()
+    {
+    @Override
+    public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
+      {
+      Map<Object, Double> probs = new HashMap<Object, Double>();
+      if (resultSet.next())
+        {
+        probs.put("gain", resultSet.getDouble("gain"));
+        probs.put("loss", resultSet.getDouble("loss"));
+        }
+      return probs;
+      }
+    });
+    return new Probability(probabilities);
     }
 
   @Override
-  public Probability getLosses() throws ProbabilityException
+  public Probability getChromosomeProbabilities() throws ProbabilityException
     {
-    return getProbabilities("loss_prob");
-    }
-
-
-  private Probability getProbabilities(String column) throws ProbabilityException
-    {
-    final String col = column;
-    String sql = "SELECT chr, " + col + " FROM " + this.tableName;
+    String sql = "SELECT chr, prob FROM " + this.tableName;
     Map<Object, Double> probabilities = (Map<Object, Double>) jdbcTemplate.query(sql, new ResultSetExtractor<Object>()
     {
     @Override
@@ -74,12 +82,14 @@ public class JDBCAneuploidyDAO implements AneuploidyDAO
       {
       Map<Object, Double> probs = new HashMap<Object, Double>();
       while (resultSet.next())
-        probs.put(resultSet.getString("chr"), resultSet.getDouble(col));
+        probs.put(resultSet.getString("chr"), resultSet.getDouble("prob"));
 
       return probs;
       }
     });
     return new Probability(probabilities);
     }
+
+
 
   }

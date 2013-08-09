@@ -38,26 +38,47 @@
     </bean>
 
     <!-- Database for the fragment tables, this doesn't have to be mysql.  These aren't particularly large -->
-    <bean id="testDS" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+    <bean id="testDS" class="org.springframework.jdbc.datasource.DriverManagerDataSource" scope="prototype">
         <property name="driverClassName" value="${karyotype.genome.driver}"/>
         <property name="url" value="${karyotype.genome.url}"/>
         <property name="username" value="${karyotype.genome.user}"/>
         <property name="password" value=""/>
     </bean>
 
-    <bean id="testBPDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCBreakpointDAO">
-        <property name="dataSource" ref="testDS"/>
+    <!--<bean id="testBPDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCBreakpointDAO">-->
+    <!--<property name="dataSource" ref="testDS"/>-->
+    <!--</bean>-->
+
+    <!--<bean id="testBandDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCChromosomeBandDAO">-->
+    <!--<property name="dataSource" ref="testDS"/>-->
+    <!--</bean>-->
+
+
+    <!--<bean id="testKaryotype" class="org.lcsb.lu.igcsa.genome.Karyotype">-->
+    <!--<constructor-arg ref="testBPDAO"/>-->
+    <!--<constructor-arg ref="testBandDAO"/>-->
+    <!--</bean>-->
+
+
+    <bean id="KaryotypeDAOs" class="org.lcsb.lu.igcsa.database.KaryotypeDAO" lazy-init="true" scope="prototype">
+        <property name="aneuploidyDAO">
+            <bean class="org.lcsb.lu.igcsa.database.sql.JDBCAneuploidyDAO" lazy-init="true">
+                <property name="dataSource" ref="testDS"/>
+            </bean>
+        </property>
+        <property name="generalKarytoypeDAO">
+            <bean class="org.lcsb.lu.igcsa.database.sql.JDBCGeneralProbabilityDAO">
+                <property name="dataSource" ref="testDS"/>
+            </bean>
+        </property>
     </bean>
 
-    <bean id="testBandDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCChromosomeBandDAO">
-        <property name="dataSource" ref="testDS"/>
+    <bean id="generator" class="org.lcsb.lu.igcsa.dist.KaryotypeGenerator">
+        <constructor-arg ref="KaryotypeDAOs"/>
     </bean>
 
 
-    <bean id="testKaryotype" class="org.lcsb.lu.igcsa.genome.Karyotype">
-        <constructor-arg ref="testBPDAO"/>
-        <constructor-arg ref="testBandDAO"/>
-    </bean>
+
 
 
 </beans>

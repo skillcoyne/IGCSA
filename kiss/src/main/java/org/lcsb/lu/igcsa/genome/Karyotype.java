@@ -173,8 +173,6 @@ public class Karyotype extends Genome
 
     /* --- 2C --- */
     // um...somewhere I have when to choose gain/loss
-    String gainChr = (String) this.karyotypeDAO.getAneuploidyDAO().getGains().roll();
-    String loseChr = (String) this.karyotypeDAO.getAneuploidyDAO().getLosses().roll();
 
 
 

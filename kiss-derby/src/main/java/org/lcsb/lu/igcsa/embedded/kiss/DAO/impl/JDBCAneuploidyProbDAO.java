@@ -27,14 +27,14 @@ public class JDBCAneuploidyProbDAO extends DataLoadDAO
 
     BufferedReader reader = new BufferedReader(new FileReader(file));
 
-    String sql = "INSERT INTO " + tableName + "(chr, gain_prob, loss_prob) VALUES (?,?,?)";
+    String sql = "INSERT INTO " + tableName + "(chr, prob, gain, loss) VALUES (?,?,?,?)";
     String line;
     while ((line = reader.readLine()) != null)
       {
       if (line.startsWith("#")) continue;
       String[] db = line.split("\t");
       if (db[0].equals("chromosome")) continue;
-      jdbcTemplate.update(sql, new Object[]{ db[0], Double.valueOf(db[1]), Double.valueOf(db[2]) });
+      jdbcTemplate.update(sql, new Object[]{ db[0], Double.valueOf(db[1]), Double.valueOf(db[2]),  Double.valueOf(db[3]) });
       }
     }
   }
