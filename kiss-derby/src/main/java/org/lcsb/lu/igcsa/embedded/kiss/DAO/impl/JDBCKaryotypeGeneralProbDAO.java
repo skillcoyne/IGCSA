@@ -31,7 +31,9 @@ public class JDBCKaryotypeGeneralProbDAO extends DataLoadDAO
     while ((line = reader.readLine()) != null)
       {
       if (line.startsWith("#")) continue;
+
       String[] db = line.split("\t");
+      if (db[0].equals("range")) continue;
 
       int min = Integer.parseInt(db[0].split("-")[0]);
       int max = Integer.parseInt(db[0].split("-")[1]);

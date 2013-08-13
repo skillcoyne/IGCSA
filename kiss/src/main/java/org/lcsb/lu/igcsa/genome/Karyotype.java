@@ -1,20 +1,16 @@
 package org.lcsb.lu.igcsa.genome;
 
 import org.apache.commons.lang.math.IntRange;
-import org.apache.commons.math3.distribution.PoissonDistribution;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.aberrations.Aberration;
 import org.lcsb.lu.igcsa.aberrations.Translocation;
 import org.lcsb.lu.igcsa.database.BreakpointDAO;
 import org.lcsb.lu.igcsa.database.ChromosomeBandDAO;
 import org.lcsb.lu.igcsa.database.KaryotypeDAO;
-import org.lcsb.lu.igcsa.dist.ContinuousDistribution;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.fasta.MutationWriter;
 import org.lcsb.lu.igcsa.genome.concurrency.Mutable;
-import org.lcsb.lu.igcsa.prob.Probability;
-import org.lcsb.lu.igcsa.utils.KaryotypePropertiesUtil;
 
 import java.io.File;
 import java.io.IOException;

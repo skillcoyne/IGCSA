@@ -31,6 +31,7 @@ public class JDBCChromosomeProbDAO extends DataLoadDAO
     String line;
     while ((line = reader.readLine()) != null)
       {
+      log.info(line);
       if (line.startsWith("#")) continue;
       String[] db = line.split("\t");
       if (db[0].equals("chr")) continue;

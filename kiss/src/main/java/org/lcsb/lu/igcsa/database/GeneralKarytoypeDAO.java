@@ -19,8 +19,6 @@ public interface GeneralKarytoypeDAO
 
   public Probability getChromosomeInstability() throws ProbabilityException;
 
-  public Probability getBandInstability(String chr) throws ProbabilityException;
-
-  public Probability getCentromereInstability() throws ProbabilityException;
+  public Probability getBandProbabilities(String chr) throws ProbabilityException;
 
   }

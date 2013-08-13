@@ -54,11 +54,6 @@
         <property name="tableName" value="chromosomes"/>
     </bean>
 
-    <bean id="centromereDAO" class="org.lcsb.lu.igcsa.embedded.kiss.DAO.impl.JDBCCentromereProbsDAO">
-        <property name="dataSource" ref="kissDS"/>
-        <property name="tableName" value="centromeres"/>
-    </bean>
-
     <bean id="bpDAO" class="org.lcsb.lu.igcsa.embedded.kiss.DAO.impl.JDBCBreakpointProbsDAO">
         <property name="dataSource" ref="kissDS"/>
         <property name="tableName" value="breakpoints"/>

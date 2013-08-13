@@ -101,8 +101,9 @@ public class JDBCGeneralProbabilityDAO implements GeneralKarytoypeDAO
     return new Probability(probabilities, 5);
     }
 
+
   @Override
-  public Probability getBandInstability(String chr) throws ProbabilityException
+  public Probability getBandProbabilities(String chr) throws ProbabilityException
     {
     final String tableName = "breakpoints";
     String sql = "SELECT chr, band, per_chr_prob FROM " + tableName + " WHERE chr = ? ORDER BY per_chr_prob DESC";
@@ -124,24 +125,4 @@ public class JDBCGeneralProbabilityDAO implements GeneralKarytoypeDAO
     return new Probability(probabilities, 5);
     }
 
-  @Override
-  public Probability getCentromereInstability() throws ProbabilityException
-    {
-    final String tableName = "centromeres";
-    String sql = "SELECT chr, band, prob FROM " + tableName + " ORDER BY prob";
-    Map<Object, Double> probabilities = (Map<Object, Double>) jdbcTemplate.query(sql, new ResultSetExtractor<Object>()
-    {
-    @Override
-    public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
-      {
-      Map<Object, Double> probs = new HashMap<Object, Double>();
-
-      while (resultSet.next())
-        probs.put(new Band(resultSet.getString("chr"), resultSet.getString("band")), resultSet.getDouble("prob") );
-
-      return probs;
-      }
-    });
-    return new Probability(probabilities);
-    }
   }

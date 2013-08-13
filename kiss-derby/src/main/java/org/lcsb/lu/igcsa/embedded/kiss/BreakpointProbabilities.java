@@ -48,7 +48,6 @@ public class BreakpointProbabilities
     {
     Map<String, String> loadPairs = new HashMap<String, String>();
     loadPairs.put("chrDAO", "chr.instability");
-    loadPairs.put("centromereDAO", "centromere.probabilities");
     loadPairs.put("bpDAO", "bp.probabilities");
     loadPairs.put("ploidyDAO", "ploidy.probabilities");
     loadPairs.put("karyotypeDAO", "karyotype.probabilities");

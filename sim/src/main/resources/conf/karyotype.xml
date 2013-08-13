@@ -30,7 +30,7 @@
         </property>
     </bean>
 
-    <bean id="generator" class="org.lcsb.lu.igcsa.dist.KaryotypeGenerator">
+    <bean id="generator" class="org.lcsb.lu.igcsa.generator.KaryotypeGenerator">
         <constructor-arg ref="KaryotypeDAOs"/>
     </bean>
 
