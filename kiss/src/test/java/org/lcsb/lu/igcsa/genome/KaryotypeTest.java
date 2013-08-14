@@ -32,7 +32,7 @@ public class KaryotypeTest
   {
   static Logger log = Logger.getLogger(KaryotypeTest.class.getName());
 
-  @Autowired
+  //@Autowired
   private Karyotype testKaryotype;
 
   @Autowired
@@ -46,17 +46,16 @@ public class KaryotypeTest
   @Before
   public void setUp() throws Exception
     {
-    URL testUrl = ClassLoader.getSystemResource("fasta/chr21.fa.gz");
+    URL testUrl = ClassLoader.getSystemResource("fasta/seq.fa");
     fastaFile = new File(testUrl.toURI());
 
+    testKaryotype = new Karyotype();
 
     File insilicoTest = new File(testProperties.getProperty("dir.karyotype"));
     testKaryotype.setGenomeDirectory(insilicoTest);
     testKaryotype.setMutationDirectory(new File(insilicoTest, "structural-variations"));
     testKaryotype.setBuildName("Karyotype Test");
     testKaryotype.setKaryotypeDefinition(46, "XY");
-    assertEquals(testKaryotype.getPloidy(), 46);
-    assertEquals(testKaryotype.getAllosomes(), "XY");
     }
 
   @After
@@ -66,13 +65,20 @@ public class KaryotypeTest
     }
 
   @Test
+  public void testKaryotypeSetup() throws Exception
+    {
+    assertEquals(testKaryotype.getPloidy(), 46);
+    assertEquals(testKaryotype.getAllosomes(), "XY");
+    }
+
+  @Test
   public void testAddChromosome() throws Exception
     {
     for (String s : new String[]{"2", "5", "6", "X", "Y"})
       testKaryotype.addChromosome(new Chromosome(s));
 
     assertEquals(testKaryotype.getChromosomes().length, 5);
-    assertEquals(testKaryotype.ploidyCount("X"), 1);
+    assertEquals(testKaryotype.ploidyCount("X"), 2);
     }
 
   @Test

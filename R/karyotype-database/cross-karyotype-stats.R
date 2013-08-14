@@ -80,7 +80,7 @@ chr_probs$type = "chromosome"
 filename = paste(outdir, "karyotype-probs.txt", sep="/")
 write("## General karyotype probabilities given for counts in ranges", file=filename, app=F)
 write.table(t(c("range", "prob", "type")), sep="\t", row.name=F, col.name=F, quote=F, app=T, file=filename)
-for (pf in list(pdy_probs, chr_probs))
+for (pf in list(pdy_probs, chr_probs, abr_probs))
   {
   pf = format(pf, scientific=F, trim=T)
   write.table(cbind(rownames(pf), pf[,c('prob', 'type')]), row.name=F,col.names=F, quote=F, sep="\t", app=T, file=filename)

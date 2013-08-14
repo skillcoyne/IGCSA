@@ -1,12 +1,9 @@
 package org.lcsb.lu.igcsa.genome;
 
-import org.apache.commons.lang.math.IntRange;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.aberrations.Aberration;
 import org.lcsb.lu.igcsa.aberrations.Translocation;
-import org.lcsb.lu.igcsa.database.BreakpointDAO;
-import org.lcsb.lu.igcsa.database.ChromosomeBandDAO;
-import org.lcsb.lu.igcsa.database.KaryotypeDAO;
+import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.fasta.MutationWriter;
@@ -32,23 +29,9 @@ public class Karyotype extends Genome
   // Since in the karyotype it makes a difference how many copies of each chromosome are around we have to track it somehow
   private HashMap<String, Integer> chromosomeCount = new HashMap<String, Integer>();
 
-  private ChromosomeBandDAO bandDAO;
-  private BreakpointDAO breakpointDAO;
-
-  private KaryotypeDAO karyotypeDAO;
-
   private List<DerivativeChromosome> derivativeChromosomes = new ArrayList<DerivativeChromosome>();
 
-//  private ContinuousDistribution ploidyDist;
-//  private ContinuousDistribution aberrationDist;
-
-  //private List<Aberration> aberrationList = new ArrayList<Aberration>();
-  //private Map<String, Aberration> aberrationMap = new LinkedHashMap<String, Aberration>();
-
-  public Karyotype(KaryotypeDAO daos)
-    {
-    this.karyotypeDAO = daos;
-    }
+  private Map<Object, List<Collection<Band>>> aberrations = new HashMap<Object, List<Collection<Band>>>();
 
   //44,X,-Y,-6,t(11;14)(q13;q32),add(22)(q13)
 //  public Karyotype(BreakpointDAO bpDAO, ChromosomeBandDAO bandDAO)
@@ -73,6 +56,7 @@ public class Karyotype extends Genome
     {
     this.ploidy = ploidy;
     this.allosomes = allosomes;
+    adjustSex();
     }
 
   public int getPloidy()
@@ -96,7 +80,6 @@ public class Karyotype extends Genome
     super.addChromosomes(chromosomes);
     for (Chromosome chr : chromosomes)
       addChromosome(chr);
-    adjustSex();
     }
 
   /**
@@ -109,7 +92,6 @@ public class Karyotype extends Genome
     {
     super.addChromosome(chromosome);
     chromosomeCount.put(chromosome.getName(), 2);
-    adjustSex();
     }
 
   public void chromosomeGain(String chromosome)
@@ -143,34 +125,31 @@ public class Karyotype extends Genome
     if (chromosomeCount.get(name) == 0) this.removeChromosome(name);
     }
 
+  public void addAberration(Object abr, Collection<Band> bands)
+    {
+    // TODO no, this isn't the way it should be done but for now...
+
+    if (!aberrations.containsKey(abr)) {}
+      aberrations.put(abr, new ArrayList<Collection<Band>>());
+
+    List<Collection<Band>> list = aberrations.get(abr);
+    list.add(bands);
+
+    aberrations.put(abr, list);
+
+    log.info(aberrations);
+    }
+
+  public Map<Object, List<Collection<Band>>> getAberrations()
+    {
+    return aberrations;
+    }
+
+
+
   // TODO this is temporary, when I know how I want to get these from the real data this will change but it belongs in the karyotype class
   public void setAberrations(Properties ktProperties) throws Exception, InstantiationException, IllegalAccessException
     {
-    /* This occurs in several steps:
-    ---- 1 ----  Per karyotype probabilities
-    (A) select the number of aberrations that should occur
-    (B) select the number of aneuploidy's that should occur
-    (C) select the number of breakpoints that should occur???
-    */
-    IntRange maxAberrations = (IntRange) karyotypeDAO.getGeneralKarytoypeDAO().getProbabilityClass("aberration").roll();
-    IntRange maxPloidy = (IntRange) karyotypeDAO.getGeneralKarytoypeDAO().getProbabilityClass("aneuploidy").roll();
-    IntRange maxBreakpoints = (IntRange) karyotypeDAO.getGeneralKarytoypeDAO().getProbabilityClass("breakpoint").roll();
-
-
-    /*
-    ---- 2 ----
-    (A) select a number of chromosomes to have aberrations (1A)
-    (B) select the number of breakpoints within those chromosomes (1C)
-    (C) select specific polyploidic chromosomes
-    ---- 3 ----
-    Apply (2C)
-    Apply 2(A,B) based on some rules??
-     */
-
-    /* --- 2C --- */
-    // um...somewhere I have when to choose gain/loss
-
-
 
     // Add or remove chromosomes
 //    int ploidyDiff = (int) ploidyDist.sample(); // how many are added/removed...now which ones??

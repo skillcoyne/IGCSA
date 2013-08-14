@@ -45,22 +45,7 @@
         <property name="password" value=""/>
     </bean>
 
-    <!--<bean id="testBPDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCBreakpointDAO">-->
-    <!--<property name="dataSource" ref="testDS"/>-->
-    <!--</bean>-->
-
-    <!--<bean id="testBandDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCChromosomeBandDAO">-->
-    <!--<property name="dataSource" ref="testDS"/>-->
-    <!--</bean>-->
-
-
-    <!--<bean id="testKaryotype" class="org.lcsb.lu.igcsa.genome.Karyotype">-->
-    <!--<constructor-arg ref="testBPDAO"/>-->
-    <!--<constructor-arg ref="testBandDAO"/>-->
-    <!--</bean>-->
-
-
-    <bean id="KaryotypeDAOs" class="org.lcsb.lu.igcsa.database.KaryotypeDAO" lazy-init="true" scope="prototype">
+    <bean id="KaryotypeDAOs" class="org.lcsb.lu.igcsa.database.KaryotypeDAO" lazy-init="true">
         <property name="aneuploidyDAO">
             <bean class="org.lcsb.lu.igcsa.database.sql.JDBCAneuploidyDAO" lazy-init="true">
                 <property name="dataSource" ref="testDS"/>
@@ -73,11 +58,17 @@
         </property>
     </bean>
 
-    <bean id="generator" class="org.lcsb.lu.igcsa.generator.KaryotypeGenerator">
+    <bean id="generator" class="org.lcsb.lu.igcsa.generator.KaryotypeGenerator" scope="singleton" lazy-init="true">
         <constructor-arg ref="KaryotypeDAOs"/>
     </bean>
 
-
+    <bean id="aberrationRules" class="org.lcsb.lu.igcsa.generator.AberrationRules" lazy-init="true">
+        <property name="rules">
+            <props>
+                <prop key="ktProperties"></prop>
+            </props>
+        </property>
+    </bean>
 
 
 

@@ -4,12 +4,6 @@
        xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-    <!-- Reference Genome creation -->
-    <!--<bean id="karyotype" class="org.lcsb.lu.igcsa.genome.Karyotype">-->
-    <!--<constructor-arg ref="BreakpointDAO"/>-->
-    <!--<constructor-arg ref="BandDAO"/>-->
-    <!--</bean>-->
-
     <bean id="ktDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource" lazy-init="true">
         <property name="driverClassName" value="${karyotype.genome.driver}"/>
         <property name="url" value="${karyotype.genome.url}"/>
@@ -33,37 +27,6 @@
     <bean id="generator" class="org.lcsb.lu.igcsa.generator.KaryotypeGenerator">
         <constructor-arg ref="KaryotypeDAOs"/>
     </bean>
-
-
-    <bean id="karyotype" class="org.lcsb.lu.igcsa.genome.Karyotype" lazy-init="true">
-        <constructor-arg ref="KaryotypeDAOs"/>
-    </bean>
-
-
-    <!--<bean id="karyotype" class="org.lcsb.lu.igcsa.genome.Karyotype" lazy-init="true">-->
-    <!--<constructor-arg name="ploidyDist" ref="ploidy${ploidy.distribution}"/>-->
-    <!--<constructor-arg name="aberrationDist" ref="abr${aberration.distribution}"/>-->
-    <!--</bean>-->
-
-
-    <!-- Distribution objects -->
-    <bean id="ploidyNormal" class="org.lcsb.lu.igcsa.dist.ContinuousDistribution" lazy-init="true">
-        <constructor-arg name="mean" value="${ploidy.mean}"/>
-        <constructor-arg name="stdev" value="${ploidy.stdev}"/>
-    </bean>
-
-    <!--<bean id="ploidyPoisson"  class="org.lcsb.lu.igcsa.dist.ContinuousDistribution" lazy-init="true">-->
-    <!--<constructor-arg name="lambda" value="${ploidy.lambda}"/>-->
-    <!--</bean>-->
-
-    <!--<bean id="abrNormal"  class="org.lcsb.lu.igcsa.dist.ContinuousDistribution" lazy-init="true">-->
-    <!--<constructor-arg name="mean" value="${aberration.mean}"/>-->
-    <!--<constructor-arg name="stdev" value="${aberration.stdev}"/>-->
-    <!--</bean>-->
-
-    <!--<bean id="abrPoisson" class="org.lcsb.lu.igcsa.dist.ContinuousDistribution" lazy-init="true">-->
-        <!--<constructor-arg name="lambda" value="${aberration.lambda}"/>-->
-    <!--</bean>-->
 
 
 </beans>

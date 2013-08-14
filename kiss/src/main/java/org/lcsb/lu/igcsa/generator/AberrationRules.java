@@ -10,6 +10,7 @@ package org.lcsb.lu.igcsa.generator;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.Band;
+import org.paukov.combinatorics.CombinatoricsVector;
 import org.paukov.combinatorics.ICombinatoricsVector;
 
 import java.util.*;
@@ -21,47 +22,80 @@ public class AberrationRules
   // combination sizes, not a lot of point in doing greater than pairs currently
   static int SET_SIZE = 2;
 
-  // unique aberrations, e.g. [trans, [22q11, 9q34]] only shows up once in the list.  This should already be true
-  static boolean UNIQUE_ABR = true;
   // unique breakpoint pairs
   static boolean UNIQUE_BP_PAIRS = true;
 
-  private static Object[] ABR_TYPES = new String[]{"trans", "inv", "del", "dup", "ins"}; // default
+  // Aberration rules
+  static final Object[] SINGLE_CENTROMERE = new String[]{"iso", "dup", "del"};
+  static final Object[] TWO_CENTROMERES = new String[]{"dic", "del", "dup", "ins", "inv"};
+
+  static final Object[] ONE_CHROMOSOME = new String[]{"del", "dup", "ins", "inv"};
+  static final Object[] MULTI_CHROMOSOME = new String[]{"trans"};
+
 
   private BreakpointCombinatorial combinatorial;
-  private Set<Object> aberrationClasses = new HashSet<Object>();
-
-  private Map<String, List<Band>> chromosomes = new HashMap<String, List<Band>>();
   private List<ICombinatoricsVector<Aberration>> aberrations;
-
+  private List<ICombinatoricsVector<Band>> breakpointSets;
 
   public AberrationRules()
-    {
-    for (Object o : ABR_TYPES)
-      aberrationClasses.add(o);
-    }
+    {}
 
   /* ------ Getters and setters ------ */
-  /* Ultimately the rules should be set through here somehow, for now we'll just set up the base set */
-  public void setAberrationClasses(Object[] abrTypes)
+  public void setRules(Properties properties)
     {
-    aberrationClasses.clear();
-    for (Object o : abrTypes)
-      aberrationClasses.add(o);
+    log.warn("setRules() not yet implemented. Defaults in use.");
     }
 
-  public Map<Object, Vector<Band>> getOrderedAberrations()
+  public Map<List<Band>, List<ICombinatoricsVector<Aberration>>> getOrderedBreakpointSets()
     {
-    Map<Object, Vector<Band>> map = new HashMap<Object, Vector<Band>>();
-    for (ICombinatoricsVector<Aberration> list: aberrations)
+    Map<List<Band>, List<ICombinatoricsVector<Aberration>>> map = new HashMap<List<Band>, List<ICombinatoricsVector<Aberration>>>();
+    for (ICombinatoricsVector<Aberration> vector: aberrations)
       {
-      log.info(list);
-//      if (!map.containsKey(abr)) map.put(abr, new Vector<Band>());
-//
-//      Vector<Band> curr = map.get(abr);
-//
+      List<Band> bandList = vector.getVector().get(0).getBands();
 
+      if (!map.containsKey(bandList))
+        map.put(bandList, new ArrayList<ICombinatoricsVector<Aberration>>());
+
+      List<ICombinatoricsVector<Aberration>> abrList = map.get(bandList);
+      abrList.add(vector);
+
+      map.put(bandList, abrList);
       }
+
+//    for(Map.Entry<List<Band>, List<ICombinatoricsVector<Aberration>>> entry: map.entrySet())
+//      {
+//      log.info("--->" + entry.getKey());
+//      for (ICombinatoricsVector<Aberration> a: entry.getValue())
+//        {
+//        log.info(a);
+//        }
+//      }
+    return map;
+    }
+
+  public Map<Object, List<ICombinatoricsVector<Band>>> getOrderedAberrationSets()
+    {
+    Map<Object, List<ICombinatoricsVector<Band>>> map = new HashMap<Object, List<ICombinatoricsVector<Band>>>();
+
+    for (ICombinatoricsVector<Aberration> vector: aberrations)
+      {
+      for (Aberration abr: vector.getVector())
+        {
+        if (!map.containsKey(abr.getAberration()))
+          map.put(abr.getAberration(), new ArrayList<ICombinatoricsVector<Band>>());
+
+        List<ICombinatoricsVector<Band>> list = map.get(abr.getAberration());
+        list.add( new CombinatoricsVector<Band>(abr.getBands()) );
+
+        map.put(abr.getAberration(), list);
+        }
+      }
+    return map;
+    }
+
+  public List<ICombinatoricsVector<Band>> getBreakpointSets()
+    {
+    return breakpointSets;
     }
 
   public List<ICombinatoricsVector<Aberration>> getAberrations()
@@ -71,36 +105,47 @@ public class AberrationRules
 
   public Object[] getAberrationClasses()
     {
-    return aberrationClasses.toArray(new Object[aberrationClasses.size()]);
+    Set<Object> classes = new HashSet<Object>();
+
+    classes.addAll( Arrays.asList(SINGLE_CENTROMERE) );
+    classes.addAll( Arrays.asList(TWO_CENTROMERES) );
+    classes.addAll( Arrays.asList(ONE_CHROMOSOME) );
+    classes.addAll( Arrays.asList(MULTI_CHROMOSOME) );
+
+    return classes.toArray(new Object[classes.size()]);
     }
 
   /* -- Application of rules -- */
   public void applyRules(Band[] bands)
     {
+    Set<String> chromosomes = new HashSet<String>();
     for (Band b : bands)
-      {
-      if (!chromosomes.containsKey(b.getChromosomeName()))
-        chromosomes.put(b.getChromosomeName(), new ArrayList<Band>());
-
-      List<Band> current = chromosomes.get(b.getChromosomeName());
-      current.add(b);
-      chromosomes.put(b.getChromosomeName(), current);
-      }
-    log.debug(chromosomes);
+      chromosomes.add(b.getChromosomeName());
 
     // start with the combinatorial list of breakpoints only, deal with unique rule
-    List<ICombinatoricsVector<Band>> bandSets = ruleUniqueBreakpointPairs(bands);
+    List<ICombinatoricsVector<Band>> bandSets = ruleUniqueBreakpointPairs(bands, SET_SIZE);
+
+    // add all of the breakpoints as singletons...
+    for (ICombinatoricsVector<Band> bvector : ruleUniqueBreakpointPairs(bands, 1))
+      {
+      if (bandSets.indexOf(bvector) < 0)
+        bandSets.add(bvector);
+      }
+    breakpointSets = bandSets;
+
 
     if (chromosomes.size() == 1)
-      ruleSingleChromosome();
+      aberrations = ruleSingleChromosome(bandSets);
+    else
+      aberrations = ruleMultiChromosome(bandSets);
 
-    // get aberrations with the bands, deal with unique rule
-    aberrations = ruleUniqueAberrations(bandSets);
-    log.debug(aberrations);
+//    for (ICombinatoricsVector<Aberration> list : aberrations)
+//      log.info(list);
     }
 
+
   // Exactly what it sounds like.  Avoid pairs like [a, a]  (or don't...)
-  private List<ICombinatoricsVector<Band>> ruleUniqueBreakpointPairs(Band[] bands)
+  private List<ICombinatoricsVector<Band>> ruleUniqueBreakpointPairs(Band[] bands, int setSize)
     {
     List<ICombinatoricsVector<Band>> bandSets;
     if (UNIQUE_BP_PAIRS) // avoid duplicates
@@ -111,63 +156,107 @@ public class AberrationRules
     else
       {
       log.debug("ruleUniqueBreakpointPairs: allow duplicates");
-      BreakpointCombinatorial.GENERATOR = BreakpointCombinatorial.SIMPLE_GEN;
+      BreakpointCombinatorial.GENERATOR = BreakpointCombinatorial.MULTI_GEN;
       }
 
     combinatorial = new BreakpointCombinatorial();
-    return combinatorial.getCombinations(bands, SET_SIZE);
-    }
-
-  // Avoid duplicate aberrations: [t, [1,2]], [t, [1,2]]  (or not...)
-  private List<ICombinatoricsVector<Aberration>> ruleUniqueAberrations(List<ICombinatoricsVector<Band>> bandSets)
-    {
-    // get aberrations with the bands
-    List<ICombinatoricsVector<Aberration>> abr = combinatorial.getAberrationCombination(aberrationClasses.toArray(new Object[aberrationClasses.size()]), bandSets);
-    if (UNIQUE_ABR)
-      {
-      Collection<ICombinatoricsVector<Aberration>> uniqeAbr = new HashSet<ICombinatoricsVector<Aberration>>();
-      for (ICombinatoricsVector<Aberration> o : abr)
-        uniqeAbr.add(o);
-
-      abr = new ArrayList<ICombinatoricsVector<Aberration>>(uniqeAbr);
-      }
-    return abr;
+    return combinatorial.getCombinations(bands, setSize);
     }
 
   /*
   Rules for dealing with a single chromosome. This is a bit of a special case and doesn't currently have set-able rules
     1. In all cases a translocation cannot occur.
-    2. Single band & centromere == isochromosome
-    3. Multiple centromeric bands cannot be insertions
+    2. Single band & centromere == ISO/DIC
+    3. Pair of centromeric bands == DIC, DEL, DUP, INS, or INV
+    4. Multiple bands DEL, DUP, INS, or INV
    */
-  private void ruleSingleChromosome()
+  private List<ICombinatoricsVector<Aberration>> ruleSingleChromosome(List<ICombinatoricsVector<Band>> bandsVector)
     {
-    // only one chromosome
-    log.debug("Only 1 chr");
-    BandCollection cBands = new BandCollection(chromosomes.get(chromosomes.keySet().iterator().next()));
+    List<ICombinatoricsVector<Aberration>> aberrations = new ArrayList<ICombinatoricsVector<Aberration>>();
 
-    // can't translocation when there's only 1 chromosome
-    aberrationClasses.remove("trans");
 
-    // single centromere
-    if (cBands.size() == 1)
+
+    // only single centromere
+    if (bandsVector.size() == 1 && bandsVector.get(0).getVector().get(0).isCentromere())
+      aberrations = ruleSingleCentromere(bandsVector);
+    else
       {
-      if (cBands.getCentromeres().size() == 1)
+      for (ICombinatoricsVector<Band> vector : bandsVector)
         {
-        log.debug("Iso around " + cBands.getCentromeres());
-        aberrationClasses.clear(); // only isochromosome
-        aberrationClasses.add("iso");
+        // singleton is a centromere
+        if (vector.getSize() == 1)
+          {
+          if (vector.getVector().get(0).isCentromere())
+            aberrations.addAll(ruleSingleCentromere(Collections.singletonList(vector)));
+          else
+            aberrations.addAll(ruleSingleArm(Collections.singletonList(vector)));
+          }
+        else
+          {
+          boolean centromeres = true;
+          for (Band b : vector.getVector())
+            if (!b.isCentromere())
+              centromeres = false;
+
+          // pair of centromeres
+          if (centromeres && vector.getSize() == 2)
+            aberrations.addAll(ruleCentromerePair(Collections.singletonList(vector)));
+          // anything else
+          else
+            aberrations.addAll(ruleSingleArm(Collections.singletonList(vector)));
+          }
         }
       }
-    else if (cBands.getCentromeres().size() > 1 && cBands.getCentromeres().size() == cBands.size())
-      {
-      // multiple centromeres...what do I do here?
-      log.debug("Only centromeres");
-
-      // no translocations or insertions when only centromeres are involved
-      aberrationClasses.remove("ins");
-      }
+    return aberrations;
     }
 
+  /*
+   2) Where there are multiple chromosomes with breakpoints
+   a)	DIC is possible between 2 chromsomes with centromeric bands
+   b)	TRANS are possible between 2+ chromosomes at any band
+   c)	DEL, DUP, INS, or INV are possible in breakpoints within a single chromosome
+  */
+  private List<ICombinatoricsVector<Aberration>> ruleMultiChromosome(List<ICombinatoricsVector<Band>> bandsVector)
+    {
+    List<ICombinatoricsVector<Aberration>> aberrations = new ArrayList<ICombinatoricsVector<Aberration>>();
+
+    for (ICombinatoricsVector<Band> vector : bandsVector)
+      {
+      if (vector.getSize() == 1) // obviously it can only be a single chromosome
+        aberrations.addAll(ruleSingleChromosome(Collections.singletonList(vector)));
+      else
+        {
+        boolean sameChr = true;
+        Band prev = null;
+        for (Band b : vector.getVector())
+          {
+          if (prev != null && !prev.getChromosomeName().equals(b.getChromosomeName()))
+            sameChr = false;
+          prev = b;
+          }
+        if (sameChr) // single chromosome
+          aberrations.addAll(ruleSingleChromosome(Collections.singletonList(vector)));
+        else
+          aberrations.addAll(combinatorial.getAberrationCombination(MULTI_CHROMOSOME, Collections.singletonList(vector)));
+        }
+      }
+    return aberrations;
+    }
+
+
+  private List<ICombinatoricsVector<Aberration>> ruleSingleCentromere(List<ICombinatoricsVector<Band>> bandVector)
+    {
+    return combinatorial.getAberrationCombination(SINGLE_CENTROMERE, bandVector);
+    }
+
+  private List<ICombinatoricsVector<Aberration>> ruleCentromerePair(List<ICombinatoricsVector<Band>> bandsVector)
+    {
+    return combinatorial.getAberrationCombination(TWO_CENTROMERES, bandsVector);
+    }
+
+  private List<ICombinatoricsVector<Aberration>> ruleSingleArm(List<ICombinatoricsVector<Band>> bandVector)
+    {
+    return combinatorial.getAberrationCombination(ONE_CHROMOSOME, bandVector);
+    }
 
   }
