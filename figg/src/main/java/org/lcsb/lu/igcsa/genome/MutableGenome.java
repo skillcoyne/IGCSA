@@ -33,6 +33,19 @@ public class MutableGenome extends Genome
     this.fragmentDAO = fragmentDAO;
     }
 
+  @Override
+  public MutableGenome copy()
+    {
+    MutableGenome g = new MutableGenome(this.binDAO, this.fragmentDAO);
+    g.setBuildName(this.buildName);
+    g.setGenomeDirectory(this.getGenomeDirectory());
+    for (Chromosome chr: this.getChromosomes())
+      g.addChromosome(chr);
+    g.setMutationDirectory(this.getMutationDirectory());
+
+    return g;
+    }
+
   public FragmentMutable mutate(Chromosome chr, int window, FASTAWriter writer)
     {
     try

@@ -1,4 +1,4 @@
-package org.lcsb.lu.igcsa.aberrations;
+package org.lcsb.lu.igcsa.aberrations.single;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
@@ -19,7 +19,7 @@ import java.util.TreeSet;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class Deletion extends Aberration
+public class Deletion extends SingleChromosomeAberration
   {
   static Logger log = Logger.getLogger(Deletion.class.getName());
 

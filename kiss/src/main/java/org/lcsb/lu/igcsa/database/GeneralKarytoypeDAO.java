@@ -14,7 +14,6 @@ import org.lcsb.lu.igcsa.prob.ProbabilityException;
 
 public interface GeneralKarytoypeDAO
   {
-
   public Probability getProbabilityClass(String type) throws ProbabilityException;
 
   public Probability getChromosomeInstability() throws ProbabilityException;

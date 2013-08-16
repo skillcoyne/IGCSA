@@ -5,6 +5,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.lcsb.lu.igcsa.aberrations.single.Addition;
+import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
@@ -67,7 +69,7 @@ public class AdditionTest
   @Test
   public void testaddFragment() throws Exception
     {
-    abr.addFragment(new ChromosomeFragment("6", "p22", new Location(15200001, 30400000)));
+    abr.addFragment(new Band("6", "p22", new Location(15200001, 30400000)));
     assertEquals(abr.getLocationsForChromosome(new Chromosome("6")).size(), 1);
     }
 
@@ -77,7 +79,7 @@ public class AdditionTest
     Chromosome chr = new Chromosome("test", fastaFile);
     DerivativeChromosome dchr = new DerivativeChromosome("test", chr);
 
-    abr.addFragment(new ChromosomeFragment("test", "XARM", new Location(1136, 1988)));
+    abr.addFragment(new Band("test", "XARM", new Location(1136, 1988)));
     abr.applyAberrations(dchr, writer, null);
 
     FASTAReader reader = new FASTAReader(writer.getFASTAFile());

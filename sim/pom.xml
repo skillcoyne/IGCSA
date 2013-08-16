@@ -47,13 +47,13 @@
                                         <include>*.zip</include>
                                     </includes>
                                 </resource>
-                                <!--<resource>-->
-                                    <!--<directory>../database</directory>-->
-                                    <!--<includes>-->
-                                        <!--<include>normal-genome.sql</include>-->
-                                    <!--</includes>-->
-                                    <!--<filtering>false</filtering>-->
-                                <!--</resource>-->
+                                <resource>
+                                    <directory>../kiss-derby/target</directory>
+                                    <filtering>false</filtering>
+                                    <includes>
+                                        <include>*.zip</include>
+                                    </includes>
+                                </resource>
                                 <resource>
                                     <directory>../</directory>
                                     <filtering>true</filtering>
@@ -112,7 +112,8 @@
                         <configuration>
                             <tasks>
                                 <!-- Using an ant task to deflate webinstaller.zip -->
-                                <unzip src="${project.basedir}/target/db.zip" dest="${project.basedir}/target"/>
+                                <unzip src="${project.basedir}/target/normal.zip" dest="${project.basedir}/target/db"/>
+                                <unzip src="${project.basedir}/target/cancer.zip" dest="${project.basedir}/target/db"/>
                             </tasks>
                         </configuration>
                         <goals>

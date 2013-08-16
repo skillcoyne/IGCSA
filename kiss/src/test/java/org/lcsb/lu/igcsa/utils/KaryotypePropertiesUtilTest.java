@@ -4,16 +4,12 @@ import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
 import org.junit.runner.RunWith;
-import org.lcsb.lu.igcsa.aberrations.Aberration;
 import org.lcsb.lu.igcsa.database.ChromosomeBandDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.List;
 import java.util.Properties;
 
 /**
@@ -32,7 +28,7 @@ public class KaryotypePropertiesUtilTest
   private Properties ktProperties;
 
   @Autowired
-  private ChromosomeBandDAO testBandDAO;
+  private ChromosomeBandDAO chromosomeBandDAO;
 
   @Before
   public void setUp() throws Exception
@@ -45,7 +41,7 @@ public class KaryotypePropertiesUtilTest
   @Test
   public void testGetAberrationList() throws Exception
     {
-//    List<Aberration> abrList = KaryotypePropertiesUtil.getAberrationList(testBandDAO, ktProperties);
+//    List<SequenceAberration> abrList = KaryotypePropertiesUtil.getSequenceAberrationList(testBandDAO, ktProperties);
 //    assertEquals(abrList.size(), 3);
     }
   }

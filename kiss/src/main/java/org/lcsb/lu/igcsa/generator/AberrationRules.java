@@ -25,7 +25,7 @@ public class AberrationRules
   // unique breakpoint pairs
   static boolean UNIQUE_BP_PAIRS = true;
 
-  // Aberration rules
+  // SequenceAberration rules
   static final Object[] SINGLE_CENTROMERE = new String[]{"iso", "dup", "del"};
   static final Object[] TWO_CENTROMERES = new String[]{"dic", "del", "dup", "ins", "inv"};
 
@@ -62,10 +62,10 @@ public class AberrationRules
       map.put(bandList, abrList);
       }
 
-//    for(Map.Entry<List<Band>, List<ICombinatoricsVector<Aberration>>> entry: map.entrySet())
+//    for(Map.Entry<List<Band>, List<ICombinatoricsVector<SequenceAberration>>> entry: map.entrySet())
 //      {
 //      log.info("--->" + entry.getKey());
-//      for (ICombinatoricsVector<Aberration> a: entry.getValue())
+//      for (ICombinatoricsVector<SequenceAberration> a: entry.getValue())
 //        {
 //        log.info(a);
 //        }
@@ -139,7 +139,7 @@ public class AberrationRules
     else
       aberrations = ruleMultiChromosome(bandSets);
 
-//    for (ICombinatoricsVector<Aberration> list : aberrations)
+//    for (ICombinatoricsVector<SequenceAberration> list : aberrations)
 //      log.info(list);
     }
 

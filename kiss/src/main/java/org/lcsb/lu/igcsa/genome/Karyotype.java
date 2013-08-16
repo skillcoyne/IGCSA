@@ -1,12 +1,15 @@
 package org.lcsb.lu.igcsa.genome;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.aberrations.Aberration;
-import org.lcsb.lu.igcsa.aberrations.Translocation;
+import org.lcsb.lu.igcsa.aberrations.SequenceAberration;
+import org.lcsb.lu.igcsa.aberrations.multiple.DerivativeChromosomeAberration;
+import org.lcsb.lu.igcsa.aberrations.multiple.Translocation;
+import org.lcsb.lu.igcsa.aberrations.single.SingleChromosomeAberration;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.fasta.MutationWriter;
+import org.lcsb.lu.igcsa.generator.Aberration;
 import org.lcsb.lu.igcsa.genome.concurrency.Mutable;
 
 import java.io.File;
@@ -28,29 +31,11 @@ public class Karyotype extends Genome
 
   // Since in the karyotype it makes a difference how many copies of each chromosome are around we have to track it somehow
   private HashMap<String, Integer> chromosomeCount = new HashMap<String, Integer>();
-
   private List<DerivativeChromosome> derivativeChromosomes = new ArrayList<DerivativeChromosome>();
-
   private Map<Object, List<Collection<Band>>> aberrations = new HashMap<Object, List<Collection<Band>>>();
+  private List<Aberration> aberrationDefinitions = new ArrayList<Aberration>();
 
   //44,X,-Y,-6,t(11;14)(q13;q32),add(22)(q13)
-//  public Karyotype(BreakpointDAO bpDAO, ChromosomeBandDAO bandDAO)
-//    {
-//    this.bandDAO = bandDAO;
-//    this.breakpointDAO = bpDAO;
-//    }
-
-//  public Karyotype(ContinuousDistribution ploidyDist, ContinuousDistribution aberrationDist)
-//    {
-//    this.ploidyDist = ploidyDist;
-//    this.aberrationDist = aberrationDist;
-//    }
-
-//  public void setDistributions(ContinuousDistribution ploidyDist, ContinuousDistribution aberrationDist)
-//    {
-//    this.ploidyDist = ploidyDist;
-//    this.aberrationDist = aberrationDist;
-//    }
 
   public void setKaryotypeDefinition(int ploidy, String allosomes)
     {
@@ -74,6 +59,16 @@ public class Karyotype extends Genome
     return this.chromosomeCount.get(chrName);
     }
 
+  public HashMap<String, Integer> getChromosomeCount()
+    {
+    return chromosomeCount;
+    }
+
+  public int getChromosomeCount(String chr)
+    {
+    return chromosomeCount.get(chr);
+    }
+
   @Override
   public void addChromosomes(Chromosome[] chromosomes)
     {
@@ -94,23 +89,15 @@ public class Karyotype extends Genome
     chromosomeCount.put(chromosome.getName(), 2);
     }
 
-  public void chromosomeGain(String chromosome)
+  /**
+   * Use for aneuploidy
+   *
+   * @param chromosome
+   */
+  public void gainChromosome(String chromosome)
     {
     log.info("GAIN chromosome " + chromosome);
     chromosomeCount.put(chromosome, chromosomeCount.get(chromosome) + 1);
-    }
-
-  private void adjustSex()
-    {
-    // Make sure males start with only one X and one Y
-    if (allosomes.equals("XY"))
-      {
-      chromosomeCount.put("X", 1);
-      chromosomeCount.put("Y", 1);
-      }
-
-    // females don't need to have Y chromosome around
-    if (allosomes.equals("XX")) removeChromosome("Y");
     }
 
   /**
@@ -118,26 +105,11 @@ public class Karyotype extends Genome
    *
    * @param name
    */
-  public void chromosomeLoss(String name)
+  public void loseChromosome(String name)
     {
     log.info("LOSE chromosome " + name);
     chromosomeCount.put(name, chromosomeCount.get(name) - 1);
     if (chromosomeCount.get(name) == 0) this.removeChromosome(name);
-    }
-
-  public void addAberration(Object abr, Collection<Band> bands)
-    {
-    // TODO no, this isn't the way it should be done but for now...
-
-    if (!aberrations.containsKey(abr)) {}
-      aberrations.put(abr, new ArrayList<Collection<Band>>());
-
-    List<Collection<Band>> list = aberrations.get(abr);
-    list.add(bands);
-
-    aberrations.put(abr, list);
-
-    log.info(aberrations);
     }
 
   public Map<Object, List<Collection<Band>>> getAberrations()
@@ -145,79 +117,77 @@ public class Karyotype extends Genome
     return aberrations;
     }
 
+  public void addAberrationDefintion(Aberration abr)
+    {
+    this.aberrationDefinitions.add(abr);
 
+    // Derivative chromosome will be dependent on what the first chromosome in any given aberration is
+    String chromosomeName = abr.getBands().get(0).getChromosomeName();
+    DerivativeChromosome dChr = new DerivativeChromosome(chromosomeName, this.getChromosome(chromosomeName));
+
+    SequenceAberration sequenceAberration;
+
+    try
+      {
+      if (SequenceAberration.hasClassForAberrationType((String) abr.getAberration()))
+        {
+        sequenceAberration = (SequenceAberration) SequenceAberration.getClassForAberrationType((String) abr.getAberration()).newInstance();
+        for (Band b : abr.getBands())
+          sequenceAberration.addFragment(b, this.getChromosome(b.getChromosomeName()));
+
+        dChr.addSequenceAberration(sequenceAberration);
+        }
+      else log.warn("No class for aberration type '" + abr.getAberration() + "'");
+      }
+    catch (InstantiationException e)
+      {
+      log.error(e);
+      }
+    catch (IllegalAccessException e)
+      {
+      log.error(e);
+      }
+
+    this.addDerivativeChromosome(dChr);
+    }
+
+  public List<Aberration> getAberrationDefinitions()
+    {
+    return aberrationDefinitions;
+    }
 
   // TODO this is temporary, when I know how I want to get these from the real data this will change but it belongs in the karyotype class
   public void setAberrations(Properties ktProperties) throws Exception, InstantiationException, IllegalAccessException
     {
 
-    // Add or remove chromosomes
-//    int ploidyDiff = (int) ploidyDist.sample(); // how many are added/removed...now which ones??
-//    log.info("Total aneuploid chromosomes: " + ploidyDiff);
-//    Probability ploidyProbability = KaryotypePropertiesUtil.temporaryGetPloidyProbability();
-//    Map<Object, Probability> gainLoss = KaryotypePropertiesUtil.tempGetGainLossProb();
-//
-//    for (int i=0; i<ploidyDiff; i++)
-//      {
-//      String chr = (String) ploidyProbability.roll();
-//      if (!gainLoss.containsKey(chr)) continue;
-//      if (gainLoss.get(chr).roll().equals("gain"))
-//        this.chromosomeGain(chr);
-//      else
-//        this.chromosomeLoss(chr);
-//      gainLoss.remove(chr);
-//      }
-//
-//    // Start creating aberrations
-//    int aberrationCount = (int) aberrationDist.sample(); // total aberrations to apply...now which ones??
-//    log.info("Total aberrations: " + aberrationCount);
-//
-//    Probability chrBreakProb = KaryotypePropertiesUtil.temporaryGetChromosomeProbabilities();
-//
-//    for (int i=0; i<aberrationCount; i++)
-//      {
-//      String chr = (String) chrBreakProb.roll();
-//      log.info("Break chr " + chr);
-//
-//      if (KaryotypePropertiesUtil.tempCentromereProb().containsKey(chr))
-//        {
-//        Probability centromereBreak = KaryotypePropertiesUtil.tempCentromereProb().get(chr);
-//        log.info("centromere: " + centromereBreak.roll());
-//        }
-//
-//      // TODO get breakpoints next
-//      }
-//      System.exit(-1);
 
-
-//    Map<String, List<Aberration>> aberrationMap = KaryotypePropertiesUtil.getAberrationList(bandDAO, ktProperties);
-//    for (Map.Entry<String, List<Aberration>> entry : aberrationMap.entrySet())
-//      {
-//      Chromosome chr = this.getChromosome(entry.getKey());
-//      DerivativeChromosome derChr = new DerivativeChromosome(chr.getName(), chr);
-//      derChr.setAberrationList(entry.getValue());
-//
-//      this.addDerivativeChromosome(derChr);
-//      }
-//
-//    Object[] translocations = KaryotypePropertiesUtil.getTranslocations(bandDAO, ktProperties, this.chromosomes);
-//    if (translocations != null)
-//      {
-//      Set<String> chrs = (Set<String>) translocations[0];
-//      DerivativeChromosome derChr = new DerivativeChromosome(chrs.iterator().next());
-//      for (String chrName: chrs)
-//        derChr.addChromosome(this.getChromosome(chrName));
-//      derChr.setAberrationList((List<Aberration>) translocations[1]);
-//
-//      this.addDerivativeChromosome(derChr);
-//      }
+    //    Map<String, List<SequenceAberration>> aberrationMap = KaryotypePropertiesUtil.getSequenceAberrationList(bandDAO, ktProperties);
+    //    for (Map.Entry<String, List<SequenceAberration>> entry : aberrationMap.entrySet())
+    //      {
+    //      Chromosome chr = this.getChromosome(entry.getKey());
+    //      DerivativeChromosome derChr = new DerivativeChromosome(chr.getName(), chr);
+    //      derChr.setSequenceAberrationList(entry.getValue());
+    //
+    //      this.addDerivativeChromosome(derChr);
+    //      }
+    //
+    //    Object[] translocations = KaryotypePropertiesUtil.getTranslocations(bandDAO, ktProperties, this.chromosomes);
+    //    if (translocations != null)
+    //      {
+    //      Set<String> chrs = (Set<String>) translocations[0];
+    //      DerivativeChromosome derChr = new DerivativeChromosome(chrs.iterator().next());
+    //      for (String chrName: chrs)
+    //        derChr.addChromosome(this.getChromosome(chrName));
+    //      derChr.setSequenceAberrationList((List<SequenceAberration>) translocations[1]);
+    //
+    //      this.addDerivativeChromosome(derChr);
+    //      }
     }
 
   public void addDerivativeChromosome(DerivativeChromosome chr)
     {
     this.derivativeChromosomes.add(chr);
-    if (this.ploidyCount(chr.getName()) > 1)
-      chromosomeLoss(chr.getName());
+    if (this.ploidyCount(chr.getName()) > 1) loseChromosome(chr.getName());
     }
 
   public DerivativeChromosome[] getDerivativeChromosomes()
@@ -227,14 +197,18 @@ public class Karyotype extends Genome
 
 
   /*
-  TODO: Note that the FASTAReader in each chromosome is NOT thread-safe. There is only a single reader pointer for each chromosome so at the moment this isn't multi-threaded. This wouldn't necessarily be difficult to implement. But I'm not sure if it's a simple case of returning a new reader each time getREADER is called on a chromosome since I would then have to be very careful to be aware of when I called that method.  It's also possible that disk I/O could cause these to all slow down and currently sequentially mutating chromosomes is fast enough.
+  TODO: Note that the FASTAReader in each chromosome is NOT thread-safe. There is only a single reader pointer for each chromosome so at
+  the moment this isn't multi-threaded. This wouldn't necessarily be difficult to implement. But I'm not sure if it's a simple case of
+  returning a new reader each time getREADER is called on a chromosome since I would then have to be very careful to be aware of when I
+  called that method.  It's also possible that disk I/O could cause these to all slow down and currently sequentially mutating
+  chromosomes is fast enough.
     */
   public Mutable applyAberrations() throws IOException
     {
     for (DerivativeChromosome dchr : this.derivativeChromosomes)
       {
       log.info(dchr.getName());
-      for (Aberration abr : dchr.getAberrationList())
+      for (SequenceAberration abr : dchr.getSequenceAberrationList())
         {
         if (abr.getClass().equals(Translocation.class))
           {
@@ -248,8 +222,9 @@ public class Karyotype extends Genome
           FASTAHeader header = new FASTAHeader("figg", newFasta.getName().replaceAll("-der.fa", ""), "karyotype.variation",
                                                this.getBuildName());
           FASTAWriter writer = new FASTAWriter(newFasta, header);
-          MutationWriter mutWriter = new MutationWriter(new File(this.mutationDirectory, newFasta.getName().replace(".fa", "")
-                                                                                         + "-SVs.txt"), MutationWriter.SV);
+          MutationWriter mutWriter = new MutationWriter(new File(this.mutationDirectory, newFasta.getName().replace(".fa",
+                                                                                                                    "") + "-SVs.txt"),
+                                                        MutationWriter.SV);
 
           trans.applyAberrations(dchr, writer, mutWriter);
           }
@@ -259,7 +234,7 @@ public class Karyotype extends Genome
           // 1. Get chromosome for each fragment
           // 2. Create new fasta file IF APPLICABLE (derivatives or translocations)
           // 3. Give Mutable impl the new fasta file, with the aberration
-          // 4. Call Aberration.apply
+          // 4. Call SequenceAberration.apply
 
           File newFasta = ktChromosomeFile(this.getGenomeDirectory(), dchr.getName());
 
@@ -268,8 +243,9 @@ public class Karyotype extends Genome
           FASTAHeader header = new FASTAHeader("figg", newFasta.getName().replaceAll("-der.fa", ""), "karyotype.variation",
                                                this.getBuildName());
           FASTAWriter writer = new FASTAWriter(newFasta, header);
-          MutationWriter mutWriter = new MutationWriter(new File(this.mutationDirectory, newFasta.getName().replace(".fa", "")
-                                                                                         + "-SVs.txt"), MutationWriter.SV);
+          MutationWriter mutWriter = new MutationWriter(new File(this.mutationDirectory, newFasta.getName().replace(".fa",
+                                                                                                                    "") + "-SVs.txt"),
+                                                        MutationWriter.SV);
           abr.applyAberrations(dchr, writer, mutWriter);
           }
         }
@@ -290,5 +266,39 @@ public class Karyotype extends Genome
       }
     return file;
     }
+
+  private void adjustSex()
+    {
+    // Make sure males start with only one X and one Y
+    if (allosomes.equals("XY"))
+      {
+      chromosomeCount.put("X", 1);
+      chromosomeCount.put("Y", 1);
+      }
+
+    // females don't need to have Y chromosome around
+    if (allosomes.equals("XX")) removeChromosome("Y");
+    }
+
+
+  @Override
+  public Karyotype copy()
+    {
+    Karyotype kt = new Karyotype();
+
+    kt.setBuildName(this.buildName);
+    kt.setGenomeDirectory(this.getGenomeDirectory());
+    for (Chromosome chr : this.getChromosomes())
+      kt.addChromosome(chr);
+    kt.setMutationDirectory(this.getMutationDirectory());
+
+    kt.ploidy = this.ploidy;
+    kt.chromosomes = this.chromosomes;
+    kt.allosomes = this.allosomes;
+    kt.chromosomeCount = this.chromosomeCount;
+
+    return kt;
+    }
+
 
   }

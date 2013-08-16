@@ -25,7 +25,6 @@ public class KaryotypeGenerator
   static Logger log = Logger.getLogger(KaryotypeGenerator.class.getName());
 
   private KaryotypeDAO karyotypeDAO;
-  private Properties karyotypeProperties;
 
   private Karyotype karyotype;
 
@@ -38,20 +37,9 @@ public class KaryotypeGenerator
   @Autowired
   private AberrationRules aberrationRules;
 
-  // TODO this should NOT be hardwired
-  private Map<String, Class<?>> aberrationClasses = new HashMap<String, Class<?>>();
-
-
   public KaryotypeGenerator(KaryotypeDAO karyotypeDAO)
     {
     this.karyotypeDAO = karyotypeDAO;
-    abrClasses();
-    }
-
-  public KaryotypeGenerator(Properties karyotypeProperties)
-    {
-    this.karyotypeProperties = karyotypeProperties;
-    abrClasses();
     }
 
   public void setAberrationRules(AberrationRules aberrationRules)
@@ -59,101 +47,36 @@ public class KaryotypeGenerator
     this.aberrationRules = aberrationRules;
     }
 
-  private void abrClasses()
-    {
-    try
-      {
-      aberrationClasses.put("trans", Class.forName("org.lcsb.lu.igcsa.aberrations.Translocation"));
-      aberrationClasses.put("del", Class.forName("org.lcsb.lu.igcsa.aberrations.Deletion"));
-      aberrationClasses.put("dup", Class.forName("org.lcsb.lu.igcsa.aberrations.Duplication"));
-      aberrationClasses.put("inv", Class.forName("org.lcsb.lu.igcsa.aberrations.Inversion"));
-      }
-    catch (ClassNotFoundException e)
-      {
-      e.printStackTrace();
-      }
 
-    }
-
-
-  /*
- For testing purposes at the moment
-  */
-  protected void generateKaryotypes(Karyotype kt, Band[] bands)
+  protected Karyotype generateKaryotype(Karyotype kt, Band[] bands)
     {
     aberrationRules.applyRules(bands);
 
     // apply ploidy
     for (String chr : this.chromosomeGains)
-      kt.chromosomeGain(chr);
+      kt.gainChromosome(chr);
     for (String chr : this.chromosomeLosses)
-      kt.chromosomeLoss(chr);
+      kt.loseChromosome(chr);
 
-    // create -n- karyotypes based on the generated aberrations just to allow for some diversity. This can be setable later.
-    for (int n = 0; n < 3; n++)
+    int abrCount = new RandomRange(1, aberrationRules.getOrderedAberrationSets().size()).nextInt();
+
+    List<List<Band>> orderedBands = new ArrayList<List<Band>>(aberrationRules.getOrderedBreakpointSets().keySet());
+    // get random selection of aberrations by band
+    Collections.shuffle(orderedBands);
+    for (int i = 0; i < abrCount; i++)
       {
+      List<Band> bandList = orderedBands.get(0);
+      orderedBands.remove(0);
+      Collections.shuffle(orderedBands);
+      List<ICombinatoricsVector<Aberration>> abrPerBand = aberrationRules.getOrderedBreakpointSets().get(bandList);
+
+      Aberration abr = abrPerBand.get(new Random().nextInt(abrPerBand.size())).getVector().get(0);
+log.info(abr);
+      kt.addAberrationDefintion(abr);
       }
 
-    log.info(aberrationRules.getOrderedBreakpointSets());
-    log.info(aberrationRules.getOrderedAberrationSets().size());
-
-    int abrCount = 4;//;new RandomRange(1, aberrationRules.getOrderedAberrationSets().size()).nextInt();
-
-    log.info(abrCount);
-
-    Band[] orderedBands = aberrationRules.getOrderedBreakpointSets().keySet().toArray( new Band[aberrationRules.getOrderedBreakpointSets().size()] ) ;
-
-    Set<Integer> indecies = new HashSet<Integer>();
-    for (int i=0; i<abrCount; i++)
-      {
-      int index = new Random().nextInt(abrCount);
-
-      while (!indecies.contains(index))
-        index = new Random().nextInt(abrCount);
-
-      List<ICombinatoricsVector<Aberration>> abrPerBand = aberrationRules.getOrderedBreakpointSets().get(orderedBands[index]);
-      int abrSelector = new RandomRange(-1, abrPerBand.size()).nextInt();
-      if (abrSelector > 0)
-        {
-        //abrPerBand.get(abrSelector).getVector();
-        }
-
-      }
-
-
-
-
-    for (Map.Entry<Object, List<ICombinatoricsVector<Band>>> entry : aberrationRules.getOrderedAberrationSets().entrySet())
-      {
-//      log.info(entry);
-//      log.info(entry.getValue().size());
-
-      int selector = new Random().nextInt(entry.getValue().size()) - 1;
-
-      if (selector > 0)
-        {
-//        log.info("---" + entry.getKey() + "---");
-//        log.info(entry.getValue().get(selector));
-//
-//        kt.addAberration(entry.getKey(), entry.getValue().get(selector).getVector() );
-
-        }
-      }
-
-    //    log.info(aberrationRules.getOrderedBreakpointSets().keySet());
-    //    log.info(aberrationRules.getOrderedBreakpointSets().size());
-    //
-    //    log.info(aberrationRules.getAberrations().size());
-    //
-    //    for (Map.Entry<List<Band>, List<ICombinatoricsVector<Aberration>>> entry: aberrationRules.getOrderedBreakpointSets().entrySet())
-    //      {
-    //      log.info("---" + entry.getKey() + "---");
-    //      log.info(entry.getValue().get( new Random().nextInt(entry.getValue().size()) ));
-    //      }
-
-
+    return kt;
     }
-
 
   /*
   ---- 1 ----
@@ -162,49 +85,21 @@ public class KaryotypeGenerator
    (B) select the number of aneuploidy's that should occur
    (C) select the number of breakpoints that should occur per chromosome
   */
-  public void generateKaryotypes(Karyotype kt) throws ProbabilityException
+  public Karyotype generateKaryotypes(Karyotype kt) throws ProbabilityException
     {
-    setUp();
-    createAberrations();
-    //List<Karyotype> karyotypeList = new ArrayList<Karyotype>(aberrations.size());
-
-    List<ICombinatoricsVector<Aberration>> aberrations = aberrationRules.getAberrations();
-
-    log.info(aberrationRules.getOrderedBreakpointSets().keySet());
-    log.info(aberrationRules.getOrderedBreakpointSets().size());
-
-    log.info(aberrations.size());
-
-    //    ICombinatoricsVector<ICombinatoricsVector<Aberration>> initialVector = Factory.createVector(aberrations);
-    //    Generator<ICombinatoricsVector<Aberration>> gen = Factory.createMultiCombinationGenerator(initialVector, aberrationRules.getOrderedBreakpointSets().size()); // this one will include sets of same objects (foo, foo)
-    //
-    //    for (ICombinatoricsVector<ICombinatoricsVector<Aberration>> vector: gen.generateAllObjects())
-    //      {
-    //      log.info(vector);
-    //      }
-
-
+    getNumericAberrations();
+    return generateKaryotype(kt, breakpoints.toArray(new Band[breakpoints.size()]));
     }
 
-
-  /*
-  This will likely need to be rule-based. So what are the rules?
-  */
-  private void createAberrations()
-    {
-    aberrationRules.applyRules(breakpoints.toArray(new Band[breakpoints.size()]));
-    }
-
-  private void setUp() throws ProbabilityException
+  private void getNumericAberrations() throws ProbabilityException
     {
     int chrCount = selectCount("chromosome"); // 1(A)
     int totalPloidy = selectCount("aneuploidy"); // 1(B)
+
     while (chrCount <= 0 || totalPloidy <= 0) // one of these has to be positive to make this worthwhile
       {
-      if (chrCount <= 0)
-        chrCount = selectCount("chromosome");
-      if (totalPloidy <= 0)
-        totalPloidy = selectCount("aneuploidy");
+      if (chrCount <= 0) chrCount = selectCount("chromosome");
+      if (totalPloidy <= 0) totalPloidy = selectCount("aneuploidy");
       }
 
     // 1(B)
@@ -236,12 +131,12 @@ public class KaryotypeGenerator
       int i = 1;
       while (i <= r)
         {
-        String band = (String) karyotypeDAO.getGeneralKarytoypeDAO().getBandProbabilities(chr).roll();
-        {
-        breakpoints.add(new Band(chr, band));
-        bands.add(new Band(chr, band));
+        String bandName = (String) karyotypeDAO.getGeneralKarytoypeDAO().getBandProbabilities(chr).roll();
+
+        Band band = karyotypeDAO.getBandDAO().getBandByChromosomeAndName(chr, bandName);
+        breakpoints.add(band);
+        bands.add(band);
         i++;
-        }
         }
       chromosomes.put(chr, new BandCollection((Collection<Band>) bands));
       }
@@ -257,10 +152,8 @@ public class KaryotypeGenerator
       {
       String chromosome = (String) karyotypeDAO.getAneuploidyDAO().getChromosomeProbabilities().roll();
       String ploidy = (String) karyotypeDAO.getAneuploidyDAO().getGainLoss(chromosome).roll();
-      if (ploidy.equals("gain"))
-        chromosomeGains.add(chromosome);
-      else
-        chromosomeLosses.add(chromosome);
+      if (ploidy.equals("gain")) chromosomeGains.add(chromosome);
+      else chromosomeLosses.add(chromosome);
       }
     log.info("Gains: " + this.chromosomeGains.toString() + " Losses: " + this.chromosomeLosses.toString());
     }

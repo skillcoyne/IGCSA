@@ -1,6 +1,7 @@
-package org.lcsb.lu.igcsa.aberrations;
+package org.lcsb.lu.igcsa.aberrations.single;
 
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.fasta.Mutation;
@@ -10,9 +11,6 @@ import org.lcsb.lu.igcsa.genome.DerivativeChromosome;
 import org.lcsb.lu.igcsa.genome.Location;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TreeSet;
 
 
 /**
@@ -21,17 +19,9 @@ import java.util.TreeSet;
  * Copyright University of Luxembourg, Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class Duplication extends Aberration
+public class Duplication extends SingleChromosomeAberration
   {
   static Logger log = Logger.getLogger(Duplication.class.getName());
-
-  @Override
-  public void addFragment(ChromosomeFragment fragment)
-    {
-    if (getFragmentLocations().size() >= 1 )
-      throw new IllegalArgumentException(Duplication.class.getName() + " can take only 1 ChromosomeFragment.");
-    super.addFragment(fragment);
-    }
 
   @Override
   public void applyAberrations(DerivativeChromosome derivativeChromosome, FASTAWriter writer, MutationWriter mutationWriter)

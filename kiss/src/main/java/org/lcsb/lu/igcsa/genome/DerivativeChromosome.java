@@ -1,9 +1,8 @@
 package org.lcsb.lu.igcsa.genome;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.aberrations.Aberration;
+import org.lcsb.lu.igcsa.aberrations.SequenceAberration;
 
-import java.io.File;
 import java.util.*;
 
 
@@ -20,7 +19,7 @@ public class DerivativeChromosome extends Chromosome
   {
   static Logger log = Logger.getLogger(DerivativeChromosome.class.getName());
 
-  private List<Aberration> aberrationList = new ArrayList<Aberration>();
+  private List<SequenceAberration> sequenceAberrationList = new ArrayList<SequenceAberration>();
 
   private Set<Chromosome> chromosomes = new HashSet<Chromosome>();
 
@@ -53,19 +52,25 @@ public class DerivativeChromosome extends Chromosome
     return this.chromosomes;
     }
 
-  public void setAberrationList(List<Aberration> aberrations)
+  public void addSequenceAberration(SequenceAberration abr)
     {
-    aberrationList = aberrations;
+    sequenceAberrationList.add(abr);
     }
 
-  public void addAberration(Aberration abr)
+  public void setSequenceAberrationList(List<SequenceAberration> sequenceAberrations)
     {
-    aberrationList.add(abr);
+    sequenceAberrationList = sequenceAberrations;
     }
 
-  public List<Aberration> getAberrationList()
+  public void addAberration(SequenceAberration abr)
     {
-    return aberrationList;
+    sequenceAberrationList.add(abr);
     }
+
+  public List<SequenceAberration> getSequenceAberrationList()
+    {
+    return sequenceAberrationList;
+    }
+
 
   }

@@ -12,13 +12,22 @@ import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.lcsb.lu.igcsa.aberrations.SequenceAberration;
 import org.lcsb.lu.igcsa.database.Band;
+import org.lcsb.lu.igcsa.genome.Chromosome;
+import org.lcsb.lu.igcsa.genome.DerivativeChromosome;
 import org.lcsb.lu.igcsa.genome.Karyotype;
+import org.lcsb.lu.igcsa.genome.Location;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.File;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 @RunWith (SpringJUnit4ClassRunner.class)
 @ContextConfiguration (locations = {"classpath:kiss-test-spring-config.xml"})
@@ -36,20 +45,34 @@ public class KaryotypeGeneratorTest
     {
     testKaryotype = new Karyotype();
 
-    //File insilicoTest = new File(testProperties.getProperty("dir.karyotype"));
-//    testKaryotype.setGenomeDirectory(insilicoTest);
-//    testKaryotype.setMutationDirectory(new File(insilicoTest, "structural-variations"));
+    URL testUrl = ClassLoader.getSystemResource("fasta/wiki-text.fa");
+    File fastaFile = new File(testUrl.toURI());
+
     testKaryotype.setBuildName("Karyotype Test");
     testKaryotype.setKaryotypeDefinition(46, "XY");
+
+    for (int c = 1; c <= 22; c++)
+      testKaryotype.addChromosome(new Chromosome(Integer.toString(c), fastaFile));
     }
 
 
   @Test
-  public void testGenerateKaryotype() throws Exception
+  public void testGenerateKaryotypeWithKnownBands() throws Exception
     {
-    karyotypeGenerator.generateKaryotypes(testKaryotype, new Band[]{new Band("2", "q11"), new Band("3", "p12"), new Band("6", "q32"), new Band("17", "p14")});
+    List<Karyotype> karyotypes = new ArrayList<Karyotype>();
 
-    log.info(testKaryotype.getAberrations());
+    for (int i = 0; i < 3; i++)
+      {
+      karyotypes.add(karyotypeGenerator.generateKaryotype(testKaryotype, new Band[]{new Band("2", "q11", new Location(1, 40)),
+          new Band("3", "p12", new Location(1, 40)), new Band("6", "q32", new Location(1, 40)), new Band("17", "p14", new Location(1,
+                                                                                                                                   40))}));
+      }
 
+    for (Karyotype k : karyotypes)
+      {
+      assertTrue(k.getAberrationDefinitions().size() <= 6 && k.getAberrationDefinitions().size() > 0);
+      assertEquals(k.getChromosomeCount("X"), 1);
+      assertEquals(k.getChromosomeCount("Y"), 1);
+      }
     }
   }

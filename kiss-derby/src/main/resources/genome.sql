@@ -33,3 +33,12 @@ CREATE TABLE karyotype_probabilities (
   PRIMARY KEY (id)
 );
 
+CREATE TABLE chromosome_bands (
+  id INT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
+  chr VARCHAR(12) NOT NULL,
+  band VARCHAR(12) NOT NULL,
+  start_loc INT NOT NULL,
+  end_loc INT NOT NULL,
+  PRIMARY KEY (id)
+);
+

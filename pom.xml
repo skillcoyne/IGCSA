@@ -19,6 +19,7 @@
         <module>kiss</module>
         <module>sim</module>
         <module>kiss-derby</module>
+        <module>fitness</module>
     </modules>
 
     <build>

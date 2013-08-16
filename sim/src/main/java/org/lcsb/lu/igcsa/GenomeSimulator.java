@@ -61,8 +61,11 @@ public class GenomeSimulator
 
     if (cl.hasOption("s"))
       {
+      int count = Integer.parseInt(cl.getOptionValue('s', "2"));
+
       KaryotypeInsilicoGenome karGen = new KaryotypeInsilicoGenome(context, cl);
-      karGen.applyMutations();
+      karGen.generateKaryotypes();
+      //karGen.applyMutations();
       }
 
     log.info("FINISHED mutating genome " + genomeName);
@@ -119,8 +122,8 @@ public class GenomeSimulator
     options.addOption("t", "threads", true, "Number of concurrent threads. Each thread handles a single chromosome. [5]");
     options.addOption("c", "chromosome", true, "List of chromosomes to use/mutate, comma-separated (e.g.  21,3," +
         "X). If not included chromosomes will be determined by \n" + "the fasta files found in the" +
-        " dir.assembly directory (see genome.properties).");
-    options.addOption("s", "SV", false, "Apply structural variations to genome. [false]");
+        " dir.assembly directory (see genome.properties). This works ONLY with the -f option.");
+    options.addOption("s", "SV", true, "Create some number of structurally variant genomes for the provided sequence. [2]");
     options.addOption("f", "fragment", false, "Apply small scale (fragment) variation to genome. [false]");
 
     options.addOption("h", "help", false, "print usage help");
@@ -142,6 +145,10 @@ public class GenomeSimulator
         System.out.println("One of the following (or both) options is required: -s or -f");
         help.printHelp("<jar file>", options);
         System.exit(0);
+        }
+      if (cl.hasOption('s') && cl.hasOption('c'))
+        {
+        System.out.println("-s works only with all chromosomes defined in the provided probability database. The chromosome option will be ignored after fragment generation.");
         }
       }
     catch (ParseException e)

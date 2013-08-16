@@ -57,10 +57,12 @@ public class Aberration
     }
 
 
+
+
   @Override
   public String toString()
     {
-    return aberration + ", " + bands.toString();
+    return aberration + ": " + bands.toString();
     }
 
   }

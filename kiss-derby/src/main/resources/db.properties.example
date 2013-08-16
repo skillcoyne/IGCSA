@@ -6,8 +6,9 @@ db.name=karyotype_probabilities
 db.username=igcsa
 db.create=true
 
-# Text files containing data for each table, this should be the result of the R scripts
-karyotype.probabilities=
-chr.instability=
-bp.probabilities=
-ploidy.probabilities=
+# Text files containing data for each table, this should be the result of the R scripts.
+karyotype.probabilities=<path to file>
+chr.instability=<path to file>
+bp.probabilities=<path to file>
+ploidy.probabilities=<path to file>
+band.locations=<path to file>

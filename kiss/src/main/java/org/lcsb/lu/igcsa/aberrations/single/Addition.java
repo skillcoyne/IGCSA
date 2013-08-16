@@ -1,4 +1,4 @@
-package org.lcsb.lu.igcsa.aberrations;
+package org.lcsb.lu.igcsa.aberrations.single;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
@@ -26,7 +26,7 @@ but more than that causes an error as there are no further chromosomes
 The aberration itself can only handle a single breakpoint.  So each time it's called with a chromosome,
 the first location on the list is used then removed.
  */
-public class Addition extends Aberration
+public class Addition extends SingleChromosomeAberration
   {
   static Logger log = Logger.getLogger(Addition.class.getName());
 

@@ -13,8 +13,20 @@ import org.lcsb.lu.igcsa.database.sql.JDBCAneuploidyDAO;
 public class KaryotypeDAO
   {
 
+
   private AneuploidyDAO aneuploidyDAO;
   private GeneralKarytoypeDAO generalKarytoypeDAO;
+  private ChromosomeBandDAO bandDAO;
+
+  public ChromosomeBandDAO getBandDAO()
+    {
+    return bandDAO;
+    }
+
+  public void setBandDAO(ChromosomeBandDAO bandDAO)
+    {
+    this.bandDAO = bandDAO;
+    }
 
   public GeneralKarytoypeDAO getGeneralKarytoypeDAO()
     {

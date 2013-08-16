@@ -5,11 +5,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.lcsb.lu.igcsa.aberrations.multiple.Translocation;
+import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.genome.Chromosome;
-import org.lcsb.lu.igcsa.genome.ChromosomeFragment;
 import org.lcsb.lu.igcsa.genome.DerivativeChromosome;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,19 +70,10 @@ public class TranslocationTest
     {
     Translocation abr = new Translocation();
 
-    try
-      { // wrong method
-      abr.addFragment(null);
-      }
-    catch (RuntimeException rne)
-      {
-      assertNotNull(rne);
-      }
-
-    abr.addFragment(new ChromosomeFragment(chr1.getName(), "dna", new Location(144, 608)), chr1);
-    abr.addFragment(new ChromosomeFragment(chr2.getName(), "climate", new Location(702, 1064)), chr2);
-    abr.addFragment(new ChromosomeFragment(chr1.getName(), "dna", new Location(0, 20)), chr1);
-    abr.addFragment(new ChromosomeFragment(chr2.getName(), "climate", new Location(993, 1023)), chr2);
+    abr.addFragment(new Band(chr1.getName(), "dna", new Location(144, 608)), chr1);
+    abr.addFragment(new Band(chr2.getName(), "climate", new Location(702, 1064)), chr2);
+    abr.addFragment(new Band(chr1.getName(), "dna", new Location(0, 20)), chr1);
+    abr.addFragment(new Band(chr2.getName(), "climate", new Location(993, 1023)), chr2);
 
     assertEquals(abr.getFragments().size(), 4);
     }
@@ -91,10 +83,10 @@ public class TranslocationTest
     {
     Translocation abr = new Translocation();
 
-    abr.addFragment(new ChromosomeFragment(chr1.getName(), "dna", new Location(144, 608)), chr1);
-    abr.addFragment(new ChromosomeFragment(chr2.getName(), "climate", new Location(702, 1064)), chr2);
-    abr.addFragment(new ChromosomeFragment(chr1.getName(), "dna", new Location(0, 20)), chr1);
-    abr.addFragment(new ChromosomeFragment(chr2.getName(), "climate", new Location(993, 1023)), chr2);
+    abr.addFragment(new Band(chr1.getName(), "dna", new Location(144, 608)), chr1);
+    abr.addFragment(new Band(chr2.getName(), "climate", new Location(702, 1064)), chr2);
+    abr.addFragment(new Band(chr1.getName(), "dna", new Location(0, 20)), chr1);
+    abr.addFragment(new Band(chr2.getName(), "climate", new Location(993, 1023)), chr2);
 
     abr.applyAberrations(new DerivativeChromosome("derivative"), writer, null);
 

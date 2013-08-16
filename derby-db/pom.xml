@@ -73,7 +73,7 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
-                            <finalName>db</finalName>
+                            <finalName>normal</finalName>
                             <appendAssemblyId>false</appendAssemblyId>
                             <attach>true</attach>
                             <descriptor>assembly.xml</descriptor>

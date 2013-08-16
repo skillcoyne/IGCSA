@@ -53,7 +53,6 @@ public class Fragment
     this.binId = binId;
     }
 
-
   public String toString()
     {
     String str = "Chr " + chr + ", bin " + binId + " variation " + variation + " count " + count;

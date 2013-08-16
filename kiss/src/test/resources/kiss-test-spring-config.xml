@@ -31,7 +31,6 @@
     </bean>
 
 
-
     <!-- Load in application properties reference -->
     <bean id="applicationProperties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
         <property name="location" value="classpath:test.properties"/>
@@ -56,6 +55,11 @@
                 <property name="dataSource" ref="testDS"/>
             </bean>
         </property>
+        <property name="bandDAO">
+            <bean id="bandDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCChromosomeBandDAO">
+                <property name="dataSource" ref="testDS"/>
+            </bean>
+        </property>
     </bean>
 
     <bean id="generator" class="org.lcsb.lu.igcsa.generator.KaryotypeGenerator" scope="singleton" lazy-init="true">
@@ -69,7 +73,6 @@
             </props>
         </property>
     </bean>
-
 
 
 </beans>

@@ -5,6 +5,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.lcsb.lu.igcsa.aberrations.single.Deletion;
+import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
@@ -69,8 +71,8 @@ public class DeletionTest
     Chromosome chr = new Chromosome("test", fastaFile);
     DerivativeChromosome dchr = new DerivativeChromosome("test", chr);
 
-    abr.addFragment(new ChromosomeFragment("test", "XARM", new Location(980, 1050)));
-    abr.addFragment(new ChromosomeFragment("test", "XARM", new Location(4332, 4341)));
+    abr.addFragment(new Band("test", "XARM", new Location(980, 1050)));
+    abr.addFragment(new Band("test", "XARM", new Location(4332, 4341)));
 
     abr.applyAberrations(dchr, writer, null);
 
@@ -87,7 +89,7 @@ public class DeletionTest
   public void testApplyBadAbberation() throws Exception
     {
     //This location is beyond the end of the file
-    abr.addFragment(new ChromosomeFragment("test", "XARM", new Location(4464, 4473)));
+    abr.addFragment(new Band("test", "XARM", new Location(4464, 4473)));
     try
       {
       Chromosome chr = new Chromosome("test", fastaFile);
@@ -104,8 +106,8 @@ public class DeletionTest
     {
     // only one will be added because I do not currently allow for overlapping locations.  Each aberration could possibly
     // handle this specially on it's own in the future though
-    abr.addFragment(new ChromosomeFragment("6", "p22", new Location(15200001, 30400000)));
-    abr.addFragment(new ChromosomeFragment("6", "p22.1", new Location(15500000, 30400000)));
+    abr.addFragment(new Band("6", "p22", new Location(15200001, 30400000)));
+    abr.addFragment(new Band("6", "p22.1", new Location(15500000, 30400000)));
     assertEquals(abr.getLocationsForChromosome(new Chromosome("6")).size(), 1);
     }
   }

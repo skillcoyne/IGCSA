@@ -25,7 +25,7 @@ public class JDBCChromosomeBandDAO implements ChromosomeBandDAO
   static Logger log = Logger.getLogger(JDBCChromosomeBandDAO.class.getName());
 
   private JdbcTemplate jdbcTemplate;
-  private final String tableName = "bands";
+  private final String tableName = "chromosome_bands";
 
   private boolean isDerby = false;
 
@@ -48,11 +48,10 @@ public class JDBCChromosomeBandDAO implements ChromosomeBandDAO
       }
     }
 
-
   @Override
   public Band getBand(String chrBand)
     {
-    String sql = "SELECT * FROM ( SELECT *, CONCAT(chromosome, band) AS chrloc FROM " + this.tableName + ") a " +
+    String sql = "SELECT * FROM ( SELECT *, CONCAT(chr, band) AS chrloc FROM " + this.tableName + ") a " +
         "WHERE chrloc = ?";
 
     return (Band) jdbcTemplate.query(sql, new Object[]{chrBand}, new ResultSetExtractor<Object>()
@@ -72,7 +71,7 @@ public class JDBCChromosomeBandDAO implements ChromosomeBandDAO
   @Override
   public Band getBandByChromosomeAndName(String chrName, String bandName)
     {
-    String sql = "SELECT * FROM " + this.tableName + " WHERE chromosome = ? and band = ?";
+    String sql = "SELECT * FROM " + this.tableName + " WHERE chr = ? and band = ?";
 
     return (Band) jdbcTemplate.query(sql, new Object[]{chrName, bandName}, new ResultSetExtractor<Object>()
     {
@@ -90,7 +89,7 @@ public class JDBCChromosomeBandDAO implements ChromosomeBandDAO
   @Override
   public Band[] getBands(String chrName)
     {
-    String sql = "SELECT * FROM " + this.tableName + " WHERE chromosome = ?";
+    String sql = "SELECT * FROM " + this.tableName + " WHERE chr = ?";
 
     return (Band[]) jdbcTemplate.query(sql, new Object[]{chrName}, new ResultSetExtractor<Object>()
     {
@@ -116,7 +115,7 @@ public class JDBCChromosomeBandDAO implements ChromosomeBandDAO
     if (isDerby)
       limit = " OFFSET 0 ROWS 1";
 
-    String sql = "SELECT * FROM " + this.tableName + " WHERE chromosome = ? ORDER BY ";
+    String sql = "SELECT * FROM " + this.tableName + " WHERE chr = ? ORDER BY ";
     if (arm.equals("p")) sql = sql + " start ASC " + limit;
     else sql = sql + " end DESC " + limit;
 
@@ -136,9 +135,9 @@ public class JDBCChromosomeBandDAO implements ChromosomeBandDAO
   private Band createBand(ResultSet resultSet) throws SQLException
     {
     Band band = new Band();
-    band.setChromosomeName(resultSet.getString("chromosome"));
+    band.setChromosomeName(resultSet.getString("chr"));
     band.setBandName(resultSet.getString("band"));
-    band.setLocation(new Location(resultSet.getInt("start"), resultSet.getInt("end")));
+    band.setLocation(new Location(resultSet.getInt("start_loc"), resultSet.getInt("end_loc")));
     return band;
     }
 

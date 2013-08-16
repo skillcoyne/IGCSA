@@ -27,6 +27,13 @@ public class Band
     this.bandName = band;
     }
 
+  public Band(String chromosomeName, String bandName, Location location)
+    {
+    this.chromosomeName = chromosomeName;
+    this.bandName = bandName;
+    this.location = location;
+    }
+
   public String getChromosomeName()
     {
     return chromosomeName;

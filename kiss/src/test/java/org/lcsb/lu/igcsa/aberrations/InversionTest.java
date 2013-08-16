@@ -5,6 +5,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.lcsb.lu.igcsa.aberrations.single.Inversion;
+import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
@@ -79,8 +81,8 @@ public class InversionTest
     assertEquals("viruses", reader.readSequenceFromLocation(136, 7));
     assertEquals("allknown", reader.readSequenceFromLocation(217, 8));
 
-    abr.addFragment( new ChromosomeFragment(chr.getName(), "viruses", new Location(136, 143)));
-    abr.addFragment( new ChromosomeFragment(chr.getName(), "allknown", new Location(217, 225)));
+    abr.addFragment( new Band(chr.getName(), "viruses", new Location(136, 143)));
+    abr.addFragment( new Band(chr.getName(), "allknown", new Location(217, 225)));
     abr.applyAberrations(dchr, writer, null);
 
     assertTrue(writer.getFASTAFile().length() > 17);
@@ -103,7 +105,7 @@ public class InversionTest
     String origLongText = reader.readSequenceFromLocation(144, 1107);
     assertTrue(origLongText.length() > 100);
 
-    abr.addFragment(new ChromosomeFragment(chr.getName(), "longtext", new Location(144, 1251)));
+    abr.addFragment(new Band(chr.getName(), "longtext", new Location(144, 1251)));
     abr.applyAberrations(dchr, writer, null);
 
     assertTrue(writer.getFASTAFile().length() > 17);

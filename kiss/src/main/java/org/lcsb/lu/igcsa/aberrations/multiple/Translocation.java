@@ -1,7 +1,7 @@
-package org.lcsb.lu.igcsa.aberrations;
+package org.lcsb.lu.igcsa.aberrations.multiple;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.fasta.FASTAReader;
+import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.fasta.Mutation;
 import org.lcsb.lu.igcsa.fasta.MutationWriter;
@@ -20,33 +20,9 @@ import java.util.*;
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
 // Translocations are special cases of an aberration. This may need to be a different class (not extending aberration) altogether.
-public class Translocation extends Aberration
+public class Translocation extends DerivativeChromosomeAberration
   {
   static Logger log = Logger.getLogger(Translocation.class.getName());
-
-  // for a translocation fragments have to be in order
-  private Map<ChromosomeFragment, Chromosome> fragments = new LinkedHashMap<ChromosomeFragment, Chromosome>();
-
-
-  public Map<ChromosomeFragment, Chromosome> getFragments()
-    {
-    return fragments;
-    }
-
-  //  @Override
-  //  public void addFragment(ChromosomeFragment fragment)
-  //    {
-  //    throw new RuntimeException("addFragment(ChromosomeFragment, Chromosome) is required for a Translocation Aberration");
-  //    }
-
-  public void addFragment(ChromosomeFragment fragment, Chromosome chr)
-    {
-    log.info("Adding fragment: " + fragment.toString());
-    if (chr.getFASTAReader() == null) throw new IllegalArgumentException("Chromosome needs to include a FASTA file and reader.");
-
-    fragments.put(fragment, chr);
-    }
-
 
   public void applyAberrations(DerivativeChromosome dchr, FASTAWriter writer, MutationWriter mutationWriter)
     {
@@ -56,10 +32,10 @@ public class Translocation extends Aberration
     int n = 1;
     try
       {
-      for (Map.Entry<ChromosomeFragment, Chromosome> entry : fragments.entrySet())
+      for (Map.Entry<Band, Chromosome> entry : fragments.entrySet())
         {
         Chromosome chr = entry.getValue();
-        Location fragmentLocation = entry.getKey().getBandLocation();
+        Location fragmentLocation = entry.getKey().getLocation();
 
         // First chromosome, read from beginning to start location
         if (first && fragmentLocation.getStart() > 0)

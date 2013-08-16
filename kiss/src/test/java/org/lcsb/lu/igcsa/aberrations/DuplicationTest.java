@@ -5,6 +5,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.lcsb.lu.igcsa.aberrations.single.Duplication;
+import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
@@ -36,7 +38,7 @@ public class DuplicationTest
 
   private File fastaFile;
   private FASTAWriter writer;
-  private Aberration dup;
+  private Duplication dup;
 
   @Autowired
   private Properties testProperties;
@@ -65,11 +67,11 @@ public class DuplicationTest
   @Test
   public void testAddFragments() throws Exception
     {
-    dup.addFragment(new ChromosomeFragment("test", "nerfin", new Location(500, 38928)));
+    dup.addFragment(new Band("test", "nerfin", new Location(500, 38928)));
 
     try
       {
-      dup.addFragment(new ChromosomeFragment("test", "noway", new Location(493, 999)));
+      dup.addFragment(new Band("test", "noway", new Location(493, 999)));
       }
     catch (IllegalArgumentException ae)
       {
@@ -83,7 +85,7 @@ public class DuplicationTest
     Chromosome chr = new Chromosome("test", fastaFile);
     DerivativeChromosome dchr = new DerivativeChromosome("test", chr);
 
-    dup.addFragment(new ChromosomeFragment(chr.getName(), "dna", new Location(144, 608)));
+    dup.addFragment(new Band(chr.getName(), "dna", new Location(144, 608)));
 
     dup.applyAberrations(dchr, writer, null);
 

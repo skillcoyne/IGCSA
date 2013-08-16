@@ -4,7 +4,7 @@ import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.genome.concurrency.Mutable;
 
-import java.io.File;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,7 +25,7 @@ public abstract class Genome
 
   protected HashMap<String, Chromosome> chromosomes = new HashMap<String, Chromosome>();
 
-  
+
   public void setBuildName(String buildName)
     {
     this.buildName = buildName;
@@ -58,7 +58,7 @@ public abstract class Genome
 
   public void addChromosomes(Chromosome[] chromosomes)
     {
-    for (Chromosome chr: chromosomes)
+    for (Chromosome chr : chromosomes)
       this.chromosomes.put(chr.getName(), chr);
     }
 
@@ -93,4 +93,5 @@ public abstract class Genome
     return this.chromosomes.get(name);
     }
 
+  public abstract Genome copy();
   }
