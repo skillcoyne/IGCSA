@@ -1,0 +1,13 @@
+
+# Database info.  First time this is run set create to 'true'
+db.driver=org.apache.derby.jdbc.EmbeddedDriver
+db.location=kiss-derby
+db.name=karyotype_probabilities
+db.username=igcsa
+db.create=true
+
+# Text files containing data for each table, this should be the result of the R scripts
+karyotype.probabilities=
+chr.instability=
+bp.probabilities=
+ploidy.probabilities=
