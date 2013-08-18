@@ -58,21 +58,31 @@ public class KaryotypeGenerator
     for (String chr : this.chromosomeLosses)
       kt.loseChromosome(chr);
 
-    int abrCount = new RandomRange(1, aberrationRules.getOrderedAberrationSets().size()).nextInt();
-
-    List<List<Band>> orderedBands = new ArrayList<List<Band>>(aberrationRules.getOrderedBreakpointSets().keySet());
-    // get random selection of aberrations by band
-    Collections.shuffle(orderedBands);
-    for (int i = 0; i < abrCount; i++)
+    if (aberrationRules.getOrderedBreakpointSets().size() > 0)
       {
-      List<Band> bandList = orderedBands.get(0);
-      orderedBands.remove(0);
-      Collections.shuffle(orderedBands);
-      List<ICombinatoricsVector<Aberration>> abrPerBand = aberrationRules.getOrderedBreakpointSets().get(bandList);
+      int abrCount = new RandomRange(1, aberrationRules.getOrderedAberrationSets().size()).nextInt();
 
-      Aberration abr = abrPerBand.get(new Random().nextInt(abrPerBand.size())).getVector().get(0);
-log.info(abr);
-      kt.addAberrationDefintion(abr);
+      // Happens when there's a single band.  Multiple aberration types are possible but each band can only have one right now
+      if (abrCount > aberrationRules.getOrderedBreakpointSets().size())
+        abrCount = aberrationRules.getOrderedBreakpointSets().size();
+
+      List<List<Band>> orderedBands = new ArrayList<List<Band>>(aberrationRules.getOrderedBreakpointSets().keySet());
+      // get random selection of aberrations by band
+      Collections.shuffle(orderedBands);
+      log.debug("ordered bands " + orderedBands);
+
+      for (int i = 0; i < abrCount; i++)
+        {
+        Collections.shuffle(orderedBands);
+
+        List<Band> bandList = orderedBands.get(0);
+        List<ICombinatoricsVector<Aberration>> abrPerBand = aberrationRules.getOrderedBreakpointSets().get(bandList);
+
+        Aberration abr = abrPerBand.get(new Random().nextInt(abrPerBand.size())).getVector().get(0);
+        kt.addAberrationDefintion(abr);
+
+        orderedBands.remove(0);
+        }
       }
 
     return kt;
@@ -96,7 +106,7 @@ log.info(abr);
     int chrCount = selectCount("chromosome"); // 1(A)
     int totalPloidy = selectCount("aneuploidy"); // 1(B)
 
-    while (chrCount <= 0 || totalPloidy <= 0) // one of these has to be positive to make this worthwhile
+    while (chrCount <= 0 && totalPloidy <= 0) // one of these has to be positive to make this worthwhile
       {
       if (chrCount <= 0) chrCount = selectCount("chromosome");
       if (totalPloidy <= 0) totalPloidy = selectCount("aneuploidy");
@@ -122,25 +132,27 @@ log.info(abr);
    */
   private void getBreakpoints() throws ProbabilityException
     {
+    log.debug("getBreakpoints");
     for (String chr : chromosomes.keySet())
       {
       Set<Band> bands = new HashSet<Band>();
 
       int r = new RandomRange(1, 3).nextInt(); // no good way yet to decide how many breaks should occur
-      log.info(r + " bps for " + chr);
+      log.debug(r + " bps for " + chr);
       int i = 1;
       while (i <= r)
         {
         String bandName = (String) karyotypeDAO.getGeneralKarytoypeDAO().getBandProbabilities(chr).roll();
 
         Band band = karyotypeDAO.getBandDAO().getBandByChromosomeAndName(chr, bandName);
+        log.debug(band);
         breakpoints.add(band);
         bands.add(band);
         i++;
         }
       chromosomes.put(chr, new BandCollection((Collection<Band>) bands));
       }
-    log.info("Breakpoints: " + breakpoints);
+    log.debug("Breakpoints: " + breakpoints);
     }
 
   /*

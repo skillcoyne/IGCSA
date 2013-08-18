@@ -4,30 +4,33 @@
        xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-    <bean id="ktDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource" lazy-init="true">
+
+    <bean id="ktDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
         <property name="driverClassName" value="${karyotype.genome.driver}"/>
         <property name="url" value="${karyotype.genome.url}"/>
         <property name="username" value="${karyotype.genome.user}"/>
         <property name="password" value="${karyotype.genome.pwd}"/>
     </bean>
 
-    <bean id="karyotypeDAOs" class="org.lcsb.lu.igcsa.database.KaryotypeDAO" lazy-init="true">
-        <property name="aneuploidyDAO">
-            <bean class="org.lcsb.lu.igcsa.database.sql.JDBCAneuploidyDAO" lazy-init="true">
-                <property name="dataSource" ref="ktDataSource"/>
-            </bean>
-        </property>
-        <property name="generalKarytoypeDAO">
-            <bean class="org.lcsb.lu.igcsa.database.sql.JDBCGeneralProbabilityDAO">
-                <property name="dataSource" ref="ktDataSource"/>
-            </bean>
-        </property>
-        <property name="bandDAO">
-            <bean class="org.lcsb.lu.igcsa.database.sql.JDBCChromosomeBandDAO">
-                <property name="dataSource" ref="ktDataSource"/>
-            </bean>
-        </property>
+    <bean id="aneuploidyDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCAneuploidyDAO" scope="singleton" lazy-init="true">
+        <property name="dataSource" ref="ktDataSource"/>
     </bean>
+
+    <bean id="generalProbabilityDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCGeneralProbabilityDAO" scope="singleton" lazy-init="true">
+        <property name="dataSource" ref="ktDataSource"/>
+    </bean>
+
+    <bean id="bandDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCChromosomeBandDAO" scope="singleton" lazy-init="true">
+        <property name="dataSource" ref="ktDataSource"/>
+    </bean>
+
+    <bean id="karyotypeDAO" class="org.lcsb.lu.igcsa.database.KaryotypeDAO" lazy-init="true" scope="singleton">
+        <property name="aneuploidyDAO" ref="aneuploidyDAO"/>
+        <property name="generalKarytoypeDAO" ref="generalProbabilityDAO"/>
+        <property name="bandDAO" ref="bandDAO"/>
+    </bean>
+
+
 
 
     <bean id="aberrationRules" class="org.lcsb.lu.igcsa.generator.AberrationRules" lazy-init="true">
@@ -38,9 +41,8 @@
         </property>
     </bean>
 
-    <bean id="karyotypeGenerator" class="org.lcsb.lu.igcsa.generator.KaryotypeGenerator">
-        <constructor-arg ref="karyotypeDAOs"/>
+    <bean id="karyotypeGenerator" class="org.lcsb.lu.igcsa.generator.KaryotypeGenerator" scope="singleton" lazy-init="true">
+        <constructor-arg ref="karyotypeDAO"/>
     </bean>
-
 
 </beans>

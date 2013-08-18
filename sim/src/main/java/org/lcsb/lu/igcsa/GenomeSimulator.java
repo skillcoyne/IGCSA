@@ -61,18 +61,38 @@ public class GenomeSimulator
 
     if (cl.hasOption("s"))
       {
-      int count = Integer.parseInt(cl.getOptionValue('s', "2"));
+      setupKaryotypeDirectory(genomeName, overwriteGenome);
 
       KaryotypeInsilicoGenome karGen = new KaryotypeInsilicoGenome(context, cl);
-      karGen.generateKaryotypes();
-      //karGen.applyMutations();
+      karGen.applyMutations();
       }
 
     log.info("FINISHED mutating genome " + genomeName);
     }
 
 
-  // Create the directory where all fasta and mutation files will write
+  private void setupKaryotypeDirectory(String name, boolean overwrite) throws IOException
+    {
+    File karyotypeDir = new File(genomeProperties.getProperty("dir.karyotype"));
+    if (!karyotypeDir.exists())
+      {
+      log.info("Creating karytoype data directory at " + karyotypeDir.getAbsolutePath());
+      karyotypeDir.mkdirs();
+      }
+
+    File karyotypeDirectory = new File(karyotypeDir, name);
+    if (karyotypeDirectory.exists() && overwrite)
+      {
+      log.warn("Overwriting " + karyotypeDirectory.getAbsolutePath());
+      org.apache.commons.io.FileUtils.deleteDirectory(karyotypeDirectory);
+      }
+    else if (karyotypeDirectory.exists() && !overwrite)
+      throw new IOException(karyotypeDirectory + " exists, cannot overwrite");
+
+    karyotypeDirectory.mkdirs();
+    }
+
+  // Create the directories where all fasta and mutation files will write
   private void setupGenomeDirectory(String name, boolean overwrite) throws IOException
     {
     File insilicoDir = new File(genomeProperties.getProperty("dir.insilico"));

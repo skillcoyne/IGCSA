@@ -28,7 +28,8 @@ public abstract class DerivativeChromosomeAberration extends SequenceAberration
   public void addFragment(Band band, Chromosome chr)
     {
     log.info("Adding fragment: " + band.toString());
-    if (chr.getFASTAReader() == null) throw new IllegalArgumentException("Chromosome needs to include a FASTA file and reader.");
+    if (chr.getFASTAReader() == null)
+      throw new IllegalArgumentException("Chromosome needs to include a FASTA file and reader.");
 
     fragments.put(band, chr);
     }

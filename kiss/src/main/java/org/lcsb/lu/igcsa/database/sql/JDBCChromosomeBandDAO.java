@@ -78,7 +78,7 @@ public class JDBCChromosomeBandDAO implements ChromosomeBandDAO
     @Override
     public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
       {
-      Band band = new Band();
+      Band band = null;// = new Band();
       if (resultSet.next())
         band = createBand(resultSet);
       return band;
@@ -124,7 +124,7 @@ public class JDBCChromosomeBandDAO implements ChromosomeBandDAO
     @Override
     public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
       {
-      Band band = new Band();
+      Band band = null; //new Band();
       if (resultSet.next())
         band = createBand(resultSet);
       return band;
@@ -134,9 +134,7 @@ public class JDBCChromosomeBandDAO implements ChromosomeBandDAO
 
   private Band createBand(ResultSet resultSet) throws SQLException
     {
-    Band band = new Band();
-    band.setChromosomeName(resultSet.getString("chr"));
-    band.setBandName(resultSet.getString("band"));
+    Band band = new Band(resultSet.getString("chr"), resultSet.getString("band"));
     band.setLocation(new Location(resultSet.getInt("start_loc"), resultSet.getInt("end_loc")));
     return band;
     }

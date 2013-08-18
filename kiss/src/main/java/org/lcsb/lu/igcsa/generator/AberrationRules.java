@@ -119,8 +119,14 @@ public class AberrationRules
   public void applyRules(Band[] bands)
     {
     Set<String> chromosomes = new HashSet<String>();
+
+
     for (Band b : bands)
+      {
+      if (b == null)
+        throw new RuntimeException("something fucked up");
       chromosomes.add(b.getChromosomeName());
+      }
 
     // start with the combinatorial list of breakpoints only, deal with unique rule
     List<ICombinatoricsVector<Band>> bandSets = ruleUniqueBreakpointPairs(bands, SET_SIZE);

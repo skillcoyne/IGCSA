@@ -26,6 +26,7 @@ public class Translocation extends DerivativeChromosomeAberration
 
   public void applyAberrations(DerivativeChromosome dchr, FASTAWriter writer, MutationWriter mutationWriter)
     {
+    log.info(fragments);
     List<Mutation> mutations = new ArrayList<Mutation>();
 
     boolean first = true;

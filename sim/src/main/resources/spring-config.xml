@@ -48,7 +48,6 @@
                 <ref bean="karyotypeProperties"/>
             </list>
         </property>
-        <!--<property name="properties" ref="genomeProperties"/>-->
 
     </bean>
 

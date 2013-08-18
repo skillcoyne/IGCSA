@@ -28,7 +28,7 @@ public abstract class Genome
 
   public void setBuildName(String buildName)
     {
-    this.buildName = buildName;
+    this.buildName = buildName.replaceAll(" ", "_");
     }
 
   public String getBuildName()
@@ -60,6 +60,7 @@ public abstract class Genome
     {
     for (Chromosome chr : chromosomes)
       this.chromosomes.put(chr.getName(), chr);
+    log.info("Added chromosomes " + this.chromosomes);
     }
 
   public void addChromosome(Chromosome chromosome)

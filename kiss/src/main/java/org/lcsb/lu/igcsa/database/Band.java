@@ -18,19 +18,24 @@ public class Band
 
   private Location location;
 
-  public Band()
-    {}
+//  public Band()
+//    {}
 
   public Band(String chr, String band)
     {
+    if (chr == null || band == null)
+      throw new IllegalArgumentException("Chromosme and band are required");
     this.chromosomeName = chr;
     this.bandName = band;
     }
 
-  public Band(String chromosomeName, String bandName, Location location)
+  public Band(String chr, String band, Location location)
     {
-    this.chromosomeName = chromosomeName;
-    this.bandName = bandName;
+    if (chr == null || band == null || location == null)
+      throw new IllegalArgumentException("Chromosme, band and location are required");
+
+    this.chromosomeName = chr;
+    this.bandName = band;
     this.location = location;
     }
 

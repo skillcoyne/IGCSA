@@ -96,7 +96,7 @@ public class Karyotype extends Genome
    */
   public void gainChromosome(String chromosome)
     {
-    log.info("GAIN chromosome " + chromosome);
+    log.debug("GAIN chromosome " + chromosome);
     chromosomeCount.put(chromosome, chromosomeCount.get(chromosome) + 1);
     }
 
@@ -107,9 +107,10 @@ public class Karyotype extends Genome
    */
   public void loseChromosome(String name)
     {
-    log.info("LOSE chromosome " + name);
+    log.debug("LOSE chromosome " + name);
     chromosomeCount.put(name, chromosomeCount.get(name) - 1);
-    if (chromosomeCount.get(name) == 0) this.removeChromosome(name);
+//    if (chromosomeCount.get(name) == 0)
+//      this.removeChromosome(name);
     }
 
   public Map<Object, List<Collection<Band>>> getAberrations()
@@ -207,47 +208,60 @@ public class Karyotype extends Genome
     {
     for (DerivativeChromosome dchr : this.derivativeChromosomes)
       {
-      log.info(dchr.getName());
+      log.debug(dchr.getName());
       for (SequenceAberration abr : dchr.getSequenceAberrationList())
         {
-        if (abr.getClass().equals(Translocation.class))
-          {
-          log.info("TRANSLOCATION: " + dchr.getName());
-          Translocation trans = (Translocation) abr;
+        log.debug(abr.getClass().getSimpleName() + " " + dchr.getName());
+        File newFasta = ktChromosomeFile(this.getGenomeDirectory(), dchr.getName());
 
-          File newFasta = ktChromosomeFile(this.getGenomeDirectory(), dchr.getName());
+        log.debug(newFasta.getAbsolutePath());
 
-          log.info(newFasta.getAbsolutePath());
+        FASTAHeader header = new FASTAHeader("figg", newFasta.getName().replaceAll("-der.fa", ""), "karyotype.variation",
+                                             this.getBuildName());
+        FASTAWriter writer = new FASTAWriter(newFasta, header);
+        MutationWriter mutWriter = new MutationWriter(new File(this.mutationDirectory, newFasta.getName().replace(".fa",
+                                                                                                                  "") + "-SVs.txt"),
+                                                      MutationWriter.SV);
+        abr.applyAberrations(dchr, writer, mutWriter);
 
-          FASTAHeader header = new FASTAHeader("figg", newFasta.getName().replaceAll("-der.fa", ""), "karyotype.variation",
-                                               this.getBuildName());
-          FASTAWriter writer = new FASTAWriter(newFasta, header);
-          MutationWriter mutWriter = new MutationWriter(new File(this.mutationDirectory, newFasta.getName().replace(".fa",
-                                                                                                                    "") + "-SVs.txt"),
-                                                        MutationWriter.SV);
-
-          trans.applyAberrations(dchr, writer, mutWriter);
-          }
-        else
-          {
-          log.info(abr.getClass());
-          // 1. Get chromosome for each fragment
-          // 2. Create new fasta file IF APPLICABLE (derivatives or translocations)
-          // 3. Give Mutable impl the new fasta file, with the aberration
-          // 4. Call SequenceAberration.apply
-
-          File newFasta = ktChromosomeFile(this.getGenomeDirectory(), dchr.getName());
-
-          log.info(newFasta.getAbsolutePath());
-
-          FASTAHeader header = new FASTAHeader("figg", newFasta.getName().replaceAll("-der.fa", ""), "karyotype.variation",
-                                               this.getBuildName());
-          FASTAWriter writer = new FASTAWriter(newFasta, header);
-          MutationWriter mutWriter = new MutationWriter(new File(this.mutationDirectory, newFasta.getName().replace(".fa",
-                                                                                                                    "") + "-SVs.txt"),
-                                                        MutationWriter.SV);
-          abr.applyAberrations(dchr, writer, mutWriter);
-          }
+//        if (abr.getClass().equals(Translocation.class))
+//          {
+//          log.info("TRANSLOCATION: " + dchr.getName());
+//          Translocation trans = (Translocation) abr;
+//
+//          File newFasta = ktChromosomeFile(this.getGenomeDirectory(), dchr.getName());
+//
+//          log.info(newFasta.getAbsolutePath());
+//
+//          FASTAHeader header = new FASTAHeader("figg", newFasta.getName().replaceAll("-der.fa", ""), "karyotype.variation",
+//                                               this.getBuildName());
+//          FASTAWriter writer = new FASTAWriter(newFasta, header);
+//          MutationWriter mutWriter = new MutationWriter(new File(this.mutationDirectory, newFasta.getName().replace(".fa",
+//                                                                                                                    "") + "-SVs.txt"),
+//                                                        MutationWriter.SV);
+//
+//          //trans.applyAberrations(dchr, writer, mutWriter);
+//          }
+//        else
+//          {
+//          log.info(abr.getClass());
+//          // 1. Get chromosome for each fragment
+//          // 2. Create new fasta file IF APPLICABLE (derivatives or translocations)
+//          // 3. Give Mutable impl the new fasta file, with the aberration
+//          // 4. Call SequenceAberration.apply
+//
+//          File newFasta = ktChromosomeFile(this.getGenomeDirectory(), dchr.getName());
+//
+//          log.info(newFasta.getAbsolutePath());
+//
+//          FASTAHeader header = new FASTAHeader("figg", newFasta.getName().replaceAll("-der.fa", ""), "karyotype.variation",
+//                                               this.getBuildName());
+//          FASTAWriter writer = new FASTAWriter(newFasta, header);
+//          MutationWriter mutWriter = new MutationWriter(new File(this.mutationDirectory, newFasta.getName().replace(".fa",
+//                                                                                                                    "") + "-SVs.txt"),
+//                                                        MutationWriter.SV);
+//          //abr.applyAberrations(dchr, writer, mutWriter);
+//          }
         }
       }
 

@@ -126,4 +126,13 @@ public class AberrationRulesTest
     assertEquals(rules.getAberrations().size(), total);
     }
 
+//  @Test
+//  public void testNullBand() throws Exception
+//    {
+//    Band[] bands = new Band[]{new Band("2", "q11"), new Band(null, null), new Band("6", "q32"), new Band("2", "p16")};
+//    rules.applyRules(bands);
+//
+//
+//    }
+
   }
