@@ -26,7 +26,7 @@ public class Translocation extends DerivativeChromosomeAberration
 
   public void applyAberrations(DerivativeChromosome dchr, FASTAWriter writer, MutationWriter mutationWriter)
     {
-    log.info(fragments);
+    log.info(fragments.keySet());
     List<Mutation> mutations = new ArrayList<Mutation>();
 
     boolean first = true;
@@ -37,6 +37,8 @@ public class Translocation extends DerivativeChromosomeAberration
         {
         Chromosome chr = entry.getValue();
         Location fragmentLocation = entry.getKey().getLocation();
+
+        log.info("Writing " + chr.getName() + " " + fragmentLocation);
 
         // First chromosome, read from beginning to start location
         if (first && fragmentLocation.getStart() > 0)

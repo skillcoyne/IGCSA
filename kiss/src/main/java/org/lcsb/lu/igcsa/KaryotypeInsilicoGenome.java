@@ -54,11 +54,11 @@ public class KaryotypeInsilicoGenome
       {
       try
         {
-        log.info("Apply SVs");
-
         Karyotype karyotype = genome.copy();
 
         karyotype.setBuildName(karyotype.getBuildName() + "-karyotype-" + i);
+
+        log.info(karyotype.getBuildName() + " structural variations");
 
         File ktDir = new File( new File(genomeProperties.getProperty("dir.karyotype"), genome.getBuildName()), i + "-SV");
         if (ktDir.exists())

@@ -63,7 +63,6 @@ public class FASTAReader
 
   public void reset() throws IOException
     {
-    log.info("Resetting reader");
     openReader();
     }
 

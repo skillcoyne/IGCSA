@@ -64,6 +64,7 @@ public abstract class SequenceAberration
 
   protected void writeRemainder(FASTAReader reader, int startLocation, FASTAWriter writer, MutationWriter mutationWriter) throws IOException
     {
+    log.info("Write file remainder");
     // write the remainder of the file
     int window = 5000;
     String seq = reader.readSequenceFromLocation(startLocation, window);
