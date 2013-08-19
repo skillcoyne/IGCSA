@@ -34,7 +34,6 @@
                                     <directory>${basedir}/dist-resources</directory>
                                     <filtering>true</filtering>
                                     <excludes>
-                                        <exclude>karyotype.*</exclude>
                                         <exclude>*.example</exclude>
                                     </excludes>
                                 </resource>
