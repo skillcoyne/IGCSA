@@ -60,7 +60,7 @@ public abstract class SequenceAberration
 
   public abstract void addFragment(Band band, Chromosome chromosome);
 
-  //public abstract List<Band> getFragments();
+  public abstract Collection<Band> getFragments();
 
   protected void writeRemainder(FASTAReader reader, int startLocation, FASTAWriter writer, MutationWriter mutationWriter) throws IOException
     {

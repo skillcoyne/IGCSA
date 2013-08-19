@@ -29,11 +29,7 @@ public class KaryotypeTest
   {
   static Logger log = Logger.getLogger(KaryotypeTest.class.getName());
 
-  //@Autowired
   private Karyotype testKaryotype;
-
-  @Autowired
-  private Properties ktProperties;
 
   @Autowired
   private Properties testProperties;
@@ -69,21 +65,36 @@ public class KaryotypeTest
     }
 
   @Test
+  public void testSex() throws Exception
+    {
+    testKaryotype.setKaryotypeDefinition(46, "XX");
+    assertEquals(testKaryotype.getAllosomes(), "XX");
+
+    assertEquals(testKaryotype.ploidyCount("X"), 2);
+    }
+
+  @Test
   public void testAddChromosome() throws Exception
     {
     for (String s : new String[]{"2", "5", "6", "X", "Y"})
       testKaryotype.addChromosome(new Chromosome(s));
 
     assertEquals(testKaryotype.getChromosomes().length, 5);
-    assertEquals(testKaryotype.ploidyCount("X"), 2);
+    assertEquals(testKaryotype.ploidyCount("X"), 1);
     }
 
   @Test
   public void testGainAneuploidy() throws Exception
     {
+    testKaryotype.setKaryotypeDefinition(46, "XX");
+
     testKaryotype.addChromosome(new Chromosome("6"));
     testKaryotype.gainChromosome("6");
     assertEquals(testKaryotype.ploidyCount("6"), 3);
+
+    testKaryotype.gainChromosome("X");
+    assertEquals(testKaryotype.ploidyCount("X"), 3);
+
     }
 
   @Test

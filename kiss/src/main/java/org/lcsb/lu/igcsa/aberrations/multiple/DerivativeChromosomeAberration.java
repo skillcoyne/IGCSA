@@ -6,6 +6,7 @@ import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.ChromosomeFragment;
 
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,9 +22,8 @@ public abstract class DerivativeChromosomeAberration extends SequenceAberration
   {
   static Logger log = Logger.getLogger(DerivativeChromosomeAberration.class.getName());
 
-  // for a derivative fragments have to be in order
-  protected Map<Band, Chromosome> fragments = new LinkedHashMap<Band, Chromosome>();
-
+  // for a derivative fragments have to be in insertion order
+  private Map<Band, Chromosome> fragments = new LinkedHashMap<Band, Chromosome>();
 
   @Override
   public void addFragment(Band band, Chromosome chr)
@@ -35,7 +35,13 @@ public abstract class DerivativeChromosomeAberration extends SequenceAberration
     fragments.put(band, chr);
     }
 
-  public Map<Band, Chromosome> getFragments()
+  @Override
+  public Collection<Band> getFragments()
+    {
+    return fragments.keySet();
+    }
+
+  protected Map<Band, Chromosome> getFragmentMap()
     {
     return fragments;
     }

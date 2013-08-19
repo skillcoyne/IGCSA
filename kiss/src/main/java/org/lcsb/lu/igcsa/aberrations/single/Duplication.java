@@ -11,6 +11,9 @@ import org.lcsb.lu.igcsa.genome.DerivativeChromosome;
 import org.lcsb.lu.igcsa.genome.Location;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeSet;
 
 
 /**
@@ -27,7 +30,10 @@ public class Duplication extends SingleChromosomeAberration
   public void applyAberrations(DerivativeChromosome derivativeChromosome, FASTAWriter writer, MutationWriter mutationWriter)
     {
     log.info("apply duplication to " + derivativeChromosome.getName());
-    Location location = getLocationsForChromosome(derivativeChromosome).first();
+    //Location location = getLocationsForChromosome(derivativeChromosome).first();
+
+    List<Band> bands = new ArrayList<Band>(getFragments());
+    Location location = bands.get(0).getLocation();
 
     // duplication involves copying an entire segment (location) and tacking it on to the end of the given location
     // so read from the start to the end of the location, then tack that location on. This means that there can only be

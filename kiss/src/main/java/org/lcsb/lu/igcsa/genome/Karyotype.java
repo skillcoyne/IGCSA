@@ -86,7 +86,9 @@ public class Karyotype extends Genome
   public void addChromosome(Chromosome chromosome)
     {
     super.addChromosome(chromosome);
-    chromosomeCount.put(chromosome.getName(), 2);
+
+    if (!chromosome.getName().matches("X|Y"))
+      chromosomeCount.put(chromosome.getName(), 2);
     }
 
   /**
@@ -96,7 +98,7 @@ public class Karyotype extends Genome
    */
   public void gainChromosome(String chromosome)
     {
-    log.debug("GAIN chromosome " + chromosome);
+    log.info("GAIN chromosome " + chromosome);
     chromosomeCount.put(chromosome, chromosomeCount.get(chromosome) + 1);
     }
 
@@ -107,7 +109,7 @@ public class Karyotype extends Genome
    */
   public void loseChromosome(String name)
     {
-    log.debug("LOSE chromosome " + name);
+    log.info("LOSE chromosome " + name);
     chromosomeCount.put(name, chromosomeCount.get(name) - 1);
 //    if (chromosomeCount.get(name) == 0)
 //      this.removeChromosome(name);
@@ -155,34 +157,6 @@ public class Karyotype extends Genome
   public List<Aberration> getAberrationDefinitions()
     {
     return aberrationDefinitions;
-    }
-
-  // TODO this is temporary, when I know how I want to get these from the real data this will change but it belongs in the karyotype class
-  public void setAberrations(Properties ktProperties) throws Exception, InstantiationException, IllegalAccessException
-    {
-
-
-    //    Map<String, List<SequenceAberration>> aberrationMap = KaryotypePropertiesUtil.getSequenceAberrationList(bandDAO, ktProperties);
-    //    for (Map.Entry<String, List<SequenceAberration>> entry : aberrationMap.entrySet())
-    //      {
-    //      Chromosome chr = this.getChromosome(entry.getKey());
-    //      DerivativeChromosome derChr = new DerivativeChromosome(chr.getName(), chr);
-    //      derChr.setSequenceAberrationList(entry.getValue());
-    //
-    //      this.addDerivativeChromosome(derChr);
-    //      }
-    //
-    //    Object[] translocations = KaryotypePropertiesUtil.getTranslocations(bandDAO, ktProperties, this.chromosomes);
-    //    if (translocations != null)
-    //      {
-    //      Set<String> chrs = (Set<String>) translocations[0];
-    //      DerivativeChromosome derChr = new DerivativeChromosome(chrs.iterator().next());
-    //      for (String chrName: chrs)
-    //        derChr.addChromosome(this.getChromosome(chrName));
-    //      derChr.setSequenceAberrationList((List<SequenceAberration>) translocations[1]);
-    //
-    //      this.addDerivativeChromosome(derChr);
-    //      }
     }
 
   public void addDerivativeChromosome(DerivativeChromosome chr)
@@ -291,7 +265,11 @@ public class Karyotype extends Genome
       }
 
     // females don't need to have Y chromosome around
-    if (allosomes.equals("XX")) removeChromosome("Y");
+    if (allosomes.equals("XX"))
+      {
+      removeChromosome("Y");
+      chromosomeCount.put("X", 2);
+      }
     }
 
 

@@ -1,6 +1,7 @@
 package org.lcsb.lu.igcsa.aberrations.single;
 
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.fasta.Mutation;
@@ -29,7 +30,10 @@ public class Deletion extends SingleChromosomeAberration
     List<Mutation> mutations = new ArrayList<Mutation>();
 
     log.info("apply deletion to " + derivativeChromosome.getName());
-    TreeSet<Location> locations = getLocationsForChromosome(derivativeChromosome);
+
+    TreeSet<Location> locations = new TreeSet<Location>();
+    for (Band b: getFragments())
+      locations.add(b.getLocation());
 
     FASTAReader reader = derivativeChromosome.getChromosomes().iterator().next().getFASTAReader();
 

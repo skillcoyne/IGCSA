@@ -1,17 +1,15 @@
-package org.lcsb.lu.igcsa.aberrations;
+package org.lcsb.lu.igcsa.aberrations.single;
 
 import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.lcsb.lu.igcsa.aberrations.single.Inversion;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.genome.Chromosome;
-import org.lcsb.lu.igcsa.genome.ChromosomeFragment;
 import org.lcsb.lu.igcsa.genome.DerivativeChromosome;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.springframework.beans.factory.annotation.Autowired;

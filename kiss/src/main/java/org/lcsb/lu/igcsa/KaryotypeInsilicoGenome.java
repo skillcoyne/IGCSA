@@ -8,6 +8,7 @@ import org.lcsb.lu.igcsa.generator.KaryotypeGenerator;
 import org.lcsb.lu.igcsa.genome.*;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.lcsb.lu.igcsa.utils.FileUtils;
+import org.lcsb.lu.igcsa.utils.KaryotypeWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -49,7 +50,6 @@ public class KaryotypeInsilicoGenome
 
   public void applyMutations()
     {
-
     for (int i = 1; i <= count; i++)
       {
       try
@@ -70,7 +70,6 @@ public class KaryotypeInsilicoGenome
         File svWriterPath = new File(karyotype.getGenomeDirectory(), "structural-variations");
         if (!svWriterPath.exists() || !svWriterPath.isDirectory()) svWriterPath.mkdir();
 
-
         karyotype.setMutationDirectory(svWriterPath);
         karyotype = karyotypeGenerator.generateKaryotypes(karyotype);
         karyotype.applyAberrations();
@@ -88,8 +87,8 @@ public class KaryotypeInsilicoGenome
           }
         ploidyWriter.close();
 
-        //karyotype
-
+        KaryotypeWriter ktWriter = new KaryotypeWriter(karyotype, new File(ktDir, "karyotype-desc.txt"));
+        ktWriter.write();
         }
       catch (ProbabilityException e)
         {

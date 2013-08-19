@@ -10,6 +10,7 @@ package org.lcsb.lu.igcsa.utils;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.aberrations.SequenceAberration;
+import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.DerivativeChromosome;
 import org.lcsb.lu.igcsa.genome.Karyotype;
@@ -18,6 +19,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class KaryotypeWriter
   {
@@ -38,27 +41,41 @@ public class KaryotypeWriter
 
   public void write() throws IOException
     {
-//    createFile(outFile);
+    createFile(outFile);
 
     StringBuffer buff = new StringBuffer();
+    buff.append( karyotype.getBuildName() + "\n" );
+    buff.append( "Parent genome: " + karyotype.getGenomeDirectory() + "\n");
+    buff.append( "Allosome definition: " + karyotype.getAllosomes() + "\n\n");
 
+    buff.append("Normal chromosomes:\n");
     for (Chromosome chr: karyotype.getChromosomes())
-      buff.append( karyotype.getChromosomeCount(chr.getName()) + "x" + chr.getName() );
+      buff.append( karyotype.getChromosomeCount(chr.getName()) + "x" + chr.getName() + "\n" );
+
+    buff.append("\nDerivative chromosomes:\n");
 
     for (DerivativeChromosome dChr: karyotype.getDerivativeChromosomes())
       {
+      buff.append(dChr.getName() + "\n");
       for (SequenceAberration abr: dChr.getSequenceAberrationList())
         {
+        List<String> derivatives = new ArrayList<String>();
 
+        buff.append(abr.getClass().getSimpleName() + "\t");
+        for (Band band: abr.getFragments())
+          derivatives.add(  band + "(" + band.getLocation().getStart() + "-" + band.getLocation().getEnd() + ")" );
+
+        buff.append(derivatives.get(0));
+        derivatives.remove(0);
+        for (String str: derivatives)
+          buff.append(" -> " + str);
+        buff.append("\n");
         }
       }
 
-
-
-
-    log.info(buff.toString());
-
-
+    bufferedWriter.write(buff.toString());
+    bufferedWriter.flush();
+    bufferedWriter.close();
     }
 
 

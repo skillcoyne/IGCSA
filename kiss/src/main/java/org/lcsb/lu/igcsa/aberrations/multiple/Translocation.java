@@ -26,14 +26,15 @@ public class Translocation extends DerivativeChromosomeAberration
 
   public void applyAberrations(DerivativeChromosome dchr, FASTAWriter writer, MutationWriter mutationWriter)
     {
-    log.info(fragments.keySet());
+    log.info(getFragmentMap().keySet());
     List<Mutation> mutations = new ArrayList<Mutation>();
+
 
     boolean first = true;
     int n = 1;
     try
       {
-      for (Map.Entry<Band, Chromosome> entry : fragments.entrySet())
+      for (Map.Entry<Band, Chromosome> entry : getFragmentMap().entrySet())
         {
         Chromosome chr = entry.getValue();
         Location fragmentLocation = entry.getKey().getLocation();
@@ -55,7 +56,7 @@ public class Translocation extends DerivativeChromosomeAberration
         chr.getFASTAReader().streamToWriter(fragmentLocation.getLength(), writer);
 
         // Last chromosome, read from end location to the end TODO it's possible that this should not be the case for translocations
-        if (n == fragments.size())
+        if (n == getFragmentMap().size())
           {
           writeRemainder(chr.getFASTAReader(), fragmentLocation.getEnd()+1, writer, mutationWriter);
           mutations.add(new Mutation(chr.getName(), fragmentLocation.getEnd(), -1, "trans"));

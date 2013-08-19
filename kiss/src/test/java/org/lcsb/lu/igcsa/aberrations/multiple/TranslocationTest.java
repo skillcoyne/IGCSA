@@ -1,11 +1,10 @@
-package org.lcsb.lu.igcsa.aberrations;
+package org.lcsb.lu.igcsa.aberrations.multiple;
 
 import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.lcsb.lu.igcsa.aberrations.multiple.Translocation;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
