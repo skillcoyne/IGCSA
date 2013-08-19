@@ -60,7 +60,6 @@ public abstract class Genome
     {
     for (Chromosome chr : chromosomes)
       this.chromosomes.put(chr.getName(), chr);
-    log.info("Added chromosomes " + this.chromosomes);
     }
 
   public void addChromosome(Chromosome chromosome)

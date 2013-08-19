@@ -55,7 +55,6 @@ public class KaryotypeInsilicoGenome
       try
         {
         log.info("Apply SVs");
-        //File tmpDir = new File(genomeProperties.getProperty("dir.tmp"), genome.getGenomeDirectory().getName());
 
         Karyotype karyotype = genome.copy();
 
@@ -88,6 +87,9 @@ public class KaryotypeInsilicoGenome
           ploidyWriter.write(new Mutation(c.getName(), karyotype.ploidyCount(c.getName())));
           }
         ploidyWriter.close();
+
+        //karyotype
+
         }
       catch (ProbabilityException e)
         {
@@ -99,40 +101,6 @@ public class KaryotypeInsilicoGenome
         }
       }
     }
-
-
-//  public void applyMutations()
-//    {
-//    log.info("Apply SVs");
-//    //File tmpDir = new File(genomeProperties.getProperty("dir.tmp"), genome.getGenomeDirectory().getName());
-//
-//    File svWriterPath = new File(genome.getGenomeDirectory(), "structural-variations");
-//    if (!svWriterPath.exists() || !svWriterPath.isDirectory()) svWriterPath.mkdir();
-//
-//    genome.setMutationDirectory(svWriterPath);
-//
-//    try
-//      {
-//      genome.applyAberrations();
-//
-//      MutationWriter ploidyWriter = new MutationWriter(new File(svWriterPath, "normal-ploidy.txt"), MutationWriter.PLOIDY);
-//
-//      for (Chromosome c : genome.getChromosomes())
-//        {
-//        if (genome.ploidyCount(c.getName()) > 0)
-//          org.apache.commons.io.FileUtils.copyFile(c.getFASTA(), new File(genome.getGenomeDirectory(), c.getFASTA().getName()));
-//
-//        ploidyWriter.write(new Mutation(c.getName(), genome.ploidyCount(c.getName())));
-//        }
-//      ploidyWriter.close();
-//      }
-//    catch (IOException e)
-//      {
-//      e.printStackTrace();
-//      }
-//
-//    }
-
 
   // get all beans
   private void init(String name) throws Exception
@@ -159,7 +127,8 @@ public class KaryotypeInsilicoGenome
 
     log.info("Genome directory to read from is: " + fastaDir.getAbsolutePath());
 
-    genome.addChromosomes(FileUtils.getChromosomesFromFASTA(fastaDir));
+    List<Chromosome> chrList = FileUtils.getChromosomesFromFASTA(fastaDir);
+    genome.addChromosomes( chrList.toArray(new Chromosome[chrList.size()]) );
     karyotypeGenerator = (KaryotypeGenerator) context.getBean("karyotypeGenerator");
     }
 

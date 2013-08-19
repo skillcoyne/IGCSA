@@ -23,6 +23,7 @@ public abstract class SequenceAberration
   {
   static Logger log = Logger.getLogger(SequenceAberration.class.getName());
 
+  // no, not the ideal way to do this but it'll work for now
   private static Map<String, Class<?>> aberrationClassMap;
   static {
     Map<String, Class<?>> map = new HashMap<String, Class<?>>();
@@ -59,6 +60,7 @@ public abstract class SequenceAberration
 
   public abstract void addFragment(Band band, Chromosome chromosome);
 
+  //public abstract List<Band> getFragments();
 
   protected void writeRemainder(FASTAReader reader, int startLocation, FASTAWriter writer, MutationWriter mutationWriter) throws IOException
     {

@@ -149,11 +149,11 @@ public class FASTAReader
   /*
   Read from last point and output directly to the writer.
    */
-  public int streamToWriter(int end, FASTAWriter writer) throws IOException
+  public int streamToWriter(int charToRead, FASTAWriter writer) throws IOException
     {
     long window = 1000;
-    if (end < window)
-      window = end;
+    if (charToRead < window)
+      window = charToRead;
 
     int count = 0;
     String seq;
@@ -161,8 +161,8 @@ public class FASTAReader
       {
       writer.write(seq);
       count += seq.length();
-      if (end - count < window)
-        window = end - count;
+      if (charToRead - count < window)
+        window = charToRead - count;
       }
     return count;
     }

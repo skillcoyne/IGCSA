@@ -1,5 +1,6 @@
 package org.lcsb.lu.igcsa.aberrations;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
@@ -39,6 +40,7 @@ public class AdditionTest
   private Addition abr;
   private File fastaFile;
 
+  private File dir;
   private FASTAWriter writer;
 
   @Autowired
@@ -51,9 +53,10 @@ public class AdditionTest
     URL testUrl = ClassLoader.getSystemResource("fasta/seq.fa");
     fastaFile = new File(testUrl.toURI());
 
-    File insilicoTest = new File(testProperties.getProperty("dir.karyotype"));
+    dir = new File(testProperties.getProperty("dir.karyotype"));
+    dir.mkdirs();
 
-    writer = new FASTAWriter(new File(insilicoTest, "add-test.fa"), new FASTAHeader("test", "add", "1", "none"));
+    writer = new FASTAWriter(new File(dir, "add-test.fa"), new FASTAHeader("test", "add", "1", "none"));
 
     abr = new Addition();
     assertNotNull(abr);
@@ -63,6 +66,7 @@ public class AdditionTest
   public void tearDown() throws Exception
     {
     writer.getFASTAFile().delete();
+    FileUtils.deleteDirectory(dir);
     }
 
 

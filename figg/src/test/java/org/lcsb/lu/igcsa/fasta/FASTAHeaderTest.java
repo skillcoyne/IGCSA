@@ -39,7 +39,7 @@ public class FASTAHeaderTest
     assertEquals(header.getDB(), "myDb");
     assertEquals(header.getAccession(), "nada");
     assertEquals(header.getLocus(), "");
-    assertEquals(header.getFormattedHeader(), ">myDb|nada||something or another.");
+    assertEquals(header.getFormattedHeader(), ">myDb|nada||something.or.another.");
     }
 
 

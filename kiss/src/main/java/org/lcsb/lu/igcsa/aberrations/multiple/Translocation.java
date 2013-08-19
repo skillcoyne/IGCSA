@@ -43,21 +43,19 @@ public class Translocation extends DerivativeChromosomeAberration
           {
           chr.getFASTAReader().reset(); // make sure we start from 0
           chr.getFASTAReader().streamToWriter(fragmentLocation.getStart() - 1, writer);
-
           mutations.add(new Mutation(chr.getName(), 0, fragmentLocation.getStart(), "trans"));
           }
 
         mutations.add(new Mutation(chr.getName(), fragmentLocation.getStart(), fragmentLocation.getEnd(), "trans"));
 
-        writer.write(chr.getFASTAReader().readSequenceFromLocation(fragmentLocation.getStart(), 1));
-        chr.getFASTAReader().streamToWriter(fragmentLocation.getEnd(), writer);
+        log.debug("Write " + fragmentLocation.getLength() + " characters from " + chr.getFASTA().getName() + " start " + fragmentLocation.getStart());
+        writer.write(chr.getFASTAReader().readSequenceFromLocation(fragmentLocation.getStart(), 1)); // this just makes sure the read pointer is in the right place
+        chr.getFASTAReader().streamToWriter(fragmentLocation.getLength(), writer);
 
         // Last chromosome, read from end location to the end TODO it's possible that this should not be the case for translocations
-        // hard to say at the moment
         if (n == fragments.size())
           {
-          writeRemainder(chr.getFASTAReader(), fragmentLocation.getEnd(), writer, mutationWriter);
-
+          writeRemainder(chr.getFASTAReader(), fragmentLocation.getEnd()+1, writer, mutationWriter);
           mutations.add(new Mutation(chr.getName(), fragmentLocation.getEnd(), -1, "trans"));
           }
 

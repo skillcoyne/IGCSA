@@ -6,6 +6,7 @@ assembly=GRCh37
 # Local Directories
 dir.assembly=/Path/to/FASTA
 dir.insilico=/Path/to/output/Insilico
+dir.karyotype=/Path/to/output/karyotype
 dir.tmp=/Path/to/temp/output/dir
 
 
@@ -25,16 +26,10 @@ window=1000
 
 # -- Derby -- #
 normal.genome.driver=org.apache.derby.jdbc.EmbeddedDriver
-normal.genome.url=jdbc:derby:db/normal_variation
+normal.genome.url=jdbc:derby:db/normal/normal_variation
 normal.genome.user=igcsa
 normal.genome.pwd=
 
-
-# Karyotype variation
-karyotype.genome.driver=com.mysql.jdbc.Driver
-karyotype.genome.url=jdbc:mysql://localhost:3306/karyotype_variation
-karyotype.genome.user=root
-karyotype.genome.pwd=
 
 
 

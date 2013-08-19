@@ -28,8 +28,7 @@ import static org.junit.Assert.*;
  * Copyright University of Luxembourg, Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-@RunWith (SpringJUnit4ClassRunner.class)
-@ContextConfiguration (locations = {"classpath:kiss-test-spring-config.xml"})
+@RunWith (SpringJUnit4ClassRunner.class) @ContextConfiguration (locations = {"classpath:kiss-test-spring-config.xml"})
 public class TranslocationTest
   {
   static Logger log = Logger.getLogger(TranslocationTest.class.getName());
@@ -83,21 +82,36 @@ public class TranslocationTest
     {
     Translocation abr = new Translocation();
 
-    abr.addFragment(new Band(chr1.getName(), "dna", new Location(144, 608)), chr1);
-    abr.addFragment(new Band(chr2.getName(), "climate", new Location(702, 1064)), chr2);
-    abr.addFragment(new Band(chr1.getName(), "dna", new Location(0, 20)), chr1);
-    abr.addFragment(new Band(chr2.getName(), "climate", new Location(993, 1023)), chr2);
+    Band[] bands = new Band[]{
+        new Band(chr1.getName(), "dna", new Location(144, 607)),
+        new Band(chr2.getName(), "climate", new Location(702, 1063)),
+        new Band(chr1.getName(), "dna", new Location(0, 19)),
+        new Band(chr2.getName(), "climate", new Location(993, 1067))};
+
+    abr.addFragment(bands[0], chr1);
+    abr.addFragment(bands[1], chr2);
+    abr.addFragment(bands[2], chr1);
+    abr.addFragment(bands[3], chr2);
 
     abr.applyAberrations(new DerivativeChromosome("derivative"), writer, null);
-
     assertTrue(writer.getFASTAFile().length() > 20);
 
     FASTAReader reader = new FASTAReader(writer.getFASTAFile());
 
-    assertEquals(reader.readSequenceFromLocation(0,144), chr1.getFASTAReader().readSequenceFromLocation(0,144));
-    assertEquals(reader.readSequenceFromLocation(608, 362), chr2.getFASTAReader().readSequenceFromLocation(702, 362));
-    assertEquals(reader.readSequenceFromLocation(971, 20), chr1.getFASTAReader().readSequenceFromLocation(0,20));
-    assertEquals(reader.readSequenceFromLocation(990, 30), chr2.getFASTAReader().readSequenceFromLocation(993, 30));
-    assertEquals(reader.readSequenceFromLocation(1020, 1000), chr2.getFASTAReader().readSequenceFromLocation(1023, 1000));
+    assertEquals("Beginning to first band", reader.readSequenceFromLocation(0, bands[0].getLocation().getStart()), chr1.getFASTAReader().readSequenceFromLocation(0, bands[0].getLocation().getStart()));
+
+    assertEquals("First band", reader.readSequenceFromLocation(bands[0].getLocation().getStart(), bands[0].getLocation().getLength() + 1), chr1.getFASTAReader().readSequenceFromLocation(bands[0].getLocation().getStart(), bands[0].getLocation().getLength() + 1));
+
+    assertEquals("Second band", reader.readSequenceFromLocation(bands[0].getLocation().getEnd() + 1, bands[1].getLocation().getLength() + 1), chr2.getFASTAReader().readSequenceFromLocation(bands[1].getLocation().getStart(), bands[1].getLocation().getLength() + 1));
+
+    int lastLoc = bands[0].getLocation().getEnd() + 1 + bands[1].getLocation().getLength() + 1;
+    assertEquals("Third band", reader.readSequenceFromLocation(lastLoc + 1, bands[2].getLocation().getLength() + 1), chr1.getFASTAReader().readSequenceFromLocation(bands[2].getLocation().getStart(), bands[2].getLocation().getLength() + 1));
+
+    lastLoc = lastLoc +1 + bands[2].getLocation().getEnd();
+    assertEquals("Fourth band", reader.readSequenceFromLocation(lastLoc, bands[3].getLocation().getLength()+1),
+        chr2.getFASTAReader().readSequenceFromLocation(bands[3].getLocation().getStart(), bands[3].getLocation().getLength()+1));
+
+    assertEquals("Remainder", reader.readSequence(1000), chr2.getFASTAReader().readSequenceFromLocation(bands[3].getLocation().getEnd()+1, 1000));
     }
   }
+

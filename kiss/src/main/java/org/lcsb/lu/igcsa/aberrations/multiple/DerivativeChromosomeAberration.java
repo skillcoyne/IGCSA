@@ -7,6 +7,7 @@ import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.ChromosomeFragment;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 

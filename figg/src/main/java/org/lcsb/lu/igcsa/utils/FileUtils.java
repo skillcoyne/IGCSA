@@ -51,7 +51,7 @@ public class FileUtils
     return fastaChr;
     }
 
-  public static Chromosome[] getChromosomesFromFASTA(File fastaDir) throws FileNotFoundException, ProbabilityException, InstantiationException, IllegalAccessException
+  public static List<Chromosome> getChromosomesFromFASTA(File fastaDir) throws FileNotFoundException, ProbabilityException, InstantiationException, IllegalAccessException
     {
     if (!fastaDir.exists() || !fastaDir.canRead())
       throw new FileNotFoundException("FASTA directory does not exist or is not readable " + fastaDir.getAbsolutePath());
@@ -70,13 +70,10 @@ public class FileUtils
     for (File file : listFASTAFiles(fastaDir, fastaFilter))
       {
       String name = getChromosomeFromFASTA(file);
-
-      Chromosome chr = new Chromosome(name, file);
-      // TODO fix this, karytoype doesn't care but small-variations require the list
-      //chr.setVariantList(FragmentInsilicoGenome.variantUtils.getVariantList(chr.getName()));
-      chromosomes.add(chr);
+      chromosomes.add(new Chromosome(name, file));
       }
-    return chromosomes.toArray(new Chromosome[chromosomes.size()]);
+
+    return chromosomes;
     }
 
   private static File[] listFASTAFiles(File fastaDir, FilenameFilter filter) throws FileNotFoundException

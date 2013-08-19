@@ -30,9 +30,6 @@
         <property name="bandDAO" ref="bandDAO"/>
     </bean>
 
-
-
-
     <bean id="aberrationRules" class="org.lcsb.lu.igcsa.generator.AberrationRules" lazy-init="true">
         <property name="rules">
             <props>

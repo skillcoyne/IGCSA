@@ -1,5 +1,6 @@
 package org.lcsb.lu.igcsa.fasta;
 
+import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,6 +10,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 
@@ -26,6 +29,8 @@ import static org.junit.Assert.assertEquals;
 @ContextConfiguration (locations={"classpath:test-spring-config.xml"})
 public class FASTAWriterTest
   {
+  static Logger log = Logger.getLogger(FASTAWriterTest.class.getName());
+
   private File fastaFile;
   private FASTAWriter writer;
 
@@ -82,14 +87,13 @@ public class FASTAWriterTest
     {
     String seq = "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN" +
                  "XGCAGCAAAGAGTCAGCAAGAACACCGATAGGTACGTTTCCAGCTGCCTACGGACAGGGCGGCTCCCTAA" +
-                 "XTATATATA";
+                 "XTATATATAX";
     writer.write(seq);
     writer.flush();
 
     FASTAReader reader = new FASTAReader(fastaFile);
-    assertTrue( reader.readSequence(seq.length()).equals(seq) );
 
-    assertEquals(writer.getFASTAFile().length(), header.getFormattedHeader().length()+seq.length()+3);
+    assertTrue( reader.readSequence(seq.length()).equals(seq) );
     }
 
   @Test
@@ -110,21 +114,19 @@ public class FASTAWriterTest
 
     for (int i=0; i<100; i++)
       writer.write(rep);
-
     writer.flush();
-    FASTAReader reader = new FASTAReader(fastaFile);
 
+    FASTAReader reader = new FASTAReader(fastaFile);
     int lines = 0;
     String seq;
     while(true)
       {
-      lines +=1;
       seq = reader.readSequence(rep.length());
-      System.out.println(lines + " " + seq + " " + seq.length());
-      if (seq.length() < rep.length()) break;
+      if (seq == null || seq.length() < rep.length()) break;
       assertEquals(seq, rep);
+      ++lines;
       }
-    assertEquals(lines, 99);
+    assertEquals(lines, 100);
     }
 
   private static String repeat(String s, int times)

@@ -1,15 +1,15 @@
 package org.lcsb.lu.igcsa.aberrations.single;
 
 import org.apache.log4j.Logger;
+import org.junit.runner.RunWith;
 import org.lcsb.lu.igcsa.aberrations.SequenceAberration;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.Location;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeSet;
+import java.util.*;
 
 
 /**
@@ -18,12 +18,14 @@ import java.util.TreeSet;
  * Copyright University of Luxembourg, Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
+
+@RunWith (SpringJUnit4ClassRunner.class)
+@ContextConfiguration (locations = {"classpath:kiss-test-spring-config.xml"})
 public abstract class SingleChromosomeAberration extends SequenceAberration
   {
   static Logger log = Logger.getLogger(SingleChromosomeAberration.class.getName());
 
   protected Map<String, TreeSet<Location>> chrLocations = new HashMap<String, TreeSet<Location>>();
-
 
   public void SingleChromosomeAberration()
     {
@@ -85,6 +87,7 @@ public abstract class SingleChromosomeAberration extends SequenceAberration
         }
       }
     }
+
 
 
   }

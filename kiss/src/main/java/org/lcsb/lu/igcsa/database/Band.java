@@ -83,6 +83,8 @@ public class Band
     }
 
 
+
+
   @Override
   public boolean equals(Object o)
     {
@@ -93,12 +95,15 @@ public class Band
 
     Band band = (Band) o;
 
+    boolean equals = true;
     if (bandName != null ? !bandName.equals(band.bandName) : band.bandName != null)
-      return false;
+      equals = false;
     if (chromosomeName != null ? !chromosomeName.equals(band.chromosomeName) : band.chromosomeName != null)
-      return false;
+      equals = false;
+    if (location != null ? !location.equals(band.location) : band.location != null)
+      equals = false;
 
-    return true;
+    return equals;
     }
 
   @Override

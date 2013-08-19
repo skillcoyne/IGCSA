@@ -4,6 +4,9 @@ import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,6 +22,9 @@ import static org.junit.Assert.*;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
+
+@RunWith (SpringJUnit4ClassRunner.class)
+@ContextConfiguration (locations={"classpath:test-spring-config.xml"})
 public class BufferedFASTAReaderTest
   {
   static Logger log = Logger.getLogger(BufferedFASTAReaderTest.class.getName());
@@ -41,7 +47,7 @@ public class BufferedFASTAReaderTest
     {
     assertEquals(reader.getSequenceStartLocation(), 67);
     assertEquals(reader.getSequenceLineLength(), 70);
-    assertEquals(reader.getCurrentSequenceLocation(), 67);
+    assertEquals(reader.getCurrentSequenceLocation(), 1);
     }
 
   @Test
@@ -56,13 +62,13 @@ public class BufferedFASTAReaderTest
     {
     char c = (char) reader.read();
     assertSame(c, 'N');
-    assertEquals(reader.getCurrentSequenceLocation(), 68);
+    assertEquals(reader.getCurrentSequenceLocation(), 2);
     }
 
   @Test
   public void testSkip() throws Exception
     {
-    assertEquals(reader.getCurrentSequenceLocation(), 67);
+    assertEquals(reader.getCurrentSequenceLocation(), 1);
     reader.skip(71);
     StringBuffer buf = new StringBuffer();
     for (int i = 0; i < 10; i++)

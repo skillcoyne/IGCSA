@@ -1,3 +1,5 @@
+## ONLY for running the fragment generator
+
 PPATH=`pwd`
 
 

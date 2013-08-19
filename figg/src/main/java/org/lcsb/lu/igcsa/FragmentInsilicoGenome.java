@@ -137,17 +137,22 @@ public class FragmentInsilicoGenome
     if (!fastaDir.exists() || !fastaDir.canRead())
       throw new IOException("FASTA directory does not exist or is not readable: " + fastaDir.getAbsolutePath());
 
+
+    List<Chromosome> chromosomeList = new ArrayList<Chromosome>();
     if (chromosomes.size() > 0)
       {
       for (String c : chromosomes)
-        {
-        Chromosome chromosome = new Chromosome(c, FileUtils.getFASTA(c, fastaDir));
-        chromosome.setVariantList(variantUtils.getVariantList(chromosome.getName()));
-        genome.addChromosome(chromosome);
-        }
+        chromosomeList.add(new Chromosome(c, FileUtils.getFASTA(c, fastaDir)));
       }
     else
-      genome.addChromosomes(FileUtils.getChromosomesFromFASTA(fastaDir));
+      chromosomeList = FileUtils.getChromosomesFromFASTA(fastaDir);
+
+    for (Chromosome chr: chromosomeList)
+      {
+      chr.setVariantList(variantUtils.getVariantList(chr.getName()));
+      genome.addChromosome(chr);
+      }
+
     log.info("Reference genome has: " + genome.getChromosomes().length + " chromosomes");
     }
 
