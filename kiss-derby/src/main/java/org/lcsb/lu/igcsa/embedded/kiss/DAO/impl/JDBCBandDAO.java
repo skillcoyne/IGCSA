@@ -31,7 +31,9 @@ public class JDBCBandDAO extends DataLoadDAO
       {
       if (line.startsWith("#")) continue;
       String[] db = line.split("\t");
-      if (!db[0].matches("\\d+")) continue;
+      if (!db[0].matches("X|Y|\\d+")) continue;
+
+      log.info( line );
 
       jdbcTemplate.update( sql, new Object[]{db[0], db[1], Integer.parseInt(db[2]), Integer.parseInt(db[3])} );
       }

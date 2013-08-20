@@ -29,6 +29,8 @@ public class Karyotype extends Genome
   private int ploidy = 46; //default is normal
   private String allosomes;
 
+  private File parentGenomePath;
+
   // Since in the karyotype it makes a difference how many copies of each chromosome are around we have to track it somehow
   private HashMap<String, Integer> chromosomeCount = new HashMap<String, Integer>();
   private List<DerivativeChromosome> derivativeChromosomes = new ArrayList<DerivativeChromosome>();
@@ -36,6 +38,24 @@ public class Karyotype extends Genome
   private List<Aberration> aberrationDefinitions = new ArrayList<Aberration>();
 
   //44,X,-Y,-6,t(11;14)(q13;q32),add(22)(q13)
+
+  public Karyotype()
+    {}
+
+  public Karyotype(File parentGenomePath)
+    {
+    this.parentGenomePath = parentGenomePath;
+    }
+
+  public File getParentGenomePath()
+    {
+    return parentGenomePath;
+    }
+
+  public void setParentGenomePath(File parentGenomePath)
+    {
+    this.parentGenomePath = parentGenomePath;
+    }
 
   public void setKaryotypeDefinition(int ploidy, String allosomes)
     {
@@ -253,6 +273,8 @@ public class Karyotype extends Genome
     for (Chromosome chr : this.getChromosomes())
       kt.addChromosome(chr);
     kt.setMutationDirectory(this.getMutationDirectory());
+
+    kt.setParentGenomePath(this.getParentGenomePath());
 
     kt.ploidy = this.ploidy;
     kt.chromosomes = this.chromosomes;

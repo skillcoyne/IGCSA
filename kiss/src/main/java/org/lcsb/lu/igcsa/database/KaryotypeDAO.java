@@ -12,8 +12,6 @@ import org.lcsb.lu.igcsa.database.sql.JDBCAneuploidyDAO;
 
 public class KaryotypeDAO
   {
-
-
   private AneuploidyDAO aneuploidyDAO;
   private GeneralKarytoypeDAO generalKarytoypeDAO;
   private ChromosomeBandDAO bandDAO;

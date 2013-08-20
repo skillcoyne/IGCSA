@@ -90,4 +90,15 @@ public class KaryotypeGeneratorTest
       assertEquals(k.getChromosomeCount("Y"), 1);
       }
     }
+
+
+  @Test
+  public void testNoBandError() throws Exception
+    {
+    karyotypeGenerator.generateKaryotype(testKaryotype, new Band[]{new Band("2", "", new Location(1, 40))} );
+//            new Band("3", "p12", new Location(1, 40)),
+//            new Band("6", "q32", new Location(1, 40)),
+//            new Band("17", "p14", new Location(1,
+
+        }
   }

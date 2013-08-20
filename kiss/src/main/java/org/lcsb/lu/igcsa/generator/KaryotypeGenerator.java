@@ -84,7 +84,6 @@ public class KaryotypeGenerator
         orderedBands.remove(0);
         }
       }
-
     return kt;
     }
 

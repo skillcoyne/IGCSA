@@ -93,7 +93,6 @@ public class KaryotypeInsilicoGenome
         }
       catch (ProbabilityException e)
         {
-        throw new RuntimeException(e);
         }
       catch (IOException e)
         {
@@ -124,6 +123,8 @@ public class KaryotypeInsilicoGenome
     */
     if (earlierMutations.exists() & earlierMutations.listFiles().length > 0)
       fastaDir = earlierMutations;
+
+    genome.setParentGenomePath(fastaDir);
 
     log.info("Genome directory to read from is: " + fastaDir.getAbsolutePath());
 
