@@ -15,6 +15,8 @@ import org.paukov.combinatorics.ICombinatoricsVector;
 
 import java.util.*;
 
+import static org.lcsb.lu.igcsa.aberrations.AberrationTypes.*;
+
 public class AberrationRules
   {
   static Logger log = Logger.getLogger(AberrationRules.class.getName());
@@ -26,19 +28,16 @@ public class AberrationRules
   static boolean UNIQUE_BP_PAIRS = true;
 
   // SequenceAberration rules
-  static final Object[] SINGLE_CENTROMERE = new String[]{"iso", "dup", "del"};
-  static final Object[] TWO_CENTROMERES = new String[]{"dic", "del", "dup", "ins", "inv"};
+  static final Object[] SINGLE_CENTROMERE = new String[]{ISOCENTRIC.getShortName(), DUPLICATION.getShortName(), DELETION.getShortName()};
+  static final Object[] TWO_CENTROMERES = new String[]{DICENTRIC.getShortName(), DUPLICATION.getShortName(), DELETION.getShortName(), INVERSION.getShortName() };
 
-  static final Object[] ONE_CHROMOSOME = new String[]{"del", "dup", "ins", "inv"};
-  static final Object[] MULTI_CHROMOSOME = new String[]{"trans"};
+  static final Object[] ONE_CHROMOSOME = new String[]{DELETION.getShortName(), DUPLICATION.getShortName(), INVERSION.getShortName()};
+  static final Object[] MULTI_CHROMOSOME = new String[]{ TRANSLOCATION.getShortName() };
 
 
   private BreakpointCombinatorial combinatorial;
   private List<ICombinatoricsVector<Aberration>> aberrations;
   private List<ICombinatoricsVector<Band>> breakpointSets;
-
-  public AberrationRules()
-    {}
 
   /* ------ Getters and setters ------ */
   public void setRules(Properties properties)
@@ -144,9 +143,6 @@ public class AberrationRules
       aberrations = ruleSingleChromosome(bandSets);
     else
       aberrations = ruleMultiChromosome(bandSets);
-
-//    for (ICombinatoricsVector<SequenceAberration> list : aberrations)
-//      log.info(list);
     }
 
 
@@ -180,8 +176,6 @@ public class AberrationRules
     {
     List<ICombinatoricsVector<Aberration>> aberrations = new ArrayList<ICombinatoricsVector<Aberration>>();
 
-
-
     // only single centromere
     if (bandsVector.size() == 1 && bandsVector.get(0).getVector().get(0).isCentromere())
       aberrations = ruleSingleCentromere(bandsVector);
@@ -213,6 +207,7 @@ public class AberrationRules
           }
         }
       }
+    log.info(aberrations);
     return aberrations;
     }
 

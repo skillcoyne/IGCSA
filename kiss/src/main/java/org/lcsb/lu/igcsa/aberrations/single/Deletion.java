@@ -1,6 +1,7 @@
 package org.lcsb.lu.igcsa.aberrations.single;
 
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.aberrations.AberrationTypes;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
@@ -24,12 +25,15 @@ public class Deletion extends SingleChromosomeAberration
   {
   static Logger log = Logger.getLogger(Deletion.class.getName());
 
+  private String name = AberrationTypes.getNameFor(this.getClass().getName());
+
+
   @Override
   public void applyAberrations(DerivativeChromosome derivativeChromosome, FASTAWriter writer, MutationWriter mutationWriter)
     {
     List<Mutation> mutations = new ArrayList<Mutation>();
 
-    log.info("apply deletion to " + derivativeChromosome.getName());
+    log.info("Apply aberration to " + getFragments());
 
     TreeSet<Location> locations = new TreeSet<Location>();
     for (Band b: getFragments())
@@ -48,7 +52,7 @@ public class Deletion extends SingleChromosomeAberration
         lastEndLoc = locations.first().getEnd();
 
         mutations.add(new Mutation(derivativeChromosome.getChromosomes().iterator().next().getName(), locations.first().getStart(),
-                                   locations.first().getEnd(), "del"));
+                                   locations.first().getEnd(), name));
 
         locations.remove(locations.first());
         }
@@ -59,22 +63,18 @@ public class Deletion extends SingleChromosomeAberration
         log.info(loc.getStart() + " " + loc.getEnd());
 
         mutations.add(new Mutation(derivativeChromosome.getChromosomes().iterator().next().getName(), loc.getStart(),
-                                            loc.getEnd(), "del"));
+                                            loc.getEnd(), name));
 
         reader.streamToWriter(lastEndLoc, loc.getStart(), writer);
         lastEndLoc = loc.getEnd();
         }
 
-      this.writeRemainder(reader, lastEndLoc, writer, mutationWriter);
+      this.writeRemainder(reader, lastEndLoc, writer);
 
       writer.flush();
       writer.close();
 
-      if (mutationWriter != null)
-        {
-        mutationWriter.write(mutations.toArray(new Mutation[mutations.size()]));
-        mutationWriter.close();
-        }
+      writeMutations(mutationWriter, mutations);
       }
     catch (IOException e)
       {

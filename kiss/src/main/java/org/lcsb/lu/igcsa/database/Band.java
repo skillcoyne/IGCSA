@@ -82,7 +82,12 @@ public class Band
     return false;
     }
 
-
+  public String whichArm()
+    {
+    if (bandName.matches("p\\d+"))
+      return "p";
+    return "q";
+    }
 
 
   @Override

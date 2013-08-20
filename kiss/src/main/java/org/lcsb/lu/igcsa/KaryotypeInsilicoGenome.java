@@ -75,11 +75,12 @@ public class KaryotypeInsilicoGenome
         karyotype.applyAberrations();
 
         MutationWriter ploidyWriter = new MutationWriter(new File(svWriterPath, "normal-ploidy.txt"), MutationWriter.PLOIDY);
+        log.info("Copying normal chromosome files.");
         for (Chromosome c : karyotype.getChromosomes())
           {
           if (karyotype.ploidyCount(c.getName()) > 0)
             {
-            log.info("Copying chromosme file " + c.getFASTA().getAbsolutePath() + " to " + karyotype.getGenomeDirectory());
+            log.debug("Copying chromosme file " + c.getFASTA().getAbsolutePath() + " to " + karyotype.getGenomeDirectory());
             org.apache.commons.io.FileUtils.copyFile(c.getFASTA(), new File(karyotype.getGenomeDirectory(), c.getFASTA().getName()));
             }
 

@@ -1,6 +1,7 @@
 package org.lcsb.lu.igcsa.aberrations.single;
 
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.aberrations.AberrationTypes;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
@@ -33,13 +34,16 @@ public class Addition extends SingleChromosomeAberration
   {
   static Logger log = Logger.getLogger(Addition.class.getName());
 
+  private String name = AberrationTypes.getNameFor(this.getClass().getName());
+
 
   @Override
   public void applyAberrations(DerivativeChromosome derivativeChromosome, FASTAWriter writer, MutationWriter mutationWriter)
     {
     List<Band> bands = new ArrayList<Band>(getFragments());
     Location breakpoint = bands.get(0).getLocation();
-    //Location breakpoint = getLocationsForChromosome(derivativeChromosome).first();
+
+    log.info("Apply aberration to " + bands);
 
     FASTAReader reader = derivativeChromosome.getChromosomes().iterator().next().getFASTAReader();
 
@@ -61,7 +65,7 @@ public class Addition extends SingleChromosomeAberration
       if (mutationWriter != null)
         {
         mutationWriter.write(new Mutation(derivativeChromosome.getChromosomes().iterator().next().getName(), breakpoint.getEnd(),
-                                          breakpoint.getEnd()+newSeq.length(), "add"));
+                                          breakpoint.getEnd()+newSeq.length(), name));
         mutationWriter.close();
         }
       }

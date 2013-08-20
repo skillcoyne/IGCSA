@@ -1,6 +1,7 @@
 package org.lcsb.lu.igcsa.aberrations.single;
 
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.aberrations.AberrationTypes;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
@@ -26,11 +27,15 @@ public class Duplication extends SingleChromosomeAberration
   {
   static Logger log = Logger.getLogger(Duplication.class.getName());
 
+  private String name = AberrationTypes.getNameFor(this.getClass().getName());
+
   @Override
   public void applyAberrations(DerivativeChromosome derivativeChromosome, FASTAWriter writer, MutationWriter mutationWriter)
     {
-    log.info("apply duplication to " + derivativeChromosome.getName());
-    //Location location = getLocationsForChromosome(derivativeChromosome).first();
+    List<Mutation> mutations = new ArrayList<Mutation>();
+
+    log.info("Apply aberration to " + getFragments());
+
 
     List<Band> bands = new ArrayList<Band>(getFragments());
     Location location = bands.get(0).getLocation();
@@ -52,12 +57,10 @@ public class Duplication extends SingleChromosomeAberration
       writer.flush();
       writer.close();
 
-      if (mutationWriter != null)
-        {
-        mutationWriter.write(new Mutation(derivativeChromosome.getChromosomes().iterator().next().getName(), location.getStart(),
-                                          location.getEnd(), "dup"));
-        mutationWriter.close();
-        }
+      mutations.add(new Mutation(derivativeChromosome.getChromosomes().iterator().next().getName(), location.getStart(),
+          location.getEnd(), name));
+
+      writeMutations(mutationWriter, mutations);
       }
     catch (IOException e)
       {

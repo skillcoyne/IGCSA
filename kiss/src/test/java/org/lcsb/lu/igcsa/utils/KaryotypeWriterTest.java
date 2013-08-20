@@ -6,7 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.lcsb.lu.igcsa.aberrations.single.Deletion;
-import org.lcsb.lu.igcsa.aberrations.single.Insertion;
+import org.lcsb.lu.igcsa.aberrations.single.Inversion;
 import org.lcsb.lu.igcsa.aberrations.single.SingleChromosomeAberration;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.genome.Chromosome;
@@ -69,7 +69,7 @@ public class KaryotypeWriterTest
     abr.addFragment(new Band("5", "q23", new Location(145, 680)));
     dchr.addAberration(abr);
 
-    abr = new Insertion();
+    abr = new Inversion();
     abr.addFragment(new Band("5", "p23", new Location(145, 680)));
     abr.addFragment(new Band("5", "q34", new Location(900, 1680)));
     dchr.addAberration(abr);

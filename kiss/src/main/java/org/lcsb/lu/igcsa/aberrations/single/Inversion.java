@@ -1,6 +1,7 @@
 package org.lcsb.lu.igcsa.aberrations.single;
 
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.aberrations.AberrationTypes;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
@@ -25,9 +26,13 @@ public class Inversion extends SingleChromosomeAberration
   {
   static Logger log = Logger.getLogger(Inversion.class.getName());
 
+  private String name = AberrationTypes.getNameFor(this.getClass().getName());
+
   @Override
   public void applyAberrations(DerivativeChromosome derivativeChromosome, FASTAWriter writer, MutationWriter mutationWriter)
     {
+    log.info("Apply aberration to " + getFragments());
+
     List<Mutation> mutations = new ArrayList<Mutation>();
 
     TreeSet<Location> locations = new TreeSet<Location>();
@@ -62,42 +67,38 @@ public class Inversion extends SingleChromosomeAberration
           }
         else
           {
+          reverseWrite(loc, reader, writer);
           //Inversions could be so large that I need to read from the fasta file in reverse...
-          int start = loc.getEnd() - window;
-          int count = 0;
-          while (true)
-            {
-            boolean lastSeq = false;
-            if (start <= loc.getStart())
-              {
-              window -= (loc.getStart() - start);
-              start = loc.getStart();
-              lastSeq = true;
-              }
-            StringBuffer seq = new StringBuffer(reader.readSequenceFromLocation(start, window));
-            writer.write(seq.reverse().toString());
-            log.debug(log + " " + seq.toString());
-            count += seq.length();
-
-            start -= window;
-
-            if (count >= loc.getLength() || lastSeq) break;
-            }
+//          int start = loc.getEnd() - window;
+//          int count = 0;
+//          while (true)
+//            {
+//            boolean lastSeq = false;
+//            if (start <= loc.getStart())
+//              {
+//              window -= (loc.getStart() - start);
+//              start = loc.getStart();
+//              lastSeq = true;
+//              }
+//            StringBuffer seq = new StringBuffer(reader.readSequenceFromLocation(start, window));
+//            writer.write(seq.reverse().toString());
+//            log.debug(log + " " + seq.toString());
+//            count += seq.length();
+//
+//            start -= window;
+//
+//            if (count >= loc.getLength() || lastSeq) break;
+//            }
           }
         lastLoc = loc;
         }
 
-      writeRemainder(reader, lastLoc.getEnd(), writer, mutationWriter);
+      writeRemainder(reader, lastLoc.getEnd(), writer);
 
       writer.flush();
       writer.close();
 
-      if (mutationWriter != null)
-        {
-        mutationWriter.write(mutations.toArray(new Mutation[mutations.size()]));
-        mutationWriter.close();
-        }
-
+      writeMutations(mutationWriter, mutations);
       }
 
     catch (IOException e)

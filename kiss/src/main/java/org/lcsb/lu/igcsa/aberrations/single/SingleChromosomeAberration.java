@@ -5,11 +5,14 @@ import org.apache.log4j.Logger;
 import org.junit.runner.RunWith;
 import org.lcsb.lu.igcsa.aberrations.SequenceAberration;
 import org.lcsb.lu.igcsa.database.Band;
+import org.lcsb.lu.igcsa.fasta.FASTAReader;
+import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.io.IOException;
 import java.util.*;
 
 
@@ -97,6 +100,35 @@ public abstract class SingleChromosomeAberration extends SequenceAberration
         throw new Exception("Locations overlap for " + this.getClass().getName() + " removing.");
         }
       lastLoc = loc;
+      }
+    }
+
+  //TODO this is fairly slow, worth thinking about how it could be sped up
+  protected void reverseWrite(Location loc, FASTAReader reader, FASTAWriter writer) throws IOException
+    {
+    log.info("Reverse " + loc);
+    int window = 1000;
+
+    int start = loc.getEnd() - 1 - window;
+    int count = 0;
+    while (true)
+      {
+      boolean lastSeq = false;
+      if (start <= loc.getStart())
+        {
+        window -= (loc.getStart() - start);
+        start = loc.getStart();
+        lastSeq = true;
+        }
+      StringBuffer seq = new StringBuffer(reader.readSequenceFromLocation(start, window));
+      writer.write(seq.reverse().toString());
+      log.debug(log + " " + seq.toString());
+      count += seq.length();
+
+      start -= window;
+
+      if (count >= loc.getLength() || lastSeq)
+        break;
       }
     }
 

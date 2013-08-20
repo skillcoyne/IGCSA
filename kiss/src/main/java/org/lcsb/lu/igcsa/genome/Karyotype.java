@@ -1,10 +1,8 @@
 package org.lcsb.lu.igcsa.genome;
 
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.aberrations.AberrationTypes;
 import org.lcsb.lu.igcsa.aberrations.SequenceAberration;
-import org.lcsb.lu.igcsa.aberrations.multiple.DerivativeChromosomeAberration;
-import org.lcsb.lu.igcsa.aberrations.multiple.Translocation;
-import org.lcsb.lu.igcsa.aberrations.single.SingleChromosomeAberration;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
@@ -15,6 +13,8 @@ import org.lcsb.lu.igcsa.genome.concurrency.Mutable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+
+
 
 /**
  * org.lcsb.lu.igcsa.genome
@@ -69,6 +69,11 @@ public class Karyotype extends Genome
     return chromosomeCount.get(chr);
     }
 
+  /**
+   * Do NOT use for aneuploidy
+   *
+   * @param chromosomes
+   */
   @Override
   public void addChromosomes(Chromosome[] chromosomes)
     {
@@ -132,9 +137,11 @@ public class Karyotype extends Genome
 
     try
       {
-      if (SequenceAberration.hasClassForAberrationType((String) abr.getAberration()))
+      if (AberrationTypes.hasClassFor((String) abr.getAberration()))
+//      if (SequenceAberration.hasClassForAberrationType((String) abr.getAberration()))
         {
-        sequenceAberration = (SequenceAberration) SequenceAberration.getClassForAberrationType((String) abr.getAberration()).newInstance();
+//        sequenceAberration = (SequenceAberration) SequenceAberration.getClassForAberrationType((String) abr.getAberration()).newInstance();
+        sequenceAberration = (SequenceAberration) AberrationTypes.getClassFor((String) abr.getAberration()).newInstance();
         for (Band b : abr.getBands())
           sequenceAberration.addFragment(b, this.getChromosome(b.getChromosomeName()));
 
@@ -147,6 +154,10 @@ public class Karyotype extends Genome
       log.error(e);
       }
     catch (IllegalAccessException e)
+      {
+      log.error(e);
+      }
+    catch (ClassNotFoundException e)
       {
       log.error(e);
       }
@@ -193,49 +204,8 @@ public class Karyotype extends Genome
         FASTAHeader header = new FASTAHeader("figg", newFasta.getName().replaceAll("-der.fa", ""), "karyotype.variation",
                                              this.getBuildName());
         FASTAWriter writer = new FASTAWriter(newFasta, header);
-        MutationWriter mutWriter = new MutationWriter(new File(this.mutationDirectory, newFasta.getName().replace(".fa",
-                                                                                                                  "") + "-SVs.txt"),
-                                                      MutationWriter.SV);
+        MutationWriter mutWriter = new MutationWriter(new File(this.mutationDirectory, newFasta.getName().replace(".fa", "") + "-SVs.txt"), MutationWriter.SV);
         abr.applyAberrations(dchr, writer, mutWriter);
-
-//        if (abr.getClass().equals(Translocation.class))
-//          {
-//          log.info("TRANSLOCATION: " + dchr.getName());
-//          Translocation trans = (Translocation) abr;
-//
-//          File newFasta = ktChromosomeFile(this.getGenomeDirectory(), dchr.getName());
-//
-//          log.info(newFasta.getAbsolutePath());
-//
-//          FASTAHeader header = new FASTAHeader("figg", newFasta.getName().replaceAll("-der.fa", ""), "karyotype.variation",
-//                                               this.getBuildName());
-//          FASTAWriter writer = new FASTAWriter(newFasta, header);
-//          MutationWriter mutWriter = new MutationWriter(new File(this.mutationDirectory, newFasta.getName().replace(".fa",
-//                                                                                                                    "") + "-SVs.txt"),
-//                                                        MutationWriter.SV);
-//
-//          //trans.applyAberrations(dchr, writer, mutWriter);
-//          }
-//        else
-//          {
-//          log.info(abr.getClass());
-//          // 1. Get chromosome for each fragment
-//          // 2. Create new fasta file IF APPLICABLE (derivatives or translocations)
-//          // 3. Give Mutable impl the new fasta file, with the aberration
-//          // 4. Call SequenceAberration.apply
-//
-//          File newFasta = ktChromosomeFile(this.getGenomeDirectory(), dchr.getName());
-//
-//          log.info(newFasta.getAbsolutePath());
-//
-//          FASTAHeader header = new FASTAHeader("figg", newFasta.getName().replaceAll("-der.fa", ""), "karyotype.variation",
-//                                               this.getBuildName());
-//          FASTAWriter writer = new FASTAWriter(newFasta, header);
-//          MutationWriter mutWriter = new MutationWriter(new File(this.mutationDirectory, newFasta.getName().replace(".fa",
-//                                                                                                                    "") + "-SVs.txt"),
-//                                                        MutationWriter.SV);
-//          //abr.applyAberrations(dchr, writer, mutWriter);
-//          }
         }
       }
 
@@ -245,7 +215,7 @@ public class Karyotype extends Genome
   //  need to check filenames now that I could be creating multiple copies of chromosomes
   private File ktChromosomeFile(File dir, String chr)
     {
-    File file = new File(dir, chr + "-der.fa");
+    File file = new File(dir, "chr" + chr + "-der.fa");
     int n = 1;
     while (file.exists())
       {

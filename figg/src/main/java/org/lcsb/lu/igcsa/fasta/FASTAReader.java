@@ -96,6 +96,8 @@ public class FASTAReader
    */
   public String readSequence(int window) throws IOException
     {
+    if (window <= 0) return null;
+
     StringBuffer buf = new StringBuffer();
     char c;
     while ((c = this.read()) != EOF)
@@ -123,6 +125,7 @@ public class FASTAReader
   */
   public int streamToWriter(int start, int end, FASTAWriter writer) throws IOException
     {
+    log.info("streaming to writer " + start + " " + end);
     int charWindow = 1000;
     int totalChars = end - start;
 
@@ -136,7 +139,7 @@ public class FASTAReader
 
       writer.write(seq);
       count += seq.length();
-      start += charWindow;
+      start += charWindow+1;
       if (start > end) start = end;
       if ((end - start) < charWindow) charWindow = end - start;
       if (count >= totalChars || seq.length() < charWindow) break;
