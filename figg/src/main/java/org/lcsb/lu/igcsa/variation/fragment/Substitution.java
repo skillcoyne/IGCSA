@@ -47,7 +47,7 @@ public class Substitution extends Variation
           {
           site = siteSelector.nextInt(sequence.length() - size);
           newLoc = new Location(site, site + size);
-          log.info("Site: " + site);
+          //log.("Site: " + site);
           }
         }
       StringBuffer buf = new StringBuffer();

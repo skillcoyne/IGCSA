@@ -50,6 +50,7 @@ public class MutableGenome extends Genome
     {
     try
       {
+      log.info("Mutating " + chr.getName() + " " + chr.getVariantList());
       MutationWriter mutWriter = new MutationWriter(new File(this.mutationDirectory, chr.getName() + "mutations.txt"), MutationWriter.SMALL);
 
       chr.setMutationsFile(writer.getFASTAFile());

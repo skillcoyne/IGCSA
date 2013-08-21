@@ -60,7 +60,8 @@ public class KaryotypeInsilicoGenome
 
         log.info(karyotype.getBuildName() + " structural variations");
 
-        File ktDir = new File( new File(genomeProperties.getProperty("dir.karyotype"), genome.getBuildName()), i + "-SV");
+
+        File ktDir = new File(genome.getGenomeDirectory(), i+"-SV");
         if (ktDir.exists())
           throw new IOException("Cannot create " + ktDir.getAbsolutePath() + " path already exists.");
         else
@@ -131,6 +132,9 @@ public class KaryotypeInsilicoGenome
     List<Chromosome> chrList = FileUtils.getChromosomesFromFASTA(fastaDir);
     genome.addChromosomes( chrList.toArray(new Chromosome[chrList.size()]) );
     karyotypeGenerator = (KaryotypeGenerator) context.getBean("karyotypeGenerator");
+
+    File parent = new File( new File(genomeProperties.getProperty("dir.insilico"),  genome.getBuildName()), "karyotypes");
+    genome.setGenomeDirectory(parent);
     }
 
   }
