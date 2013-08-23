@@ -106,7 +106,7 @@ public class FragmentInsilicoGenome
       genome.replaceChromosome(mc);
       log.info("Small mutations finished on " + c.getName());
       }
-    log.info("Small mutation step finished on " + tasks.size() + " chromosomes.");
+    log.info("**** Small mutation step finished on " + tasks.size() + " chromosomes. ***");
     smallMutationExcecutor.shutdown();
     }
 

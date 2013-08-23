@@ -108,6 +108,28 @@ public class DNASequence
 
 
   @Override
+  public boolean equals(Object o)
+    {
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
+
+    DNASequence sequence1 = (DNASequence) o;
+
+    if (sequence != null ? !sequence.equals(sequence1.sequence) : sequence1.sequence != null)
+      return false;
+
+    return true;
+    }
+
+  @Override
+  public int hashCode()
+    {
+    return sequence != null ? sequence.hashCode() : 0;
+    }
+
+  @Override
   public String toString()
     {
     return this.getSequence();

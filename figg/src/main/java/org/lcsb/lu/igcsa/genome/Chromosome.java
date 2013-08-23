@@ -40,7 +40,7 @@ public class Chromosome
       }
     catch (Exception e)
       {
-      log.error(e);
+      log.error("Failed to get FASTAReader for " + name + " " + e);
       }
     log.info("Created chr" + name + " with " + chrFastaFile);
     }

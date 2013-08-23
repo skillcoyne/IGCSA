@@ -62,7 +62,6 @@ public class GenomeSimulator
     if (cl.hasOption("s"))
       {
       setupKaryotypeDirectory(genomeName, overwriteGenome);
-
       KaryotypeInsilicoGenome karGen = new KaryotypeInsilicoGenome(context, cl);
       karGen.applyMutations();
       }
@@ -168,7 +167,9 @@ public class GenomeSimulator
         }
       if (cl.hasOption('s') && cl.hasOption('c'))
         {
-        System.out.println("-s works only with all chromosomes defined in the provided probability database. The chromosome option will be ignored after fragment generation.");
+        System.out.println("-s works only with all chromosomes defined in the provided probability database. Remove the -c option to run structural variations, or remove -s to run the fragment mutation generator on the selected chromosomes.");
+        help.printHelp("<jar file>", options);
+        System.exit(0);
         }
       }
     catch (ParseException e)

@@ -23,8 +23,7 @@ import java.util.TreeMap;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 
-@RunWith (SpringJUnit4ClassRunner.class)
-@ContextConfiguration (locations={"classpath:test-spring-config.xml"})
+@RunWith (SpringJUnit4ClassRunner.class) @ContextConfiguration (locations = {"classpath:test-spring-config.xml"})
 public class TandemRepeatTest
   {
   static Logger log = Logger.getLogger(TandemRepeatTest.class.getName());
@@ -59,5 +58,33 @@ public class TandemRepeatTest
 
     assertNotSame(oldSeq, newSeq);
     assertTrue(newSeq.getLength() > oldSeq.getLength());
+    }
+
+
+  // size probabilities are larger than are possible due to string length
+  @Test
+  public void testZeroLengthError() throws Exception
+    {
+    tandemRpt = new TandemRepeat();
+    Fragment fragment = new Fragment();
+    fragment.setCount(3);
+
+    tandemRpt.setMutationFragment(fragment);
+
+    Map<Object, Double> probs = new TreeMap<Object, Double>();
+    probs.put(10, 0.9897);
+    probs.put(7, 0.0086);
+    probs.put(3, 0.0017);
+    Probability f = new Probability(probs);
+
+    tandemRpt.setSizeVariation(f);
+
+    DNASequence shortseq = new DNASequence("ACTGCTT");
+
+    for (int i = 0; i < 10; i++)
+      {
+      DNASequence newSeq = tandemRpt.mutateSequence(shortseq);
+      assertEquals(newSeq, shortseq);
+      }
     }
   }

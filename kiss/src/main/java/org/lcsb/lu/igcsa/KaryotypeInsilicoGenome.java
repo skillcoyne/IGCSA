@@ -50,6 +50,7 @@ public class KaryotypeInsilicoGenome
 
   public void applyMutations()
     {
+    log.info("Apply structural variations to " + genome.getBuildName());
     for (int i = 1; i <= count; i++)
       {
       try
@@ -100,6 +101,7 @@ public class KaryotypeInsilicoGenome
         log.error(e);
         }
       }
+    log.info("*** Finished structural variation. ***");
     }
 
   // get all beans

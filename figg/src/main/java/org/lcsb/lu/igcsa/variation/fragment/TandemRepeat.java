@@ -28,6 +28,9 @@ public class TandemRepeat extends Variation
     for (int i = 0; i < count; i++)
       {
       int size = (Integer) this.sizeVariation.roll();
+      if (size >= sequence.length())
+        continue;
+
       int siteStart = getStartSite(sequence.length(), size);
 
       Location newLoc = new Location(siteStart, siteStart + size);
@@ -59,6 +62,8 @@ public class TandemRepeat extends Variation
 
   private int getStartSite(int seqLength, int size)
     {
+    log.info("length: " + seqLength);
+    log.info("size: " + size);
     int start = siteSelector.nextInt(seqLength - size);
     while (start < size)
       start = siteSelector.nextInt(seqLength - size);

@@ -58,4 +58,10 @@ public abstract class Variation
       {
       return mutateSequence(sequence.getSequence());
       }
+
+    @Override
+    public String toString()
+      {
+      return this.getClass().getSimpleName() ;
+      }
     }

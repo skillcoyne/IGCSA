@@ -76,6 +76,7 @@ public class FragmentMutable extends Mutable
         {
         log.error(e);
         }
+
       location = new Location(location.getEnd(), location.getEnd() + window);
       if (currentSequenceFragment.getLength() < window)
         break;
@@ -84,6 +85,7 @@ public class FragmentMutable extends Mutable
       {
       writer.flush();
       writer.close();
+
       mutationWriter.flush();
       mutationWriter.close();
       }
@@ -127,7 +129,7 @@ public class FragmentMutable extends Mutable
         }
 
       long elapsed = System.currentTimeMillis() - start;
-      log.info(location.toString() + " took " + elapsed);
+      log.debug(chr + " " + location.getStart() + "-" + location.getEnd() + " took " + elapsed);
       }
 
     //else
