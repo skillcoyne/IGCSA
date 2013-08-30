@@ -135,9 +135,8 @@ public class Karyotype extends Genome
   public void loseChromosome(String name)
     {
     log.info("LOSE chromosome " + name);
-    chromosomeCount.put(name, chromosomeCount.get(name) - 1);
-//    if (chromosomeCount.get(name) == 0)
-//      this.removeChromosome(name);
+    if (chromosomeCount.get(name) > 0)
+      chromosomeCount.put(name, chromosomeCount.get(name) - 1);
     }
 
   public Map<Object, List<Collection<Band>>> getAberrations()

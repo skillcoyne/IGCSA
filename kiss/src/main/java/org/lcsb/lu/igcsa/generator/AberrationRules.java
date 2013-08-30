@@ -207,7 +207,7 @@ public class AberrationRules
           }
         }
       }
-    log.info(aberrations);
+    //log.info(aberrations);
     return aberrations;
     }
 

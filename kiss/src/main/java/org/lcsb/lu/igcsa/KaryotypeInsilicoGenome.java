@@ -50,7 +50,7 @@ public class KaryotypeInsilicoGenome
 
   public void applyMutations()
     {
-    log.info("Apply structural variations to " + genome.getBuildName());
+    log.info("Apply structural variations to " + genome.getBuildName() + ". " + count + " karyotypes will be generated.");
     for (int i = 1; i <= count; i++)
       {
       try
@@ -62,7 +62,7 @@ public class KaryotypeInsilicoGenome
         log.info(karyotype.getBuildName() + " structural variations");
 
 
-        File ktDir = new File(genome.getGenomeDirectory(), i+"-SV");
+        File ktDir = new File(genome.getGenomeDirectory(), i + "-SV");
         if (ktDir.exists())
           throw new IOException("Cannot create " + ktDir.getAbsolutePath() + " path already exists.");
         else
@@ -70,22 +70,22 @@ public class KaryotypeInsilicoGenome
 
         karyotype.setGenomeDirectory(ktDir);
         File svWriterPath = new File(karyotype.getGenomeDirectory(), "structural-variations");
-        if (!svWriterPath.exists() || !svWriterPath.isDirectory()) svWriterPath.mkdir();
+        if (!svWriterPath.exists() || !svWriterPath.isDirectory())
+          svWriterPath.mkdir();
 
         karyotype.setMutationDirectory(svWriterPath);
         karyotype = karyotypeGenerator.generateKaryotypes(karyotype);
-        karyotype.applyAberrations();
+        //karyotype.applyAberrations();
 
         MutationWriter ploidyWriter = new MutationWriter(new File(svWriterPath, "normal-ploidy.txt"), MutationWriter.PLOIDY);
-        log.info("Copying normal chromosome files.");
+        //        log.info("Copying normal chromosome files.");
         for (Chromosome c : karyotype.getChromosomes())
           {
-          if (karyotype.ploidyCount(c.getName()) > 0)
-            {
-            log.debug("Copying chromosme file " + c.getFASTA().getAbsolutePath() + " to " + karyotype.getGenomeDirectory());
-            org.apache.commons.io.FileUtils.copyFile(c.getFASTA(), new File(karyotype.getGenomeDirectory(), c.getFASTA().getName()));
-            }
-
+          //          if (karyotype.ploidyCount(c.getName()) > 0)
+          //            {
+          //            log.debug("Copying chromosme file " + c.getFASTA().getAbsolutePath() + " to " + karyotype.getGenomeDirectory());
+          //            org.apache.commons.io.FileUtils.copyFile(c.getFASTA(), new File(karyotype.getGenomeDirectory(), c.getFASTA().getName()));
+          //            }
           ploidyWriter.write(new Mutation(c.getName(), karyotype.ploidyCount(c.getName())));
           }
         ploidyWriter.close();
@@ -95,6 +95,7 @@ public class KaryotypeInsilicoGenome
         }
       catch (ProbabilityException e)
         {
+        log.error(e);
         }
       catch (IOException e)
         {
@@ -124,19 +125,29 @@ public class KaryotypeInsilicoGenome
    If there are already chromosomes set up in the named genome directory we use those because the means fragment variations were
    applied first. If not we'll start from the assembly.
     */
-    if (earlierMutations.exists() & earlierMutations.listFiles().length > 0)
+    if (!earlierMutations.exists() || earlierMutations.listFiles().length <= 0)
+      {
+      List<Chromosome> chrList = FileUtils.getChromosomesFromFASTA(fastaDir);
+      log.info("Copying normal chromosome files.");
+      for (Chromosome c : chrList)
+        {
+        log.debug("Copying chromosme file " + c.getFASTA().getAbsolutePath() + " to " + earlierMutations);
+        org.apache.commons.io.FileUtils.copyFile(c.getFASTA(), new File(earlierMutations, c.getFASTA().getName()));
+        }
       fastaDir = earlierMutations;
+      }
 
-    genome.setParentGenomePath(fastaDir);
 
-    log.info("Genome directory to read from is: " + fastaDir.getAbsolutePath());
+      genome.setParentGenomePath(fastaDir);
 
-    List<Chromosome> chrList = FileUtils.getChromosomesFromFASTA(fastaDir);
-    genome.addChromosomes( chrList.toArray(new Chromosome[chrList.size()]) );
-    karyotypeGenerator = (KaryotypeGenerator) context.getBean("karyotypeGenerator");
+      log.info("Genome directory to read from is: " + fastaDir.getAbsolutePath());
 
-    File parent = new File( new File(genomeProperties.getProperty("dir.insilico"),  genome.getBuildName()), "karyotypes");
-    genome.setGenomeDirectory(parent);
+      List<Chromosome> chrList = FileUtils.getChromosomesFromFASTA(fastaDir);
+      genome.addChromosomes(chrList.toArray(new Chromosome[chrList.size()]));
+      karyotypeGenerator = (KaryotypeGenerator) context.getBean("karyotypeGenerator");
+
+      File parent = new File(new File(genomeProperties.getProperty("dir.insilico"), genome.getBuildName()), "karyotypes");
+      genome.setGenomeDirectory(parent);
+      }
+
     }
-
-  }
