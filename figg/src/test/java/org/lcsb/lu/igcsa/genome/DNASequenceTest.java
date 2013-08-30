@@ -1,7 +1,10 @@
 package org.lcsb.lu.igcsa.genome;
 
+import org.apache.commons.codec.binary.BinaryCodec;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Arrays;
 
 import static org.junit.Assert.*;
 
@@ -40,7 +43,7 @@ public class DNASequenceTest
     assertEquals(dnaSequence.getLength(), nucleotides.length());
 
     dnaSequence.addNucleotides("aatg");
-    assertEquals(dnaSequence.getLength(), nucleotides.length()+4);
+    assertEquals(dnaSequence.getLength(), nucleotides.length() + 4);
     }
 
   @Test
@@ -48,5 +51,6 @@ public class DNASequenceTest
     {
     assertEquals(dnaSequence.getSequence(), nucleotides.toUpperCase());
     }
+
 
   }
