@@ -20,4 +20,6 @@ public interface GeneralKarytoypeDAO
 
   public Probability getBandProbabilities(String chr) throws ProbabilityException;
 
+  public Probability getOverallBandProbabilities() throws ProbabilityException;
+
   }

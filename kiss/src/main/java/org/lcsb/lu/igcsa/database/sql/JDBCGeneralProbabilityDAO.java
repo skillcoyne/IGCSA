@@ -101,6 +101,27 @@ public class JDBCGeneralProbabilityDAO implements GeneralKarytoypeDAO
     return new Probability(probabilities, 5);
     }
 
+  @Override
+  public Probability getOverallBandProbabilities() throws ProbabilityException
+    {
+    final String tableName = "breakpoints";
+    String sql = "SELECT chr, band, bp_prob FROM " + tableName + " ORDER BY bp_prob DESC";
+    Map<Object, Double> probabilities = (Map<Object, Double>) jdbcTemplate.query(sql, new ResultSetExtractor<Object>()
+    {
+    @Override
+    public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
+      {
+      Map<Object, Double> probs = new HashMap<Object, Double>();
+
+      while (resultSet.next())
+        probs.put( new Band(resultSet.getString("chr"), resultSet.getString("band")), resultSet.getDouble("bp_prob"));
+
+      return probs;
+      }
+    });
+
+    return new Probability(probabilities, 5);
+    }
 
   @Override
   public Probability getBandProbabilities(String chr) throws ProbabilityException
