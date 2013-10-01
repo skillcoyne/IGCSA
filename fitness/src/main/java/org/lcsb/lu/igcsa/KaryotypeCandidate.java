@@ -18,12 +18,36 @@ public class KaryotypeCandidate
   static Logger log = Logger.getLogger(KaryotypeCandidate.class.getName());
 
   private Set<Band> breakpoints = new HashSet<Band>();
-  private Map<String, Integer> aneuploidy = new HashMap<String, Integer>();
+  private Map<String, Aneuploidy> aneuploidy = new HashMap<String, Aneuploidy>();
 
+
+  public KaryotypeCandidate()
+    {}
+
+  public KaryotypeCandidate clone()
+    {
+    return new KaryotypeCandidate( new HashSet<Band>(this.breakpoints), new HashMap<String, Aneuploidy>(this.aneuploidy));
+    }
+
+  private KaryotypeCandidate(Set<Band> breakpoints, Map<String, Aneuploidy> aneuploidy)
+    {
+    this.breakpoints = breakpoints;
+    this.aneuploidy = aneuploidy;
+    }
+
+  public void addBreakpoints(Collection<Band> bands)
+    {
+    this.breakpoints.addAll(bands);
+    }
 
   public void addBreakpoint(Band band)
     {
     this.breakpoints.add(band);
+    }
+
+  public void removeBreakpoint(Band band)
+    {
+    this.breakpoints.remove(band);
     }
 
   public void gainChromosome(String chr)
@@ -36,24 +60,90 @@ public class KaryotypeCandidate
     alterPloidy(chr, -1);
     }
 
+  public boolean hasBreakpoint(Band band)
+    {
+    return breakpoints.contains(band);
+    }
 
-  public Set<Band> getBreakpoints()
+  public Collection<Band> getBreakpoints()
     {
     return breakpoints;
     }
 
-  public Map<String, Integer> getAneuploidy()
+  public Collection<Aneuploidy> getAneuploidies()
     {
-    return aneuploidy;
+    return aneuploidy.values();
     }
 
+  public void addAneuploidy(Aneuploidy ploidy)
+    {
+    alterPloidy(ploidy.getChromosome(), ploidy.getCount());
+    }
+
+  public void removeAneuploidy(Aneuploidy ploidy)
+    {
+    if (aneuploidy.containsKey(ploidy.getChromosome()))
+      aneuploidy.remove( aneuploidy.get(ploidy.getChromosome()) ); // count doesn't need to match, just the chromosome
+    }
+
+  public Aneuploidy getAneuploidy(String chr)
+    {
+    if (aneuploidy.containsKey(chr))
+      return aneuploidy.get(chr);
+    else
+      return new Aneuploidy(chr, 0);
+    }
 
   private void alterPloidy(String chr, int n)
     {
     if (!aneuploidy.containsKey(chr))
-      aneuploidy.put(chr, 0);
+      aneuploidy.put(chr, new Aneuploidy(chr, 0));
 
-    aneuploidy.put(chr, aneuploidy.get(chr) + n);
+    Aneuploidy pl = aneuploidy.get(chr);
+    pl.addToCount(n);
+
+    aneuploidy.put(chr, pl);
     }
+
+
+  public class Aneuploidy
+    {
+    private String chr;
+    private int count;
+
+    protected Aneuploidy(String chr, int count)
+      {
+      this.chr = chr;
+      this.count = count;
+      }
+
+    protected void addToCount(int count)
+      {
+      this.count += count;
+      }
+
+    public String getChromosome()
+      {
+      return chr;
+      }
+
+    public int getCount()
+      {
+      return count;
+      }
+
+    public boolean isGain()
+      {
+      return (count > 0)? true: false;
+      }
+
+    @Override
+    public boolean equals(Object o)
+      {
+      Aneuploidy obj= (Aneuploidy) o;
+      return (obj.getChromosome().equals(this.getChromosome()))? true: false;
+      }
+    }
+
 
   }

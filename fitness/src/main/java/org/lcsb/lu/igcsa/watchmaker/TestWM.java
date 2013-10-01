@@ -79,7 +79,7 @@ public class TestWM
 
     log.info(buff);
 
-    new PopulationEvaluation(pop).outputCurrentStats();
+    new DEPopulationEvaluation(pop).outputCurrentStats();
 
     for (int i = 0; i < pop.size(); i++)
       log.info(i + 1 + ": " + pop.get(i).getCandidate() + " " + pop.get(i).getFitness());

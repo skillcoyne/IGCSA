@@ -29,7 +29,7 @@ public class DEObserver<T> implements EvolutionObserver
     {
     log.info("** Generation " + populationData.getGenerationNumber());
 
-    PopulationEvaluation eval = new PopulationEvaluation(populationData.getEvaluatedPopulation());
+    DEPopulationEvaluation eval = new DEPopulationEvaluation(populationData.getEvaluatedPopulation());
 
     eval.outputCurrentStats();
 

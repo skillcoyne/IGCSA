@@ -18,9 +18,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class PopulationEvaluation
+public class DEPopulationEvaluation
   {
-  static Logger log = Logger.getLogger(PopulationEvaluation.class.getName());
+  static Logger log = Logger.getLogger(DEPopulationEvaluation.class.getName());
 
   private List<? extends EvaluatedCandidate<? extends Set<Band>>> population;
 
@@ -28,7 +28,7 @@ public class PopulationEvaluation
   private DataSet fitnessStats;
   private DataSet uniqueStats;
 
-  public PopulationEvaluation(List<? extends EvaluatedCandidate<? extends Set<Band>>> population)
+  public DEPopulationEvaluation(List<? extends EvaluatedCandidate<? extends Set<Band>>> population)
     {
     this.population = population;
 
