@@ -6,7 +6,7 @@
  */
 
 
-package org.lcsb.lu.igcsa.watchmaker;
+package org.lcsb.lu.igcsa.watchmaker.bp;
 
 import org.apache.commons.lang.math.IntRange;
 import org.apache.log4j.Logger;

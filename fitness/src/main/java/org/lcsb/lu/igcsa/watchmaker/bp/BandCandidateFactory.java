@@ -6,7 +6,7 @@
  */
 
 
-package org.lcsb.lu.igcsa.watchmaker;
+package org.lcsb.lu.igcsa.watchmaker.bp;
 
 import org.apache.commons.math3.distribution.IntegerDistribution;
 import org.apache.log4j.Logger;

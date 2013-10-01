@@ -6,7 +6,7 @@
  */
 
 
-package org.lcsb.lu.igcsa.watchmaker;
+package org.lcsb.lu.igcsa.watchmaker.bp;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.Band;
@@ -47,7 +47,7 @@ public class PopulationEvaluation
       {
       DataSet stats = allStats[i];
 
-      buff.append( "\n" + titles[i] + "\n");
+      buff.append("\n" + titles[i] + "\n");
       buff.append("\tMin: " + stats.getMinimum() + "\tMax: " + stats.getMaximum() + "\tMean: " + stats.getArithmeticMean() + "\tSD: " + stats.getStandardDeviation() + "\n");
       buff.append("\tDispersion: " + stats.getStandardDeviation() / stats.getArithmeticMean() + "\n");
       }

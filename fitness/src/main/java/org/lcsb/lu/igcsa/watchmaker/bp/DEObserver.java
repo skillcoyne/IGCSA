@@ -6,7 +6,7 @@
  */
 
 
-package org.lcsb.lu.igcsa.watchmaker;
+package org.lcsb.lu.igcsa.watchmaker.bp;
 
 import org.apache.log4j.Logger;
 import org.uncommons.watchmaker.framework.EvolutionObserver;

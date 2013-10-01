@@ -8,11 +8,17 @@
 
 package org.lcsb.lu.igcsa.watchmaker;
 
+import org.apache.commons.lang.math.IntRange;
 import org.apache.commons.math3.distribution.PoissonDistribution;
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.KaryotypeCandidate;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.database.KaryotypeDAO;
+import org.lcsb.lu.igcsa.dist.RandomRange;
 import org.lcsb.lu.igcsa.prob.Probability;
+import org.lcsb.lu.igcsa.prob.ProbabilityException;
+import org.lcsb.lu.igcsa.watchmaker.bp.*;
+import org.lcsb.lu.igcsa.watchmaker.kt.KaryotypeCandidateFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.uncommons.maths.random.MersenneTwisterRNG;
@@ -32,8 +38,13 @@ public class TestWM
     ApplicationContext context = new ClassPathXmlApplicationContext(new String[]{"classpath*:spring-config.xml", "classpath*:/conf/genome.xml", "classpath*:/conf/database-config.xml"});
     KaryotypeDAO dao = (KaryotypeDAO) context.getBean("karyotypeDAO");
 
-    Probability abrCountProb = dao.getGeneralKarytoypeDAO().getProbabilityClass("aberration");
+    Probability abrCountProb = dao.getGeneralKarytoypeDAO().getProbabilityClass("aberration"); // not really used right now
     Probability bandProbability = dao.getGeneralKarytoypeDAO().getOverallBandProbabilities();
+
+
+    CandidateFactory<KaryotypeCandidate> factory = new KaryotypeCandidateFactory(dao, new PoissonDistribution(5));
+    KaryotypeCandidate kc = factory.generateRandomCandidate(new Random());
+
 
     // creates the initial population
     CandidateFactory<Set<Band>> candidateFactory = new BandCandidateFactory(bandProbability, new PoissonDistribution(5));
@@ -109,6 +120,14 @@ public class TestWM
 
     }
 
+  /*
+ For the probabilities that are given in ranges (number of chromosomes that break, number of aneuploidy's)
+  */
+  private static int selectCount(Probability prob) throws ProbabilityException
+    {
+    IntRange abrRange = (IntRange) prob.roll();
+    return new RandomRange(abrRange).nextInt();
+    }
 
 
   }
