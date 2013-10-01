@@ -20,6 +20,8 @@ public class Probability
 
   protected NavigableMap<Double, Object> objProbabilities = new TreeMap<Double, Object>();
 
+  protected HashMap<Object, Double> rawProbabilities = new HashMap<Object, Double>();
+
   private int decimalPlaces = 2;
 
   /**
@@ -93,6 +95,11 @@ public class Probability
     return objProbabilities;
     }
 
+  public Map<Object, Double> getRawProbabilities()
+    {
+    return rawProbabilities;
+    }
+
   /**
    * Randomly generates a number between 0 and 1.0.  Returns the object in the probability table with the higher probability.
    * All generated values are rounded.
@@ -137,6 +144,8 @@ public class Probability
     double total = 0.0;
     for (Map.Entry<Object, Double> entry : probabilities.entrySet())
       {
+      rawProbabilities.put(entry.getKey(), entry.getValue());
+
       objProbabilities.put(round(entry.getValue() + total, this.decimalPlaces), entry.getKey());
       total = round(total + entry.getValue(), this.decimalPlaces);
       }

@@ -12,6 +12,8 @@ import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 
+import java.util.Map;
+
 public interface GeneralKarytoypeDAO
   {
   public Probability getProbabilityClass(String type) throws ProbabilityException;
@@ -21,5 +23,17 @@ public interface GeneralKarytoypeDAO
   public Probability getBandProbabilities(String chr) throws ProbabilityException;
 
   public Probability getOverallBandProbabilities() throws ProbabilityException;
+
+
+  /*
+  These will return the raw probabilities from the database, rather than the probability object
+   */
+//  public Map<Object, Double> getProbabilityClass(String type) throws ProbabilityException;
+//
+//  public Map<Object, Double> getChromosomeInstability(boolean raw) throws ProbabilityException;
+//
+//  public Map<Object, Double> getBandProbabilities(String chr, boolean raw) throws ProbabilityException;
+//
+//  public Map<Object, Double> getOverallBandProbabilities(boolean raw) throws ProbabilityException;
 
   }

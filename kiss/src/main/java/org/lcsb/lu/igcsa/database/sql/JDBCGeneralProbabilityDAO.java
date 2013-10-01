@@ -146,4 +146,9 @@ public class JDBCGeneralProbabilityDAO implements GeneralKarytoypeDAO
     return new Probability(probabilities, 5);
     }
 
+
+
+
+
+
   }
