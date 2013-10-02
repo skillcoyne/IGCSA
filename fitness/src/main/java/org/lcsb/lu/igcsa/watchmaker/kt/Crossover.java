@@ -13,7 +13,6 @@ import org.apache.commons.lang.math.Range;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.KaryotypeCandidate;
 import org.lcsb.lu.igcsa.database.Band;
-import org.uncommons.maths.random.MersenneTwisterRNG;
 import org.uncommons.watchmaker.framework.EvolutionaryOperator;
 import org.uncommons.watchmaker.framework.FitnessEvaluator;
 
@@ -52,6 +51,7 @@ public class Crossover implements EvolutionaryOperator<KaryotypeCandidate>
   @Override
   public List<KaryotypeCandidate> apply(List<KaryotypeCandidate> karyotypeCandidates, Random random)
     {
+    log.info("Apply crossover to " + karyotypeCandidates.size());
     /* normally the crossover for DE takes only 3 candidates.  But as the code is written in Watchmaker it's simpler to let this
     class take all candidates and select 3 at random.*/
     Collections.shuffle(karyotypeCandidates, random);
@@ -85,7 +85,7 @@ public class Crossover implements EvolutionaryOperator<KaryotypeCandidate>
       {
       karyotypeCandidates.remove(xr3);
       karyotypeCandidates.add(trial);
-      log.info("adding XO individual");
+      log.info("----------> adding XO individual");
       }
 
     return karyotypeCandidates;
@@ -109,7 +109,10 @@ public class Crossover implements EvolutionaryOperator<KaryotypeCandidate>
         double v1 = x3 + F * (x1 - x2);
 
         if (v1 >= 0)
+          { // if I just add the aneuploidy I get highly duplicated chromosomes.  Instead I'll just swap it out if it exists.
+          trial.removeAneuploidy(aneuploidy);
           trial.addAneuploidy(aneuploidy);
+          }
         if (v1 < 0)
           trial.removeAneuploidy(aneuploidy);
         }

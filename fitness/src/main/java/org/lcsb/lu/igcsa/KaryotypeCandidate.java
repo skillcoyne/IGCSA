@@ -22,11 +22,12 @@ public class KaryotypeCandidate
 
 
   public KaryotypeCandidate()
-    {}
+    {
+    }
 
   public KaryotypeCandidate clone()
     {
-    return new KaryotypeCandidate( new HashSet<Band>(this.breakpoints), new HashMap<String, Aneuploidy>(this.aneuploidy));
+    return new KaryotypeCandidate(new HashSet<Band>(this.breakpoints), new HashMap<String, Aneuploidy>(this.aneuploidy));
     }
 
   private KaryotypeCandidate(Set<Band> breakpoints, Map<String, Aneuploidy> aneuploidy)
@@ -80,10 +81,16 @@ public class KaryotypeCandidate
     alterPloidy(ploidy.getChromosome(), ploidy.getCount());
     }
 
+  public void removeChromosome(String str)
+    {
+    this.aneuploidy.remove(str);
+    }
+
   public void removeAneuploidy(Aneuploidy ploidy)
     {
-    if (aneuploidy.containsKey(ploidy.getChromosome()))
-      aneuploidy.remove( aneuploidy.get(ploidy.getChromosome()) ); // count doesn't need to match, just the chromosome
+    removeChromosome(ploidy.getChromosome());
+//    if (aneuploidy.containsKey(ploidy.getChromosome()))
+//      aneuploidy.remove(aneuploidy.get(ploidy.getChromosome())); // count doesn't need to match, just the chromosome
     }
 
   public Aneuploidy getAneuploidy(String chr)
@@ -96,20 +103,35 @@ public class KaryotypeCandidate
 
   private void alterPloidy(String chr, int n)
     {
-    if (!aneuploidy.containsKey(chr))
-      aneuploidy.put(chr, new Aneuploidy(chr, 0));
+    if (n != 0)
+      {
+      if (!aneuploidy.containsKey(chr))
+        aneuploidy.put(chr, new Aneuploidy(chr, 0));
 
-    Aneuploidy pl = aneuploidy.get(chr);
-    pl.addToCount(n);
+      Aneuploidy pl = aneuploidy.get(chr);
+      pl.addToCount(n);
 
-    aneuploidy.put(chr, pl);
+      if (pl.getCount() == 0)
+        this.removeChromosome(pl.getChromosome());
+      else
+        aneuploidy.put(chr, pl);
+      }
     }
 
+
+  @Override
+  public String toString()
+    {
+    return this.getClass().getSimpleName() + "[" + this.hashCode() + "] " + this.getBreakpoints() + "\t" + this.getAneuploidies();
+    }
 
   public class Aneuploidy
     {
     private String chr;
     private int count;
+
+    private int max = 6;
+    private int min = -2;
 
     protected Aneuploidy(String chr, int count)
       {
@@ -120,6 +142,11 @@ public class KaryotypeCandidate
     protected void addToCount(int count)
       {
       this.count += count;
+
+      if (this.count > max)
+        this.count = max;
+      if (this.count < min)
+        this.count = min;
       }
 
     public String getChromosome()
@@ -134,14 +161,20 @@ public class KaryotypeCandidate
 
     public boolean isGain()
       {
-      return (count > 0)? true: false;
+      return (count > 0) ? true : false;
       }
 
     @Override
     public boolean equals(Object o)
       {
-      Aneuploidy obj= (Aneuploidy) o;
-      return (obj.getChromosome().equals(this.getChromosome()))? true: false;
+      Aneuploidy obj = (Aneuploidy) o;
+      return (obj.getChromosome().equals(this.getChromosome())) ? true : false;
+      }
+
+    @Override
+    public String toString()
+      {
+      return this.getChromosome() + "(" + this.getCount() + ")";
       }
     }
 

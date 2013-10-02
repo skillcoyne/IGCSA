@@ -19,7 +19,7 @@ import org.lcsb.lu.igcsa.dist.RandomRange;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.uncommons.watchmaker.framework.factories.AbstractCandidateFactory;
 
-import java.util.Random;
+import java.util.*;
 
 public class KaryotypeCandidateFactory extends AbstractCandidateFactory<KaryotypeCandidate>
   {
@@ -27,19 +27,11 @@ public class KaryotypeCandidateFactory extends AbstractCandidateFactory<Karyotyp
 
   private KaryotypeDAO dao;
   private IntegerDistribution breakpointDist;
-  private NormalDistribution aneuploidyDist;
 
   public KaryotypeCandidateFactory(KaryotypeDAO dao, IntegerDistribution breakpointDist)
     {
     this.dao = dao;
     this.breakpointDist = breakpointDist;
-    }
-
-  public KaryotypeCandidateFactory(KaryotypeDAO dao, IntegerDistribution breakpointDist, NormalDistribution aneuploidyDist)
-    {
-    this.dao = dao;
-    this.breakpointDist = breakpointDist;
-    this.aneuploidyDist = aneuploidyDist;
     }
 
   @Override

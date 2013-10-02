@@ -35,7 +35,47 @@ public class PopulationEvaluation
 
     populationFitnessStats();
     sizePopulationSizeStats();
+    complexityPopulationStats();
     }
+
+  public DataSet getFitnessStats()
+    {
+
+    return fitnessStats;
+    }
+
+  public DataSet getSizeStats()
+    {
+    return sizeStats;
+    }
+
+  public DataSet getUniqueStats()
+    {
+    return uniqueStats;
+    }
+
+  public DataSet getComplexityStats()
+    {
+    return complexityStats;
+    }
+
+  public void outputCurrentStats()
+    {
+    String[] titles = new String[]{"--- BP Size ---", "--- Fitness ---", "--- Complexity ---"};
+    DataSet[] allStats = new DataSet[]{sizeStats, fitnessStats, complexityStats};
+
+    StringBuffer buff = new StringBuffer();
+    for(int i=0; i<allStats.length; i++)
+      {
+      DataSet stats = allStats[i];
+
+      buff.append("\n" + titles[i] + "\n");
+      buff.append("\tMin: " + stats.getMinimum() + "\tMax: " + stats.getMaximum() + "\tMean: " + stats.getArithmeticMean() + "\tSD: " + stats.getStandardDeviation() + "\n");
+      //buff.append("\tDispersion: " + stats.getStandardDeviation() / stats.getArithmeticMean() + "\n");
+      }
+    log.info(buff);
+    }
+
 
   private void complexityPopulationStats()
     {

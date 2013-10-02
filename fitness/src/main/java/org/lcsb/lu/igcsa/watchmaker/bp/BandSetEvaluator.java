@@ -42,8 +42,6 @@ public class BandSetEvaluator implements FitnessEvaluator<Set<Band>>
 //      sumProb += entry.getKey();
 //      }
 
-
-
     this.bandCountProbability = bandCountProbability;
 
     log.info(sumProb);

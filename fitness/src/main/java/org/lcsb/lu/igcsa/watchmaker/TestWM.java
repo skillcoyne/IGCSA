@@ -18,13 +18,19 @@ import org.lcsb.lu.igcsa.dist.RandomRange;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.lcsb.lu.igcsa.watchmaker.bp.*;
-import org.lcsb.lu.igcsa.watchmaker.kt.KaryotypeCandidateFactory;
+import org.lcsb.lu.igcsa.watchmaker.kt.*;
+import org.lcsb.lu.igcsa.watchmaker.kt.Observer;
+import org.lcsb.lu.igcsa.watchmaker.kt.termination.BreakpointCondition;
+import org.lcsb.lu.igcsa.watchmaker.kt.termination.MinimumConditions;
+import org.lcsb.lu.igcsa.watchmaker.kt.termination.MinimumFitness;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.uncommons.maths.random.MersenneTwisterRNG;
 import org.uncommons.maths.statistics.DataSet;
 import org.uncommons.watchmaker.framework.*;
 import org.uncommons.watchmaker.framework.operators.EvolutionPipeline;
+import org.uncommons.watchmaker.framework.selection.TruncationSelection;
+import org.uncommons.watchmaker.framework.termination.GenerationCount;
 
 import java.util.*;
 
@@ -38,17 +44,70 @@ public class TestWM
     ApplicationContext context = new ClassPathXmlApplicationContext(new String[]{"classpath*:spring-config.xml", "classpath*:/conf/genome.xml", "classpath*:/conf/database-config.xml"});
     KaryotypeDAO dao = (KaryotypeDAO) context.getBean("karyotypeDAO");
 
+    Probability aneuploidyProb = dao.getAneuploidyDAO().getChromosomeProbabilities();
+    Probability ploidyCountProb = dao.getGeneralKarytoypeDAO().getProbabilityClass("aneuploidy");
+    Probability bpCountProb = dao.getGeneralKarytoypeDAO().getProbabilityClass("aberration"); // not really used right now
+    Probability bandProbability = dao.getGeneralKarytoypeDAO().getOverallBandProbabilities();
+
+
+    int maxPopulationSize = 200;
+    CandidateFactory<KaryotypeCandidate> factory = new KaryotypeCandidateFactory(dao, new PoissonDistribution(5));
+
+    Fitness evaluator = new Fitness(bandProbability, bpCountProb, aneuploidyProb, ploidyCountProb, false);
+
+    List<EvolutionaryOperator<KaryotypeCandidate>> operators = new LinkedList<EvolutionaryOperator<KaryotypeCandidate>>();
+    operators.add( new Crossover(0.9, 0.7, evaluator) );
+    operators.add( new Mutator(0.3, 0.05, factory));
+
+    SelectionStrategy selection = new TruncationSelection();
+
+    EvolutionEngine<KaryotypeCandidate> engine = new GenerationalEvolutionEngine<KaryotypeCandidate>(factory, new EvolutionPipeline<KaryotypeCandidate>(operators), evaluator, new KaryotypeSelectionStrategy(maxPopulationSize), new MersenneTwisterRNG());
+
+    Observer observer = new Observer();
+    engine.addEvolutionObserver(observer);
+
+    //MinimumConditions termination =  new MinimumConditions(0, 8.0, 0.7);
+    TerminationCondition bpTerm = new BreakpointCondition(8.0);
+    TerminationCondition minFitness = new MinimumFitness(0.7);
+
+    TerminationCondition minCond = new MinimumConditions(9.0, 2.0);
+    TerminationCondition generations = new GenerationCount(3000);
+
+    List<EvaluatedCandidate<KaryotypeCandidate>> pop = engine.evolvePopulation(maxPopulationSize, 0, minCond, generations);
+
+    StringBuffer buff = new StringBuffer("Min\tMax\tMean\tSizeSD\n");
+    for (int i=0; i<observer.getMinFitness().size(); i++)
+      {
+      buff.append(
+          observer.getMinFitness().get(i) + "\t" + observer.getMaxFitness().get(i) + "\t" + observer.getMeanFitness().get(i) + "\t" + observer.getSizeStdDev().get(i) + "\n"
+      );
+      }
+
+    buff.append("Total generations: " + observer.getMinFitness().size() + "\n");
+
+    //log.info(buff);
+
+    for (int i = 0; i < pop.size(); i++)
+      log.info(i + 1 + ": " + pop.get(i).getCandidate() + " " + pop.get(i).getFitness());
+
+
+    log.info("Satisfied conditions: ");
+    for (TerminationCondition tc: engine.getSatisfiedTerminationConditions())
+      log.info(tc);
+
+
+    //new PopulationEvaluation((List<EvaluatedCandidate<? extends KaryotypeCandidate>>) pop).outputCurrentStats();
+    }
+
+  private void testBPOnly(KaryotypeDAO dao) throws ProbabilityException
+    {
     Probability abrCountProb = dao.getGeneralKarytoypeDAO().getProbabilityClass("aberration"); // not really used right now
     Probability bandProbability = dao.getGeneralKarytoypeDAO().getOverallBandProbabilities();
 
 
-    CandidateFactory<KaryotypeCandidate> factory = new KaryotypeCandidateFactory(dao, new PoissonDistribution(5));
-    KaryotypeCandidate kc = factory.generateRandomCandidate(new Random());
-
-
+    /* This was the initial test with Sets of breakpoints only.  No aneuploidy. */
     // creates the initial population
     CandidateFactory<Set<Band>> candidateFactory = new BandCandidateFactory(bandProbability, new PoissonDistribution(5));
-
 
     List<EvolutionaryOperator<Set<Band>>> operators = new LinkedList<EvolutionaryOperator<Set<Band>>>();
     operators.add(new DECrossover(0.9, 0.7, new BandSetEvaluator(bandProbability, abrCountProb)));
@@ -71,7 +130,7 @@ public class TestWM
     for (int i=0; i<observer.getMinFitness().size(); i++)
       {
       buff.append(
-        observer.getMinFitness().get(i) + "\t" + observer.getMaxFitness().get(i) + "\t" + observer.getMeanFitness().get(i) + "\t" + observer.getSizeStdDev().get(i) + "\n"
+          observer.getMinFitness().get(i) + "\t" + observer.getMaxFitness().get(i) + "\t" + observer.getMeanFitness().get(i) + "\t" + observer.getSizeStdDev().get(i) + "\n"
       );
       }
 
@@ -85,13 +144,15 @@ public class TestWM
       log.info(i + 1 + ": " + pop.get(i).getCandidate() + " " + pop.get(i).getFitness());
 
 
-//    Set<Band> allbands = new HashSet<Band>();
-//    for (Object obj : bandProbability.getRawProbabilities().keySet())
-//      allbands.add((Band) obj);
-//
-//    testBandRepresentation(pop, allbands);
+    //    Set<Band> allbands = new HashSet<Band>();
+    //    for (Object obj : bandProbability.getRawProbabilities().keySet())
+    //      allbands.add((Band) obj);
+    //
+    //    testBandRepresentation(pop, allbands);
 
     }
+
+
 
   private static void testBandRepresentation(List<EvaluatedCandidate<Set<Band>>> population, Set<Band> possibleBands)
     {
