@@ -45,3 +45,10 @@ public class KaryotypeSelectionStrategy implements SelectionStrategy<Object>
     return selection;
     }
   }
+
+/*
+The selection strategy needs to ensure a diversity, rather than a convergence.  However, we also need to get rid of extremely unfit individuals.
+So perhaps a two part selection?
+1. Take the top 75% of the population based on fitness.
+2. Maybe here cluster the population into sets based on similarity measures (which I have not yet worked out) then pick one from each cluster?  This might be similar to island evolution.
+*/

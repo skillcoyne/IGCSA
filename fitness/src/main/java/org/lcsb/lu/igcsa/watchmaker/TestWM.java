@@ -29,6 +29,8 @@ import org.uncommons.maths.random.MersenneTwisterRNG;
 import org.uncommons.maths.statistics.DataSet;
 import org.uncommons.watchmaker.framework.*;
 import org.uncommons.watchmaker.framework.operators.EvolutionPipeline;
+import org.uncommons.watchmaker.framework.selection.SigmaScaling;
+import org.uncommons.watchmaker.framework.selection.TournamentSelection;
 import org.uncommons.watchmaker.framework.selection.TruncationSelection;
 import org.uncommons.watchmaker.framework.termination.GenerationCount;
 
@@ -59,9 +61,12 @@ public class TestWM
     operators.add( new Crossover(0.9, 0.7, evaluator) );
     operators.add( new Mutator(0.3, 0.05, factory));
 
-    SelectionStrategy selection = new TruncationSelection();
+    //SelectionStrategy selection = new KaryotypeSelectionStrategy(maxPopulationSize);
+    //SelectionStrategy selection = new TruncationSelection(0.5);
+//    SelectionStrategy selection = new TournamentSelection(new org.uncommons.maths.random.Probability(0.6));
+    SelectionStrategy selection = new SigmaScaling();
 
-    EvolutionEngine<KaryotypeCandidate> engine = new GenerationalEvolutionEngine<KaryotypeCandidate>(factory, new EvolutionPipeline<KaryotypeCandidate>(operators), evaluator, new KaryotypeSelectionStrategy(maxPopulationSize), new MersenneTwisterRNG());
+    EvolutionEngine<KaryotypeCandidate> engine = new GenerationalEvolutionEngine<KaryotypeCandidate>(factory, new EvolutionPipeline<KaryotypeCandidate>(operators), evaluator, selection, new MersenneTwisterRNG());
 
     Observer observer = new Observer();
     engine.addEvolutionObserver(observer);
@@ -73,7 +78,7 @@ public class TestWM
     TerminationCondition minCond = new MinimumConditions(9.0, 2.0);
     TerminationCondition generations = new GenerationCount(3000);
 
-    List<EvaluatedCandidate<KaryotypeCandidate>> pop = engine.evolvePopulation(maxPopulationSize, 0, minCond, generations);
+    List<EvaluatedCandidate<KaryotypeCandidate>> pop = engine.evolvePopulation(maxPopulationSize, maxPopulationSize/2, minCond, generations);
 
     StringBuffer buff = new StringBuffer("Min\tMax\tMean\tSizeSD\n");
     for (int i=0; i<observer.getMinFitness().size(); i++)

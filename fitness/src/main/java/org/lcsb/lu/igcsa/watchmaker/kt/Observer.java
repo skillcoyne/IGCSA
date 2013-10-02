@@ -28,7 +28,7 @@ public class Observer implements EvolutionObserver<KaryotypeCandidate>
   @Override
   public void populationUpdate(PopulationData populationData)
     {
-    log.info("*** Generation " + populationData.getGenerationNumber() + "Size: " + populationData.getPopulationSize() + " ***");
+    log.info("*** Generation " + populationData.getGenerationNumber() + "  Size: " + populationData.getPopulationSize() + " ***");
 
     PopulationEvaluation eval = new PopulationEvaluation(populationData.getEvaluatedPopulation());
 
