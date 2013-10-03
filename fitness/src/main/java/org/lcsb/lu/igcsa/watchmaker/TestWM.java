@@ -12,6 +12,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.IntRange;
 import org.apache.commons.math3.distribution.PoissonDistribution;
 import org.apache.log4j.Logger;
+import org.jgrapht.UndirectedGraph;
+import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.DefaultWeightedEdge;
+import org.jgrapht.graph.SimpleWeightedGraph;
+import org.jgrapht.traverse.AbstractGraphIterator;
 import org.lcsb.lu.igcsa.KaryotypeCandidate;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.database.KaryotypeDAO;
@@ -73,6 +78,17 @@ public class TestWM
     c2.addBreakpoint(bands[3]);
 
     log.info(CandidateUtils.breakpointDistance(c1, c2) );
+
+
+    SimpleWeightedGraph<KaryotypeCandidate, DefaultWeightedEdge> graph = new SimpleWeightedGraph(DefaultWeightedEdge.class);
+    graph.addVertex(c1);
+    graph.addVertex(c2);
+    DefaultWeightedEdge edge = graph.addEdge(c1, c2);
+    graph.setEdgeWeight(edge, CandidateUtils.breakpointDistance(c1, c2));
+
+
+
+
 
     System.exit(1);
 
