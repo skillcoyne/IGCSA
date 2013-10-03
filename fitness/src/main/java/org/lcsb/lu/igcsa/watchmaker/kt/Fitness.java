@@ -23,16 +23,25 @@ public class Fitness implements FitnessEvaluator<KaryotypeCandidate>
   {
   static Logger log = Logger.getLogger(Fitness.class.getName());
 
-  private Probability bpProb;
-  private Probability gainLossProb;
-  private Probability ploidyCountProb;
-  private Probability bpCountProb;
+  private final Probability bpProb;
+  private final Probability gainLossProb;
+  private final Probability ploidyCountProb;
+  private final Probability bpCountProb;
 
   private boolean naturalFitness = false;
 
   private Map<Band, Double> breakpointProbs = new HashMap<Band, Double>();
 
-  double sumProb = 0;
+  private double sumProb = 0;
+
+  /*
+  Fitness could be calcuated in a few ways.  Straightforwardly count the ploidy and breakpoints.  Higher number is lower fitness.
+  These could be adjusted for the likelihood of occurrence.  For instance, 9q34 is a very common breakpoint and so has a high fitness, where
+  Xq25 has a fairly low probability of occurrence and thus a lower fitness.
+
+  Same happens with the gain/loss of a chromosome.
+
+   */
 
   public Fitness(Probability bpProb, Probability bpCountProb, Probability gainLossProb, Probability ploidyCountProb, boolean naturalFitness)
     {
@@ -42,11 +51,10 @@ public class Fitness implements FitnessEvaluator<KaryotypeCandidate>
     this.bpCountProb = bpCountProb;
     this.naturalFitness = naturalFitness;
 
-
     // adjust the breakpoint probabilities
     for (Map.Entry<Object, Double> entry : this.bpProb.getRawProbabilities().entrySet())
       {
-      this.breakpointProbs.put((Band) entry.getKey(), entry.getValue() * 100);
+      this.breakpointProbs.put((Band) entry.getKey(), Math.abs(Math.log(entry.getValue()))/100 );
       this.sumProb += entry.getValue();
       }
     }
@@ -59,31 +67,57 @@ public class Fitness implements FitnessEvaluator<KaryotypeCandidate>
   //
   //    }
 
-  @Override
+  public double getBreakpointScore(KaryotypeCandidate karyotypeCandidate)
+    {
+    double score = 0.0;
+    for (Band band : karyotypeCandidate.getBreakpoints())
+      score += this.breakpointProbs.get(band); // these are adjusted values
+
+    // adjust the score for the number of breakpoints as well
+    //score = adjustByCount(bpCountProb.getRawProbabilities(), score, karyotypeCandidate.getBreakpoints().size());
+
+    // while technically a genome with no mutations is "fit" I'm looking for genomes with at least some mutations
+    if (score  == 0)
+      throw new RuntimeException("0 breakpoint fitness");
+    //      this.breakpointScore  = 200;
+
+    return score;
+    }
+
+  public double getAneuploidyScore(KaryotypeCandidate karyotypeCandidate)
+    {
+    // it's ok if there are no aneuploidies, so no adjustment for a 0 score.
+    // What is a problem is that
+    double score = 0.0;
+    for (KaryotypeCandidate.Aneuploidy aneuploidy : karyotypeCandidate.getAneuploidies())
+      score += Math.abs(Math.log(gainLossProb.getRawProbabilities().get(aneuploidy.getChromosome())))/10;
+
+    //score = adjustByCount(ploidyCountProb.getRawProbabilities(), score, karyotypeCandidate.getAneuploidies().size());
+
+    return score;
+    }
+
+
+
+  //@Override
+  public double getFitness2(KaryotypeCandidate karyotypeCandidate, List<? extends KaryotypeCandidate> karyotypeCandidates)
+    {
+    return karyotypeCandidate.getBreakpoints().size() + karyotypeCandidate.getAneuploidies().size();
+    }
+
+
+  //@Override
   public double getFitness(KaryotypeCandidate karyotypeCandidate, List<? extends KaryotypeCandidate> karyotypeCandidates)
     {
     // not using the list of candidates at the moment. I could integrate into the fitness score a population level score rather than leaving that to the termination criteria.  Have to think about how as it would perhaps simplify the code somewhat.
+    return getBreakpointScore(karyotypeCandidate) + getAneuploidyScore(karyotypeCandidate);
+    }
 
-    double bpScore = 0.0;
-    for (Band band : karyotypeCandidate.getBreakpoints())
-      bpScore += this.breakpointProbs.get(band); // these are adjusted values
-
-    // adjust the score for the number of breakpoints as well
-    bpScore = adjustByCount(bpCountProb.getRawProbabilities(), bpScore, karyotypeCandidate.getBreakpoints().size());
-
-    // while technically a genome with no mutations is "fit" I'm looking for genomes with at least some mutations
-    if (bpScore == 0)
-      bpScore = 200;
-
-    // it's ok if there are no aneuploidies, so no adjustment for a 0 score.
-    // What is a problem is that
-    double apScore = 0.0;
-    for (KaryotypeCandidate.Aneuploidy aneuploidy : karyotypeCandidate.getAneuploidies())
-      apScore += gainLossProb.getRawProbabilities().get(aneuploidy.getChromosome());// * Math.abs(aneuploidy.getCount());
-
-    apScore = adjustByCount(ploidyCountProb.getRawProbabilities(), apScore, karyotypeCandidate.getAneuploidies().size());
-
-    return bpScore + apScore;
+  // Higher scores are naturally fit for watchmaker;
+  @Override
+  public boolean isNatural()
+    {
+    return naturalFitness;
     }
 
   private double adjustByCount(Map<Object, Double> countProbs, double score, int count)
@@ -101,11 +135,4 @@ public class Fitness implements FitnessEvaluator<KaryotypeCandidate>
     return score;
     }
 
-
-  // Higher scores are naturally fit for watchmaker;
-  @Override
-  public boolean isNatural()
-    {
-    return naturalFitness;
-    }
   }

@@ -42,7 +42,7 @@ public class KaryotypeCandidateFactory extends AbstractCandidateFactory<Karyotyp
     try
       {
       generateBreakpoints(candidate);
-      generateAneuploidy(candidate);
+      //generateAneuploidy(candidate);
       }
     catch (ProbabilityException e)
       {
@@ -69,7 +69,11 @@ public class KaryotypeCandidateFactory extends AbstractCandidateFactory<Karyotyp
 
   private void generateBreakpoints(KaryotypeCandidate candidate) throws ProbabilityException
     {
+    // I always want at least 1 breakpoint
     int maxBands = breakpointDist.sample();
+    while (maxBands <= 0)
+      maxBands = breakpointDist.sample();
+
     for (int i = 0; i < maxBands; i++)
       candidate.addBreakpoint((Band) dao.getGeneralKarytoypeDAO().getOverallBandProbabilities().roll());
     }

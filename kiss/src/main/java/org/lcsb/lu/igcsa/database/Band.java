@@ -9,7 +9,7 @@ import org.lcsb.lu.igcsa.genome.Location;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class Band
+public class Band implements Comparable<Band>
   {
   static Logger log = Logger.getLogger(Band.class.getName());
 
@@ -125,4 +125,9 @@ public class Band
     return this.chromosomeName + this.bandName;
     }
 
+  @Override
+  public int compareTo(Band band)
+    {
+    return this.getBandName().compareTo(band.getBandName());
+    }
   }

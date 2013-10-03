@@ -13,6 +13,7 @@ import org.apache.commons.lang.math.Range;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.KaryotypeCandidate;
 import org.lcsb.lu.igcsa.database.Band;
+import org.lcsb.lu.igcsa.utils.CandidateUtils;
 import org.uncommons.watchmaker.framework.EvolutionaryOperator;
 import org.uncommons.watchmaker.framework.FitnessEvaluator;
 
@@ -76,9 +77,9 @@ public class Crossover implements EvolutionaryOperator<KaryotypeCandidate>
 
 
     KaryotypeCandidate trial = xr3.clone();
+
     crossBreakpoints(breakpoints, new KaryotypeCandidate[]{xr1, xr2, xr3}, trial, random);
     crossAneuploidy(ploidy, new KaryotypeCandidate[]{xr1, xr2, xr3}, trial, random);
-
 
     // If fitness improves add it.  In this case we are actually looking for a lower fitness score otherwise we end up with massively mutated individuals and no real variation
     if (fitness.getFitness(trial, karyotypeCandidates) <= fitness.getFitness(xr3, karyotypeCandidates))

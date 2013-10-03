@@ -8,6 +8,7 @@
 
 package org.lcsb.lu.igcsa.watchmaker;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.IntRange;
 import org.apache.commons.math3.distribution.PoissonDistribution;
 import org.apache.log4j.Logger;
@@ -17,6 +18,7 @@ import org.lcsb.lu.igcsa.database.KaryotypeDAO;
 import org.lcsb.lu.igcsa.dist.RandomRange;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
+import org.lcsb.lu.igcsa.utils.CandidateUtils;
 import org.lcsb.lu.igcsa.watchmaker.bp.*;
 import org.lcsb.lu.igcsa.watchmaker.kt.*;
 import org.lcsb.lu.igcsa.watchmaker.kt.Observer;
@@ -28,11 +30,15 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.uncommons.maths.random.MersenneTwisterRNG;
 import org.uncommons.maths.statistics.DataSet;
 import org.uncommons.watchmaker.framework.*;
+import org.uncommons.watchmaker.framework.islands.IslandEvolution;
+import org.uncommons.watchmaker.framework.islands.IslandEvolutionObserver;
+import org.uncommons.watchmaker.framework.islands.RingMigration;
 import org.uncommons.watchmaker.framework.operators.EvolutionPipeline;
 import org.uncommons.watchmaker.framework.selection.SigmaScaling;
 import org.uncommons.watchmaker.framework.selection.TournamentSelection;
 import org.uncommons.watchmaker.framework.selection.TruncationSelection;
 import org.uncommons.watchmaker.framework.termination.GenerationCount;
+import org.uncommons.watchmaker.framework.termination.TargetFitness;
 
 import java.util.*;
 
@@ -46,54 +52,82 @@ public class TestWM
     ApplicationContext context = new ClassPathXmlApplicationContext(new String[]{"classpath*:spring-config.xml", "classpath*:/conf/genome.xml", "classpath*:/conf/database-config.xml"});
     KaryotypeDAO dao = (KaryotypeDAO) context.getBean("karyotypeDAO");
 
+    String a = "Xq32,9q34";
+    String b = "9q34,Xq32";
+
+    Band[] bands = new Band[]{
+        new Band("X", "q32"),
+        new Band("9", "q34"),
+        new Band("7", "q11"),
+        new Band("1", "q42")
+    };
+
+    KaryotypeCandidate c1 = new KaryotypeCandidate();
+    c1.addBreakpoint(bands[0]);
+    c1.addBreakpoint(bands[1]);
+
+    KaryotypeCandidate c2 = new KaryotypeCandidate();
+    c2.addBreakpoint(bands[0]);
+    c2.addBreakpoint(bands[1]);
+    c2.addBreakpoint(bands[2]);
+    c2.addBreakpoint(bands[3]);
+
+    log.info(CandidateUtils.breakpointDistance(c1, c2) );
+
+    System.exit(1);
+
+
+
     Probability aneuploidyProb = dao.getAneuploidyDAO().getChromosomeProbabilities();
     Probability ploidyCountProb = dao.getGeneralKarytoypeDAO().getProbabilityClass("aneuploidy");
     Probability bpCountProb = dao.getGeneralKarytoypeDAO().getProbabilityClass("aberration"); // not really used right now
     Probability bandProbability = dao.getGeneralKarytoypeDAO().getOverallBandProbabilities();
 
-
-    int maxPopulationSize = 200;
     CandidateFactory<KaryotypeCandidate> factory = new KaryotypeCandidateFactory(dao, new PoissonDistribution(5));
 
     Fitness evaluator = new Fitness(bandProbability, bpCountProb, aneuploidyProb, ploidyCountProb, false);
 
     List<EvolutionaryOperator<KaryotypeCandidate>> operators = new LinkedList<EvolutionaryOperator<KaryotypeCandidate>>();
     operators.add( new Crossover(0.9, 0.7, evaluator) );
-    operators.add( new Mutator(0.3, 0.05, factory));
+    operators.add( new Mutator(0.2, 0.05, factory, evaluator) );
 
-    //SelectionStrategy selection = new KaryotypeSelectionStrategy(maxPopulationSize);
+//    SelectionStrategy selection = new KaryotypeSelectionStrategy(200, 0.0);
     //SelectionStrategy selection = new TruncationSelection(0.5);
-//    SelectionStrategy selection = new TournamentSelection(new org.uncommons.maths.random.Probability(0.6));
-    SelectionStrategy selection = new SigmaScaling();
+    SelectionStrategy selection = new TournamentSelection(new org.uncommons.maths.random.Probability(0.6));
+    //SelectionStrategy selection = new SigmaScaling();
 
-    EvolutionEngine<KaryotypeCandidate> engine = new GenerationalEvolutionEngine<KaryotypeCandidate>(factory, new EvolutionPipeline<KaryotypeCandidate>(operators), evaluator, selection, new MersenneTwisterRNG());
+
+//    EvolutionEngine<KaryotypeCandidate> engine = new GenerationalEvolutionEngine<KaryotypeCandidate>(factory, new EvolutionPipeline<KaryotypeCandidate>(operators), evaluator, selection, new MersenneTwisterRNG());
+
+    EvolutionEngine<KaryotypeCandidate> engine = new DiversityEvolution<KaryotypeCandidate>(factory, evaluator, new EvolutionPipeline<KaryotypeCandidate>(operators), selection, new MersenneTwisterRNG());
 
     Observer observer = new Observer();
     engine.addEvolutionObserver(observer);
 
-    //MinimumConditions termination =  new MinimumConditions(0, 8.0, 0.7);
     TerminationCondition bpTerm = new BreakpointCondition(8.0);
     TerminationCondition minFitness = new MinimumFitness(0.7);
 
     TerminationCondition minCond = new MinimumConditions(9.0, 2.0);
-    TerminationCondition generations = new GenerationCount(3000);
+    TerminationCondition generations = new GenerationCount(1000);
 
-    List<EvaluatedCandidate<KaryotypeCandidate>> pop = engine.evolvePopulation(maxPopulationSize, maxPopulationSize/2, minCond, generations);
+    List<EvaluatedCandidate<KaryotypeCandidate>> pop = engine.evolvePopulation(500, 0, generations, minCond);
 
     StringBuffer buff = new StringBuffer("Min\tMax\tMean\tSizeSD\n");
     for (int i=0; i<observer.getMinFitness().size(); i++)
       {
       buff.append(
-          observer.getMinFitness().get(i) + "\t" + observer.getMaxFitness().get(i) + "\t" + observer.getMeanFitness().get(i) + "\t" + observer.getSizeStdDev().get(i) + "\n"
-      );
+          observer.getMinFitness().get(i) + "\t" + observer.getMaxFitness().get(i) + "\t" + observer.getMeanFitness().get(i) + "\t" + observer.getSizeStdDev().get(i) + "\n");
       }
 
     buff.append("Total generations: " + observer.getMinFitness().size() + "\n");
 
-    //log.info(buff);
+//    log.info(buff);
 
     for (int i = 0; i < pop.size(); i++)
+      {
       log.info(i + 1 + ": " + pop.get(i).getCandidate() + " " + pop.get(i).getFitness());
+      log.info("\tbp: " + evaluator.getBreakpointScore(pop.get(i).getCandidate()) + "\tpdy: " + evaluator.getAneuploidyScore(pop.get(i).getCandidate()));
+      }
 
 
     log.info("Satisfied conditions: ");

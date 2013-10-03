@@ -6,10 +6,7 @@ import org.lcsb.lu.igcsa.database.Band;
 import org.uncommons.maths.statistics.DataSet;
 import org.uncommons.watchmaker.framework.EvaluatedCandidate;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 /**
@@ -36,6 +33,7 @@ public class PopulationEvaluation
     populationFitnessStats();
     sizePopulationSizeStats();
     complexityPopulationStats();
+    uniqueIndividualStats();
     }
 
   public DataSet getFitnessStats()
@@ -61,8 +59,8 @@ public class PopulationEvaluation
 
   public void outputCurrentStats()
     {
-    String[] titles = new String[]{"--- BP Size ---", "--- Fitness ---", "--- Complexity ---"};
-    DataSet[] allStats = new DataSet[]{sizeStats, fitnessStats, complexityStats};
+    String[] titles = new String[]{"--- BP Size ---", "--- Fitness ---", "--- Complexity ---", "--- Uniqueness ---"};
+    DataSet[] allStats = new DataSet[]{sizeStats, fitnessStats, complexityStats, uniqueStats};
 
     StringBuffer buff = new StringBuffer();
     for(int i=0; i<allStats.length; i++)
@@ -71,7 +69,7 @@ public class PopulationEvaluation
 
       buff.append("\n" + titles[i] + "\n");
       buff.append("\tMin: " + stats.getMinimum() + "\tMax: " + stats.getMaximum() + "\tMean: " + stats.getArithmeticMean() + "\tSD: " + stats.getStandardDeviation() + "\n");
-      //buff.append("\tDispersion: " + stats.getStandardDeviation() / stats.getArithmeticMean() + "\n");
+      buff.append("\tDispersion: " + stats.getStandardDeviation() / stats.getArithmeticMean() + "\n");
       }
     log.info(buff);
     }
@@ -109,18 +107,21 @@ public class PopulationEvaluation
 
   private void uniqueIndividualStats()
     {
-//    Map<Set<Band>, Integer> same = new HashMap<Set<Band>, Integer>();
-//    for (EvaluatedCandidate<? extends KaryotypeCandidate> ind : population)
-//      {
-//      if (same.containsKey(ind.getCandidate()))
-//        same.put((Set<Band>) ind.getCandidate(), same.get(ind.getCandidate()) + 1);
-//      else
-//        same.put((Set<Band>) ind.getCandidate(), 1);
-//      }
-//
-//    uniqueStats = new DataSet(same.size());
-//    for (Integer val : same.values())
-//      uniqueStats.addValue(val);
+    Map<Set<Band>, Integer> same = new HashMap<Set<Band>, Integer>();
+    for (EvaluatedCandidate<? extends KaryotypeCandidate> ind : population)
+      {
+      List<Band> bands = new ArrayList<Band>(ind.getCandidate().getBreakpoints());
+      Collections.sort(bands);
+      if (same.containsKey(ind.getCandidate().getBreakpoints()))
+        same.put((Set<Band>) ind.getCandidate().getBreakpoints(), same.get(ind.getCandidate().getBreakpoints()) + 1);
+      else
+        same.put((Set<Band>) ind.getCandidate().getBreakpoints(), 1);
+      }
+    Set<Integer> freq = new HashSet<Integer>(same.values());
+
+    uniqueStats = new DataSet(freq.size());
+    for (Integer val : freq)
+      uniqueStats.addValue(val);
     }
 
 
