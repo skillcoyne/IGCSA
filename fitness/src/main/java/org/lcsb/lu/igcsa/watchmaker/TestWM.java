@@ -16,6 +16,7 @@ import org.jgrapht.UndirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleWeightedGraph;
+import org.jgrapht.graph.WeightedPseudograph;
 import org.jgrapht.traverse.AbstractGraphIterator;
 import org.lcsb.lu.igcsa.KaryotypeCandidate;
 import org.lcsb.lu.igcsa.database.Band;
@@ -45,7 +46,10 @@ import org.uncommons.watchmaker.framework.selection.TruncationSelection;
 import org.uncommons.watchmaker.framework.termination.GenerationCount;
 import org.uncommons.watchmaker.framework.termination.TargetFitness;
 
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
 import java.util.*;
+import java.util.zip.GZIPOutputStream;
 
 public class TestWM
   {
@@ -57,8 +61,6 @@ public class TestWM
     ApplicationContext context = new ClassPathXmlApplicationContext(new String[]{"classpath*:spring-config.xml", "classpath*:/conf/genome.xml", "classpath*:/conf/database-config.xml"});
     KaryotypeDAO dao = (KaryotypeDAO) context.getBean("karyotypeDAO");
 
-    String a = "Xq32,9q34";
-    String b = "9q34,Xq32";
 
     Band[] bands = new Band[]{
         new Band("X", "q32"),
@@ -67,24 +69,66 @@ public class TestWM
         new Band("1", "q42")
     };
 
-    KaryotypeCandidate c1 = new KaryotypeCandidate();
-    c1.addBreakpoint(bands[0]);
-    c1.addBreakpoint(bands[1]);
 
-    KaryotypeCandidate c2 = new KaryotypeCandidate();
-    c2.addBreakpoint(bands[0]);
-    c2.addBreakpoint(bands[1]);
-    c2.addBreakpoint(bands[2]);
-    c2.addBreakpoint(bands[3]);
+    String[] ab = new String[]{"Xq32", "7p11"};
+    String[] ba = new String[]{"9q34", "Xq32"};
 
-    log.info(CandidateUtils.breakpointDistance(c1, c2) );
+    /*
+    ( C(xy) - min{C(x), C(y)} ) / max{C(x), C(y)}
+     */
+
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    GZIPOutputStream gz = new GZIPOutputStream(baos);
+    ObjectOutputStream oos = new ObjectOutputStream(gz);
+
+    oos.writeObject(ab);
+    oos.close();
+
+    int Cx = baos.size();
+    log.info(Arrays.toString(baos.toByteArray()));
 
 
-    SimpleWeightedGraph<KaryotypeCandidate, DefaultWeightedEdge> graph = new SimpleWeightedGraph(DefaultWeightedEdge.class);
-    graph.addVertex(c1);
-    graph.addVertex(c2);
-    DefaultWeightedEdge edge = graph.addEdge(c1, c2);
-    graph.setEdgeWeight(edge, CandidateUtils.breakpointDistance(c1, c2));
+    baos = new ByteArrayOutputStream();
+    gz = new GZIPOutputStream(baos);
+    oos = new ObjectOutputStream(gz);
+
+    oos.writeObject(ba);
+    oos.close();
+
+    int Cy = baos.size();
+    log.info(Arrays.toString(baos.toByteArray()));
+
+
+    baos = new ByteArrayOutputStream();
+    gz = new GZIPOutputStream(baos);
+    oos = new ObjectOutputStream(gz);
+
+    oos.writeObject(ab);
+    oos.writeObject(ba);
+    oos.close();
+
+
+    int Cxy = baos.size();
+    log.info(Arrays.toString(baos.toByteArray()));
+
+
+    // Determine C(xy) - min{C(x),C(y)}
+    // Determine max{C(x), C(y)}
+    int maxC; int maxXY;
+    if (Cx > Cy)
+      {
+      maxC = Cxy - Cy;
+      maxXY = Cx;
+      }
+    else
+      {
+      maxC = Cxy - Cx;
+      maxXY = Cy;
+      }
+
+    log.info( maxC/maxXY );
+
+
 
 
 
@@ -92,12 +136,39 @@ public class TestWM
 
     System.exit(1);
 
+//
+//    KaryotypeCandidate c1 = new KaryotypeCandidate();
+//    c1.addBreakpoint(bands[0]);
+//    c1.addBreakpoint(bands[1]);
+//
+//    KaryotypeCandidate c2 = new KaryotypeCandidate();
+//    c2.addBreakpoint(bands[0]);
+//    c2.addBreakpoint(bands[1]);
+//    c2.addBreakpoint(bands[2]);
+//    c2.addBreakpoint(bands[3]);
+//
+//    //log.info(CandidateUtils.breakpointDistance(c1, c2) );
+//
+//
+//    SimpleWeightedGraph<KaryotypeCandidate, DefaultWeightedEdge> graph = new SimpleWeightedGraph(DefaultWeightedEdge.class);
+//    graph.addVertex(c1);
+//    graph.addVertex(c2);
+//    DefaultWeightedEdge edge = graph.addEdge(c1, c2);
+//
+//    graph.setEdgeWeight(edge, CandidateUtils.breakpointDistance(c1, c2));
+//
+//
+//    for(DefaultWeightedEdge de: graph.edgeSet())
+//      {
+//      log.info(graph.getEdgeSource(de) + "-" + graph.getEdgeTarget(de) + ": " + graph.getEdgeWeight(de) );
+//      }
 
 
     Probability aneuploidyProb = dao.getAneuploidyDAO().getChromosomeProbabilities();
     Probability ploidyCountProb = dao.getGeneralKarytoypeDAO().getProbabilityClass("aneuploidy");
     Probability bpCountProb = dao.getGeneralKarytoypeDAO().getProbabilityClass("aberration"); // not really used right now
     Probability bandProbability = dao.getGeneralKarytoypeDAO().getOverallBandProbabilities();
+
 
     CandidateFactory<KaryotypeCandidate> factory = new KaryotypeCandidateFactory(dao, new PoissonDistribution(5));
 
@@ -107,9 +178,9 @@ public class TestWM
     operators.add( new Crossover(0.9, 0.7, evaluator) );
     operators.add( new Mutator(0.2, 0.05, factory, evaluator) );
 
-//    SelectionStrategy selection = new KaryotypeSelectionStrategy(200, 0.0);
+    SelectionStrategy selection = new KaryotypeSelectionStrategy(200, 0.0);
     //SelectionStrategy selection = new TruncationSelection(0.5);
-    SelectionStrategy selection = new TournamentSelection(new org.uncommons.maths.random.Probability(0.6));
+//    SelectionStrategy selection = new TournamentSelection(new org.uncommons.maths.random.Probability(0.6));
     //SelectionStrategy selection = new SigmaScaling();
 
 
@@ -124,9 +195,9 @@ public class TestWM
     TerminationCondition minFitness = new MinimumFitness(0.7);
 
     TerminationCondition minCond = new MinimumConditions(9.0, 2.0);
-    TerminationCondition generations = new GenerationCount(1000);
+    TerminationCondition generations = new GenerationCount(100);
 
-    List<EvaluatedCandidate<KaryotypeCandidate>> pop = engine.evolvePopulation(500, 0, generations, minCond);
+    List<EvaluatedCandidate<KaryotypeCandidate>> pop = engine.evolvePopulation(200, 0, generations, minCond);
 
     StringBuffer buff = new StringBuffer("Min\tMax\tMean\tSizeSD\n");
     for (int i=0; i<observer.getMinFitness().size(); i++)
@@ -139,10 +210,46 @@ public class TestWM
 
 //    log.info(buff);
 
+    Map<KaryotypeCandidate[], Double> distances = new HashMap<KaryotypeCandidate[], Double>();
+    Map<Double, List<KaryotypeCandidate[]>> groups = new HashMap<Double, List<KaryotypeCandidate[]>>();
+
+    WeightedPseudograph<KaryotypeCandidate, DefaultWeightedEdge> graph = new WeightedPseudograph<KaryotypeCandidate, DefaultWeightedEdge>(DefaultWeightedEdge.class);
+    //SimpleWeightedGraph<KaryotypeCandidate, DefaultWeightedEdge> graph = new SimpleWeightedGraph(DefaultWeightedEdge.class);
+
     for (int i = 0; i < pop.size(); i++)
       {
       log.info(i + 1 + ": " + pop.get(i).getCandidate() + " " + pop.get(i).getFitness());
       log.info("\tbp: " + evaluator.getBreakpointScore(pop.get(i).getCandidate()) + "\tpdy: " + evaluator.getAneuploidyScore(pop.get(i).getCandidate()));
+
+      KaryotypeCandidate c1 = pop.get(i).getCandidate();
+      graph.addVertex(c1);
+
+      for (int x=i+1; x<pop.size(); x++)
+        {
+        log.info(i + " " + x);
+
+        KaryotypeCandidate c2 = pop.get(x).getCandidate();
+        graph.addVertex(c2);
+
+        KaryotypeCandidate[] cands = new KaryotypeCandidate[]{c1, c2};
+
+
+        if (c1.hashCode() == c2.hashCode()) continue;
+
+        double bpDist = CandidateUtils.breakpointDistance(c1, c2);
+        if (!groups.containsKey(bpDist))
+          groups.put(bpDist, new ArrayList<KaryotypeCandidate[]>());
+
+        groups.get(bpDist).add(cands);
+
+//        if (distances.containsKey(cands) || c1.hashCode() == c2.hashCode())
+//          continue;
+
+        distances.put(cands,  CandidateUtils.breakpointDistance( c1, c2 ));
+
+        DefaultWeightedEdge edge = graph.addEdge(c1, c2);
+        graph.setEdgeWeight(edge, CandidateUtils.breakpointDistance( c1, c2 ));
+        }
       }
 
 
@@ -150,6 +257,13 @@ public class TestWM
     for (TerminationCondition tc: engine.getSatisfiedTerminationConditions())
       log.info(tc);
 
+    DataSet weight = new DataSet(distances.values().size());
+    for (Double val: distances.values())
+        weight.addValue(val);
+//    for(DefaultWeightedEdge edge: graph.edgeSet())
+//      weight.addValue( graph.getEdgeWeight(edge) );
+
+    log.info("Min:" + weight.getMinimum() + " Max:" + weight.getMaximum() + " Mean:" + weight.getArithmeticMean() + " SD:" + weight.getStandardDeviation());
 
     //new PopulationEvaluation((List<EvaluatedCandidate<? extends KaryotypeCandidate>>) pop).outputCurrentStats();
     }

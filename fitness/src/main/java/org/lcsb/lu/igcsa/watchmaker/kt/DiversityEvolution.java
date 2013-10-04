@@ -34,6 +34,7 @@ public class DiversityEvolution<T> extends AbstractEvolutionEngine<T>
     this.selectionStrategy = selectionStrategy;
     }
 
+
   /*
   This is selecting and evolving the entire population each time.
    */
@@ -42,13 +43,13 @@ public class DiversityEvolution<T> extends AbstractEvolutionEngine<T>
     {
     // Select candidates to evolve
     List<T> population = selectionStrategy.select(evaluatedPopulation, fitnessEvaluator.isNatural(), evaluatedPopulation.size(), rng);
-    CandidateUtils.testForDuplication((List<? extends KaryotypeCandidate>) population);
+//    CandidateUtils.testForDuplication((List<? extends KaryotypeCandidate>) population);
 
     log.info(population.size() + " selected for evolution step");
 
     // Run evolution
     population = evolutionScheme.apply(population, rng);
-    CandidateUtils.testForDuplication((List<? extends KaryotypeCandidate>) population);
+//    CandidateUtils.testForDuplication((List<? extends KaryotypeCandidate>) population);
 
     // I'm not doing anything with elites, so ignoring that.
     // return the evaluated population

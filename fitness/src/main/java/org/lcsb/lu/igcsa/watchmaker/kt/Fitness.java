@@ -78,7 +78,7 @@ public class Fitness implements FitnessEvaluator<KaryotypeCandidate>
 
     // while technically a genome with no mutations is "fit" I'm looking for genomes with at least some mutations
     if (score  == 0)
-      throw new RuntimeException("0 breakpoint fitness");
+      log.info(karyotypeCandidate + " fitness 0");
     //      this.breakpointScore  = 200;
 
     return score;

@@ -31,7 +31,7 @@ public class KaryotypeSelectionStrategy implements SelectionStrategy<Object>
     }
 
   //@Override
-  public <S> List<S> select2(List<EvaluatedCandidate<S>> population, boolean naturalFitnessScores, int selectionSize, Random rng)
+  public <S> List<S> select(List<EvaluatedCandidate<S>> population, boolean naturalFitnessScores, int selectionSize, Random rng)
     { // for the moment this is elite, but it will return everything
     if (selectionSize > maxSelectionSize)
       selectionSize = maxSelectionSize;
@@ -56,8 +56,8 @@ public class KaryotypeSelectionStrategy implements SelectionStrategy<Object>
     }
 
 
-  @Override
-  public <S> List<S> select(List<EvaluatedCandidate<S>> population, boolean naturalFitnessScores, int selectionSize, Random rng)
+  //@Override
+  public <S> List<S> select2(List<EvaluatedCandidate<S>> population, boolean naturalFitnessScores, int selectionSize, Random rng)
     {
     // randomize
     Collections.shuffle(population, rng);
