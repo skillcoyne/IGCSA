@@ -53,7 +53,7 @@ public class BreakpointCondition implements TerminationCondition
     PopulationEvaluation eval = new PopulationEvaluation((List<EvaluatedCandidate<? extends KaryotypeCandidate>>) population);
     DataSet dsSize = eval.getSizeStats();
 
-    if ((sizeSD > 0 && dsSize.getStandardDeviation() > sizeSD + sizeSD*0.01) || bpStats.getMinimum() >= min)
+    if ((sizeSD > 0 && dsSize.getStandardDeviation() > sizeSD + sizeSD*0.01))// || bpStats.getMinimum() >= min)
       {
       log.info("Size: " + dsSize.getStandardDeviation() + " Min:" + bpStats.getMinimum());
       return true;

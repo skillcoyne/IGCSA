@@ -41,7 +41,7 @@ public class KaryotypeCandidateFactory extends AbstractCandidateFactory<Karyotyp
     try
       {
       generateBreakpoints(candidate);
-      //generateAneuploidy(candidate);
+      generateAneuploidy(candidate);
       }
     catch (ProbabilityException e)
       {

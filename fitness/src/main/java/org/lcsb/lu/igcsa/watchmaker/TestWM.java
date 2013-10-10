@@ -62,7 +62,7 @@ public class TestWM
     operators.add( new Crossover(0.9, 0.7, evaluator) );
     operators.add( new Mutator(0.2, 0.05, factory, evaluator) );
 
-    SelectionStrategy selection = new KaryotypeSelectionStrategy(200, 0.0);
+    SelectionStrategy selection = new KaryotypeSelectionStrategy(2.1);
     //SelectionStrategy selection = new TruncationSelection(0.5);
     //SelectionStrategy selection = new TournamentSelection(new org.uncommons.maths.random.Probability(0.6));
     //SelectionStrategy selection = new SigmaScaling();
@@ -70,7 +70,8 @@ public class TestWM
 
 //    EvolutionEngine<KaryotypeCandidate> engine = new GenerationalEvolutionEngine<KaryotypeCandidate>(factory, new EvolutionPipeline<KaryotypeCandidate>(operators), evaluator, selection, new MersenneTwisterRNG());
 
-    EvolutionEngine<KaryotypeCandidate> engine = new DiversityEvolution<KaryotypeCandidate>(factory, evaluator, new EvolutionPipeline<KaryotypeCandidate>(operators), selection, new MersenneTwisterRNG());
+    int maxPop = 200;
+    EvolutionEngine<KaryotypeCandidate> engine = new DiversityEvolution<KaryotypeCandidate>(factory, evaluator, new EvolutionPipeline<KaryotypeCandidate>(operators), selection, new MersenneTwisterRNG(), maxPop);
 
     Observer observer = new Observer();
     engine.addEvolutionObserver(observer);
@@ -80,7 +81,7 @@ public class TestWM
 //    TerminationCondition minCond = new MinimumConditions(9.0, 2.0);
     TerminationCondition generations = new GenerationCount(1000);
 
-    List<EvaluatedCandidate<KaryotypeCandidate>> pop = engine.evolvePopulation(300, 0, generations, bpTerm);
+    List<EvaluatedCandidate<KaryotypeCandidate>> pop = engine.evolvePopulation(maxPop, 0, generations, bpTerm);
 
     StringBuffer buff = new StringBuffer("Min\tMax\tMean\tSizeSD\n");
     for (int i=0; i<observer.getMinFitness().size(); i++)
@@ -112,62 +113,5 @@ public class TestWM
 
 
     }
-
-  private void testBPOnly(KaryotypeDAO dao) throws ProbabilityException
-    {
-    Probability abrCountProb = dao.getGeneralKarytoypeDAO().getProbabilityClass("aberration"); // not really used right now
-    Probability bandProbability = dao.getGeneralKarytoypeDAO().getOverallBandProbabilities();
-
-
-    /* This was the initial test with Sets of breakpoints only.  No aneuploidy. */
-    // creates the initial population
-    CandidateFactory<Set<Band>> candidateFactory = new BandCandidateFactory(bandProbability, new PoissonDistribution(5));
-
-    List<EvolutionaryOperator<Set<Band>>> operators = new LinkedList<EvolutionaryOperator<Set<Band>>>();
-    operators.add(new DECrossover(0.9, 0.7, new BandSetEvaluator(bandProbability, abrCountProb)));
-    operators.add(new DEMutator(0.3, 0.05, candidateFactory));
-
-    /* --- ENGINE --- */
-    EvolutionEngine<Set<Band>> engine = new GenerationalEvolutionEngine<Set<Band>>(candidateFactory, new EvolutionPipeline<Set<Band>>(operators), new BandSetEvaluator(bandProbability, abrCountProb), new DESelectionStrategy(), new MersenneTwisterRNG());
-
-
-    DEObserver<Set<Band>> observer = new DEObserver<Set<Band>>();
-    engine.addEvolutionObserver(observer);
-
-    // Terminate when the spread of bands has a stddev of 8.0 and the minimum fitness is above 1.3
-    // these are currently just selected by observation. The size SD allows for a good spread of individuals with few, moderate and lots of breakpoints
-    // The minimum fitness allows me to effectively ensure that individuals with few or very low fitness breakpoints get represented
-    // Currently this tends to terminate after about 600 - 1000 generations (for a population of 200).  Fewer generations for a smaller population
-    List<EvaluatedCandidate<Set<Band>>> pop = engine.evolvePopulation(200, 0, new DiversityTermination(0, 8.0, 0.7));
-
-    StringBuffer buff = new StringBuffer("Min\tMax\tMean\tSizeSD\n");
-    for (int i=0; i<observer.getMinFitness().size(); i++)
-      {
-      buff.append(
-          observer.getMinFitness().get(i) + "\t" + observer.getMaxFitness().get(i) + "\t" + observer.getMeanFitness().get(i) + "\t" + observer.getSizeStdDev().get(i) + "\n"
-      );
-      }
-
-    buff.append("Total generations: " + observer.getMinFitness().size() + "\n");
-
-    log.info(buff);
-
-    new DEPopulationEvaluation(pop).outputCurrentStats();
-
-    for (int i = 0; i < pop.size(); i++)
-      log.info(i + 1 + ": " + pop.get(i).getCandidate() + " " + pop.get(i).getFitness());
-
-
-    //    Set<Band> allbands = new HashSet<Band>();
-    //    for (Object obj : bandProbability.getRawProbabilities().keySet())
-    //      allbands.add((Band) obj);
-    //
-    //    testBandRepresentation(pop, allbands);
-
-    }
-
-
-
-
 
   }

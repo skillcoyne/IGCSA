@@ -21,29 +21,40 @@ public class KaryotypeSelectionStrategy implements SelectionStrategy<Object>
   {
   static Logger log = Logger.getLogger(SelectionStrategy.class.getName());
 
-  private int maxSelectionSize = 100;
-  private double minFitness = 0.0;
+  private double maxFitness = 2.5;
 
-  public KaryotypeSelectionStrategy(int maxSelectionSize, double minFitness)
+  public KaryotypeSelectionStrategy(double maxFitness)
     {
-    this.maxSelectionSize = maxSelectionSize;
-    this.minFitness = minFitness;
+    this.maxFitness = maxFitness;
     }
 
   //@Override
   public <S> List<S> select(List<EvaluatedCandidate<S>> population, boolean naturalFitnessScores, int selectionSize, Random rng)
     {
-    // for the moment this is elite, but it will return everything
-    if (selectionSize > maxSelectionSize)
-      selectionSize = maxSelectionSize;
+    CandidateGraph cg = CandidateGraph.getInstance();
 
+    // remove the candidates with the highest fitness scores
+    List<EvaluatedCandidate<S>> evaluatedCandidates = new ArrayList<EvaluatedCandidate<S>>();
     //log.info("Selecting the top " + selectionSize + " from population " + population.size());
-    EvolutionUtils.sortEvaluatedPopulation(population, false);
+    int newCandidates = 0;
+    EvolutionUtils.sortEvaluatedPopulation(population, true);
+    for (EvaluatedCandidate<S> candidate: population)
+      {
+      if (candidate.getFitness() < maxFitness)
+        evaluatedCandidates.add(candidate);
+      else
+        {
+        ++newCandidates;
+        cg.removeNode((KaryotypeCandidate) candidate.getCandidate());
+        }
+      }
+    log.info("Removed " + newCandidates + " candidates. Population=" + evaluatedCandidates.size());
+
 
     // instead, for every pair that has a high similarity roll a die and select only one (a sort of Tournament selection)
     List<KaryotypeCandidate> removeFromPopulation = new ArrayList<KaryotypeCandidate>();
     double similarityScore = 0.08;
-    CandidateGraph cg = CandidateGraph.getInstance();
+
     Iterator<DefaultWeightedEdge> eI = cg.weightSortedEdgeIterator();
     while (eI.hasNext())
       {
@@ -68,19 +79,24 @@ public class KaryotypeSelectionStrategy implements SelectionStrategy<Object>
 //      selectionSize = population.size();
 
     List<S> selection = new ArrayList<S>();
-    for(EvaluatedCandidate<S> candidate: population)
+    for(EvaluatedCandidate<S> candidate: evaluatedCandidates)
       {
       KaryotypeCandidate kc = (KaryotypeCandidate) candidate.getCandidate();
       if (!removeFromPopulation.contains(kc))
         selection.add(candidate.getCandidate());
       }
 
-//    List<S> selection = new ArrayList<S>(selectionSize);
+
+
+
+    //    List<S> selection = new ArrayList<S>(selectionSize);
 //    for (int i=0; i<selectionSize; i++)
 //      selection.add(population.get(i).getCandidate());
 
     return selection;
     }
+
+
 
 
   //@Override
