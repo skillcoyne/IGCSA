@@ -11,9 +11,8 @@ package org.lcsb.lu.igcsa.watchmaker.kt;
 import org.apache.commons.lang.math.DoubleRange;
 import org.apache.commons.lang.math.Range;
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.KaryotypeCandidate;
+import org.lcsb.lu.igcsa.watchmaker.kt.KaryotypeCandidate;
 import org.lcsb.lu.igcsa.database.Band;
-import org.lcsb.lu.igcsa.utils.CandidateUtils;
 import org.uncommons.watchmaker.framework.CandidateFactory;
 import org.uncommons.watchmaker.framework.EvolutionaryOperator;
 import org.uncommons.watchmaker.framework.FitnessEvaluator;
@@ -62,32 +61,12 @@ public class Mutator implements EvolutionaryOperator<KaryotypeCandidate>
         KaryotypeCandidate individual = candidates.get(i).clone();
         candidates.remove(i);
 
+        CandidateGraph.getInstance().removeNode(individual);
+
         // each individual gets a different set of bands & aneuploidies to mutate
         KaryotypeCandidate randomCand = factory.generateRandomCandidate(random);
-
-        // either add or remove the breakpoints.
-        for (Band band : randomCand.getBreakpoints())
-          {
-          // either add or remove it from the set
-          if (individual.hasBreakpoint(band))
-            individual.removeBreakpoint(band);
-          else
-            individual.addBreakpoint(band);
-          }
-
-        // maybe we do ploidy differently? Or not at all...
-        for (KaryotypeCandidate.Aneuploidy pdy : randomCand.getAneuploidies())
-          {
-          if (individual.getAneuploidies().contains(pdy))
-            {
-            if (pdy.isGain())
-              individual.gainChromosome(pdy.getChromosome());
-            else
-              individual.loseChromosome(pdy.getChromosome());
-            }
-          else
-            individual.addAneuploidy(pdy);
-          }
+        flipBreakpoints(individual, randomCand);
+        flipPloidy(individual, randomCand);
 
         mutatedIndividuals.add(individual);
         Collections.shuffle(candidates, random); // ensures a random selection of individuals
@@ -95,6 +74,45 @@ public class Mutator implements EvolutionaryOperator<KaryotypeCandidate>
       }
 
     candidates.addAll(mutatedIndividuals);
+
+    long start = System.currentTimeMillis();
+    for(KaryotypeCandidate mut: mutatedIndividuals)
+      CandidateGraph.updateGraph(mut, candidates);
+    log.info("graph update: " + (System.currentTimeMillis() - start));
+
     return candidates;
     }
+
+  // Flip the breakpoints present in the selected candidate based on the new, randomly generated candidate
+  private void flipBreakpoints(KaryotypeCandidate individual, KaryotypeCandidate randomCand)
+    {
+    // either add or remove the breakpoints.
+    for (Band band : randomCand.getBreakpoints())
+      {
+      // either add or remove it from the set
+      if (individual.hasBreakpoint(band))
+        individual.removeBreakpoint(band);
+      else
+        individual.addBreakpoint(band);
+      }
+    }
+
+  private void flipPloidy(KaryotypeCandidate individual, KaryotypeCandidate randomCand)
+    {
+    // maybe we do ploidy differently? Or not at all...
+    for (KaryotypeCandidate.Aneuploidy pdy : randomCand.getAneuploidies())
+      {
+      if (individual.getAneuploidies().contains(pdy))
+        {
+        if (pdy.isGain())
+          individual.gainChromosome(pdy.getChromosome());
+        else
+          individual.loseChromosome(pdy.getChromosome());
+        }
+      else
+        individual.addAneuploidy(pdy);
+      }
+    }
+
+
   }

@@ -9,8 +9,8 @@
 package org.lcsb.lu.igcsa.watchmaker.kt;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.KaryotypeCandidate;
-import org.lcsb.lu.igcsa.utils.CandidateUtils;
+import org.jgrapht.graph.DefaultWeightedEdge;
+import org.lcsb.lu.igcsa.watchmaker.kt.KaryotypeCandidate;
 import org.uncommons.watchmaker.framework.EvaluatedCandidate;
 import org.uncommons.watchmaker.framework.EvolutionUtils;
 import org.uncommons.watchmaker.framework.SelectionStrategy;
@@ -32,25 +32,52 @@ public class KaryotypeSelectionStrategy implements SelectionStrategy<Object>
 
   //@Override
   public <S> List<S> select(List<EvaluatedCandidate<S>> population, boolean naturalFitnessScores, int selectionSize, Random rng)
-    { // for the moment this is elite, but it will return everything
+    {
+    // for the moment this is elite, but it will return everything
     if (selectionSize > maxSelectionSize)
       selectionSize = maxSelectionSize;
 
-    log.info("Selecting the top " + selectionSize + " from population " + population.size());
+    //log.info("Selecting the top " + selectionSize + " from population " + population.size());
     EvolutionUtils.sortEvaluatedPopulation(population, false);
 
+    // instead, for every pair that has a high similarity roll a die and select only one (a sort of Tournament selection)
+    List<KaryotypeCandidate> removeFromPopulation = new ArrayList<KaryotypeCandidate>();
+    double similarityScore = 0.08;
+    CandidateGraph cg = CandidateGraph.getInstance();
+    Iterator<DefaultWeightedEdge> eI = cg.weightSortedEdgeIterator();
+    while (eI.hasNext())
+      {
+      DefaultWeightedEdge edge = eI.next();
+      if (cg.getEdgeWeight(edge) <= similarityScore)
+        {
+        KaryotypeCandidate notSelected = cg.getNodes(edge).get(rng.nextInt(2));
+        cg.removeNode(notSelected);
+        removeFromPopulation.add(notSelected);
+        }
+      }
+
+    log.info("Removing " + removeFromPopulation.size() + " from population");
+
     // get rid of anything with < min fitness
-    Iterator<EvaluatedCandidate<S>> pI = population.iterator();
-    while (pI.hasNext())
-      if (pI.next().getFitness() <= minFitness) pI.remove();
+//    Iterator<EvaluatedCandidate<S>> pI = population.iterator();
+//    while (pI.hasNext())
+//      if (pI.next().getFitness() <= minFitness) pI.remove();
+//
+//    // avoid any array errors
+//    if (selectionSize > population.size())
+//      selectionSize = population.size();
 
-    // avoid any array errors
-    if (selectionSize > population.size())
-      selectionSize = population.size();
+    List<S> selection = new ArrayList<S>();
+    for(EvaluatedCandidate<S> candidate: population)
+      {
+      KaryotypeCandidate kc = (KaryotypeCandidate) candidate.getCandidate();
+      if (!removeFromPopulation.contains(kc))
+        selection.add(candidate.getCandidate());
+      }
 
-    List<S> selection = new ArrayList<S>(selectionSize);
-    for (int i=0; i<selectionSize; i++)
-      selection.add(population.get(i).getCandidate());
+//    List<S> selection = new ArrayList<S>(selectionSize);
+//    for (int i=0; i<selectionSize; i++)
+//      selection.add(population.get(i).getCandidate());
 
     return selection;
     }

@@ -1,7 +1,7 @@
 package org.lcsb.lu.igcsa.watchmaker.kt;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.KaryotypeCandidate;
+import org.lcsb.lu.igcsa.watchmaker.kt.KaryotypeCandidate;
 import org.lcsb.lu.igcsa.database.Band;
 import org.uncommons.maths.statistics.DataSet;
 import org.uncommons.watchmaker.framework.EvaluatedCandidate;
@@ -113,9 +113,9 @@ public class PopulationEvaluation
       List<Band> bands = new ArrayList<Band>(ind.getCandidate().getBreakpoints());
       Collections.sort(bands);
       if (same.containsKey(ind.getCandidate().getBreakpoints()))
-        same.put((Set<Band>) ind.getCandidate().getBreakpoints(), same.get(ind.getCandidate().getBreakpoints()) + 1);
+        same.put(new HashSet<Band>(ind.getCandidate().getBreakpoints()), same.get(ind.getCandidate().getBreakpoints()) + 1);
       else
-        same.put((Set<Band>) ind.getCandidate().getBreakpoints(), 1);
+        same.put(new HashSet<Band>(ind.getCandidate().getBreakpoints()), 1);
       }
     Set<Integer> freq = new HashSet<Integer>(same.values());
 

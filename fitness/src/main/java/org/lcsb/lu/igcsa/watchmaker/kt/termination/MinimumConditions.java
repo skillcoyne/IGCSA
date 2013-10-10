@@ -1,7 +1,7 @@
 package org.lcsb.lu.igcsa.watchmaker.kt.termination;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.KaryotypeCandidate;
+import org.lcsb.lu.igcsa.watchmaker.kt.KaryotypeCandidate;
 
 import org.lcsb.lu.igcsa.watchmaker.kt.PopulationEvaluation;
 import org.uncommons.maths.statistics.DataSet;

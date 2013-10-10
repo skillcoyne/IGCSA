@@ -9,9 +9,6 @@
 package org.lcsb.lu.igcsa.watchmaker.kt.termination;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.KaryotypeCandidate;
-import org.lcsb.lu.igcsa.watchmaker.kt.PopulationEvaluation;
-import org.uncommons.maths.statistics.DataSet;
 import org.uncommons.watchmaker.framework.EvaluatedCandidate;
 import org.uncommons.watchmaker.framework.PopulationData;
 import org.uncommons.watchmaker.framework.TerminationCondition;

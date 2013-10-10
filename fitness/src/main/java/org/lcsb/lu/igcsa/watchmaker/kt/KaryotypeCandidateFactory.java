@@ -10,9 +10,8 @@ package org.lcsb.lu.igcsa.watchmaker.kt;
 
 import org.apache.commons.lang.math.IntRange;
 import org.apache.commons.math3.distribution.IntegerDistribution;
-import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.KaryotypeCandidate;
+import org.lcsb.lu.igcsa.watchmaker.kt.KaryotypeCandidate;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.database.KaryotypeDAO;
 import org.lcsb.lu.igcsa.dist.RandomRange;
@@ -50,6 +49,18 @@ public class KaryotypeCandidateFactory extends AbstractCandidateFactory<Karyotyp
       }
 
     return candidate;
+    }
+
+
+  @Override
+  public List<KaryotypeCandidate> generateInitialPopulation(int populationSize, Collection<KaryotypeCandidate> seedCandidates, Random rng)
+    {
+    log.info("******* generateInitialPopulation **********");
+    List<KaryotypeCandidate> population = super.generateInitialPopulation(populationSize, seedCandidates, rng);
+
+    for(KaryotypeCandidate cand: population)
+      CandidateGraph.updateGraph(cand, population);
+    return population;
     }
 
   private void generateAneuploidy(KaryotypeCandidate candidate) throws ProbabilityException

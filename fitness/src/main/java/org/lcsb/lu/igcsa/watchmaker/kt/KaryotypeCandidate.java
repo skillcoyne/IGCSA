@@ -6,12 +6,16 @@
  */
 
 
-package org.lcsb.lu.igcsa;
+package org.lcsb.lu.igcsa.watchmaker.kt;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.Band;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.*;
+import java.util.zip.GZIPOutputStream;
 
 public class KaryotypeCandidate
   {
@@ -38,16 +42,19 @@ public class KaryotypeCandidate
 
   public void addBreakpoints(Collection<Band> bands)
     {
+    BreakpointWatcher.getInstance().addAll(bands);
     this.breakpoints.addAll(bands);
     }
 
   public void addBreakpoint(Band band)
     {
+    BreakpointWatcher.getInstance().add(band);
     this.breakpoints.add(band);
     }
 
   public void removeBreakpoint(Band band)
     {
+    BreakpointWatcher.getInstance().remove(band);
     this.breakpoints.remove(band);
     }
 
@@ -68,7 +75,9 @@ public class KaryotypeCandidate
 
   public Collection<Band> getBreakpoints()
     {
-    return breakpoints;
+    List<Band> bps = new ArrayList<Band>(breakpoints);
+    Collections.sort(bps);
+    return bps;
     }
 
   public Collection<Aneuploidy> getAneuploidies()
@@ -91,6 +100,30 @@ public class KaryotypeCandidate
     removeChromosome(ploidy.getChromosome());
 //    if (aneuploidy.containsKey(ploidy.getChromosome()))
 //      aneuploidy.remove(aneuploidy.get(ploidy.getChromosome())); // count doesn't need to match, just the chromosome
+    }
+
+  public void compress()
+    {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    GZIPOutputStream gz = null;
+    try
+      {
+      gz = new GZIPOutputStream(baos);
+      ObjectOutputStream oos = new ObjectOutputStream(gz);
+
+      oos.writeObject(this.getBreakpoints());
+      oos.close();
+
+
+      }
+    catch (IOException e)
+      {
+      log.error(e);
+      }
+
+
+
+
     }
 
   public Aneuploidy getAneuploidy(String chr)
@@ -124,6 +157,9 @@ public class KaryotypeCandidate
     {
     return this.getClass().getSimpleName() + "[" + this.hashCode() + "] " + this.getBreakpoints() + "\t" + this.getAneuploidies();
     }
+
+
+
 
   public class Aneuploidy
     {
