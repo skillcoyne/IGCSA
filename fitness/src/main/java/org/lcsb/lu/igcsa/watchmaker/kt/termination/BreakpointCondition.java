@@ -59,6 +59,7 @@ public class BreakpointCondition implements TerminationCondition
       return true;
       }
 
+    log.info("Size: " + dsSize.getStandardDeviation() + " Min:" + bpStats.getMinimum());
     return false;
     }
   }

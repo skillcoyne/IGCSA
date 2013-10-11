@@ -59,7 +59,6 @@ public abstract class SingleChromosomeAberration extends SequenceAberration
         }
       }
 
-
     if (checkOverlap(locations, band.getLocation()))
       log.error(band.getChromosomeName() + " " + band.getLocation() + " overlaps other locations. Removing from " +
                 "aberrations.");
@@ -72,6 +71,9 @@ public abstract class SingleChromosomeAberration extends SequenceAberration
 
   protected boolean checkOverlap(Collection<Location> locations, Location newLocation)
     {
+    if (locations == null || newLocation == null)
+      throw new IllegalArgumentException("Locations cannot be undefined (null)");
+
     List<Location> sortedLocations = new ArrayList<Location>(locations); // should already be sorted but
     Collections.reverse(sortedLocations);
 

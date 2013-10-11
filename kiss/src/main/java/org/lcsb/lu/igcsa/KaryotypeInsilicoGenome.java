@@ -43,9 +43,22 @@ public class KaryotypeInsilicoGenome
   public KaryotypeInsilicoGenome(ApplicationContext context, CommandLine cl) throws Exception
     {
     this.context = context;
-    init(cl.getOptionValue('n'));
+    if (cl != null)
+      {
+      init(cl.getOptionValue('n'));
+      count = Integer.parseInt(cl.getOptionValue('s', "2"));
+      }
+    else
+      {
+      init("Test"); // TODO CHANGE THIS
+      count = 1;
+      }
 
-    count = Integer.parseInt(cl.getOptionValue('s', "2"));
+    }
+
+  public Karyotype getGenome()
+    {
+    return genome;
     }
 
   public void applyMutations()
