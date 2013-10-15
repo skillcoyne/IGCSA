@@ -1,6 +1,7 @@
 package org.lcsb.lu.igcsa.watchmaker.kt;
 
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.utils.PopulationAneuploidy;
 import org.lcsb.lu.igcsa.watchmaker.kt.KaryotypeCandidate;
 import org.lcsb.lu.igcsa.database.Band;
 import org.uncommons.maths.statistics.DataSet;
@@ -38,7 +39,6 @@ public class PopulationEvaluation
 
   public DataSet getFitnessStats()
     {
-
     return fitnessStats;
     }
 
@@ -72,6 +72,11 @@ public class PopulationEvaluation
       buff.append("\tDispersion: " + stats.getStandardDeviation() / stats.getArithmeticMean() + "\n");
       }
     log.info(buff);
+    }
+
+  private void aneuploidyStats()
+    {
+
     }
 
 

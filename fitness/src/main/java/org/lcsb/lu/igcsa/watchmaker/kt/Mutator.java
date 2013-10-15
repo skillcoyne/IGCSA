@@ -97,6 +97,7 @@ public class Mutator implements EvolutionaryOperator<KaryotypeCandidate>
       }
     }
 
+  // adds to existing aneuploidies or adds new ones
   private void flipPloidy(KaryotypeCandidate individual, KaryotypeCandidate randomCand)
     {
     // maybe we do ploidy differently? Or not at all...

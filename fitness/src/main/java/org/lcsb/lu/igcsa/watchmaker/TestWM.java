@@ -21,6 +21,7 @@ import org.lcsb.lu.igcsa.generator.AberrationRules;
 import org.lcsb.lu.igcsa.genome.Karyotype;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
+import org.lcsb.lu.igcsa.utils.PopulationAneuploidy;
 import org.lcsb.lu.igcsa.watchmaker.kt.*;
 import org.lcsb.lu.igcsa.watchmaker.kt.Observer;
 import org.lcsb.lu.igcsa.watchmaker.kt.termination.BreakpointCondition;
@@ -35,6 +36,7 @@ import org.uncommons.watchmaker.framework.*;
 import org.uncommons.watchmaker.framework.operators.EvolutionPipeline;
 import org.uncommons.watchmaker.framework.termination.GenerationCount;
 
+import java.io.File;
 import java.util.*;
 
 public class TestWM
@@ -83,7 +85,7 @@ public class TestWM
     TerminationCondition bpTerm = new BreakpointCondition(8.0, 5);
     //    TerminationCondition minFitness = new MinimumFitness(0.7);
     //    TerminationCondition minCond = new MinimumConditions(9.0, 2.0);
-    TerminationCondition generations = new GenerationCount(1000);
+    TerminationCondition generations = new GenerationCount(1);
 
     List<EvaluatedCandidate<KaryotypeCandidate>> pop = engine.evolvePopulation(maxPop, 0, generations, bpTerm);
 
@@ -116,6 +118,11 @@ public class TestWM
       log.info(candidate.getFitness() + " " + candidate.getCandidate());
       //getKaryotype(candidate.getCandidate(), context);
       }
+
+    PopulationAneuploidy popA = new PopulationAneuploidy(pop);
+    popA.write(new File("/tmp/aneuploidy.txt"));
+
+
 
     }
 
