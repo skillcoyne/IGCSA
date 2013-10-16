@@ -42,19 +42,16 @@ public class KaryotypeCandidate
 
   public void addBreakpoints(Collection<Band> bands)
     {
-    BreakpointWatcher.getInstance().addAll(bands);
     this.breakpoints.addAll(bands);
     }
 
   public void addBreakpoint(Band band)
     {
-    BreakpointWatcher.getInstance().add(band);
     this.breakpoints.add(band);
     }
 
   public void removeBreakpoint(Band band)
     {
-    BreakpointWatcher.getInstance().remove(band);
     this.breakpoints.remove(band);
     }
 

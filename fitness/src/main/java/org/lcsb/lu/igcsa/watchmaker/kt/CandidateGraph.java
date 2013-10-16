@@ -34,11 +34,13 @@ public class CandidateGraph
 
   public static void updateGraph(KaryotypeCandidate kc, List<KaryotypeCandidate> candidateList)
     {
-    for (KaryotypeCandidate kc2 : candidateList)
+    //log.info("updateGraph: " + getInstance().edgeCount());
+    for (KaryotypeCandidate candidate : candidateList)
       {
-      if (!kc.equals(kc2))
-        getInstance().addEdge(kc, kc2, CandidateUtils.getNCD(kc, kc2));
+      if (!kc.equals(candidate))
+        getInstance().addEdge(kc, candidate, CandidateUtils.getNCD(kc, candidate));
       }
+    //log.info("post updateGraph: " + getInstance().edgeCount());
     }
 
   private CandidateGraph()

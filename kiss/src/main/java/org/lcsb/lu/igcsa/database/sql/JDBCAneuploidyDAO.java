@@ -74,7 +74,7 @@ public class JDBCAneuploidyDAO implements AneuploidyDAO
   @Override
   public Probability getChromosomeProbabilities() throws ProbabilityException
     {
-    String sql = "SELECT chr, prob FROM " + this.tableName;
+    String sql = "SELECT chr, prob FROM " + this.tableName + " ORDER BY prob DESC";
     Map<Object, Double> probabilities = (Map<Object, Double>) jdbcTemplate.query(sql, new ResultSetExtractor<Object>()
     {
     @Override

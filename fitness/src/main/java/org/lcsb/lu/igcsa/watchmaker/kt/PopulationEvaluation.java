@@ -20,21 +20,22 @@ public class PopulationEvaluation
   {
   static Logger log = Logger.getLogger(PopulationEvaluation.class.getName());
 
-  private List<EvaluatedCandidate<? extends KaryotypeCandidate>> population;
+  private List<EvaluatedCandidate<KaryotypeCandidate>> population;
+  //private List<EvaluatedCandidate<? extends KaryotypeCandidate>> population;
 
   private DataSet fitnessStats;
   private DataSet sizeStats;
-  private DataSet uniqueStats;
   private DataSet complexityStats;
+  private DataSet bpStats;
 
-  public PopulationEvaluation(List<EvaluatedCandidate<? extends KaryotypeCandidate>> candidateList)
+  public PopulationEvaluation(List<EvaluatedCandidate<KaryotypeCandidate>> candidateList)
     {
     this.population = candidateList;
 
     populationFitnessStats();
     sizePopulationSizeStats();
     complexityPopulationStats();
-    uniqueIndividualStats();
+    breakpointCountStats();
     }
 
   public DataSet getFitnessStats()
@@ -47,51 +48,43 @@ public class PopulationEvaluation
     return sizeStats;
     }
 
-  public DataSet getUniqueStats()
-    {
-    return uniqueStats;
-    }
-
   public DataSet getComplexityStats()
     {
     return complexityStats;
     }
 
+  public DataSet getBpStats()
+    {
+    return bpStats;
+    }
+
   public void outputCurrentStats()
     {
-    String[] titles = new String[]{"--- BP Size ---", "--- Fitness ---", "--- Complexity ---", "--- Uniqueness ---"};
-    DataSet[] allStats = new DataSet[]{sizeStats, fitnessStats, complexityStats, uniqueStats};
+    String[] titles = new String[]{"--- BP Size ---", "--- Complexity ---", "--- Rep'd BPs ---"};
+    DataSet[] allStats = new DataSet[]{sizeStats,  complexityStats, bpStats};
 
     StringBuffer buff = new StringBuffer();
     for(int i=0; i<allStats.length; i++)
       {
       DataSet stats = allStats[i];
 
-      buff.append("\n" + titles[i] + "\n");
+      buff.append(titles[i] + "\n");
       buff.append("\tMin: " + stats.getMinimum() + "\tMax: " + stats.getMaximum() + "\tMean: " + stats.getArithmeticMean() + "\tSD: " + stats.getStandardDeviation() + "\n");
       buff.append("\tDispersion: " + stats.getStandardDeviation() / stats.getArithmeticMean() + "\n");
       }
-    log.info(buff);
+    log.info("\n" + buff);
     }
 
-  private void aneuploidyStats()
-    {
-
-    }
 
 
   private void complexityPopulationStats()
     {
     /* so...how could we measure complexity. Simply number of breakpoints (as these are not duplicated in an individual) + number of
-     aneuploidies? Means an individual with 3 bps and 2 aneuploidies has the same complexity as an individual with 5bps? Or should these
-     be somehow weighted with the fitness score as well?
+     aneuploidies? Means an individual with 3 bps and 2 aneuploidies has the same complexity as an individual with 5bps?
      */
     complexityStats = new DataSet(population.size());
     for (EvaluatedCandidate<? extends KaryotypeCandidate> candidate: population)
-      {
-      complexityStats.addValue( candidate.getFitness() *
-                                (candidate.getCandidate().getBreakpoints().size() + candidate.getCandidate().getAneuploidies().size())  );
-      }
+      complexityStats.addValue( (candidate.getCandidate().getBreakpoints().size() + candidate.getCandidate().getAneuploidies().size()) );
     }
 
   private void populationFitnessStats()
@@ -109,25 +102,22 @@ public class PopulationEvaluation
       sizeStats.addValue(ind.getCandidate().getBreakpoints().size()); // doesn't include anything about aneuploidy
     }
 
-
-  private void uniqueIndividualStats()
+  private void breakpointCountStats()
     {
-    Map<Set<Band>, Integer> same = new HashMap<Set<Band>, Integer>();
-    for (EvaluatedCandidate<? extends KaryotypeCandidate> ind : population)
-      {
-      List<Band> bands = new ArrayList<Band>(ind.getCandidate().getBreakpoints());
-      Collections.sort(bands);
-      if (same.containsKey(ind.getCandidate().getBreakpoints()))
-        same.put(new HashSet<Band>(ind.getCandidate().getBreakpoints()), same.get(ind.getCandidate().getBreakpoints()) + 1);
-      else
-        same.put(new HashSet<Band>(ind.getCandidate().getBreakpoints()), 1);
-      }
-    Set<Integer> freq = new HashSet<Integer>(same.values());
+    BreakpointWatcher.getInstance().reset();
 
-    uniqueStats = new DataSet(freq.size());
-    for (Integer val : freq)
-      uniqueStats.addValue(val);
+    for(EvaluatedCandidate<KaryotypeCandidate> ind: population)
+      {
+      for(Band b: ind.getCandidate().getBreakpoints())
+        BreakpointWatcher.getInstance().add(b);
+      }
+
+    bpStats = new DataSet(BreakpointWatcher.getInstance().getBreakpointCounts().size());
+    for (Map.Entry<Band, Integer> entry: BreakpointWatcher.getInstance().getBreakpointCounts().entrySet())
+      bpStats.addValue(entry.getValue());
+
     }
+
 
 
   }

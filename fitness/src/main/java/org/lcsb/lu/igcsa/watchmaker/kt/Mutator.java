@@ -45,10 +45,9 @@ public class Mutator implements EvolutionaryOperator<KaryotypeCandidate>
   @Override
   public List<KaryotypeCandidate> apply(List<KaryotypeCandidate> candidates, Random random)
     {
-    // Choose a proportion of the population to mutate
+    // Choose a proportion of the population to possibly mutate
     int numToMutate = random.nextInt((int) Math.round(candidates.size() * proportion));
     Collections.shuffle(candidates, random);
-    log.info("Potentially mutating " + numToMutate + " individuals");
 
     List<KaryotypeCandidate> mutatedIndividuals = new ArrayList<KaryotypeCandidate>();
 
@@ -56,29 +55,29 @@ public class Mutator implements EvolutionaryOperator<KaryotypeCandidate>
       {
       if (random.nextDouble() <= MR)
         {
-        log.info("mutating " + i);
+        KaryotypeCandidate current = candidates.get(i);
+        KaryotypeCandidate individualToMutate = current.clone();
 
-        KaryotypeCandidate individual = candidates.get(i).clone();
         candidates.remove(i);
-
-        CandidateGraph.getInstance().removeNode(individual);
+        CandidateGraph.getInstance().removeNode(current);
 
         // each individual gets a different set of bands & aneuploidies to mutate
         KaryotypeCandidate randomCand = factory.generateRandomCandidate(random);
-        flipBreakpoints(individual, randomCand);
-        flipPloidy(individual, randomCand);
+        flipBreakpoints(individualToMutate, randomCand);
+        flipPloidy(individualToMutate, randomCand);
 
-        mutatedIndividuals.add(individual);
+        mutatedIndividuals.add(individualToMutate);
         Collections.shuffle(candidates, random); // ensures a random selection of individuals
         }
       }
+    log.info("Mutated " + mutatedIndividuals.size());
 
     candidates.addAll(mutatedIndividuals);
 
     long start = System.currentTimeMillis();
-    for(KaryotypeCandidate mut: mutatedIndividuals)
+    for (KaryotypeCandidate mut : mutatedIndividuals)
       CandidateGraph.updateGraph(mut, candidates);
-    log.info("graph update: " + (System.currentTimeMillis() - start));
+    log.info("graph update took : " + (System.currentTimeMillis() - start) + " ms");
 
     return candidates;
     }
@@ -86,15 +85,8 @@ public class Mutator implements EvolutionaryOperator<KaryotypeCandidate>
   // Flip the breakpoints present in the selected candidate based on the new, randomly generated candidate
   private void flipBreakpoints(KaryotypeCandidate individual, KaryotypeCandidate randomCand)
     {
-    // either add or remove the breakpoints.
     for (Band band : randomCand.getBreakpoints())
-      {
-      // either add or remove it from the set
-      if (individual.hasBreakpoint(band))
-        individual.removeBreakpoint(band);
-      else
-        individual.addBreakpoint(band);
-      }
+      individual.addBreakpoint(band);  // just add the breakpoints
     }
 
   // adds to existing aneuploidies or adds new ones

@@ -60,6 +60,7 @@ public class KaryotypeCandidateFactory extends AbstractCandidateFactory<Karyotyp
 
     for(KaryotypeCandidate cand: population)
       CandidateGraph.updateGraph(cand, population);
+
     return population;
     }
 

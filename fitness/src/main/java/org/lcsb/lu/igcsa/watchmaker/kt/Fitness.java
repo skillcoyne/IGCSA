@@ -97,13 +97,14 @@ public class Fitness implements FitnessEvaluator<KaryotypeCandidate>
     Set<String> chromosomes = new HashSet<String>();
     for (KaryotypeCandidate.Aneuploidy aneuploidy : karyotypeCandidate.getAneuploidies())
       {
-      score += Math.abs(Math.log(gainLossProb.getRawProbabilities().get(aneuploidy.getChromosome())))/10;
+      score += gainLossProb.getRawProbabilities().get(aneuploidy.getChromosome());
+      //score += Math.abs(Math.log(gainLossProb.getRawProbabilities().get(aneuploidy.getChromosome())))/10;
       chromosomes.add(aneuploidy.getChromosome());
       }
 
     //score = adjustByCount(ploidyCountProb.getRawProbabilities(), score, karyotypeCandidate.getAneuploidies().size());
-    if (score > 0)
-      score += (double)chromosomes.size()/(double)karyotypeCandidate.getAneuploidies().size();
+//    if (score > 0)
+//      score += (double)chromosomes.size()/(double)karyotypeCandidate.getAneuploidies().size();
 
     return score;
     }
@@ -125,7 +126,7 @@ public class Fitness implements FitnessEvaluator<KaryotypeCandidate>
 
     // not using the list of candidates at the moment. I could integrate into the fitness score a population level score rather than leaving that to the termination criteria.  Have to think about how as it would perhaps simplify the code somewhat.
     //return getBreakpointScore(karyotypeCandidate) + getAneuploidyScore(karyotypeCandidate) + similaritySum;
-    return getBreakpointScore(karyotypeCandidate) + similaritySum;
+    return getBreakpointScore(karyotypeCandidate) +  similaritySum;
     }
 
   // Higher scores are naturally fit for watchmaker;

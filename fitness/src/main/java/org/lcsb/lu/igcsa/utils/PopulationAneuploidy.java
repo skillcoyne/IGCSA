@@ -50,7 +50,6 @@ public class PopulationAneuploidy
       outFile.createNewFile();
 
     FileWriter fileWriter = new FileWriter(outFile.getAbsoluteFile());
-    //BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
 
     fileWriter.write(outputString());
     fileWriter.flush();

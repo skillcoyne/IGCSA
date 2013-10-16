@@ -44,22 +44,14 @@ public class BreakpointCondition implements TerminationCondition
     {
     List<? extends EvaluatedCandidate<?>> population = populationData.getEvaluatedPopulation();
 
-    Map<Band, Integer> bpCounts = BreakpointWatcher.getInstance ().getBreakpointCounts();
-    DataSet bpStats = new DataSet(bpCounts.size());
-    for(Integer count: bpCounts.values())
-      bpStats.addValue(count);
+    PopulationEvaluation eval = new PopulationEvaluation((List<EvaluatedCandidate<KaryotypeCandidate>>) population);
+    DataSet bpStats = eval.getBpStats();
 
-
-    PopulationEvaluation eval = new PopulationEvaluation((List<EvaluatedCandidate<? extends KaryotypeCandidate>>) population);
-    DataSet dsSize = eval.getSizeStats();
-
-    if ((sizeSD > 0 && dsSize.getStandardDeviation() > sizeSD + sizeSD*0.01))// || bpStats.getMinimum() >= min)
+    if (bpStats.getMinimum() >= 3.0) // no idea what's reasonable here
       {
-      log.info("Size: " + dsSize.getStandardDeviation() + " Min:" + bpStats.getMinimum());
       return true;
       }
 
-    log.info("Size: " + dsSize.getStandardDeviation() + " Min:" + bpStats.getMinimum());
     return false;
     }
   }

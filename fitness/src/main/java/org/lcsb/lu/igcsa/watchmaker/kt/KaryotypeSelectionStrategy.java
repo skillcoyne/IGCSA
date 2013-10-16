@@ -54,8 +54,6 @@ public class KaryotypeSelectionStrategy implements SelectionStrategy<Object>
         cg.removeNode((KaryotypeCandidate) candidate.getCandidate());
         }
       }
-    log.info("Removed " + newCandidates + " candidates. Population=" + evaluatedCandidates.size());
-
 
     // instead, for every pair that has a high similarity roll a die and select only one (a sort of Tournament selection)
     List<KaryotypeCandidate> removeFromPopulation = new ArrayList<KaryotypeCandidate>();
@@ -72,7 +70,8 @@ public class KaryotypeSelectionStrategy implements SelectionStrategy<Object>
         removeFromPopulation.add(notSelected);
         }
       }
-    log.info("Removing " + removeFromPopulation.size() + " from population");
+
+    log.info("Removed " + newCandidates + " candidates with > " + maxFitness + " fitness; and " + removeFromPopulation.size() + " nearly identical individuals.");
 
 
     List<S> selection = new ArrayList<S>();

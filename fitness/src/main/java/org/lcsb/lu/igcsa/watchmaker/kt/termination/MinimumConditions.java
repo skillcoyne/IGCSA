@@ -39,7 +39,7 @@ public class MinimumConditions implements TerminationCondition
     {
     List<? extends EvaluatedCandidate<?>> population = populationData.getEvaluatedPopulation();
 
-    PopulationEvaluation eval = new PopulationEvaluation((List<EvaluatedCandidate<? extends KaryotypeCandidate>>) population);
+    PopulationEvaluation eval = new PopulationEvaluation((List<EvaluatedCandidate<KaryotypeCandidate>>) population);
     DataSet dsSize = eval.getSizeStats();
     if ( (sizeSD > 0 && dsSize.getStandardDeviation() > sizeSD + sizeSD*0.01)  &&
         (minFitnessSD > 0 && populationData.getFitnessStatistics().getStandardDeviation() >= minFitnessSD) )

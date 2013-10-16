@@ -2,7 +2,11 @@ package org.lcsb.lu.igcsa.watchmaker.kt;
 
 import org.lcsb.lu.igcsa.database.Band;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,6 +21,8 @@ import java.util.Map;
 public class BreakpointWatcher
   {
   private static BreakpointWatcher ourInstance = null;
+
+  private Collection<Band> expectedBreakpoints;
 
   private Map<Band, Integer> breakpointCounts;
 
@@ -33,28 +39,35 @@ public class BreakpointWatcher
     breakpointCounts = new HashMap<Band, Integer>();
     }
 
-  public void addAll(Collection<Band> bands)
+  public void setExpectedBreakpoints(Collection<Band> bands)
     {
-    for (Band band: bands)
-      add(band);
+    expectedBreakpoints = bands;
+    reset();
     }
+
+  protected void reset()
+    {
+    breakpointCounts.clear();
+
+    for(Band b: expectedBreakpoints)
+      breakpointCounts.put(b, 0);
+    }
+
+
 
   protected void add(Band band)
     {
-    if (!breakpointCounts.containsKey(band))
-      breakpointCounts.put(band, 0);
+    if (expectedBreakpoints == null || !breakpointCounts.containsKey(band))
+      throw new IllegalArgumentException("Expected breakpoints unset or tried to add a band that doesn't exist.");
 
     breakpointCounts.put(band, breakpointCounts.get(band)+1);
     }
 
-  protected void removeAll(Collection<Band> bands)
-    {
-    for(Band band: bands)
-      remove(band);
-    }
-
   protected void remove(Band band)
     {
+    if (expectedBreakpoints == null || !breakpointCounts.containsKey(band))
+      throw new IllegalArgumentException("Expected breakpoints unset or tried to add a band that doesn't exist.");
+
     breakpointCounts.put(band, breakpointCounts.get(band)-1);
     }
 
@@ -62,4 +75,34 @@ public class BreakpointWatcher
     {
     return breakpointCounts;
     }
+
+  public void write(File outFile) throws IOException
+    {
+    if (!outFile.exists())
+      outFile.createNewFile();
+
+    FileWriter fileWriter = new FileWriter(outFile.getAbsoluteFile());
+
+    fileWriter.write( this.write() );
+
+    fileWriter.flush();
+    fileWriter.close();
+    }
+
+  public String write() throws IOException
+    {
+    StringBuffer buff = new StringBuffer();
+    buff.append("chr\tband\tcount\n");
+    for (Map.Entry<Band, Integer> entry: breakpointCounts.entrySet())
+      {
+      Band band = entry.getKey();
+      buff.append(band.getChromosomeName() + "\t" + band.getBandName() + "\t" + entry.getValue() + "\n");
+      }
+
+    return buff.toString();
+    }
+
+
+
+
   }

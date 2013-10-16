@@ -40,27 +40,21 @@ public class DiversityEvolution<T extends KaryotypeCandidate> extends AbstractEv
   @Override
   protected List<EvaluatedCandidate<T>> nextEvolutionStep(List<EvaluatedCandidate<T>> evaluatedPopulation, int eliteCount, Random rng)
     {
-    //List<T> population = new ArrayList<T>(evaluatedPopulation.size());
-
     // Select candidates to evolve
     List<T> population = selectionStrategy.select(evaluatedPopulation, fitnessEvaluator.isNatural(), evaluatedPopulation.size(), rng);
-    //    CandidateUtils.testForDuplication((List<? extends KaryotypeCandidate>) population);
+    log.info(population.size() + " selected for next step. Adding " + (maxPopulationSize - population.size() + " random individuals into the population."));
+    log.info("Graph: " + CandidateGraph.getInstance().nodeCount() + " " + CandidateGraph.getInstance().edgeCount());
 
-    for (int i = 0; i < (maxPopulationSize - population.size()); i++)
+    while (population.size() < maxPopulationSize)
       {
       T candidate = candidateFactory.generateRandomCandidate(rng);
       population.add(candidate);
-      CandidateGraph.updateGraph((KaryotypeCandidate) candidate, (List<KaryotypeCandidate>) population);
+      CandidateGraph.updateGraph(candidate, (List<KaryotypeCandidate>) population);
       }
 
-    log.info("----> " + population.size() + " selected for evolution step");
-
-    // Run evolution
+    // Run evolution (XO, mutation)
     population = evolutionScheme.apply(population, rng);
-    //    CandidateUtils.testForDuplication((List<? extends KaryotypeCandidate>) population);
 
-    // I'm not doing anything with elites, so ignoring that.
-    // return the evaluated population
     return evaluatePopulation(population);
     }
 

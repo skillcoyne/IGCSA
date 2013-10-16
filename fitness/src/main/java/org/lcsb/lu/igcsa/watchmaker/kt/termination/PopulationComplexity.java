@@ -9,21 +9,25 @@
 package org.lcsb.lu.igcsa.watchmaker.kt.termination;
 
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.watchmaker.kt.KaryotypeCandidate;
+import org.lcsb.lu.igcsa.watchmaker.kt.PopulationEvaluation;
 import org.uncommons.watchmaker.framework.EvaluatedCandidate;
 import org.uncommons.watchmaker.framework.PopulationData;
 import org.uncommons.watchmaker.framework.TerminationCondition;
 
 import java.util.List;
 
-public class MinimumFitness implements TerminationCondition
+public class PopulationComplexity implements TerminationCondition
   {
-  static Logger log = Logger.getLogger(MinimumFitness.class.getName());
+  static Logger log = Logger.getLogger(PopulationComplexity.class.getName());
 
-  private double minFitness = 0.0;
+  private double mean;
+  private double SD;
 
-  public MinimumFitness(double minFitness)
+  public PopulationComplexity(double mean, double SD)
     {
-    this.minFitness = minFitness;
+    this.mean = mean;
+    this.SD = SD;
     }
 
   @Override
@@ -31,7 +35,10 @@ public class MinimumFitness implements TerminationCondition
     {
     List<? extends EvaluatedCandidate<?>> population = populationData.getEvaluatedPopulation();
 
-    if (minFitness > 0 && populationData.getFitnessStatistics().getMinimum() >= minFitness)
+    PopulationEvaluation eval = new PopulationEvaluation((List<EvaluatedCandidate<KaryotypeCandidate>>) population);
+
+    // This is going to be very dependent on the size of the population so how do I determine a reasonable SD?
+    if( eval.getComplexityStats().getArithmeticMean() >= mean && eval.getComplexityStats().getStandardDeviation() >= SD )//&& eval.getBpStats().getMinimum() >= 2)
       return true;
 
     return false;
