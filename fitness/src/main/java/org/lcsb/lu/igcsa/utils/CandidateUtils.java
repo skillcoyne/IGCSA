@@ -88,7 +88,7 @@ public class CandidateUtils
 
 
 
-  public static List<Band> getBreakpoints(List<? extends KaryotypeCandidate> karyotypeCandidates)
+  public static List<Band> getAllBreakpoints(List<? extends KaryotypeCandidate> karyotypeCandidates)
     {
     List<Band> bands = new ArrayList<Band>();
     for (KaryotypeCandidate candidate : karyotypeCandidates)
@@ -109,36 +109,6 @@ public class CandidateUtils
 
       individuals.add(kc.hashCode());
       }
-    }
-
-
-  public static double ploidyDistance(KaryotypeCandidate c1, KaryotypeCandidate c2)
-    {
-    double score = 0.0;
-
-    if (c1.getAneuploidies().size() > c2.getAneuploidies().size())
-      score = apListCompare(c1.getAneuploidies(), c2.getAneuploidies());
-    else if (c1.getAneuploidies().size() < c2.getAneuploidies().size())
-      score = apListCompare(c2.getAneuploidies(), c1.getAneuploidies());
-    else
-      score = apListCompare(c2.getAneuploidies(), c1.getAneuploidies());
-
-    return score;
-    }
-
-  private static double apListCompare(Collection<KaryotypeCandidate.Aneuploidy> longList, Collection<KaryotypeCandidate.Aneuploidy> shortList)
-    {
-    double score = longList.size() - shortList.size();
-
-    List<KaryotypeCandidate.Aneuploidy> longList2 = new ArrayList<KaryotypeCandidate.Aneuploidy>(longList);
-
-    for (KaryotypeCandidate.Aneuploidy ap : shortList)
-      {
-      if (longList.contains(ap) && longList2.get(longList2.indexOf(ap)).isGain() == ap.isGain())
-        score += 1;
-      }
-
-    return score;
     }
 
 

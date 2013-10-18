@@ -97,7 +97,7 @@ public class Mutator implements EvolutionaryOperator<KaryotypeCandidate>
       {
       if (individual.getAneuploidies().contains(pdy))
         {
-        if (pdy.isGain())
+        if (pdy.getCount() > 0)
           individual.gainChromosome(pdy.getChromosome());
         else
           individual.loseChromosome(pdy.getChromosome());

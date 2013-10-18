@@ -1,6 +1,6 @@
 package org.lcsb.lu.igcsa.database;
 
-import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.genome.Location;
 
 /**
  * org.lcsb.lu.igcsa.database
@@ -18,5 +18,7 @@ public interface ChromosomeBandDAO
   public Band[] getBands(String chrName);
 
   public Band getTerminus(String chr, String arm);
+
+  public Location getLocation(Band band);
 
   }

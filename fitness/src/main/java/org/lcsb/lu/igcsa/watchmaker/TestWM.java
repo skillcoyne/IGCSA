@@ -8,12 +8,14 @@
 
 package org.lcsb.lu.igcsa.watchmaker;
 
+import org.apache.commons.lang.math.IntRange;
 import org.apache.commons.math3.distribution.PoissonDistribution;
 import org.apache.log4j.Logger;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.lcsb.lu.igcsa.KaryotypeInsilicoGenome;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.database.KaryotypeDAO;
+import org.lcsb.lu.igcsa.dist.RandomRange;
 import org.lcsb.lu.igcsa.generator.Aberration;
 import org.lcsb.lu.igcsa.generator.AberrationRules;
 import org.lcsb.lu.igcsa.genome.Karyotype;
@@ -51,6 +53,38 @@ public class TestWM
     Probability ploidyCountProb = dao.getGeneralKarytoypeDAO().getProbabilityClass("aneuploidy");
     Probability bpCountProb = dao.getGeneralKarytoypeDAO().getProbabilityClass("aberration"); // not really used right now
     Probability bandProbability = dao.getGeneralKarytoypeDAO().getOverallBandProbabilities();
+
+
+
+//    Map<String, Integer> gainCounts = new HashMap<String, Integer>();
+//    Map<String, Integer> lossCounts = new HashMap<String, Integer>();
+//    for (Object c : aneuploidyProb.getRawProbabilities().keySet())
+//      {
+//      gainCounts.put((String) c, 0);
+//      lossCounts.put((String) c, 0);
+//      }
+//
+//
+//    for (int i = 0; i < 100; i++)
+//      {
+//      int count = new RandomRange((IntRange) ploidyCountProb.roll()).nextInt();
+//      log.info(count);
+//      for (int n = 0; n < count; n++)
+//        {
+//        String chr = (String) aneuploidyProb.roll();
+//        if (dao.getAneuploidyDAO().getGainLoss(chr).roll().equals("gain"))
+//          gainCounts.put(chr, gainCounts.get(chr) + 1);
+//        else
+//          lossCounts.put(chr, lossCounts.get(chr) + 1);
+//        }
+//      }
+//
+//    StringBuffer buffer = new StringBuffer("chromosome\tgain\tloss\tkaryotypes\n");
+//    for (String c : gainCounts.keySet())
+//      buffer.append(c + "\t" + gainCounts.get(c) + "\t" + lossCounts.get(c) + "\t10000\n");
+//
+//    log.info("\n" + buffer);
+//    System.exit(1);
 
     Collection<Band> allPossibleBands = new ArrayList<Band>();
     for (Object b : bandProbability.getRawProbabilities().keySet())
@@ -92,7 +126,7 @@ public class TestWM
     for (EvaluatedCandidate<KaryotypeCandidate> candidate : pop)
       {
       log.info(candidate.getFitness() + " " + candidate.getCandidate());
-      ////getKaryotype(candidate.getCandidate(), context);
+        getKaryotype(candidate.getCandidate(), context);
       }
 
     PopulationAneuploidy popA = new PopulationAneuploidy(pop);
@@ -120,28 +154,27 @@ public class TestWM
     {
     Map<Band, Integer> counts = new HashMap<Band, Integer>();
 
-    for(EvaluatedCandidate<KaryotypeCandidate> ind: population)
+    for (EvaluatedCandidate<KaryotypeCandidate> ind : population)
       {
-      for(Band b: ind.getCandidate().getBreakpoints())
+      for (Band b : ind.getCandidate().getBreakpoints())
         {
         if (!counts.containsKey(b))
           counts.put(b, 0);
 
-        counts.put(b, counts.get(b)+1);
+        counts.put(b, counts.get(b) + 1);
         }
       }
 
-    for(Band b: counts.keySet())
+    for (Band b : counts.keySet())
       System.out.println(b + " " + counts.get(b));
 
     }
 
 
-
   /*
-  This just shows how the final candidates would be used to create a Karyotype class which knows how to apply the mutations
-  NOTE: The bands need to have their locations defined in order to correctly create karyotype aberrations.
-   */
+ This just shows how the final candidates would be used to create a Karyotype class which knows how to apply the mutations
+ NOTE: The bands need to have their locations defined in order to correctly create karyotype aberrations.
+  */
   private static Karyotype getKaryotype(KaryotypeCandidate candidate, ApplicationContext context) throws Exception
     {
     Karyotype karyotype = new KaryotypeInsilicoGenome(context, null).getGenome();
@@ -195,9 +228,10 @@ public class TestWM
       karyotype.addAberrationDefintion(abr);
       }
 
+    // not really correct, the Aneuploidy class contains counts which aren't being used
     for (KaryotypeCandidate.Aneuploidy ploidy : candidate.getAneuploidies())
       {
-      if (ploidy.isGain())
+      if (ploidy.getCount() > 0)
         karyotype.gainChromosome(ploidy.getChromosome());
       else
         karyotype.loseChromosome(ploidy.getChromosome());

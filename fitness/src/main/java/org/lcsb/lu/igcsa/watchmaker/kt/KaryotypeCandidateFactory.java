@@ -87,7 +87,11 @@ public class KaryotypeCandidateFactory extends AbstractCandidateFactory<Karyotyp
       maxBands = breakpointDist.sample();
 
     for (int i = 0; i < maxBands; i++)
-      candidate.addBreakpoint((Band) dao.getGeneralKarytoypeDAO().getOverallBandProbabilities().roll());
+      {
+      Band band = (Band) dao.getGeneralKarytoypeDAO().getOverallBandProbabilities().roll();
+      band.setLocation(dao.getBandDAO().getLocation(band));
+      candidate.addBreakpoint(band);
+      }
     }
 
 

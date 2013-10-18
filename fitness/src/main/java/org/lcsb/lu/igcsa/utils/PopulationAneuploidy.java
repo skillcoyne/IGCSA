@@ -80,10 +80,10 @@ public class PopulationAneuploidy
          {
          initChr(ap.getChromosome());
 
-         if (ap.isGain())
-           gains.put(ap.getChromosome(), gains.get(ap.getChromosome())+ap.getCount());
+         if (ap.getCount() > 0)
+           gains.put(ap.getChromosome(), gains.get(ap.getChromosome()) + ap.getGain());
          else
-           losses.put(ap.getChromosome(), losses.get(ap.getChromosome())+Math.abs(ap.getCount()));
+          losses.put(ap.getChromosome(), losses.get(ap.getChromosome()) + ap.getLoss());
          }
        }
      }

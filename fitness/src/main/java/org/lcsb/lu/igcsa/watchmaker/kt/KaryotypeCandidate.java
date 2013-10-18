@@ -24,7 +24,6 @@ public class KaryotypeCandidate
   private Set<Band> breakpoints = new HashSet<Band>();
   private Map<String, Aneuploidy> aneuploidy = new HashMap<String, Aneuploidy>();
 
-
   public KaryotypeCandidate()
     {
     }
@@ -40,19 +39,19 @@ public class KaryotypeCandidate
     this.aneuploidy = aneuploidy;
     }
 
-  public void addBreakpoints(Collection<Band> bands)
+  public boolean addBreakpoints(Collection<Band> bands)
     {
-    this.breakpoints.addAll(bands);
+    return this.breakpoints.addAll(bands);
     }
 
-  public void addBreakpoint(Band band)
+  public boolean addBreakpoint(Band band)
     {
-    this.breakpoints.add(band);
+    return this.breakpoints.add(band);
     }
 
-  public void removeBreakpoint(Band band)
+  public boolean removeBreakpoint(Band band)
     {
-    this.breakpoints.remove(band);
+    return this.breakpoints.remove(band);
     }
 
   public void gainChromosome(String chr)
@@ -118,9 +117,6 @@ public class KaryotypeCandidate
       log.error(e);
       }
 
-
-
-
     }
 
   public Aneuploidy getAneuploidy(String chr)
@@ -133,19 +129,16 @@ public class KaryotypeCandidate
 
   private void alterPloidy(String chr, int n)
     {
-    if (n != 0)
-      {
-      if (!aneuploidy.containsKey(chr))
-        aneuploidy.put(chr, new Aneuploidy(chr, 0));
+    if (!aneuploidy.containsKey(chr))
+      aneuploidy.put(chr, new Aneuploidy(chr, 0));
 
-      Aneuploidy pl = aneuploidy.get(chr);
-      pl.addToCount(n);
+    if (n > 0)
+      aneuploidy.get(chr).gain(Math.abs(n));
+    else
+      aneuploidy.get(chr).lose(Math.abs(n));
 
-      if (pl.getCount() == 0)
-        this.removeChromosome(pl.getChromosome());
-      else
-        aneuploidy.put(chr, pl);
-      }
+    if (aneuploidy.get(chr).getCount() == 0)
+      aneuploidy.remove(chr);
     }
 
 
@@ -161,7 +154,8 @@ public class KaryotypeCandidate
   public class Aneuploidy
     {
     private String chr;
-    private int count;
+    private int gain = 0;
+    private int loss = 0;
 
     private int max = 6;
     private int min = -2;
@@ -169,33 +163,62 @@ public class KaryotypeCandidate
     protected Aneuploidy(String chr, int count)
       {
       this.chr = chr;
-      this.count = count;
+      if (count > 0)
+        this.gain += count;
+      else
+        this.loss += count;
       }
 
-    protected void addToCount(int count)
+    protected void gain(int count)
       {
-      this.count += count;
-
-      if (this.count > max)
-        this.count = max;
-      if (this.count < min)
-        this.count = min;
+      this.gain += count;
       }
+
+    protected void lose(int count)
+      {
+      this.loss += count;
+      }
+
+
+//    protected void addToCount(int count)
+//      {
+//      this.count += count;
+//
+//      if (this.count > max)
+//        this.count = max;
+//      if (this.count < min)
+//        this.count = min;
+//      }
 
     public String getChromosome()
       {
       return chr;
       }
 
-    public int getCount()
+    public int getGain()
       {
-      return count;
+      return gain;
       }
 
-    public boolean isGain()
+    public int getLoss()
       {
-      return (count > 0) ? true : false;
+      return loss;
       }
+
+    public int getCount()
+      {
+      return gain - loss;
+      }
+
+//    public int getCount()
+//      {
+//      return count;
+//      }
+
+//    public boolean isGain()
+//      {
+//      return (count > 0) ? true : false;
+//      }
 
     @Override
     public boolean equals(Object o)
@@ -207,7 +230,7 @@ public class KaryotypeCandidate
     @Override
     public String toString()
       {
-      return this.getChromosome() + "(" + this.getCount() + ")";
+      return this.getChromosome() + "(+ " + gain + ", -" + loss + ")";
       }
     }
 

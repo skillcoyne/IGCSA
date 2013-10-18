@@ -109,6 +109,12 @@ public class JDBCChromosomeBandDAO implements ChromosomeBandDAO
 
 
   @Override
+  public Location getLocation(Band band)
+    {
+    return getBandByChromosomeAndName(band.getChromosomeName(), band.getBandName()).getLocation();
+    }
+
+  @Override
   public Band getTerminus(String chr, String arm)
     {
     String limit = " LIMIT 0,1";
@@ -116,8 +122,10 @@ public class JDBCChromosomeBandDAO implements ChromosomeBandDAO
       limit = " OFFSET 0 ROWS 1";
 
     String sql = "SELECT * FROM " + this.tableName + " WHERE chr = ? ORDER BY ";
-    if (arm.equals("p")) sql = sql + " start ASC " + limit;
-    else sql = sql + " end DESC " + limit;
+    if (arm.equals("p"))
+      sql = sql + " start ASC " + limit;
+    else
+      sql = sql + " end DESC " + limit;
 
     return (Band) jdbcTemplate.query(sql, new Object[]{chr}, new ResultSetExtractor<Object>()
     {
