@@ -3,7 +3,6 @@ package org.lcsb.lu.igcsa.watchmaker.kt;
 import org.apache.commons.lang.math.IntRange;
 import org.apache.log4j.Logger;
 import org.jgrapht.graph.DefaultWeightedEdge;
-import org.lcsb.lu.igcsa.watchmaker.kt.KaryotypeCandidate;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.utils.CandidateUtils;
@@ -115,12 +114,12 @@ public class Fitness implements FitnessEvaluator<KaryotypeCandidate>
     {
     double similaritySum = 0.0;
 
-    if (karyotypeCandidates.size() > CandidateGraph.getInstance().nodeCount())
-      throw new RuntimeException("Graph has not been updated correctly, " + CandidateGraph.getInstance().nodeCount() + " nodes found, " + karyotypeCandidates.size() + " expected");
+    if (karyotypeCandidates.size() > CandidateGraph.getGraph().nodeCount())
+      throw new RuntimeException("Graph has not been updated correctly, " + CandidateGraph.getGraph().nodeCount() + " nodes found, " + karyotypeCandidates.size() + " expected");
 
-    Iterator<DefaultWeightedEdge> eI = CandidateGraph.getInstance().getEdges(karyotypeCandidate).iterator();
+    Iterator<DefaultWeightedEdge> eI = CandidateGraph.getGraph().getEdges(karyotypeCandidate).iterator();
     while (eI.hasNext())
-      similaritySum += CandidateGraph.getInstance().getEdgeWeight(eI.next());
+      similaritySum += CandidateGraph.getGraph().getEdgeWeight(eI.next());
 
     similaritySum = CandidateUtils.round(similaritySum/ (double) karyotypeCandidates.size(), 5);
 

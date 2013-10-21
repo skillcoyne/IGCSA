@@ -42,7 +42,7 @@ public class Chromosome
       {
       log.error("Failed to get FASTAReader for " + name + " " + e);
       }
-    log.info("Created chr" + name + " with " + chrFastaFile);
+    log.debug("Created chr" + name + " with " + chrFastaFile);
     }
 
   public String getName()

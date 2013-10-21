@@ -123,21 +123,38 @@ public class Karyotype extends Genome
    */
   public void gainChromosome(String chromosome)
     {
-    log.info("GAIN chromosome " + chromosome);
+    log.debug("GAIN chromosome " + chromosome);
     chromosomeCount.put(chromosome, chromosomeCount.get(chromosome) + 1);
+    }
+
+  public void gainChromosome(String chromosome, int n)
+    {
+    log.debug("GAIN chromosome " + chromosome + " " + n + " times");
+    chromosomeCount.put(chromosome, chromosomeCount.get(chromosome) + n);
     }
 
   /**
    * Use for aneuploidy
    *
-   * @param name
+   * @param chromosome
    */
-  public void loseChromosome(String name)
+  public void loseChromosome(String chromosome)
     {
-    log.info("LOSE chromosome " + name);
-    if (chromosomeCount.get(name) > 0)
-      chromosomeCount.put(name, chromosomeCount.get(name) - 1);
+    log.debug("LOSE chromosome " + chromosome);
+    if (chromosomeCount.get(chromosome) > 0)
+      chromosomeCount.put(chromosome, chromosomeCount.get(chromosome) - 1);
     }
+
+  public void loseChromosome(String chromosome, int n)
+    {
+    log.debug("LOSE chromosome " + chromosome + " " + n + " times");
+    if (chromosomeCount.get(chromosome) > 0)
+      {
+      n = (chromosomeCount.get(chromosome) >= n)? n: chromosomeCount.get(chromosome);
+      chromosomeCount.put(chromosome, chromosomeCount.get(chromosome) - n);
+      }
+    }
+
 
   public Map<Object, List<Collection<Band>>> getAberrations()
     {

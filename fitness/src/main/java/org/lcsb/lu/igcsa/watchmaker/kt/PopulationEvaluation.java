@@ -1,8 +1,6 @@
 package org.lcsb.lu.igcsa.watchmaker.kt;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.utils.PopulationAneuploidy;
-import org.lcsb.lu.igcsa.watchmaker.kt.KaryotypeCandidate;
 import org.lcsb.lu.igcsa.database.Band;
 import org.uncommons.maths.statistics.DataSet;
 import org.uncommons.watchmaker.framework.EvaluatedCandidate;
@@ -104,16 +102,16 @@ public class PopulationEvaluation
 
   private void breakpointCountStats()
     {
-    BreakpointWatcher.getInstance().reset();
+    BreakpointWatcher.getWatcher().reset();
 
     for(EvaluatedCandidate<KaryotypeCandidate> ind: population)
       {
       for(Band b: ind.getCandidate().getBreakpoints())
-        BreakpointWatcher.getInstance().add(b);
+        BreakpointWatcher.getWatcher().add(b);
       }
 
-    bpStats = new DataSet(BreakpointWatcher.getInstance().getBreakpointCounts().size());
-    for (Map.Entry<Band, Integer> entry: BreakpointWatcher.getInstance().getBreakpointCounts().entrySet())
+    bpStats = new DataSet(BreakpointWatcher.getWatcher().getBreakpointCounts().size());
+    for (Map.Entry<Band, Integer> entry: BreakpointWatcher.getWatcher().getBreakpointCounts().entrySet())
       bpStats.addValue(entry.getValue());
 
     }

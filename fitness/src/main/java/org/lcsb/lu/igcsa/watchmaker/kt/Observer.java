@@ -9,6 +9,7 @@
 package org.lcsb.lu.igcsa.watchmaker.kt;
 
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.utils.GenerationStatistics;
 import org.lcsb.lu.igcsa.watchmaker.kt.KaryotypeCandidate;
 import org.uncommons.watchmaker.framework.EvolutionObserver;
 import org.uncommons.watchmaker.framework.PopulationData;
@@ -32,6 +33,7 @@ public class Observer implements EvolutionObserver<KaryotypeCandidate>
 
     PopulationEvaluation eval = new PopulationEvaluation(populationData.getEvaluatedPopulation());
     eval.outputCurrentStats();
+    GenerationStatistics.getTracker().track(eval);
 
     sizeStdDev.add(eval.getSizeStats().getStandardDeviation());
     minFitness.add(eval.getFitnessStats().getMinimum());

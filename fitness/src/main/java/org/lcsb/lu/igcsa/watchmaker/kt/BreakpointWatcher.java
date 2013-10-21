@@ -26,7 +26,7 @@ public class BreakpointWatcher
 
   private Map<Band, Integer> breakpointCounts;
 
-  public static BreakpointWatcher getInstance()
+  public static BreakpointWatcher getWatcher()
     {
     if (ourInstance == null)
       ourInstance = new BreakpointWatcher();
@@ -52,8 +52,6 @@ public class BreakpointWatcher
     for(Band b: expectedBreakpoints)
       breakpointCounts.put(b, 0);
     }
-
-
 
   protected void add(Band band)
     {

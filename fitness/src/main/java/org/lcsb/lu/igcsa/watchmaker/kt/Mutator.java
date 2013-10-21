@@ -11,7 +11,6 @@ package org.lcsb.lu.igcsa.watchmaker.kt;
 import org.apache.commons.lang.math.DoubleRange;
 import org.apache.commons.lang.math.Range;
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.watchmaker.kt.KaryotypeCandidate;
 import org.lcsb.lu.igcsa.database.Band;
 import org.uncommons.watchmaker.framework.CandidateFactory;
 import org.uncommons.watchmaker.framework.EvolutionaryOperator;
@@ -59,7 +58,7 @@ public class Mutator implements EvolutionaryOperator<KaryotypeCandidate>
         KaryotypeCandidate individualToMutate = current.clone();
 
         candidates.remove(i);
-        CandidateGraph.getInstance().removeNode(current);
+        CandidateGraph.getGraph().removeNode(current);
 
         // each individual gets a different set of bands & aneuploidies to mutate
         KaryotypeCandidate randomCand = factory.generateRandomCandidate(random);

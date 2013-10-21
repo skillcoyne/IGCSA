@@ -11,9 +11,6 @@ package org.lcsb.lu.igcsa.watchmaker.kt;
 import org.apache.commons.lang.math.DoubleRange;
 import org.apache.commons.lang.math.Range;
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.database.AneuploidyDAO;
-import org.lcsb.lu.igcsa.utils.CandidateUtils;
-import org.lcsb.lu.igcsa.watchmaker.kt.KaryotypeCandidate;
 import org.lcsb.lu.igcsa.database.Band;
 import org.uncommons.watchmaker.framework.EvolutionaryOperator;
 import org.uncommons.watchmaker.framework.FitnessEvaluator;
@@ -88,13 +85,13 @@ public class Crossover implements EvolutionaryOperator<KaryotypeCandidate>
     if (fitness.getFitness(trial, karyotypeCandidates) <= fitness.getFitness(xr3, karyotypeCandidates))
       {
       karyotypeCandidates.remove(xr3);
-      CandidateGraph.getInstance().removeNode(xr3);
+      CandidateGraph.getGraph().removeNode(xr3);
 
       karyotypeCandidates.add(trial);
       log.info("adding XO individual");
       }
     else
-      CandidateGraph.getInstance().removeNode(trial);
+      CandidateGraph.getGraph().removeNode(trial);
 
     return karyotypeCandidates;
     }

@@ -37,7 +37,7 @@ public class KaryotypeSelectionStrategy implements SelectionStrategy<Object>
   @Override
   public <S> List<S> select(List<EvaluatedCandidate<S>> population, boolean naturalFitnessScores, int selectionSize, Random rng)
     {
-    CandidateGraph cg = CandidateGraph.getInstance();
+    CandidateGraph cg = CandidateGraph.getGraph();
 
     /* remove the candidates with the highest fitness scores. If maxFitness is set high enough it means that too many
     breakpoints/too many chromosome have been represented in that individual */

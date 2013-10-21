@@ -4,7 +4,6 @@ import org.apache.log4j.Logger;
 import org.jgrapht.WeightedGraph;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.WeightedPseudograph;
-import org.lcsb.lu.igcsa.watchmaker.kt.KaryotypeCandidate;
 import org.lcsb.lu.igcsa.utils.CandidateUtils;
 
 import java.util.*;
@@ -24,7 +23,7 @@ public class CandidateGraph
 
   WeightedGraph<KaryotypeCandidate, DefaultWeightedEdge> graph;
 
-  public static CandidateGraph getInstance()
+  public static CandidateGraph getGraph()
     {
     if (ourInstance == null)
       ourInstance = new CandidateGraph();
@@ -38,7 +37,7 @@ public class CandidateGraph
     for (KaryotypeCandidate candidate : candidateList)
       {
       if (!kc.equals(candidate))
-        getInstance().addEdge(kc, candidate, CandidateUtils.getNCD(kc, candidate));
+        getGraph().addEdge(kc, candidate, CandidateUtils.getNCD(kc, candidate));
       }
     //log.info("post updateGraph: " + getInstance().edgeCount());
     }

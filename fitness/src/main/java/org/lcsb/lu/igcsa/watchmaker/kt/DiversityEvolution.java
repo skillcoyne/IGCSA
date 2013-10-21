@@ -9,7 +9,6 @@
 package org.lcsb.lu.igcsa.watchmaker.kt;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.watchmaker.kt.KaryotypeCandidate;
 import org.uncommons.watchmaker.framework.*;
 
 import java.util.*;
@@ -43,7 +42,7 @@ public class DiversityEvolution<T extends KaryotypeCandidate> extends AbstractEv
     // Select candidates to evolve
     List<T> population = selectionStrategy.select(evaluatedPopulation, fitnessEvaluator.isNatural(), evaluatedPopulation.size(), rng);
     log.info(population.size() + " selected for next step. Adding " + (maxPopulationSize - population.size() + " random individuals into the population."));
-    log.info("Graph: " + CandidateGraph.getInstance().nodeCount() + " " + CandidateGraph.getInstance().edgeCount());
+    log.info("Graph: " + CandidateGraph.getGraph().nodeCount() + " " + CandidateGraph.getGraph().edgeCount());
 
     while (population.size() < maxPopulationSize)
       {

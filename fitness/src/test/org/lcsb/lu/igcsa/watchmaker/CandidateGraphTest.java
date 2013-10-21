@@ -21,10 +21,10 @@ public class CandidateGraphTest
   @Test
   public void testGetInstance() throws Exception
     {
-    CandidateGraph cg = CandidateGraph.getInstance();
+    CandidateGraph cg = CandidateGraph.getGraph();
     assertNotNull(cg);
 
-    CandidateGraph cg1 = CandidateGraph.getInstance();
+    CandidateGraph cg1 = CandidateGraph.getGraph();
     assertSame(cg, cg1);
     }
   }

@@ -105,8 +105,8 @@ public class Band implements Comparable<Band>
       equals = false;
     if (chromosomeName != null ? !chromosomeName.equals(band.chromosomeName) : band.chromosomeName != null)
       equals = false;
-    if (location != null ? !location.equals(band.location) : band.location != null)
-      equals = false;
+//    if (location != null ? !location.equals(band.location) : band.location != null)
+//      equals = false;
 
     return equals;
     }
