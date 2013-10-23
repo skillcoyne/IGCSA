@@ -52,4 +52,23 @@ public class CandidateUtilsTest
 
     assertTrue("Similar breakpoints", CandidateUtils.getNCD(k1, k3) > 0.1);
     }
+
+  @Test
+  public void testGetNCDAdj() throws Exception
+    {
+    KaryotypeCandidate k1 = new KaryotypeCandidate();
+    k1.addBreakpoint(bands[0]);
+    k1.addBreakpoint(bands[bands.length - 1]);
+
+    assertTrue("Identical objects", CandidateUtils.getNCDAdjusted(k1, k1) > 0.24 );
+
+    KaryotypeCandidate k2 = new KaryotypeCandidate();
+    k1.addBreakpoint(bands[1]);
+    k1.addBreakpoint(bands[bands.length - 1]);
+
+    assertTrue( CandidateUtils.getNCDAdjusted(k1, k2) < 0.25 );
+
+    }
+
+
   }

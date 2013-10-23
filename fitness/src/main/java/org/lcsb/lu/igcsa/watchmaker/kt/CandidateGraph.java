@@ -5,6 +5,7 @@ import org.jgrapht.WeightedGraph;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.WeightedPseudograph;
 import org.lcsb.lu.igcsa.utils.CandidateUtils;
+import org.uncommons.maths.statistics.DataSet;
 
 import java.util.*;
 
@@ -31,13 +32,24 @@ public class CandidateGraph
     return ourInstance;
     }
 
+  public static DataSet getEdgeWeightData()
+    {
+    Iterator<DefaultWeightedEdge> eI = getGraph().weightSortedEdgeIterator();
+
+    DataSet weight = new DataSet(getGraph().edgeCount());
+    while (eI.hasNext())
+      weight.addValue(getGraph().getEdgeWeight(eI.next()));
+
+    return weight;
+    }
+
   public static void updateGraph(KaryotypeCandidate kc, List<KaryotypeCandidate> candidateList)
     {
     //log.info("updateGraph: " + getInstance().edgeCount());
     for (KaryotypeCandidate candidate : candidateList)
       {
       if (!kc.equals(candidate))
-        getGraph().addEdge(kc, candidate, CandidateUtils.getNCD(kc, candidate));
+        getGraph().addEdge(kc, candidate, CandidateUtils.getNCDAdjusted(kc, candidate));
       }
     //log.info("post updateGraph: " + getInstance().edgeCount());
     }

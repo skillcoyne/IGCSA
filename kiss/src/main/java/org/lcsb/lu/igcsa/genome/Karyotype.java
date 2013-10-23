@@ -300,5 +300,29 @@ public class Karyotype extends Genome
     return kt;
     }
 
+  public void resetChromosomeCount(int allosomeDefault)
+    {
+    for (String chr: this.chromosomeCount.keySet())
+      this.chromosomeCount.put(chr, allosomeDefault);
+
+    adjustSex();
+    }
+
+
+
+
+  @Override
+  public String toString()
+    {
+    String str = "";
+    for (Aberration abr: this.getAberrationDefinitions())
+      str += abr.toString() + "\n";
+
+    for (Map.Entry<String, Integer> entry: this.getChromosomeCount().entrySet())
+      str += entry.getKey() + "(" + entry.getValue() + ")\n";
+
+    return str;
+    }
+
 
   }

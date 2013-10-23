@@ -57,14 +57,6 @@ public class Fitness implements FitnessEvaluator<KaryotypeCandidate>
       }
     }
 
-  //  public Fitness(Probability bpProb, Probability gainLossProb)
-  //    {
-  //    // Use probabilities to evaluate fitness..worked well enough with breakpoints. Need to see what happens with aneuploidy.
-  //    this.bpProb = bpProb;
-  //    this.gainLossProb = gainLossProb;
-  //
-  //    }
-
   public double getBreakpointScore(KaryotypeCandidate karyotypeCandidate)
     {
     double score = 0.0;
@@ -76,13 +68,10 @@ public class Fitness implements FitnessEvaluator<KaryotypeCandidate>
       }
 
     // adjust the score for the number of breakpoints as well
-    //score = adjustByCount(bpCountProb.getRawProbabilities(), score, karyotypeCandidate.getBreakpoints().size());
     score += (double)chromosomes.size()/(double)karyotypeCandidate.getBreakpoints().size();
 
     // while technically a genome with no mutations is "fit" I'm looking for genomes with at least some mutations
-    if (score  == 0)
-      log.info(karyotypeCandidate + " fitness 0");
-    //      this.breakpointScore  = 200;
+    if (score  == 0) score = 200;
 
     return score;
     }
@@ -90,7 +79,6 @@ public class Fitness implements FitnessEvaluator<KaryotypeCandidate>
   public double getAneuploidyScore(KaryotypeCandidate karyotypeCandidate)
     {
     // it's ok if there are no aneuploidies, so no adjustment for a 0 score.
-    // What is a problem is that
     double score = 0.0;
 
     Set<String> chromosomes = new HashSet<String>();
@@ -119,12 +107,15 @@ public class Fitness implements FitnessEvaluator<KaryotypeCandidate>
 
     Iterator<DefaultWeightedEdge> eI = CandidateGraph.getGraph().getEdges(karyotypeCandidate).iterator();
     while (eI.hasNext())
-      similaritySum += CandidateGraph.getGraph().getEdgeWeight(eI.next());
+      similaritySum += CandidateGraph.getGraph().getEdgeWeight(eI.next())/10;
 
     similaritySum = CandidateUtils.round(similaritySum/ (double) karyotypeCandidates.size(), 5);
 
+//    double bpScore = getBreakpointScore(karyotypeCandidate);
+//    double apScore = getAneuploidyScore(karyotypeCandidate);
+
     // not using the list of candidates at the moment. I could integrate into the fitness score a population level score rather than leaving that to the termination criteria.  Have to think about how as it would perhaps simplify the code somewhat.
-    //return getBreakpointScore(karyotypeCandidate) + getAneuploidyScore(karyotypeCandidate) + similaritySum;
+    //return  bpScore + apScore + similaritySum;
     return getBreakpointScore(karyotypeCandidate) +  similaritySum;
     }
 

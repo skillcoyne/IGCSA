@@ -27,11 +27,18 @@ public class KaryotypeSelectionStrategy implements SelectionStrategy<Object>
   {
   static Logger log = Logger.getLogger(SelectionStrategy.class.getName());
 
-  private double maxFitness = 2.5;
+  public static final double IDENTICAL = 0.08;
 
-  public KaryotypeSelectionStrategy(double maxFitness)
+  private double maxFitness = 2.5;
+  private double maxSimilarity;
+
+  public KaryotypeSelectionStrategy(double maxFitness, double maxSimilarity)
     {
     this.maxFitness = maxFitness;
+    this.maxSimilarity = maxSimilarity;
+
+    if (this.maxSimilarity < IDENTICAL)
+      this.maxSimilarity = IDENTICAL;
     }
 
   @Override
@@ -57,13 +64,12 @@ public class KaryotypeSelectionStrategy implements SelectionStrategy<Object>
 
     // instead, for every pair that has a high similarity roll a die and select only one (a sort of Tournament selection)
     List<KaryotypeCandidate> removeFromPopulation = new ArrayList<KaryotypeCandidate>();
-    double similarityScore = 0.08;
 
     Iterator<DefaultWeightedEdge> eI = cg.weightSortedEdgeIterator();
     while (eI.hasNext())
       {
       DefaultWeightedEdge edge = eI.next();
-      if (cg.getEdgeWeight(edge) <= similarityScore)
+      if (cg.getEdgeWeight(edge) <= this.maxSimilarity)
         {
         KaryotypeCandidate notSelected = cg.getNodes(edge).get(rng.nextInt(2));
         cg.removeNode(notSelected);
@@ -71,7 +77,7 @@ public class KaryotypeSelectionStrategy implements SelectionStrategy<Object>
         }
       }
 
-    log.info("Removed " + newCandidates + " candidates with > " + maxFitness + " fitness; and " + removeFromPopulation.size() + " nearly identical individuals.");
+    log.info("Removed " + newCandidates + " candidates with > " + maxFitness + " fitness; and " + removeFromPopulation.size() + " with NCD < " + this.maxSimilarity);
 
 
     List<S> selection = new ArrayList<S>();

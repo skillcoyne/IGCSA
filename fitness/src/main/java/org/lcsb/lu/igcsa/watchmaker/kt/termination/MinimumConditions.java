@@ -24,6 +24,8 @@ public class MinimumConditions implements TerminationCondition
   {
   static Logger log = Logger.getLogger(MinimumConditions.class.getName());
 
+
+
   private double sizeSD = 0.0;
   private double minFitnessSD = 0.0;
 

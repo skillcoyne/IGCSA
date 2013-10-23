@@ -58,8 +58,9 @@ public class PopulationEvaluation
 
   public void outputCurrentStats()
     {
-    String[] titles = new String[]{"--- BP Size ---", "--- Complexity ---", "--- Rep'd BPs ---"};
-    DataSet[] allStats = new DataSet[]{sizeStats,  complexityStats, bpStats};
+    String[] titles = new String[]{"--- BP Size ---", "--- Complexity ---", "--- Rep'd BPs ---", "--- Fitness ---"};
+
+    DataSet[] allStats = new DataSet[]{sizeStats,  complexityStats, bpStats, fitnessStats};
 
     StringBuffer buff = new StringBuffer();
     for(int i=0; i<allStats.length; i++)
@@ -68,7 +69,7 @@ public class PopulationEvaluation
 
       buff.append(titles[i] + "\n");
       buff.append("\tMin: " + stats.getMinimum() + "\tMax: " + stats.getMaximum() + "\tMean: " + stats.getArithmeticMean() + "\tSD: " + stats.getStandardDeviation() + "\n");
-      buff.append("\tDispersion: " + stats.getStandardDeviation() / stats.getArithmeticMean() + "\n");
+      buff.append("\tCV: " + stats.getStandardDeviation() / stats.getArithmeticMean() + "\n");
       }
     log.info("\n" + buff);
     }

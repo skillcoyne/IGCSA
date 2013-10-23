@@ -8,6 +8,8 @@
 
 package org.lcsb.lu.igcsa.watchmaker;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.DoubleRange;
 import org.apache.commons.math3.distribution.PoissonDistribution;
 import org.apache.log4j.Logger;
 import org.jgrapht.graph.DefaultWeightedEdge;
@@ -16,6 +18,7 @@ import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.database.KaryotypeDAO;
 import org.lcsb.lu.igcsa.generator.Aberration;
 import org.lcsb.lu.igcsa.generator.AberrationRules;
+import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.Karyotype;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.utils.GenerationStatistics;
@@ -33,6 +36,7 @@ import org.uncommons.watchmaker.framework.operators.EvolutionPipeline;
 import org.uncommons.watchmaker.framework.termination.GenerationCount;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.util.*;
 
 public class TestWM
@@ -65,36 +69,35 @@ public class TestWM
     operators.add(new Crossover(0.9, 0.9, evaluator));
     operators.add(new Mutator(0.2, 0.05, factory, evaluator));
 
-    SelectionStrategy selection = new KaryotypeSelectionStrategy(2.0);
 
     int maxPop = 200;
-    EvolutionEngine<KaryotypeCandidate> engine = new DiversityEvolution<KaryotypeCandidate>(factory, evaluator, new EvolutionPipeline<KaryotypeCandidate>(operators), selection, new MersenneTwisterRNG(), maxPop);
+    EvolutionEngine<KaryotypeCandidate> engine = new DiversityEvolution<KaryotypeCandidate>(
+        factory, evaluator,
+        new EvolutionPipeline<KaryotypeCandidate>(operators),
+        new KaryotypeSelectionStrategy(1.98, 0.1),
+        new MersenneTwisterRNG(), maxPop);
 
     Observer observer = new Observer();
     engine.addEvolutionObserver(observer);
 
-    List<EvaluatedCandidate<KaryotypeCandidate>> pop = engine.evolvePopulation(maxPop, 0, new PopulationComplexity(10.0, 4.0), new GenerationCount(1000 ));
+    List<EvaluatedCandidate<KaryotypeCandidate>> pop = engine.evolvePopulation(maxPop, 0,
+        new PopulationComplexity(10.0, 4.0, new DoubleRange(0.48, 0.51), 50),
+        new GenerationCount(1000));
+
+    /* --------------------------------------------------------------------------------------------------------------------------------------------  */
+
 
     StringBuffer buff = new StringBuffer("Min\tMax\tMean\tSizeSD\n");
     for (int i = 0; i < observer.getMinFitness().size(); i++)
-      {
       buff.append(observer.getMinFitness().get(i) + "\t" + observer.getMaxFitness().get(i) + "\t" + observer.getMeanFitness().get(i) + "\t" + observer.getSizeStdDev().get(i) + "\n");
-      }
-
-
-    CandidateGraph cg = CandidateGraph.getGraph();
-    Iterator<DefaultWeightedEdge> eI = cg.weightSortedEdgeIterator();
-
-    DataSet weight = new DataSet(cg.edgeCount());
-    while (eI.hasNext())
-      weight.addValue(cg.getEdgeWeight(eI.next()));
 
 
     Karyotype karyotype = new KaryotypeInsilicoGenome(context, null).getGenome();
     for (EvaluatedCandidate<KaryotypeCandidate> candidate : pop)
       {
       log.info(candidate.getFitness() + " " + candidate.getCandidate());
-      //createKaryotype(karyotype, candidate.getCandidate(), context);
+//      Karyotype ck = createKaryotype(karyotype, candidate.getCandidate(), context);
+//      log.info(ck.toString());
       }
 
     PopulationAneuploidy popA = new PopulationAneuploidy(pop);
@@ -108,6 +111,8 @@ public class TestWM
       cond = cond + " " + tc.getClass().getSimpleName();
     log.info("Satisfied conditions: " + cond);
 
+    DataSet weight = CandidateGraph.getEdgeWeightData();
+
     log.info("Total generations: " + observer.getMinFitness().size() + " Population size: " + pop.size() + "\n");
     log.info("NCD graph  Min:" + weight.getMinimum() + " Max:" + weight.getMaximum() + " Mean:" + weight.getArithmeticMean() + " SD:" + weight.getStandardDeviation());
 
@@ -115,6 +120,28 @@ public class TestWM
     eval.outputCurrentStats();
 
     /* Think these need to be used to plot the generational changes but not sure how yet */
+    File outFile = new File("/tmp/generations.txt");
+    if (!outFile.exists())
+      outFile.createNewFile();
+
+    FileWriter fileWriter = new FileWriter(outFile.getAbsoluteFile());
+    fileWriter.write( "cpxMean\tcpxSD\tbpRepMean\tbpRepSD\tfitnessMean\tbpSizeMean\tbpSizeSD\n" );
+
+    GenerationStatistics tk = GenerationStatistics.getTracker();
+    for (int i=0;i<tk.getComplexityMeans().size(); i++)
+      fileWriter.write(StringUtils.join(new Object[]{
+          tk.getComplexityMeans().get(i),
+          tk.getComplexitySD().get(i),
+          tk.getBpRepresentation().get(i),
+          tk.getBpSD().get(i),
+          tk.getFitnessMeans().get(i),
+          tk.getBpSizeMean().get(i),
+          tk.getBpSizeSD().get(i)
+      }, '\t') + "\n" );
+
+    fileWriter.flush();
+    fileWriter.close();
+
 //    log.info(GenerationStatistics.getTracker().getComplexityMeans());
 //    log.info(GenerationStatistics.getTracker().getComplexitySD());
 //
@@ -143,7 +170,6 @@ public class TestWM
 
     }
 
-
   /*
  This just shows how the final candidates would be used to create a Karyotype class which knows how to apply the mutations
  NOTE: The bands need to have their locations defined in order to correctly create karyotype aberrations.
@@ -151,6 +177,7 @@ public class TestWM
   private static Karyotype createKaryotype(Karyotype kt, KaryotypeCandidate candidate, ApplicationContext context) throws Exception
     {
     Karyotype karyotype = kt.copy();
+    karyotype.resetChromosomeCount(2);
 
     Collection<Band> bps = candidate.getBreakpoints();
 

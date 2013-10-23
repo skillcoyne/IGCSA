@@ -25,7 +25,11 @@ public class CandidateUtils
   {
   static Logger log = Logger.getLogger(CandidateUtils.class.getName());
 
-
+  public static double getNCDAdjusted(KaryotypeCandidate c1, KaryotypeCandidate c2)
+    {
+    double ncd = getNCD(c1, c2);
+    return Math.abs( Math.log(ncd) );
+    }
 
   /*
   NCD = ( C(xy) - min{C(x), C(y)} ) / max{C(x), C(y)}
