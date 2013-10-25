@@ -2,8 +2,12 @@ package org.lcsb.lu.igcsa.watchmaker.kt;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.Band;
+import org.lcsb.lu.igcsa.watchmaker.kt.statistics.BreakpointRepresentation;
+import org.lcsb.lu.igcsa.watchmaker.kt.statistics.CandidateBreakpoints;
+import org.lcsb.lu.igcsa.watchmaker.kt.statistics.CandidateEvaluation;
 import org.uncommons.maths.statistics.DataSet;
 import org.uncommons.watchmaker.framework.EvaluatedCandidate;
+import org.uncommons.watchmaker.framework.PopulationData;
 
 import java.util.*;
 
@@ -19,11 +23,9 @@ public class PopulationEvaluation
   static Logger log = Logger.getLogger(PopulationEvaluation.class.getName());
 
   private List<EvaluatedCandidate<KaryotypeCandidate>> population;
-  //private List<EvaluatedCandidate<? extends KaryotypeCandidate>> population;
 
   private DataSet fitnessStats;
   private DataSet sizeStats;
-  private DataSet complexityStats;
   private DataSet bpStats;
 
   public PopulationEvaluation(List<EvaluatedCandidate<KaryotypeCandidate>> candidateList)
@@ -32,7 +34,6 @@ public class PopulationEvaluation
 
     populationFitnessStats();
     sizePopulationSizeStats();
-    complexityPopulationStats();
     breakpointCountStats();
     }
 
@@ -46,11 +47,6 @@ public class PopulationEvaluation
     return sizeStats;
     }
 
-  public DataSet getComplexityStats()
-    {
-    return complexityStats;
-    }
-
   public DataSet getBpStats()
     {
     return bpStats;
@@ -58,9 +54,9 @@ public class PopulationEvaluation
 
   public void outputCurrentStats()
     {
-    String[] titles = new String[]{"--- BP Size ---", "--- Complexity ---", "--- Rep'd BPs ---", "--- Fitness ---"};
+    String[] titles = new String[]{"--- Num BPs/candidate ---",  "--- Rep'd BPs ---", "--- Evaluator ---"};
 
-    DataSet[] allStats = new DataSet[]{sizeStats,  complexityStats, bpStats, fitnessStats};
+    DataSet[] allStats = new DataSet[]{sizeStats, bpStats, fitnessStats};
 
     StringBuffer buff = new StringBuffer();
     for(int i=0; i<allStats.length; i++)
@@ -69,52 +65,23 @@ public class PopulationEvaluation
 
       buff.append(titles[i] + "\n");
       buff.append("\tMin: " + stats.getMinimum() + "\tMax: " + stats.getMaximum() + "\tMean: " + stats.getArithmeticMean() + "\tSD: " + stats.getStandardDeviation() + "\n");
-      buff.append("\tCV: " + stats.getStandardDeviation() / stats.getArithmeticMean() + "\n");
       }
     log.info("\n" + buff);
     }
 
-
-
-  private void complexityPopulationStats()
-    {
-    /* so...how could we measure complexity. Simply number of breakpoints (as these are not duplicated in an individual) + number of
-     aneuploidies? Means an individual with 3 bps and 2 aneuploidies has the same complexity as an individual with 5bps?
-     */
-    complexityStats = new DataSet(population.size());
-    for (EvaluatedCandidate<? extends KaryotypeCandidate> candidate: population)
-      complexityStats.addValue( (candidate.getCandidate().getBreakpoints().size() + candidate.getCandidate().getAneuploidies().size()) );
-    }
-
   private void populationFitnessStats()
     {
-    fitnessStats = new DataSet(population.size());
-
-    for (EvaluatedCandidate<?> candidate : population)
-      fitnessStats.addValue(candidate.getFitness());
+    fitnessStats = new CandidateEvaluation().getStatistics(this.population);
     }
 
   private void sizePopulationSizeStats()
     {
-    sizeStats = new DataSet(population.size());
-    for (EvaluatedCandidate<? extends KaryotypeCandidate> ind: population)
-      sizeStats.addValue(ind.getCandidate().getBreakpoints().size()); // doesn't include anything about aneuploidy
+    sizeStats = new CandidateBreakpoints().getStatistics(this.population);
     }
 
   private void breakpointCountStats()
     {
-    BreakpointWatcher.getWatcher().reset();
-
-    for(EvaluatedCandidate<KaryotypeCandidate> ind: population)
-      {
-      for(Band b: ind.getCandidate().getBreakpoints())
-        BreakpointWatcher.getWatcher().add(b);
-      }
-
-    bpStats = new DataSet(BreakpointWatcher.getWatcher().getBreakpointCounts().size());
-    for (Map.Entry<Band, Integer> entry: BreakpointWatcher.getWatcher().getBreakpointCounts().entrySet())
-      bpStats.addValue(entry.getValue());
-
+    bpStats = new BreakpointRepresentation().getStatistics(this.population);
     }
 
 

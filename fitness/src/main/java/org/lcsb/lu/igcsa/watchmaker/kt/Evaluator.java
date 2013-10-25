@@ -1,6 +1,5 @@
 package org.lcsb.lu.igcsa.watchmaker.kt;
 
-import org.apache.commons.lang.math.IntRange;
 import org.apache.log4j.Logger;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.lcsb.lu.igcsa.database.Band;
@@ -17,9 +16,9 @@ import java.util.*;
  * Copyright University of Luxembourg, Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class Fitness implements FitnessEvaluator<KaryotypeCandidate>
+public class Evaluator implements FitnessEvaluator<KaryotypeCandidate>
   {
-  static Logger log = Logger.getLogger(Fitness.class.getName());
+  static Logger log = Logger.getLogger(Evaluator.class.getName());
 
   private final Probability bpProb;
   private final Probability gainLossProb;
@@ -33,15 +32,10 @@ public class Fitness implements FitnessEvaluator<KaryotypeCandidate>
   private double sumProb = 0;
 
   /*
-  Fitness could be calcuated in a few ways.  Straightforwardly count the ploidy and breakpoints.  Higher number is lower fitness.
-  These could be adjusted for the likelihood of occurrence.  For instance, 9q34 is a very common breakpoint and so has a high fitness, where
-  Xq25 has a fairly low probability of occurrence and thus a lower fitness.
-
-  Same happens with the gain/loss of a chromosome.
-
+  Basically this evaluates the liklihood that this candidate occurs based on the probabilities provided.  A higher score means it is less likely to have occurred.
    */
 
-  public Fitness(Probability bpProb, Probability bpCountProb, Probability gainLossProb, Probability ploidyCountProb, boolean naturalFitness)
+  public Evaluator(Probability bpProb, Probability bpCountProb, Probability gainLossProb, Probability ploidyCountProb, boolean naturalFitness)
     {
     this.bpProb = bpProb;
     this.gainLossProb = gainLossProb;
@@ -81,17 +75,19 @@ public class Fitness implements FitnessEvaluator<KaryotypeCandidate>
     // it's ok if there are no aneuploidies, so no adjustment for a 0 score.
     double score = 0.0;
 
+    int apCount = 0;
     Set<String> chromosomes = new HashSet<String>();
     for (KaryotypeCandidate.Aneuploidy aneuploidy : karyotypeCandidate.getAneuploidies())
       {
-      score += gainLossProb.getRawProbabilities().get(aneuploidy.getChromosome());
-      //score += Math.abs(Math.log(gainLossProb.getRawProbabilities().get(aneuploidy.getChromosome())))/10;
+      double prob = gainLossProb.getRawProbabilities().get(aneuploidy.getChromosome());
+      score += prob * (aneuploidy.getGain() + aneuploidy.getLoss());
+
+      apCount += Math.abs(aneuploidy.getCount());
+
       chromosomes.add(aneuploidy.getChromosome());
       }
-
-    //score = adjustByCount(ploidyCountProb.getRawProbabilities(), score, karyotypeCandidate.getAneuploidies().size());
-//    if (score > 0)
-//      score += (double)chromosomes.size()/(double)karyotypeCandidate.getAneuploidies().size();
+    // means a gain of 2 counts against the fitness more than a gain of 1
+    score += apCount/chromosomes.size();
 
     return score;
     }
@@ -111,12 +107,12 @@ public class Fitness implements FitnessEvaluator<KaryotypeCandidate>
 
     similaritySum = CandidateUtils.round(similaritySum/ (double) karyotypeCandidates.size(), 5);
 
-//    double bpScore = getBreakpointScore(karyotypeCandidate);
-//    double apScore = getAneuploidyScore(karyotypeCandidate);
+    double bpScore = getBreakpointScore(karyotypeCandidate);
+    double apScore = (karyotypeCandidate.getAneuploidies().size() > 0)? (getAneuploidyScore(karyotypeCandidate)): 0;
 
     // not using the list of candidates at the moment. I could integrate into the fitness score a population level score rather than leaving that to the termination criteria.  Have to think about how as it would perhaps simplify the code somewhat.
-    //return  bpScore + apScore + similaritySum;
-    return getBreakpointScore(karyotypeCandidate) +  similaritySum;
+    return  bpScore + apScore + similaritySum;
+//    return getBreakpointScore(karyotypeCandidate) +  similaritySum;
     }
 
   // Higher scores are naturally fit for watchmaker;
@@ -126,21 +122,5 @@ public class Fitness implements FitnessEvaluator<KaryotypeCandidate>
     return naturalFitness;
     }
 
-  private double adjustByCount(Map<Object, Double> countProbs, double score, int count)
-    {
-
-
-    for (Map.Entry<Object, Double> entry : countProbs.entrySet())
-      {
-      // weighted by the inverse probability of that number of things (breakpoints/aneuploidies) occurring
-      IntRange range = (IntRange) entry.getKey();
-      if (range.containsInteger(count))
-        {
-        score = score * Math.abs(Math.log(entry.getValue()));
-        break;
-        }
-      }
-    return score;
-    }
 
   }

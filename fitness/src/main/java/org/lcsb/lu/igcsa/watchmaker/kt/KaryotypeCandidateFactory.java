@@ -26,11 +26,13 @@ public class KaryotypeCandidateFactory extends AbstractCandidateFactory<Karyotyp
 
   private KaryotypeDAO dao;
   private IntegerDistribution breakpointDist;
+  private boolean aneuploidy = false;
 
-  public KaryotypeCandidateFactory(KaryotypeDAO dao, IntegerDistribution breakpointDist)
+  public KaryotypeCandidateFactory(KaryotypeDAO dao, IntegerDistribution breakpointDist, boolean generateAneuploidy)
     {
     this.dao = dao;
     this.breakpointDist = breakpointDist;
+    this.aneuploidy = generateAneuploidy;
     }
 
   @Override
@@ -41,7 +43,8 @@ public class KaryotypeCandidateFactory extends AbstractCandidateFactory<Karyotyp
     try
       {
       generateBreakpoints(candidate);
-      generateAneuploidy(candidate);
+      if (aneuploidy)
+        generateAneuploidy(candidate);
       }
     catch (ProbabilityException e)
       {

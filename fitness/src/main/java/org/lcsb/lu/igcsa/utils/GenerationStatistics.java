@@ -19,10 +19,6 @@ public class GenerationStatistics
 
   private List<Double> fitnessMeans = new ArrayList<Double>();
 
-
-  private List<Double> complexity = new ArrayList<Double>();
-  private List<Double> complexitySD = new ArrayList<Double>();
-
   private List<Double> bpRepresentation = new ArrayList<Double>();
   private List<Double> bpSD = new ArrayList<Double>();
 
@@ -47,9 +43,6 @@ public class GenerationStatistics
     {
     fitnessMeans.add( evaluation.getFitnessStats().getArithmeticMean() );
 
-    complexity.add( evaluation.getComplexityStats().getArithmeticMean() );
-    complexitySD.add( evaluation.getComplexityStats().getStandardDeviation() );
-
     bpRepresentation.add( evaluation.getBpStats().getArithmeticMean() );
     bpSD.add( evaluation.getBpStats().getStandardDeviation() );
 
@@ -59,22 +52,11 @@ public class GenerationStatistics
     bpSizeMean.add(evaluation.getSizeStats().getArithmeticMean());
     bpSizeSD.add( evaluation.getSizeStats().getStandardDeviation() );
 
-    //evaluation.getComplexityStats().g
     }
 
   public List<Double> getFitnessMeans()
     {
     return fitnessMeans;
-    }
-
-  public List<Double> getComplexityMeans()
-    {
-    return complexity;
-    }
-
-  public List<Double> getComplexitySD()
-    {
-    return complexitySD;
     }
 
   public List<Double> getBpRepresentation()

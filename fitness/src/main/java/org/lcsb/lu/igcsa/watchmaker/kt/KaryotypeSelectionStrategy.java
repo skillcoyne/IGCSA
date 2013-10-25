@@ -80,6 +80,8 @@ public class KaryotypeSelectionStrategy implements SelectionStrategy<Object>
     log.info("Removed " + newCandidates + " candidates with > " + maxFitness + " fitness; and " + removeFromPopulation.size() + " with NCD < " + this.maxSimilarity);
 
 
+
+
     List<S> selection = new ArrayList<S>();
     for(EvaluatedCandidate<S> candidate: evaluatedCandidates)
       {

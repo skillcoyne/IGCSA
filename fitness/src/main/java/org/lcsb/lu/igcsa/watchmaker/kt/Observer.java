@@ -33,6 +33,7 @@ public class Observer implements EvolutionObserver<KaryotypeCandidate>
 
     PopulationEvaluation eval = new PopulationEvaluation(populationData.getEvaluatedPopulation());
     eval.outputCurrentStats();
+
     GenerationStatistics.getTracker().track(eval);
 
     sizeStdDev.add(eval.getSizeStats().getStandardDeviation());

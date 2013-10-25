@@ -18,38 +18,52 @@ import org.uncommons.watchmaker.framework.EvaluatedCandidate;
 import org.uncommons.watchmaker.framework.PopulationData;
 import org.uncommons.watchmaker.framework.TerminationCondition;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class BreakpointCondition implements TerminationCondition
   {
   static Logger log = Logger.getLogger(BreakpointCondition.class.getName());
 
-  private double sizeSD = 0.0;
-  private double min;
+  private Collection<Band> breakpoints;
+  private int maxZeros;
 
-  /**
-   *
-   * @param sizeSD Standard deviation for the number of breakpoints each individual has, across the population.
-   * @param min Minimum number of times breakpoints should show up in the population. This can be used to ensure that all breakpoints have a minimum representation.
-   */
-  public BreakpointCondition(double sizeSD, double min)
+  public BreakpointCondition(Collection<Band> breakpoints, int zeroCount)
     {
-    this.sizeSD = sizeSD;
-    this.min = min;
+    this.breakpoints = breakpoints;
+    this.maxZeros = zeroCount;
     }
 
   @Override
   public boolean shouldTerminate(PopulationData<?> populationData)
     {
+    Map<Band, Integer> possibleBreakpoints = new HashMap<Band, Integer>();
+    for (Band band : this.breakpoints)
+      possibleBreakpoints.put(band, 0);
+
     List<? extends EvaluatedCandidate<?>> population = populationData.getEvaluatedPopulation();
 
-    PopulationEvaluation eval = new PopulationEvaluation((List<EvaluatedCandidate<KaryotypeCandidate>>) population);
-    DataSet bpStats = eval.getBpStats();
-
-    if (bpStats.getMinimum() >= 3.0) // no idea what's reasonable here
+    for (EvaluatedCandidate<?> candidate : population)
       {
-      return true;
+      KaryotypeCandidate kc = (KaryotypeCandidate) candidate.getCandidate();
+      for (Band bp : kc.getBreakpoints())
+        possibleBreakpoints.put(bp, possibleBreakpoints.get(bp) + 1);
+      }
+
+
+    if (populationData.getGenerationNumber() > 40)
+      {
+      int zeros = Collections.frequency(possibleBreakpoints.values(), 0);
+
+      log.info("---> Zero frequency: " + zeros);
+
+      if (zeros <= this.maxZeros)
+        {
+        for (Map.Entry<Band, Integer> entry: possibleBreakpoints.entrySet())
+          log.info(entry.getKey() + " " + entry.getValue());
+
+
+        return true;
+        }
       }
 
     return false;

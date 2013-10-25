@@ -9,23 +9,20 @@
 package org.lcsb.lu.igcsa.watchmaker;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.DoubleRange;
 import org.apache.commons.math3.distribution.PoissonDistribution;
 import org.apache.log4j.Logger;
-import org.jgrapht.graph.DefaultWeightedEdge;
 import org.lcsb.lu.igcsa.KaryotypeInsilicoGenome;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.database.KaryotypeDAO;
 import org.lcsb.lu.igcsa.generator.Aberration;
 import org.lcsb.lu.igcsa.generator.AberrationRules;
-import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.Karyotype;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.utils.GenerationStatistics;
 import org.lcsb.lu.igcsa.utils.PopulationAneuploidy;
 import org.lcsb.lu.igcsa.watchmaker.kt.*;
 import org.lcsb.lu.igcsa.watchmaker.kt.Observer;
-import org.lcsb.lu.igcsa.watchmaker.kt.termination.PopulationComplexity;
+import org.lcsb.lu.igcsa.watchmaker.kt.termination.BreakpointCondition;
 import org.paukov.combinatorics.ICombinatoricsVector;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -61,28 +58,31 @@ public class TestWM
       allPossibleBands.add((Band) b);
     BreakpointWatcher.getWatcher().setExpectedBreakpoints(allPossibleBands);
 
-    CandidateFactory<KaryotypeCandidate> factory = new KaryotypeCandidateFactory(dao, new PoissonDistribution(5));
+    CandidateFactory<KaryotypeCandidate> factory = new KaryotypeCandidateFactory(dao, new PoissonDistribution(5), false);
 
-    Fitness evaluator = new Fitness(bandProbability, bpCountProb, aneuploidyProb, ploidyCountProb, false);
+    Evaluator evaluator = new Evaluator(bandProbability, bpCountProb, aneuploidyProb, ploidyCountProb, false);
 
     List<EvolutionaryOperator<KaryotypeCandidate>> operators = new LinkedList<EvolutionaryOperator<KaryotypeCandidate>>();
-    operators.add(new Crossover(0.9, 0.9, evaluator));
+    operators.add(new Crossover(0.7, 0.9, evaluator));
     operators.add(new Mutator(0.2, 0.05, factory, evaluator));
 
 
-    int maxPop = 200;
+    int maxPop = 300;
     EvolutionEngine<KaryotypeCandidate> engine = new DiversityEvolution<KaryotypeCandidate>(
         factory, evaluator,
         new EvolutionPipeline<KaryotypeCandidate>(operators),
-        new KaryotypeSelectionStrategy(1.98, 0.1),
+        new KaryotypeSelectionStrategy(1.5, 0.2),
         new MersenneTwisterRNG(), maxPop);
 
     Observer observer = new Observer();
     engine.addEvolutionObserver(observer);
 
     List<EvaluatedCandidate<KaryotypeCandidate>> pop = engine.evolvePopulation(maxPop, 0,
-        new PopulationComplexity(10.0, 4.0, new DoubleRange(0.48, 0.51), 50),
-        new GenerationCount(1000));
+        new BreakpointCondition(allPossibleBands, 2),
+        //new PopulationConditions( new BreakpointRepresentation(2.0) )
+        new GenerationCount(1000)
+    );
+
 
     /* --------------------------------------------------------------------------------------------------------------------------------------------  */
 
@@ -127,17 +127,17 @@ public class TestWM
     FileWriter fileWriter = new FileWriter(outFile.getAbsoluteFile());
     fileWriter.write( "cpxMean\tcpxSD\tbpRepMean\tbpRepSD\tfitnessMean\tbpSizeMean\tbpSizeSD\n" );
 
-    GenerationStatistics tk = GenerationStatistics.getTracker();
-    for (int i=0;i<tk.getComplexityMeans().size(); i++)
-      fileWriter.write(StringUtils.join(new Object[]{
-          tk.getComplexityMeans().get(i),
-          tk.getComplexitySD().get(i),
-          tk.getBpRepresentation().get(i),
-          tk.getBpSD().get(i),
-          tk.getFitnessMeans().get(i),
-          tk.getBpSizeMean().get(i),
-          tk.getBpSizeSD().get(i)
-      }, '\t') + "\n" );
+//    GenerationStatistics tk = GenerationStatistics.getTracker();
+//    for (int i=0;i<tk.getComplexityMeans().size(); i++)
+//      fileWriter.write(StringUtils.join(new Object[]{
+//          tk.getComplexityMeans().get(i),
+//          tk.getComplexitySD().get(i),
+//          tk.getBpRepresentation().get(i),
+//          tk.getBpSD().get(i),
+//          tk.getFitnessMeans().get(i),
+//          tk.getBpSizeMean().get(i),
+//          tk.getBpSizeSD().get(i)
+//      }, '\t') + "\n" );
 
     fileWriter.flush();
     fileWriter.close();

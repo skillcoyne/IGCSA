@@ -230,7 +230,7 @@ public class KaryotypeCandidate
     @Override
     public String toString()
       {
-      return this.getChromosome() + "(+ " + gain + ", -" + loss + ")";
+      return this.getChromosome() + "(+" + gain + ", -" + loss + ")";
       }
     }
 
