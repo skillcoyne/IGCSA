@@ -25,6 +25,8 @@ import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.aberrations.single.Duplication;
+import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.generator.Aberration;
 import org.lcsb.lu.igcsa.generator.KaryotypeGenerator;
 import org.lcsb.lu.igcsa.genome.DerivativeChromosome;
@@ -36,6 +38,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -93,6 +96,11 @@ public class KaryotypeMutator extends Configured implements Tool
 
     KaryotypeGenerator karyotypeGenerator = (KaryotypeGenerator) springContext.getBean("karyotypeGenerator");
     Karyotype karyotype = new KaryotypeInsilicoGenome(springContext, null).getGenome();
+    karyotype = karyotypeGenerator.generateKaryotypes(karyotype);
+    while (karyotype.getAberrationDefinitions().size() <= 0)
+      karyotype = karyotypeGenerator.generateKaryotypes(karyotype);
+
+    aberrations = karyotype.getAberrationDefinitions();
 
     String[] options = new GenericOptionsParser(conf, args).getRemainingArgs();
     //CommandLine cl = parseCommandLine(options);
@@ -103,14 +111,14 @@ public class KaryotypeMutator extends Configured implements Tool
     //    conf.set("chromosome", chr);
     //    conf.setInt("window", Integer.valueOf(props.getProperty("window")));
 
-    conf.set("karyotype", "/tmp/test-karyotype.props");
+    //conf.set("karyotype", "/tmp/test-karyotype.props");
     //conf.addResource( new Path("/tmp/test-karyotype.props") );
 
     String outputPath = props.getProperty("dir.insilico");
     Job job = new Job(conf, "Fragment sequence mutation");
     job.setJarByClass(ChromosomeFragmentMutator.class);
 
-    job.setInputFormatClass(FASTAInputFormat.class);
+    job.setInputFormatClass(FASTAFragmentInputFormat.class);
     job.setOutputFormatClass(FASTAOutputFormat.class);
 
     job.setMapperClass(KaryotypeMapper.class);

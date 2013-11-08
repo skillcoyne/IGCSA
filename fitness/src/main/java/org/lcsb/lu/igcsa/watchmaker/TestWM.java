@@ -96,8 +96,8 @@ public class TestWM
     for (EvaluatedCandidate<KaryotypeCandidate> candidate : pop)
       {
       log.info(candidate.getFitness() + " " + candidate.getCandidate());
-//      Karyotype ck = createKaryotype(karyotype, candidate.getCandidate(), context);
-//      log.info(ck.toString());
+      Karyotype ck = createKaryotype(karyotype, candidate.getCandidate(), context);
+      log.info(ck.toString());
       }
 
     PopulationAneuploidy popA = new PopulationAneuploidy(pop);

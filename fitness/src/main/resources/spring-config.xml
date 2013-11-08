@@ -18,7 +18,7 @@
 
         <property name="arguments">
             <list>
-                <value>file:${props.path}/log4j.properties</value>
+                <value>classpath:log4j.properties</value>
             </list>
         </property>
     </bean>
@@ -28,7 +28,7 @@
         <property name="ignoreResourceNotFound">
             <value>false</value>
         </property>
-        <property name="location" value="file:${props.path}/genome.properties"/>
+        <property name="location" value="classpath:genome.properties"/>
     </bean>
 
     <!-- Properties -->
@@ -36,7 +36,7 @@
         <property name="ignoreResourceNotFound">
             <value>false</value>
         </property>
-        <property name="location" value="file:${props.path}/karyotype.properties"/>
+        <property name="location" value="classpath:karyotype.properties"/>
     </bean>
 
 

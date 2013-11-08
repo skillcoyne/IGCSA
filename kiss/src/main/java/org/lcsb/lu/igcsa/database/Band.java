@@ -122,7 +122,7 @@ public class Band implements Comparable<Band>
   @Override
   public String toString()
     {
-    return this.chromosomeName + this.bandName;
+    return this.chromosomeName + this.bandName + this.location.toString();
     }
 
   @Override

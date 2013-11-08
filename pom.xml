@@ -41,7 +41,7 @@
         <module>kiss</module>
         <module>sim</module>
         <module>mapreduce</module>
-        <!--module>fitness</module-->
+        <module>fitness</module>
     </modules>
 
     <build>
