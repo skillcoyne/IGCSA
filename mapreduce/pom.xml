@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>insilico-genome</artifactId>
+        <groupId>org.lcsb.lu.igcsa</groupId>
+        <version>1.1</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>mapreduce</artifactId>
+
+    <profiles>
+        <profile>
+            <id>figg</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <main.class>org.lcsb.lu.igcsa.ChromosomeFragmentMutator</main.class>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>kiss</id>
+            <properties>
+                <main.class>org.lcsb.lu.igcsa.KaryotypeMutator</main.class>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>local</id>
+            <properties>
+                <data.dir>${user.home}/Data</data.dir>
+                <db.dir>${user.home}/workspace/IGCSA/derby-db</db.dir>
+                <output.dir>${user.home}/Data/Insilico</output.dir>
+                <log.dir>${user.home}/tmp/logs</log.dir>
+
+                <resources.to.dir>${basedir}/target</resources.to.dir>
+            </properties>
+
+        </profile>
+
+        <profile>
+            <id>aws</id>
+            <properties>
+                <data.dir>s3://insilico</data.dir>
+                <db.dir>s3://insilico/normal_variation</db.dir>
+                <output.dir>s3://insilico/genomes</output.dir>
+                <log.dir>s3://insilico/logs</log.dir>
+
+                <resources.to.dir>${basedir}/target/classes</resources.to.dir>
+            </properties>
+
+        </profile>
+
+        <profile>
+            <id>test</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+
+            <properties>
+                <data.dir>${user.home}/Data</data.dir>
+                <db.dir>${user.home}/workspace/IGCSA/derby-db</db.dir>
+                <output.dir>${user.home}/Data/Insilico</output.dir>
+                <log.dir>${user.home}/tmp/logs</log.dir>
+
+                <resources.to.dir>${basedir}/target/classes</resources.to.dir>
+            </properties>
+        </profile>
+
+    </profiles>
+
+    <build>
+        <finalName>HadoopFIGG</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${resources.to.dir}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>../sim/dist-resources</directory>
+                                    <filtering>true</filtering>
+                                    <includes>
+                                        <include>*.properties</include>
+                                    </includes>
+                                    <excludes>
+                                        <exclude>*.sh</exclude>
+                                    </excludes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>create-executable-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <finalName>${build.finalName}-${project.version}</finalName>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <archive>
+                                <manifest>
+                                    <mainClass>${main.class}</mainClass>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>figg</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>kiss</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+
+        <!-- hadoop libraries -->
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-core</artifactId>
+            <version>1.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>2.2.0</version>
+        </dependency>
+    </dependencies>
+
+
+</project>

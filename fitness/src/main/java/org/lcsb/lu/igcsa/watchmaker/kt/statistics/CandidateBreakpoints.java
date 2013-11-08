@@ -12,7 +12,6 @@ import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.watchmaker.kt.KaryotypeCandidate;
 import org.uncommons.maths.statistics.DataSet;
 import org.uncommons.watchmaker.framework.EvaluatedCandidate;
-import org.uncommons.watchmaker.framework.PopulationData;
 
 import java.util.List;
 

@@ -6,7 +6,7 @@
  */
 
 
-package org.lcsb.lu.igcsa.hadoop.mapreduce;
+package org.lcsb.lu.igcsa.mapreduce;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;

@@ -6,7 +6,7 @@
  */
 
 
-package org.lcsb.lu.igcsa.hadoop.mapreduce;
+package org.lcsb.lu.igcsa;
 
 
 import org.apache.commons.cli.*;
@@ -31,25 +31,21 @@ import org.lcsb.lu.igcsa.database.normal.FragmentDAO;
 import org.lcsb.lu.igcsa.database.normal.GCBinDAO;
 import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.genome.Genome;
-import org.lcsb.lu.igcsa.genome.MutableGenome;
-import org.lcsb.lu.igcsa.prob.ProbabilityException;
+import org.lcsb.lu.igcsa.mapreduce.FASTAFragmentInputFormat;
+import org.lcsb.lu.igcsa.mapreduce.FASTAOutputFormat;
 import org.lcsb.lu.igcsa.utils.VariantUtils;
 import org.lcsb.lu.igcsa.variation.fragment.Variation;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Random;
+import java.util.*;
 
-public class SequenceRead extends Configured implements Tool
+public class ChromosomeFragmentMutator extends Configured implements Tool
   {
-  static Logger log = Logger.getLogger(SequenceRead.class.getName());
+  static Logger log = Logger.getLogger(ChromosomeFragmentMutator.class.getName());
 
   static ClassPathXmlApplicationContext springContext;
-
 
   @Override
   public int run(String[] args) throws Exception
@@ -57,7 +53,7 @@ public class SequenceRead extends Configured implements Tool
     final long startTime = System.currentTimeMillis();
     int rj = runJob(getConf(), args);
     final long elapsedTime = System.currentTimeMillis() - startTime;
-    log.info("Finished job " + elapsedTime/1000 + " seconds");
+    log.info("Finished job " + elapsedTime / 1000 + " seconds");
 
     return rj;
     }
@@ -108,9 +104,9 @@ public class SequenceRead extends Configured implements Tool
             log.debug("Chromosome " + chr + " MUTATING FRAGMENT " + fragment.toString());
             variation.setMutationFragment(fragment);
             sequence = variation.mutateSequence(sequence);
-
-            // I want to keep a log of every mutation so I think for the M/R classes the value can be an array of Text objects...
-            //writeVariations(chr, location, gcBin, variation, variation.getLastMutations());
+//
+//            // TODO I want to keep a log of every mutation so I think for the M/R classes the value can be an array of Text objects...
+//            //writeVariations(chr, location, gcBin, variation, variation.getLastMutations());
             }
           value = new Text(sequence.toString());
           }
@@ -150,52 +146,34 @@ public class SequenceRead extends Configured implements Tool
       so I don't understand what's going on here.  Each mapper should have only one value per key but if I iterate over the values I get each value duplicated for each key.
       for now I just won't iterate since I'm missing something
       */
-
       result.set(values.iterator().next().toString());
       context.write(key, result);
       }
     }
 
 
-  public SequenceRead()
+  public ChromosomeFragmentMutator()
     {
     springContext = new ClassPathXmlApplicationContext(new String[]{"classpath*:spring-config.xml", "classpath*:/conf/genome.xml"});
-
-
-    Properties genomeProperties = (Properties) springContext.getBean("genomeProperties");
-
-    if (genomeProperties.containsKey("window"))
-      {
-      int windowSize = Integer.valueOf(genomeProperties.getProperty("window"));
-      log.info("window " + windowSize);
-      }
-    else
-      {
-      throw new RuntimeException("Property 'window' not found.");
-      }
-
-
     }
 
   // only running a single chromosome at the moment
   public int runJob(Configuration conf, String[] args) throws Exception
     {
+    Properties props = (Properties) springContext.getBean("genomeProperties");
+
     String[] options = new GenericOptionsParser(conf, args).getRemainingArgs();
     CommandLine cl = parseCommandLine(options);
 
-    // TODO only dealing with one at the moment
-    String[] files = cl.getOptionValue('c').split(",");
-    String[] chrFile = files[0].split(":");
+    String file = cl.getOptionValue('f');
+    String chr = cl.getOptionValue('c');
 
-    if (chrFile.length < 2)
-      throw new Exception("Chromosome files should be provided in the following format:  <chromosome name>:<path to fasta file>");
+    conf.set("chromosome", chr);
+    conf.setInt("window", Integer.valueOf(props.getProperty("window")));
 
-    String outputPath = cl.getOptionValue('o', "/tmp/seq-hadoop-test");
-    outputPath = outputPath + "/" + chrFile[0];
-
-    conf.set("chromosome", chrFile[0]);
+    String outputPath = props.getProperty("dir.insilico") + "/chr" + chr;
     Job job = new Job(conf, "Fragment sequence mutation");
-    job.setJarByClass(SequenceRead.class);
+    job.setJarByClass(ChromosomeFragmentMutator.class);
 
     job.setInputFormatClass(FASTAFragmentInputFormat.class);
     job.setOutputFormatClass(FASTAOutputFormat.class);
@@ -206,13 +184,13 @@ public class SequenceRead extends Configured implements Tool
     job.setOutputKeyClass(LongWritable.class);
     job.setOutputValueClass(Text.class);
 
-    FileInputFormat.addInputPath(job, new Path(chrFile[1]));
-    //FileInputFormat.addInputPath(job, new Path("/Users/sarah.killcoyne/Dropbox/Private/Work/fasta-hadoop/src/test/resources/hadoop-test.txt"));
+    FileInputFormat.addInputPath(job, new Path(file));
 
+    FileUtils.deleteDirectory(new File(outputPath));
     FileOutputFormat.setOutputPath(job, new Path(outputPath));
 
     // Set only 1 reduce task
-    //job.setNumReduceTasks(1);
+    job.setNumReduceTasks(1);
 
     return (job.waitForCompletion(true) ? 0 : 1);
     }
@@ -220,7 +198,8 @@ public class SequenceRead extends Configured implements Tool
   private CommandLine parseCommandLine(String[] args)
     {
     Options options = new Options();
-    options.addOption("c", "chromosomes", true, "List of chromosomes and file locations, comma separated. (ex. 22:/path/to/22.fa.gz, X:/path/to/X.fa.gz");
+    options.addOption("c", "chromosomes", true, "List of chromosomes, comma separated. (ex. 22,X");
+    options.addOption("f", "files", true, "List of files in same order as chromosomes, comma separated.  (ex. /path/to/22.fa.gz,/path/to/X.fa.gz");
 
     options.addOption("h", "help", false, "print usage help");
 
@@ -230,7 +209,7 @@ public class SequenceRead extends Configured implements Tool
       {
       cl = clp.parse(options, args);
       HelpFormatter help = new HelpFormatter();
-      if (cl.hasOption('h') || cl.hasOption("help"))
+      if ((cl.hasOption('h') || cl.hasOption("help")) || (!cl.hasOption('c') || !cl.hasOption('f')))
         {
         help.printHelp("<jar file>", options);
         System.exit(0);
@@ -245,7 +224,7 @@ public class SequenceRead extends Configured implements Tool
 
   public static void main(String[] args) throws Exception
     {
-    ToolRunner.run(new SequenceRead(), args);
+    ToolRunner.run(new ChromosomeFragmentMutator(), args);
     }
 
 

@@ -1,4 +1,4 @@
-package org.lcsb.lu.igcsa.hadoop.mapreduce;
+package org.lcsb.lu.igcsa.mapreduce;
 
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
@@ -39,7 +39,6 @@ public class FASTAFragmentInputFormat extends FileInputFormat<LongWritable, Text
     static Logger log = Logger.getLogger(FASTAFragmentRecordReader.class.getName());
 
     private int window;
-    private boolean inSplit = true;
 
     private LongWritable key = new LongWritable();
     private Text value = new Text();

@@ -9,17 +9,39 @@
     <packaging>pom</packaging>
     <name>Insilico Genome</name>
 
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/skillcoyne/IGCSA</url>
+        <connection>scm:git://github.com/skillcoyne/igcsa.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:skillcoyne/igcsa.git</developerConnection>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>skillcoyne</id>
+            <name>Sarah Killcoyne</name>
+        </developer>
+    </developers>
+
     <properties>
         <org.springframework.version>3.2.2.RELEASE</org.springframework.version>
     </properties>
 
     <modules>
         <module>derby-db</module>
+        <module>kiss-derby</module>
         <module>figg</module>
         <module>kiss</module>
         <module>sim</module>
-        <module>kiss-derby</module>
-        <module>fitness</module>
+        <module>mapreduce</module>
+        <!--module>fitness</module-->
     </modules>
 
     <build>
@@ -144,8 +166,6 @@
             <artifactId>commons-math3</artifactId>
             <version>3.2</version>
         </dependency>
-
-
     </dependencies>
 
     <repositories>

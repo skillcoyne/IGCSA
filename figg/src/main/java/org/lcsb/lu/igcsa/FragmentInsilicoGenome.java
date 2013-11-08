@@ -12,7 +12,6 @@ import org.lcsb.lu.igcsa.utils.FileUtils;
 
 import org.lcsb.lu.igcsa.utils.VariantUtils;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.io.File;
 import java.io.IOException;
