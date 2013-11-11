@@ -8,6 +8,7 @@
 
 package org.lcsb.lu.igcsa.mapreduce;
 
+import org.apache.commons.lang.math.IntRange;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
@@ -22,10 +23,8 @@ import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.util.LineReader;
 import org.apache.log4j.Logger;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
+import java.io.*;
+import java.util.Properties;
 
 /*
 This reads segments of chromosomes, key should be a location value should be the sequence (text) for that location
@@ -48,16 +47,22 @@ public class FASTAInputFormat extends FileInputFormat<SegmentWritable, Text>
     private FSDataInputStream inputStream;
     private LineReader reader;
 
+
+    //private
     private long splitStart;
     private long splitEnd;
 
     @Override
     public void initialize(InputSplit inputSplit, TaskAttemptContext context) throws IOException, InterruptedException
       {
-      FileReader ktFile = new FileReader(new File(context.getConfiguration().get("karyotype")));
-
       FileSplit split = (FileSplit) inputSplit;
       Path path = split.getPath();
+
+      String bandLocations[] = context.getConfiguration().get("bands").split(",");
+      for (String bl: bandLocations)
+        {
+
+        }
 
       long splitStart = split.getStart();
       long splitEnd = splitStart + split.getLength();

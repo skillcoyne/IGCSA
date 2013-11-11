@@ -14,32 +14,6 @@
     <name>Genome Sequence Simulator</name>
     <!-- Change name later -->
 
-    <profiles>
-        <profile>
-            <id>local</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <properties>
-                <data.dir>${user.home}/Data</data.dir>
-                <figg.db.dir>${user.home}/workspace/IGCSA/derby-db</figg.db.dir>
-                <kiss.db.dir>${user.home}/workspace/IGCSA/kiss-db</kiss.db.dir>
-                <output.dir>${user.home}/Data/Insilico</output.dir>
-                <log.dir>${user.home}/tmp/logs</log.dir>
-            </properties>
-        </profile>
-        <profile>
-            <id>uni.lu</id>
-            <properties>
-                <data.dir>/tmp/Data</data.dir>
-                <figg.db.dir>/tmp/db/derby-db</figg.db.dir>
-                <kiss.db.dir>/tmp/db/kiss-db</kiss.db.dir>
-                <output.dir>/tmp/insilico/genomes</output.dir>
-                <log.dir>/tmp/insilico/logs</log.dir>
-            </properties>
-        </profile>
-    </profiles>
-
     <build>
         <finalName>GenomeSimulator</finalName>
         <plugins>
@@ -49,7 +23,7 @@
                 <version>2.6</version>
                 <executions>
                     <execution>
-                        <id>copy-resources</id>
+                        <id>copy-databases</id>
                         <phase>compile</phase>
                         <goals>
                             <goal>copy-resources</goal>
@@ -57,14 +31,6 @@
                         <configuration>
                             <outputDirectory>${basedir}/target</outputDirectory>
                             <resources>
-                                <resource>
-                                    <directory>${basedir}/dist-resources</directory>
-                                    <filtering>true</filtering>
-                                    <excludes>
-                                        <exclude>*.example</exclude>
-                                    </excludes>
-                                </resource>
-
                                 <!-- Only if you want to build the derby embedded version, maybe this is a profiles thing -->
                                 <resource>
                                     <directory>../derby-db/target</directory>
@@ -91,6 +57,24 @@
                             </resources>
                         </configuration>
                     </execution>
+
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${resources.to.dir}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/dist-resources/${props.dir}</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+
                 </executions>
             </plugin>
             <plugin>
