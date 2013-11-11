@@ -20,9 +20,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 
 /**
@@ -62,7 +60,7 @@ public class InversionTest
   @After
   public void tearDown() throws Exception
     {
-    writer.getFASTAFile().delete();
+    //writer.getFASTAFile().delete();
     }
 
 
@@ -99,16 +97,22 @@ public class InversionTest
     abr = new Inversion();
     assertNotNull(abr);
 
-    FASTAReader reader = new FASTAReader(fastaFile);
-    String origLongText = reader.readSequenceFromLocation(144, 1107);
-    assertTrue(origLongText.length() > 100);
+    int startLoc = 144;
 
-    abr.addFragment(new Band(chr.getName(), "longtext", new Location(144, 1251)));
+    FASTAReader reader = new FASTAReader(fastaFile);
+    String origLongText = reader.readSequenceFromLocation(startLoc, 1103);
+    assertEquals(origLongText.length(), 1103);
+
+    abr.addFragment(new Band(chr.getName(), "longtext", new Location(startLoc, startLoc+origLongText.length()+1)));
     abr.applyAberrations(dchr, writer, null);
 
     assertTrue(writer.getFASTAFile().length() > 17);
     FASTAReader newreader = new FASTAReader(writer.getFASTAFile());
-    assertEquals( origLongText, new StringBuffer(newreader.readSequenceFromLocation(144, 1107)).reverse().toString());
+
+    assertNotSame(fastaFile, writer.getFASTAFile());
+    assertNotSame(reader, newreader);
+
+    assertEquals(origLongText, new StringBuffer(newreader.readSequenceFromLocation(startLoc, origLongText.length())).reverse().toString());
     }
   }
 

@@ -240,6 +240,7 @@ public class Karyotype extends Genome
         FASTAHeader header = new FASTAHeader("figg", newFasta.getName().replaceAll("-der.fa", ""), "karyotype.variation",
                                              this.getBuildName());
         FASTAWriter writer = new FASTAWriter(newFasta, header);
+
         MutationWriter mutWriter = new MutationWriter(new File(this.mutationDirectory, newFasta.getName().replace(".fa", "") + "-SVs.txt"), MutationWriter.SV);
         abr.applyAberrations(dchr, writer, mutWriter);
         }

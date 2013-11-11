@@ -67,28 +67,8 @@ public class Inversion extends SingleChromosomeAberration
           }
         else
           {
-          reverseWrite(loc, reader, writer);
           //Inversions could be so large that I need to read from the fasta file in reverse...
-//          int start = loc.getEnd() - window;
-//          int count = 0;
-//          while (true)
-//            {
-//            boolean lastSeq = false;
-//            if (start <= loc.getStart())
-//              {
-//              window -= (loc.getStart() - start);
-//              start = loc.getStart();
-//              lastSeq = true;
-//              }
-//            StringBuffer seq = new StringBuffer(reader.readSequenceFromLocation(start, window));
-//            writer.write(seq.reverse().toString());
-//            log.debug(log + " " + seq.toString());
-//            count += seq.length();
-//
-//            start -= window;
-//
-//            if (count >= loc.getLength() || lastSeq) break;
-//            }
+          reverseWrite(loc, reader, writer);
           }
         lastLoc = loc;
         }
