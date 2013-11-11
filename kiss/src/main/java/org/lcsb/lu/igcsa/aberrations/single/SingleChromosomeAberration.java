@@ -115,6 +115,7 @@ public abstract class SingleChromosomeAberration extends SequenceAberration
     int count = 0;
     while (true)
       {
+      log.info("Seq " + start + " " + loc.getStart());
       boolean lastSeq = false;
       if (start <= loc.getStart())
         {

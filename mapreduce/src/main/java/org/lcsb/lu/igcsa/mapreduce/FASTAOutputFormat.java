@@ -92,8 +92,7 @@ public class FASTAOutputFormat extends FileOutputFormat<LongWritable, Text>
     {
 //    context.getOutputKeyClass();
 //    context.getOutputValueClass();
-
-    Path file = getDefaultWorkFile(context, "test");
+    Path file = getDefaultWorkFile(context, "");
     FileSystem fs = file.getFileSystem(context.getConfiguration());
 
     return new FASTARecordWriter(fs.create(file), 70);

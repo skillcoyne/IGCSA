@@ -8,7 +8,6 @@
 
 package org.lcsb.lu.igcsa;
 
-import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -19,17 +18,13 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.aberrations.single.Duplication;
-import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.generator.Aberration;
 import org.lcsb.lu.igcsa.generator.KaryotypeGenerator;
-import org.lcsb.lu.igcsa.genome.DerivativeChromosome;
 import org.lcsb.lu.igcsa.genome.Karyotype;
 import org.lcsb.lu.igcsa.mapreduce.FASTAFragmentInputFormat;
 import org.lcsb.lu.igcsa.mapreduce.FASTAInputFormat;
@@ -37,8 +32,8 @@ import org.lcsb.lu.igcsa.mapreduce.FASTAOutputFormat;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -94,15 +89,37 @@ public class KaryotypeMutator extends Configured implements Tool
     {
     Properties props = (Properties) springContext.getBean("genomeProperties");
 
-    KaryotypeGenerator karyotypeGenerator = (KaryotypeGenerator) springContext.getBean("karyotypeGenerator");
-    Karyotype karyotype = new KaryotypeInsilicoGenome(springContext, null).getGenome();
-    karyotype = karyotypeGenerator.generateKaryotypes(karyotype);
-    while (karyotype.getAberrationDefinitions().size() <= 0)
-      karyotype = karyotypeGenerator.generateKaryotypes(karyotype);
+    // Translocation
+    //1(p13),107200001-117800000
+    //22(q11),14700001-25900000
 
-    aberrations = karyotype.getAberrationDefinitions();
+
+//    KaryotypeGenerator karyotypeGenerator = (KaryotypeGenerator) springContext.getBean("karyotypeGenerator");
+//    Karyotype karyotype = new KaryotypeInsilicoGenome(springContext, null).getGenome();
+//    karyotype = karyotypeGenerator.generateKaryotypes(karyotype);
+//    while (karyotype.getAberrationDefinitions().size() <= 0)
+//      karyotype = karyotypeGenerator.generateKaryotypes(karyotype);
+//
+//    aberrations = karyotype.getAberrationDefinitions();
 
     String[] options = new GenericOptionsParser(conf, args).getRemainingArgs();
+//    if (options.length <= 0)
+//      throw new Exception("Karyotype description file required");
+
+    String ktDescPath = "/tmp/test-karyotype.props";// options[0];
+    conf.set("karyotype", ktDescPath);
+
+    Properties ktProps = new Properties();
+    ktProps.load( new FileInputStream(new File(ktDescPath)) );
+
+    String[] chromosomes = ktProps.getProperty("derivatives").split(",");
+
+    conf.set("kt", ktDescPath);
+
+    //conf.addResource(ktDescPath);
+    //conf.addResource(new FileInputStream(new File(ktDescPath)) );
+
+
     //CommandLine cl = parseCommandLine(options);
 
     //    String file = cl.getOptionValue('f');
@@ -118,7 +135,7 @@ public class KaryotypeMutator extends Configured implements Tool
     Job job = new Job(conf, "Fragment sequence mutation");
     job.setJarByClass(ChromosomeFragmentMutator.class);
 
-    job.setInputFormatClass(FASTAFragmentInputFormat.class);
+    job.setInputFormatClass(FASTAInputFormat.class);
     job.setOutputFormatClass(FASTAOutputFormat.class);
 
     job.setMapperClass(KaryotypeMapper.class);
@@ -127,14 +144,16 @@ public class KaryotypeMutator extends Configured implements Tool
     job.setOutputKeyClass(LongWritable.class);
     job.setOutputValueClass(Text.class);
 
-    for (String c: new String[]{"22", "1"})
+    //FileInputFormat.addInputPath(job, new Path("/Users/sarah.killcoyne/Data/FASTA/"));
+
+    for (String c: chromosomes)
       FileInputFormat.addInputPath(job, new Path("/Users/sarah.killcoyne/Data/FASTA/chr" + c + ".fa.gz"));
 
     FileUtils.deleteDirectory(new File("/tmp/kt-test"));
     FileOutputFormat.setOutputPath(job, new Path("/tmp/kt-test"));
 
     // Set only 1 reduce task
-    job.setNumReduceTasks(1);
+    //job.setNumReduceTasks(1);
 
     return (job.waitForCompletion(true) ? 0 : 1);
     }

@@ -18,6 +18,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -92,28 +93,28 @@ public class ChromosomeFragmentMutator extends Configured implements Tool
       if (sequence.calculateNucleotides() > (0.3 * sequence.getLength())) //unknown sequence makes up less than 30%
         {
         // get random fragment within the GC bin for each variation
-        Bin gcBin = this.binDAO.getBinByGC(chr, sequence.calculateGC()); // TODO some of these calls take > 20ms (not even most though)
-        Map<String, Fragment> fragmentVarMap = fragmentDAO.getFragment(chr, gcBin.getBinId(), randomFragment.nextInt(gcBin.getSize()));
+//        Bin gcBin = this.binDAO.getBinByGC(chr, sequence.calculateGC()); // TODO some of these calls take > 20ms (not even most though)
+//        Map<String, Fragment> fragmentVarMap = fragmentDAO.getFragment(chr, gcBin.getBinId(), randomFragment.nextInt(gcBin.getSize()));
 
-        try
-          {
-          // mutate the sequence
-          for (Variation variation : variantUtils.getVariantList(chr))
-            {
-            Fragment fragment = fragmentVarMap.get(variation.getVariationName());
-            log.debug("Chromosome " + chr + " MUTATING FRAGMENT " + fragment.toString());
-            variation.setMutationFragment(fragment);
-            sequence = variation.mutateSequence(sequence);
-//
-//            // TODO I want to keep a log of every mutation so I think for the M/R classes the value can be an array of Text objects...
-//            //writeVariations(chr, location, gcBin, variation, variation.getLastMutations());
-            }
-          value = new Text(sequence.toString());
-          }
-        catch (Exception e)
-          {
-          e.printStackTrace();
-          }
+//        try
+//          {
+//          // mutate the sequence
+//          for (Variation variation : variantUtils.getVariantList(chr))
+//            {
+//            Fragment fragment = fragmentVarMap.get(variation.getVariationName());
+//            log.debug("Chromosome " + chr + " MUTATING FRAGMENT " + fragment.toString());
+//            variation.setMutationFragment(fragment);
+//            sequence = variation.mutateSequence(sequence);
+////
+////            // TODO I want to keep a log of every mutation so I think for the M/R classes the value can be an array of Text objects...
+////            //writeVariations(chr, location, gcBin, variation, variation.getLastMutations());
+//            }
+//          value = new Text(sequence.toString());
+//          }
+//        catch (Exception e)
+//          {
+//          e.printStackTrace();
+//          }
         }
       context.write(key, value);
 
@@ -121,6 +122,16 @@ public class ChromosomeFragmentMutator extends Configured implements Tool
       log.info(key + " finished map " + elapsedTime + " ms");
       }
     }
+
+//  public static class OrderedPartitioner extends Partitioner<LongWritable, Text>
+//    {
+//    @Override
+//    public int getPartition(LongWritable longWritable, Text text, int numPartitions)
+//      {
+//      return 0;
+//      }
+//    }
+
 
   public static class LongReducer extends Reducer<LongWritable, Text, LongWritable, Text>
     {
@@ -155,18 +166,32 @@ public class ChromosomeFragmentMutator extends Configured implements Tool
   public ChromosomeFragmentMutator()
     {
     springContext = new ClassPathXmlApplicationContext(new String[]{"classpath*:spring-config.xml", "classpath*:/conf/genome.xml"});
+    if (springContext == null)
+      throw new RuntimeException("Failed to load Spring application context");
     }
 
   // only running a single chromosome at the moment
   public int runJob(Configuration conf, String[] args) throws Exception
     {
     Properties props = (Properties) springContext.getBean("genomeProperties");
-
     String[] options = new GenericOptionsParser(conf, args).getRemainingArgs();
-    CommandLine cl = parseCommandLine(options);
 
-    String file = cl.getOptionValue('f');
-    String chr = cl.getOptionValue('c');
+    if (options.length < 2)
+      throw new Exception("Chromosome & fasta file required");
+
+    String chr = options[0];
+    String fastaFile = options[1];
+
+    log.info("++++++++" + chr);
+    log.info("********" + fastaFile);
+
+
+    //String file = org.lcsb.lu.igcsa.utils.FileUtils.getFASTA(chr, fastaDir).getAbsolutePath();
+
+//    CommandLine cl = parseCommandLine(options);
+
+//    String file = cl.getOptionValue('f');
+//    String chr = cl.getOptionValue('c');
 
     conf.set("chromosome", chr);
     conf.setInt("window", Integer.valueOf(props.getProperty("window")));
@@ -179,18 +204,19 @@ public class ChromosomeFragmentMutator extends Configured implements Tool
     job.setOutputFormatClass(FASTAOutputFormat.class);
 
     job.setMapperClass(FragmentMapper.class);
+    //job.setPartitionerClass(OrderedPartitioner.class);
     job.setReducerClass(LongReducer.class);
 
     job.setOutputKeyClass(LongWritable.class);
     job.setOutputValueClass(Text.class);
 
-    FileInputFormat.addInputPath(job, new Path(file));
+    FileInputFormat.addInputPath(job, new Path(fastaFile));
 
     FileUtils.deleteDirectory(new File(outputPath));
     FileOutputFormat.setOutputPath(job, new Path(outputPath));
 
     // Set only 1 reduce task
-    job.setNumReduceTasks(1);
+    //job.setNumReduceTasks(100);
 
     return (job.waitForCompletion(true) ? 0 : 1);
     }
