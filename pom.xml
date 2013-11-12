@@ -81,6 +81,7 @@
         <module>sim</module>
         <module>mapreduce</module>
         <module>fitness</module>
+        <module>hbase-genomes</module>
     </modules>
 
     <build>
