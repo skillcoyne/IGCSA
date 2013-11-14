@@ -6,7 +6,7 @@ import org.springframework.util.StringUtils;
 import static org.lcsb.lu.igcsa.genome.Nucleotides.*;
 
 /**
- * org.lcsb.lu.igcsa.genome
+ * org.lcsb.lu.igcsa.tables
  * Author: skillcoyne
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html

@@ -68,9 +68,9 @@ public class FragmentInsilicoGenome
     if (threads > genome.getChromosomes().length)
       threads = genome.getChromosomes().length;
 
-    // set up the directory that the genome will write to
+    // set up the directory that the tables will write to
     setupGenomeDirectory(genomeName);
-    log.info("Reference genome build: " + genome.getBuildName());
+    log.info("Reference tables build: " + genome.getBuildName());
     }
 
   // Applies mutations first at the 1kb or less level then structural
@@ -127,10 +127,10 @@ public class FragmentInsilicoGenome
     genome.setMutationDirectory(mutWriterPath);
     }
 
-  // Adds chromosomes to the genome.  Either from the command line, or from the assembly directory
+  // Adds chromosomes to the tables.  Either from the command line, or from the assembly directory
   private void setupChromosomes(List<String> chromosomes) throws IOException, ProbabilityException, InstantiationException, IllegalAccessException
     {
-    // Set up the chromosomes in the genome that will be mutated.
+    // Set up the chromosomes in the tables that will be mutated.
     File fastaDir = new File(genomeProperties.getProperty("dir.assembly"));
     log.info("Reading FASTA directory " + fastaDir.getAbsolutePath());
     if (!fastaDir.exists() || !fastaDir.canRead())
@@ -152,7 +152,7 @@ public class FragmentInsilicoGenome
       genome.addChromosome(chr);
       }
 
-    log.info("Reference genome has: " + genome.getChromosomes().length + " chromosomes");
+    log.info("Reference tables has: " + genome.getChromosomes().length + " chromosomes");
     }
 
   // Variable initialization. Most of it is done in the Spring configuration files.

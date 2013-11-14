@@ -7,46 +7,26 @@
 
 package org.lcsb.lu.igcsa;
 
-import org.apache.hadoop.hbase.ipc.HBaseServer;
 import org.apache.log4j.Logger;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.*;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import org.lcsb.lu.igcsa.hbase.*;
+import org.lcsb.lu.igcsa.hbase.rows.ChromosomeRow;
+import org.lcsb.lu.igcsa.hbase.tables.ChromosomeResult;
+import org.lcsb.lu.igcsa.hbase.tables.ChromosomeTable;
+import org.lcsb.lu.igcsa.hbase.rows.GenomeRow;
+import org.lcsb.lu.igcsa.hbase.tables.GenomeResult;
+import org.lcsb.lu.igcsa.hbase.tables.GenomeTable;
+
+import java.util.List;
 
 public class TestHBase
   {
   static Logger log = Logger.getLogger(TestHBase.class.getName());
-
-  static String tableName = "genome";
-
-
-  public static void foo(String[] args) throws Exception
-    {
-    tableName = "stuff";
-    //    DriverManagerDataSource ds = new DriverManagerDataSource("localhost");
-    //    ds.setDriverClassName("jdbc:phoenix:localhost");
-    Connection conn = DriverManager.getConnection("jdbc:phoenix:localhost");
-
-    //    JdbcTemplate jdbcTemplate = new JdbcTemplate(ds);
-
-
-    Statement stmt = conn.createStatement();
-    stmt.execute("CREATE TABLE stuff (d, seq) ");
-
-
-    conn.close();
-    }
-
 
   public static void main(String[] args) throws Exception
     {
@@ -55,52 +35,50 @@ public class TestHBase
 
     HBaseAdmin admin = new HBaseAdmin(conf);
 
-    try
-      {
-      HTableDescriptor descriptor = new HTableDescriptor(tableName);
-      descriptor.addFamily(new HColumnDescriptor("d"));
-      descriptor.addFamily(new HColumnDescriptor("seq"));
+    GenomeTable genome = new GenomeTable(conf, admin, "genome", true);
+    //HTable table = new HTable(conf, "tablename");
 
-      if (!admin.tableExists(tableName))
-        admin.createTable(descriptor);
+    print("total rows:" + genome.getRows().size());
 
-      HTable table = new HTable(conf, tableName);
-      Put put = new Put(Bytes.toBytes("GRCh37:1:1000"));
-      put.add(Bytes.toBytes("d"), Bytes.toBytes("name"), Bytes.toBytes("GRCh37"));
-      //put.add(Bytes.toBytes("d"), Bytes.toBytes("parent"), Bytes.toBytes("2012"));
+    GenomeResult result = genome.queryTable("igcsa7");
+    print(result.getName() + " p:" + result.getParent() + " chr:" + result.getChromosomes());
 
 
-      put.add(Bytes.toBytes("seq"), Bytes.toBytes("sequence"), Bytes.toBytes("AAAAAA"));
-      put.add(Bytes.toBytes("seq"), Bytes.toBytes("start"), Bytes.toBytes("1"));
-      put.add(Bytes.toBytes("seq"), Bytes.toBytes("end"), Bytes.toBytes("1000"));
+    List<GenomeResult> results = genome.queryTable(new Column("info"));
+    for (GenomeResult r : results)
+      print("Col info: " + r.getName() + " " + r.getParent() + " " + r.getChromosomes());
 
-      table.put(put);
+    GenomeRow row = new GenomeRow("kt122");
+    row.addParentColumn("igcsa10");
+    row.addChromosomeColumn("1", "2", "3");
 
-      put = new Put(Bytes.toBytes("igcsa1:1:1000"));
-      put.add(Bytes.toBytes("d"), Bytes.toBytes("name"), Bytes.toBytes("igcsa1"));
-      put.add(Bytes.toBytes("d"), Bytes.toBytes("parent"), Bytes.toBytes("GRCh37"));
-
-
-      put.add(Bytes.toBytes("seq"), Bytes.toBytes("sequence"), Bytes.toBytes("GCGCGC"));
-      put.add(Bytes.toBytes("seq"), Bytes.toBytes("start"), Bytes.toBytes("1"));
-      put.add(Bytes.toBytes("seq"), Bytes.toBytes("end"), Bytes.toBytes("1000"));
+    genome.addRow(row);
 
 
-      table.put(put);
+    ChromosomeTable chrTable = new ChromosomeTable(conf, admin, "chromosome", true);
+
+    ChromosomeRow cRow = new ChromosomeRow(ChromosomeRow.createRowId(result.getName(), "2"));
+    cRow.addChromosomeInfo("2", 298, 5);
+    cRow.addGenome(result.getName());
+    chrTable.addRow(cRow);
+
+    ChromosomeResult chrResult = chrTable.queryTable(ChromosomeRow.createRowId(result.getName(), "2"));
+    print(chrResult.getChrName() + " " + chrResult.getGenomeName() + " " + chrResult.getLength() + " " + chrResult.getSegmentNumber());
 
 
-      Get get = new Get(Bytes.toBytes("GRCh37:1:1000"));
-      Result result = table.get(get);
-      System.out.println(new String(result.value()));
-      System.out.println( new String(result.getValue(Bytes.toBytes("seq"), Bytes.toBytes("sequence")))  );
+    //      admin.disableTable(tableName);
+    //      admin.deleteTable(tableName);
+    admin.close();
+    }
 
-      }
-    finally
-      {
-      //      admin.disableTable(tableName);
-      //      admin.deleteTable(tableName);
-      admin.close();
-      }
+  private static void print(byte[] str)
+    {
+    System.out.println(Bytes.toString(str));
+    }
+
+  private static void print(String str)
+    {
+    System.out.println(str);
     }
 
   }

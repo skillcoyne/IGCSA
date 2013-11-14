@@ -64,7 +64,7 @@ public class Evaluator implements FitnessEvaluator<KaryotypeCandidate>
     // adjust the score for the number of breakpoints as well
     score += (double)chromosomes.size()/(double)karyotypeCandidate.getBreakpoints().size();
 
-    // while technically a genome with no mutations is "fit" I'm looking for genomes with at least some mutations
+    // while technically a tables with no mutations is "fit" I'm looking for genomes with at least some mutations
     if (score  == 0) score = 200;
 
     return score;

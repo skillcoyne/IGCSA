@@ -45,7 +45,7 @@ public class KaryotypeWriter
 
     StringBuffer buff = new StringBuffer();
     buff.append( karyotype.getBuildName() + "\n" );
-    buff.append( "Parent genome: " + karyotype.getParentGenomePath() + "\n");
+    buff.append( "Parent tables: " + karyotype.getParentGenomePath() + "\n");
     buff.append( "Allosome definition: " + karyotype.getAllosomes() + "\n\n");
 
     buff.append("Normal chromosomes:\n");
