@@ -10,7 +10,7 @@ package org.lcsb.lu.igcsa.hbase.rows;
 
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.hbase.Column;
+import org.lcsb.lu.igcsa.hbase.tables.Column;
 
 import java.util.ArrayList;
 import java.util.Arrays;

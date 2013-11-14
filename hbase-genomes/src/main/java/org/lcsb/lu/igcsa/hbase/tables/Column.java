@@ -1,4 +1,4 @@
-package org.lcsb.lu.igcsa.hbase;
+package org.lcsb.lu.igcsa.hbase.tables;
 
 import org.apache.hadoop.hbase.util.Bytes;
 

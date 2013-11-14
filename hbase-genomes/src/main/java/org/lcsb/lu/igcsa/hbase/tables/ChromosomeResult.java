@@ -10,6 +10,7 @@ package org.lcsb.lu.igcsa.hbase.tables;
 
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.hbase.rows.ChromosomeRow;
 
 public class ChromosomeResult extends AbstractResult
   {
@@ -21,9 +22,35 @@ public class ChromosomeResult extends AbstractResult
   private String genomeName;
 
 
-  protected ChromosomeResult(byte[] rowId)
+  public ChromosomeResult(byte[] rowId)
     {
     super(rowId);
+    }
+
+  public ChromosomeResult(String rowId)
+    {
+    super(rowId);
+    }
+
+
+  public void setLength(int length)
+    {
+    this.length = length;
+    }
+
+  public void setSegmentNumber(int segmentNumber)
+    {
+    this.segmentNumber = segmentNumber;
+    }
+
+  public void setChrName(String chrName)
+    {
+    this.chrName = chrName;
+    }
+
+  public void setGenomeName(String genomeName)
+    {
+    this.genomeName = genomeName;
     }
 
   public int getLength()

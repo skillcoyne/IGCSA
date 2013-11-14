@@ -15,9 +15,6 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 
-import org.lcsb.lu.igcsa.hbase.Column;
-import org.lcsb.lu.igcsa.hbase.rows.Row;
-
 import java.io.IOException;
 import java.util.*;
 

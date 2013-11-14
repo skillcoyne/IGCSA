@@ -9,7 +9,7 @@
 package org.lcsb.lu.igcsa.hbase.rows;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.hbase.Column;
+import org.lcsb.lu.igcsa.hbase.tables.Column;
 
 public class SequenceRow extends Row
   {

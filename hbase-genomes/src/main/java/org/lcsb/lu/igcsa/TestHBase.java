@@ -14,13 +14,9 @@ import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.*;
 
-import org.lcsb.lu.igcsa.hbase.*;
 import org.lcsb.lu.igcsa.hbase.rows.ChromosomeRow;
-import org.lcsb.lu.igcsa.hbase.tables.ChromosomeResult;
-import org.lcsb.lu.igcsa.hbase.tables.ChromosomeTable;
+import org.lcsb.lu.igcsa.hbase.tables.*;
 import org.lcsb.lu.igcsa.hbase.rows.GenomeRow;
-import org.lcsb.lu.igcsa.hbase.tables.GenomeResult;
-import org.lcsb.lu.igcsa.hbase.tables.GenomeTable;
 
 import java.util.List;
 

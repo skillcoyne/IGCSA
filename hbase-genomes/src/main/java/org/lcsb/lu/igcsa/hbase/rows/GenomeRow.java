@@ -1,7 +1,7 @@
 package org.lcsb.lu.igcsa.hbase.rows;
 
 import org.apache.commons.lang.StringUtils;
-import org.lcsb.lu.igcsa.hbase.Column;
+import org.lcsb.lu.igcsa.hbase.tables.Column;
 
 /**
  * org.lcsb.lu.igcsa.hbase

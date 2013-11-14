@@ -22,5 +22,10 @@ public abstract class AbstractResult
     this.rowId = Bytes.toString(rowId);
     }
 
+  protected AbstractResult(String rowId)
+    {
+    this.rowId = rowId;
+    }
+
 
   }
