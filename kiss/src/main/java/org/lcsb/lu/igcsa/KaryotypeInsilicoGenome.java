@@ -121,18 +121,18 @@ public class KaryotypeInsilicoGenome
     genomeProperties = (Properties) context.getBean("genomeProperties");
     karyotypeProperties = (Properties) context.getBean("karyotypeProperties");
 
-    //    genome = (Karyotype) context.getBean("karyotype");
+    //    tables = (Karyotype) context.getBean("karyotype");
     genome = new Karyotype();
     genome.setKaryotypeDefinition(Integer.parseInt(karyotypeProperties.getProperty("ploidy")), karyotypeProperties.getProperty("sex"));
     genome.setBuildName(name);
 
-    // should be reading previously mutated genome
+    // should be reading previously mutated tables
     File earlierMutations = new File(genomeProperties.getProperty("dir.insilico"), name);
-    // Set up the chromosomes in the genome that will be mutated, these come from the previously mutated genome if there was one
+    // Set up the chromosomes in the tables that will be mutated, these come from the previously mutated tables if there was one
     File fastaDir = new File(genomeProperties.getProperty("dir.assembly"));
 
     /*
-   If there are already chromosomes set up in the named genome directory we use those because the means fragment variations were
+   If there are already chromosomes set up in the named tables directory we use those because the means fragment variations were
    applied first. If not we'll start from the assembly.
     */
     if (!earlierMutations.exists() || earlierMutations.listFiles().length <= 0)

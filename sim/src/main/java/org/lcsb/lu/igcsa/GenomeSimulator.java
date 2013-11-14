@@ -66,7 +66,7 @@ public class GenomeSimulator
       karGen.applyMutations();
       }
 
-    log.info("FINISHED mutating genome " + genomeName);
+    log.info("FINISHED mutating tables " + genomeName);
     }
 
 
@@ -137,13 +137,13 @@ public class GenomeSimulator
     {
     Options options = new Options();
     options.addOption("n", "name", true, "Genome directory name, if not provided a random name is generated.");
-    options.addOption("o", "overwrite", false, "Overwrite genome directory if name already exists. [false]");
+    options.addOption("o", "overwrite", false, "Overwrite tables directory if name already exists. [false]");
     options.addOption("t", "threads", true, "Number of concurrent threads. Each thread handles a single chromosome. [5]");
     options.addOption("c", "chromosome", true, "List of chromosomes to use/mutate, comma-separated (e.g.  21,3," +
         "X). If not included chromosomes will be determined by \n" + "the fasta files found in the" +
-        " dir.assembly directory (see genome.properties). This works ONLY with the -f option.");
+        " dir.assembly directory (see tables.properties). This works ONLY with the -f option.");
     options.addOption("s", "SV", true, "Create some number of structurally variant genomes for the provided sequence. [2]");
-    options.addOption("f", "fragment", false, "Apply small scale (fragment) variation to genome. [false]");
+    options.addOption("f", "fragment", false, "Apply small scale (fragment) variation to tables. [false]");
 
     options.addOption("h", "help", false, "print usage help");
 

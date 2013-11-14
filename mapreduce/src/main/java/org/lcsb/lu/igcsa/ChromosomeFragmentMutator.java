@@ -144,7 +144,7 @@ public class ChromosomeFragmentMutator extends Configured implements Tool
       super.setup(context);
       chr = context.getConfiguration().get("chromosome");
 
-      //genome = (MutableGenome) springContext.getBean("genome");
+      //tables = (MutableGenome) springContext.getBean("tables");
 
       log.info("CHROMOSOME " + chr);
       }

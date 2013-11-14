@@ -49,7 +49,7 @@ public class MutableGenomeTest
     URL testUrl = ClassLoader.getSystemResource("fasta/test.fa");
     fastaFile = new File(testUrl.toURI());
 
-    // need to reload the genome each time or the add chromosome tests screw things up
+    // need to reload the tables each time or the add chromosome tests screw things up
     ApplicationContext context = new ClassPathXmlApplicationContext("test-spring-config.xml");
     testGenome = (MutableGenome) context.getBean("testGenome");
 
