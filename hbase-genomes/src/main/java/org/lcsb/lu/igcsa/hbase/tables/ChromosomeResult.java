@@ -11,6 +11,11 @@ package org.lcsb.lu.igcsa.hbase.tables;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.hbase.rows.ChromosomeRow;
+import org.lcsb.lu.igcsa.hbase.rows.SequenceRow;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ChromosomeResult extends AbstractResult
   {
@@ -30,6 +35,18 @@ public class ChromosomeResult extends AbstractResult
   public ChromosomeResult(String rowId)
     {
     super(rowId);
+    }
+
+  @Override
+  public List<SequenceResult> getAssociatedResults(String rowId, AbstractTable connectedTable) throws IOException
+    {
+    SequenceTable seqTable = (SequenceTable) connectedTable;
+
+    List<SequenceResult> sequences = new ArrayList<SequenceResult>();
+    for (int i = 1; i <= this.getSegmentNumber(); i++)
+      sequences.add(seqTable.queryTable(SequenceRow.createRowId(genomeName, chrName, i)));
+
+    return sequences;
     }
 
 

@@ -8,6 +8,7 @@
 
 package org.lcsb.lu.igcsa;
 
+import org.apache.avro.generic.GenericData;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -20,10 +21,7 @@ import org.lcsb.lu.igcsa.hbase.rows.*;
 import org.lcsb.lu.igcsa.hbase.tables.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,6 +41,7 @@ public class HBaseGenome
   private KaryotypeIndexTable kiT;
   private KaryotypeTable kT;
 
+  private GenomeResult lastRetrievedGenome;
 
   public HBaseGenome() throws IOException, MasterNotRunningException
     {
@@ -51,8 +50,9 @@ public class HBaseGenome
 
   public HBaseGenome(Configuration configuration) throws IOException, MasterNotRunningException
     {
-    conf.setInt("timeout", 10);
-    hbaseAdmin = new HBaseAdmin(conf);
+    this.conf = configuration;
+    this.conf.setInt("timeout", 10);
+    this.hbaseAdmin = new HBaseAdmin(conf);
     this.createTables();
     }
 
@@ -63,7 +63,7 @@ public class HBaseGenome
    * @return List of chromosome row ids
    * @throws IOException
    */
-  public List<String> addGenome(String name, String parentName, List<ChromosomeResult> chromosomes) throws IOException
+  public List<String> addGenome(String name, String parentName, ChromosomeResult... chromosomes) throws IOException
     {
     List<String> chromosomeRowIds = new ArrayList<String>();
 
@@ -72,9 +72,9 @@ public class HBaseGenome
     if (parentName != null)
       gRow.addParentColumn(parentName);
 
-    String[] chrs = new String[chromosomes.size()];
-    for (int i = 0; i < chromosomes.size(); i++)
-      chrs[i] = chromosomes.get(i).getChrName();
+    String[] chrs = new String[chromosomes.length];
+    for (int i = 0; i < chromosomes.length; i++)
+      chrs[i] = chromosomes[i].getChrName();
 
     gRow.addChromosomeColumn(chrs);
     gT.addRow(gRow);
@@ -131,7 +131,8 @@ public class HBaseGenome
     SmallMutationRow smRow = new SmallMutationRow(SmallMutationRow.createRowId(sequence.getGenome(), sequence.getChr(), sequence.getSegment(), start));
     smRow.addGenomeInfo(sequence.getGenome(), mutation);
     smRow.addLocation(sequence.getChr(), sequence.getSegment(), start, end);
-    if (seq != null) smRow.addSequence(seq);
+    if (seq != null)
+      smRow.addSequence(seq);
 
     sT.addRow(smRow);
 
@@ -139,7 +140,6 @@ public class HBaseGenome
     }
 
   /**
-   *
    * @param genome
    * @param aberrations
    * @return Karyotype aberration row ids (one per aberration, multiple per genome).
@@ -155,9 +155,9 @@ public class HBaseGenome
 
     Pattern p = Pattern.compile("(\\d+|X|Y):(\\d+-\\d+)");
     Set<String> expectedIds = new HashSet<String>(kRow.getKaryotypeTableRowIds());
-    for (String abr: aberrations)
+    for (String abr : aberrations)
       {
-      KaryotypeRow karyotypeRow = new KaryotypeRow( KaryotypeRow.createRowId(genome, abr) );
+      KaryotypeRow karyotypeRow = new KaryotypeRow(KaryotypeRow.createRowId(genome, abr));
       if (!expectedIds.contains(karyotypeRow))
         throw new IOException("Karyotype ids created incorrectly???"); // should not happen
 
@@ -167,10 +167,10 @@ public class HBaseGenome
       String type = abr.substring(0, abr.indexOf("("));
 
       List<String[]> separatedAberrations = new ArrayList<String[]>();
-      for (int i=1; i<=mr.groupCount(); i+=2)
+      for (int i = 1; i <= mr.groupCount(); i += 2)
         {
         String chr = mr.group(i);
-        String loc = mr.group(i+1);
+        String loc = mr.group(i + 1);
 
         separatedAberrations.add(new String[]{chr, loc});
         }
@@ -185,9 +185,124 @@ public class HBaseGenome
     return kRow.getKaryotypeTableRowIds();
     }
 
+  public List<GenomeResult> retrieveGenomes() throws IOException
+    {
+    return gT.getRows();
+    }
+
+  public GenomeResult retrieveGenome(String genomeName) throws IOException
+    {
+    GenomeResult genome = gT.queryTable(genomeName);
+    this.lastRetrievedGenome = genome;
+    return genome;
+    }
+
+
+  /**
+   *
+   * @param genomeName
+   * @return  All aberrations
+   * @throws IOException
+   */
+  public List<KaryotypeResult> retrieveKaryotype(String genomeName) throws IOException
+    {
+    KaryotypeIndexTable.KaryotypeIndexResult result = kiT.queryTable(genomeName);
+
+    List<KaryotypeResult> karyotypeResults = new ArrayList<KaryotypeResult>();
+    for (String abr: result.getAberrations())
+      karyotypeResults.add(kT.queryTable(KaryotypeRow.createRowId(genomeName, abr)));
+
+    return karyotypeResults;
+    }
+
+
+  /**
+   * From last queried genome.
+   * @return
+   * @throws IOException
+   */
+  public List<KaryotypeResult> retrieveKaryotype() throws IOException
+    {
+    return retrieveKaryotype(this.lastRetrievedGenome.getName());
+    }
+
+
+  /**
+   * Retrieve chromosomes from the last retrieved genome
+   * @return
+   * @throws IOException
+   */
+  public List<ChromosomeResult> retrieveChromosomes() throws IOException
+    {
+    return retrieveChromosomes(this.lastRetrievedGenome);
+    }
+
+  public List<ChromosomeResult> retrieveChromosomes(GenomeResult genome) throws IOException
+    {
+    Map<GenomeResult, List<ChromosomeResult>> data = new HashMap<GenomeResult, List<ChromosomeResult>>();
+    // associated chromosomes
+    List<ChromosomeResult> chromosomes = new ArrayList<ChromosomeResult>();
+
+    for (String chr : genome.getChromosomes())
+      {
+      ChromosomeResult chromosome = cT.queryTable(ChromosomeRow.createRowId(genome.getName(), chr));
+      chromosomes.add(chromosome);
+      }
+
+    return chromosomes;
+    }
+
+
+  public List<SequenceResult> retrieveSequences(ChromosomeResult chromosome) throws IOException
+    {
+    List<SequenceResult> sequences = new ArrayList<SequenceResult>();
+    for (int i=1; i<chromosome.getSegmentNumber(); i++)
+      sequences.add( sT.queryTable(SequenceRow.createRowId(chromosome.getGenomeName(), chromosome.getChrName(), i)) );
+
+    return sequences;
+    }
+
+  public List<SmallMutationsResult> retrieveMutations(SequenceResult segment) throws IOException
+    {
+    List<SmallMutationsResult> mutations = new ArrayList<SmallMutationsResult>();
+    for (int i=1; i<=segment.getSequenceLength(); i++)
+      mutations.add( smT.queryTable(SmallMutationRow.createRowId(segment.getGenome(), segment.getChr(), segment.getSegment(), i)) );
+
+    return mutations;
+    }
+
+  /**
+   * Gets the sequences that overlap the aberration locations
+   * @param karyotypeResult
+   */
+  public void retrieveSequence(KaryotypeResult karyotypeResult)
+    {
+
+    for (KaryotypeResult.AberrationLocation loc: karyotypeResult.getAberrationDefinitions())
+      {
+//      sT.
+//
+//      loc.getStart()
+      }
+
+    }
+
+
+
+
+  public void disableDatabases() throws IOException
+    {
+    hbaseAdmin.disableTable("genome");
+    hbaseAdmin.disableTable("chromosome");
+    hbaseAdmin.disableTable("sequence");
+    hbaseAdmin.disableTable("small_mutations");
+    hbaseAdmin.disableTable("karyotype_index");
+    hbaseAdmin.disableTable("karyotype");
+    }
 
   private void createTables() throws IOException
     {
+    // I should really just instantiate these as needed
     gT = new GenomeTable(this.conf, this.hbaseAdmin, "genome", true);
     cT = new ChromosomeTable(this.conf, this.hbaseAdmin, "chromosome", true);
     sT = new SequenceTable(this.conf, this.hbaseAdmin, "sequence", true);

@@ -58,9 +58,9 @@ public class ChromosomeTable extends AbstractTable
     }
 
   @Override
-  public List<ChromosomeResult> queryTable(Column column) throws IOException
+  public List<ChromosomeResult> queryTable(Column... columns) throws IOException
     {
-    List<Result> results = (List<Result>) super.queryTable(column);
+    List<Result> results = (List<Result>) super.queryTable(columns);
     return (List<ChromosomeResult>) createResults(results);
     }
 

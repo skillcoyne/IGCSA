@@ -56,9 +56,9 @@ public class SequenceTable extends AbstractTable
     }
 
   @Override
-  public List<SequenceResult> queryTable(Column column) throws IOException
+  public List<SequenceResult> queryTable(Column... columns) throws IOException
     {
-    return createResults((List<Result>) super.queryTable(column));
+    return createResults((List<Result>) super.queryTable(columns));
     }
 
   @Override

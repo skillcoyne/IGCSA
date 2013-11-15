@@ -11,6 +11,9 @@ package org.lcsb.lu.igcsa.hbase.tables;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 
+import java.io.IOException;
+import java.util.List;
+
 public abstract class AbstractResult
   {
   static Logger log = Logger.getLogger(AbstractResult.class.getName());
@@ -27,5 +30,11 @@ public abstract class AbstractResult
     this.rowId = rowId;
     }
 
+
+  // this may break encapsulation but my class structure isn't very smart anyhow
+  public List<? extends AbstractResult> getAssociatedResults(String rowId, AbstractTable connectedTable) throws IOException
+    {
+    return null;
+    }
 
   }
