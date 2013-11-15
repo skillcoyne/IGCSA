@@ -11,6 +11,9 @@ package org.lcsb.lu.igcsa.hbase.tables;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 
+import java.io.IOException;
+import java.util.List;
+
 public class SmallMutationsResult extends AbstractResult
   {
   static Logger log = Logger.getLogger(SmallMutationsResult.class.getName());

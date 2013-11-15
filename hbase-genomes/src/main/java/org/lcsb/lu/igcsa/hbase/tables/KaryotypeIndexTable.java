@@ -55,9 +55,9 @@ public class KaryotypeIndexTable extends AbstractTable
     }
 
   @Override
-  public List<KaryotypeIndexResult> queryTable(Column column) throws IOException
+  public List<KaryotypeIndexResult> queryTable(Column... columns) throws IOException
     {
-    return createResults((List<Result>) super.queryTable(column));
+    return createResults((List<Result>) super.queryTable(columns));
     }
 
   @Override

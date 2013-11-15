@@ -40,7 +40,7 @@ public class GenomeTable extends AbstractTable
   public List<GenomeResult> getRows() throws IOException
     {
     List<Result> rows = (List<Result>) super.getRows();
-    return  this.createResults(rows);
+    return this.createResults(rows);
     }
 
   @Override
@@ -58,18 +58,18 @@ public class GenomeTable extends AbstractTable
     }
 
   @Override
-  public List<GenomeResult> queryTable(Column column) throws IOException
+  public List<GenomeResult> queryTable(Column... columns) throws IOException
     {
-    List<Result> results = (List<Result>) super.queryTable(column);
-    return  this.createResults(results);
+    List<Result> results = (List<Result>) super.queryTable(columns);
+    return this.createResults(results);
     }
 
   @Override
   protected List<GenomeResult> createResults(List<Result> results)
     {
     List<GenomeResult> genomeResults = new ArrayList<GenomeResult>();
-    for (Result r: results)
-      genomeResults.add( createResult(r) );
+    for (Result r : results)
+      genomeResults.add(createResult(r));
 
     return genomeResults;
     }
@@ -77,29 +77,32 @@ public class GenomeTable extends AbstractTable
   @Override
   protected GenomeResult createResult(Result result)
     {
-    GenomeResult genomeResult = new GenomeResult(result.getRow());
-
-    for (KeyValue kv: result.list())
+    if (result.getRow() != null)
       {
-      String family = Bytes.toString(kv.getFamily());
-      String qualifier = Bytes.toString(kv.getQualifier());
-      byte[] value = kv.getValue();
+      GenomeResult genomeResult = new GenomeResult(result.getRow());
 
-      if (family.equals("info"))
+      for (KeyValue kv : result.list())
         {
-        if (qualifier.equals("name"))
-          genomeResult.setName(value);
-        if (qualifier.equals("parent"))
-          genomeResult.setParent(value);
+        String family = Bytes.toString(kv.getFamily());
+        String qualifier = Bytes.toString(kv.getQualifier());
+        byte[] value = kv.getValue();
+
+        if (family.equals("info"))
+          {
+          if (qualifier.equals("name"))
+            genomeResult.setName(value);
+          if (qualifier.equals("parent"))
+            genomeResult.setParent(value);
+          }
+        else if (family.equals("chr") && qualifier.equals("list"))
+          genomeResult.setChromosomes(value);
         }
-      else if (family.equals("chr") && qualifier.equals("list"))
-        genomeResult.setChromosomes(value);
+
+      return genomeResult;
       }
 
-    return genomeResult;
+    return null;
     }
-
-
 
 
   }

@@ -55,9 +55,9 @@ public class KaryotypeTable extends AbstractTable
     }
 
   @Override
-  public List<KaryotypeResult> queryTable(Column column) throws IOException
+  public List<KaryotypeResult> queryTable(Column... columns) throws IOException
     {
-    return createResults((List<Result>) super.queryTable(column));
+    return createResults((List<Result>) super.queryTable(columns));
     }
 
   @Override
@@ -87,7 +87,7 @@ public class KaryotypeTable extends AbstractTable
       KeyValue kvc = result.getColumn(Bytes.toBytes("abr"), Bytes.toBytes("chr"+i)).get(0);
       KeyValue kvl = result.getColumn(Bytes.toBytes("abr"), Bytes.toBytes("chr"+i)).get(0);
 
-      karyotypeResult.addAberrationDefs(kvc.getValue(), kvl.getValue());
+      karyotypeResult.addAberrationDefinitions(kvc.getValue(), kvl.getValue());
       }
 
     return karyotypeResult;

@@ -56,52 +56,57 @@ public class SmallMutationsTable extends AbstractTable
     }
 
   @Override
-  public List<SmallMutationsResult> queryTable(Column column) throws IOException
+  public List<SmallMutationsResult> queryTable(Column... columns) throws IOException
     {
-    return createResults((List<Result>) super.queryTable(column));
+    return createResults((List<Result>) super.queryTable(columns));
     }
 
   @Override
   protected List<SmallMutationsResult> createResults(List<Result> results)
     {
     List<SmallMutationsResult> mutResults = new ArrayList<SmallMutationsResult>();
-    for (Result r: results)
-      mutResults.add( createResult(r) );
+    for (Result r : results)
+      mutResults.add(createResult(r));
     return mutResults;
     }
 
   @Override
   protected SmallMutationsResult createResult(Result result)
     {
-    SmallMutationsResult mutResult = new SmallMutationsResult(result.getRow());
-
-    for (KeyValue kv: result.list())
+    if (result != null)
       {
-      String family = Bytes.toString(kv.getFamily());
-      String qualifier = Bytes.toString(kv.getQualifier());
-      byte[] value = kv.getValue();
+      SmallMutationsResult mutResult = new SmallMutationsResult(result.getRow());
 
-      if (family.equals("info"))
+      for (KeyValue kv : result.list())
         {
-        if (qualifier.equals("genome"))
-          mutResult.setGenome(value);
-        else if (qualifier.equals("mutation"))
-          mutResult.setMutation(value);
+        String family = Bytes.toString(kv.getFamily());
+        String qualifier = Bytes.toString(kv.getQualifier());
+        byte[] value = kv.getValue();
+
+        if (family.equals("info"))
+          {
+          if (qualifier.equals("genome"))
+            mutResult.setGenome(value);
+          else if (qualifier.equals("mutation"))
+            mutResult.setMutation(value);
+          }
+        else if (family.equals("loc"))
+          {
+          if (qualifier.equals("segment"))
+            mutResult.setSegment(value);
+          else if (qualifier.equals("chr"))
+            mutResult.setChr(value);
+          else if (qualifier.equals("start"))
+            mutResult.setStart(value);
+          else if (qualifier.equals("end"))
+            mutResult.setEnd(value);
+          }
+        else if (family.equals("bp"))
+          mutResult.setSequence(value);
         }
-      else if (family.equals("loc"))
-        {
-        if (qualifier.equals("segment"))
-          mutResult.setSegment(value);
-        else if (qualifier.equals("chr"))
-          mutResult.setChr(value);
-        else if (qualifier.equals("start"))
-          mutResult.setStart(value);
-        else if (qualifier.equals("end"))
-          mutResult.setEnd(value);
-        }
-      else if (family.equals("bp"))
-        mutResult.setSequence(value);
+
+      return mutResult;
       }
-    return mutResult;
+    return null;
     }
   }

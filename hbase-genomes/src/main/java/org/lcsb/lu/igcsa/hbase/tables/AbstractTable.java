@@ -39,21 +39,23 @@ public abstract class AbstractTable
 
 
     this.setTableName(tableName);
-      this.hTable = new HTable(configuration, tableName);
-      if (create)
-        this.createTable();
-      //this.hTable = getHTable(configuration, tableName);
+
+    if (create)
+      this.createTable();
+
+    this.hTable = new HTable(configuration, tableName);
+    //this.hTable = getHTable(configuration, tableName);
     }
 
   private void createTable() throws IOException
     {
-    if (this.requiredFields == null || this.requiredFields.keySet().size() <=0)
+    if (this.requiredFields == null || this.requiredFields.keySet().size() <= 0)
       throw new IOException("Column families are not set, table cannot be created.");
 
     if (!admin.tableExists(Bytes.toBytes(tableName)))
       {
       HTableDescriptor descriptor = new HTableDescriptor(tableName);
-      for (String fam: requiredFields.keySet()) // columns
+      for (String fam : requiredFields.keySet()) // columns
         descriptor.addFamily(new HColumnDescriptor(fam));
 
       admin.createTable(descriptor);
@@ -75,7 +77,7 @@ public abstract class AbstractTable
   protected void setColumnFamilies(String[] families)
     {
     this.families = new HashSet<String>();
-    for (String str: families)
+    for (String str : families)
       this.families.add(str);
     }
 
@@ -86,19 +88,19 @@ public abstract class AbstractTable
 
   public Object queryTable(String rowId, Column column) throws IOException
     {
-    Get get = new Get( Bytes.toBytes(rowId) );
+    Get get = new Get(Bytes.toBytes(rowId));
 
     if (column.hasQualifier()) // has both family & qualifier
       get.addColumn(column.getFamliy(), column.getQualifier());
     else if (column.hasFamily()) // only family
-      get.addFamily( column.getFamliy() );
+      get.addFamily(column.getFamliy());
 
     return hTable.get(get);
     }
 
   public Object queryTable(String rowId) throws IOException
     {
-    Get get = new Get( Bytes.toBytes(rowId) );
+    Get get = new Get(Bytes.toBytes(rowId));
     return hTable.get(get);
     }
 
@@ -110,28 +112,31 @@ public abstract class AbstractTable
     return transformScannerResults(scanner);
     }
 
-  public List<? extends Object> queryTable(Column column) throws IOException
+  public List<? extends Object> queryTable(Column... columns) throws IOException
     {
     Scan scan = new Scan();
 
-    if (column.hasQualifier()) // has both family & qualifier
-      scan.addColumn(column.getFamliy(), column.getQualifier());
-    else if (column.hasFamily()) // only family
-      scan.addFamily(column.getFamliy());
-
+    for (Column column : columns)
+      {
+      if (column.hasQualifier()) // has both family & qualifier
+        scan.addColumn(column.getFamliy(), column.getQualifier());
+      else if (column.hasFamily()) // only family
+        scan.addFamily(column.getFamliy());
+      }
     ResultScanner scanner = hTable.getScanner(scan);
 
     return transformScannerResults(scanner);
     }
 
+
   public void addRow(org.lcsb.lu.igcsa.hbase.rows.Row row) throws IOException
     {
-    Put put = new Put( row.getRowId() );
+    Put put = new Put(row.getRowId());
 
     if (!row.isRowIdCorrect())
       throw new IOException("Row id is incorrect: " + row.getRowIdAsString());
 
-    for (Column col: row.getColumns())
+    for (Column col : row.getColumns())
       {
       if (!col.hasValue())
         throw new IllegalArgumentException("Column has no value");
@@ -145,7 +150,7 @@ public abstract class AbstractTable
   private List<Result> transformScannerResults(ResultScanner scanner)
     {
     List<Result> results = new ArrayList<Result>();
-    for (Result r: scanner)
+    for (Result r : scanner)
       results.add(r);
 
     return results;

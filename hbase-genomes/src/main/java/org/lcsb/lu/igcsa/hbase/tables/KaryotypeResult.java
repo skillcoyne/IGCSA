@@ -20,7 +20,8 @@ public class KaryotypeResult extends AbstractResult
 
   private String genome;
   private String abrType;
-  private List<String[]> aberrationDefs = new ArrayList<String[]>();
+
+  private List<AberrationLocation> aberrationDefs = new ArrayList<AberrationLocation>();
 
   protected KaryotypeResult(byte[] rowId)
     {
@@ -47,13 +48,46 @@ public class KaryotypeResult extends AbstractResult
     this.abrType = Bytes.toString(abrType);
     }
 
-  public List<String[]> getAberrationDefs()
+  public List<AberrationLocation> getAberrationDefinitions()
     {
     return aberrationDefs;
     }
 
-  public void addAberrationDefs(byte[] chr, byte[] loc)
+  public void addAberrationDefinitions(byte[] chr, byte[] loc)
     {
-    this.aberrationDefs.add(new String[]{Bytes.toString(chr), Bytes.toString(loc)});
+    String chromosome = Bytes.toString(chr);
+    String[] locationDef = Bytes.toString(loc).split(",");
+
+    this.aberrationDefs.add(new AberrationLocation(chromosome, Integer.parseInt(locationDef[0]), Integer.parseInt(locationDef[1])));
     }
+
+  public class AberrationLocation
+    {
+    private int start;
+    private int stop;
+    private String chr;
+
+    protected AberrationLocation(String chr, int start, int stop)
+      {
+      this.start = start;
+      this.stop = stop;
+      this.chr = chr;
+      }
+
+    public int getStart()
+      {
+      return start;
+      }
+
+    public int getStop()
+      {
+      return stop;
+      }
+
+    public String getChr()
+      {
+      return chr;
+      }
+    }
+
   }

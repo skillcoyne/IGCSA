@@ -10,7 +10,12 @@ package org.lcsb.lu.igcsa.hbase.tables;
 
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.hbase.rows.SmallMutationRow;
 import org.springframework.util.StringUtils;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SequenceResult extends AbstractResult
   {
@@ -27,6 +32,18 @@ public class SequenceResult extends AbstractResult
   protected SequenceResult(byte[] rowId)
     {
     super(rowId);
+    }
+
+  @Override
+  public List<SmallMutationsResult> getAssociatedResults(String rowId, AbstractTable connectedTable) throws IOException
+    {
+    SmallMutationsTable smTable = (SmallMutationsTable) connectedTable;
+
+    List<SmallMutationsResult> smallMutations = new ArrayList<SmallMutationsResult>();
+    for (int i=start; i<=end; i++)
+      smallMutations.add(smTable.queryTable(SmallMutationRow.createRowId(genome, chr, segment, start)));
+
+    return smallMutations;
     }
 
   public String getSequence()
