@@ -69,7 +69,9 @@ public class SmallMutationRow extends Row
 
   public void addSequence(String seq)
     {
-    this.addColumn(new Column("bp", seq));
+    if (seq != null)
+
+      this.addColumn(new Column("bp", "seq", seq));
     }
 
   @Override

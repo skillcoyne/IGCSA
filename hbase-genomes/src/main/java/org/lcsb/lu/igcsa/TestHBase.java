@@ -15,10 +15,12 @@ import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.*;
 
 import org.lcsb.lu.igcsa.hbase.rows.ChromosomeRow;
+import org.lcsb.lu.igcsa.hbase.rows.SmallMutationRow;
 import org.lcsb.lu.igcsa.hbase.tables.*;
 import org.lcsb.lu.igcsa.hbase.rows.GenomeRow;
 
 import java.util.List;
+import java.util.Map;
 
 public class TestHBase
   {
@@ -31,57 +33,30 @@ public class TestHBase
 
     HBaseGenome hBaseGenome = new HBaseGenome(conf);
 
-    // ok, ideally the next step is to make a call on the genome itself to retrieve it's linked data.  I organized the classes somewhat poorly though and to do it now
-    // would break encapsulation I think.  So everything will work form the HBaseGenome object
-    GenomeResult genome = hBaseGenome.retrieveGenome("igcsa7");
-    if (genome == null)
+    // create genome
+    List<String> chrRowIds = hBaseGenome.addGenome("GRCh37", null,
+                                                   new ChromosomeResult("1", 1000, 10),
+                                                   new ChromosomeResult("2", 2000, 20),
+                                                   new ChromosomeResult("3", 3000, 30));
+
+    // add sequences
+    String sequenceRowId = null; // no, this isn't the way it should be done. Just testing
+    for (String chrRowId: chrRowIds)
       {
-      for (String c: new String[]{"1", "2", "3"})
-        {
-        hBaseGenome.addGenome("GRCh37",  )
-        }
+      sequenceRowId = hBaseGenome.addSequence(chrRowId, 1, 1, 100, "AAAACCCTGC");
+      hBaseGenome.addSequence(chrRowId, 1, 100, 200, "AAAACCCTGC");
       }
 
+    // adds mutations
+    hBaseGenome.addSmallMutation(sequenceRowId, 10, 10, SmallMutationRow.SmallMutation.SNV, "A");
+    hBaseGenome.addSmallMutation(sequenceRowId, 100, 120, SmallMutationRow.SmallMutation.DEL, null);
+
+    // Karyotype!
 
 
-    System.exit(1);
 
-//    HBaseAdmin admin = new HBaseAdmin(conf);
-//
-//    GenomeTable genome = new GenomeTable(conf, admin, "genome", true);
-//    //HTable table = new HTable(conf, "tablename");
-//
-//    print("total rows:" + genome.getRows().size());
-//
-//    GenomeResult result = genome.queryTable("igcsa7");
-//    print(result.getName() + " p:" + result.getParent() + " chr:" + result.getChromosomes());
-//
-//
-//    List<GenomeResult> results = genome.queryTable(new Column("info"));
-//    for (GenomeResult r : results)
-//      print("Col info: " + r.getName() + " " + r.getParent() + " " + r.getChromosomes());
-//
-//    GenomeRow row = new GenomeRow("kt122");
-//    row.addParentColumn("igcsa10");
-//    row.addChromosomeColumn("1", "2", "3");
-//
-//    genome.addRow(row);
-//
-//
-//    ChromosomeTable chrTable = new ChromosomeTable(conf, admin, "chromosome", true);
-//
-//    ChromosomeRow cRow = new ChromosomeRow(ChromosomeRow.createRowId(result.getName(), "2"));
-//    cRow.addChromosomeInfo("2", 298, 5);
-//    cRow.addGenome(result.getName());
-//    chrTable.addRow(cRow);
-//
-//    ChromosomeResult chrResult = chrTable.queryTable(ChromosomeRow.createRowId(result.getName(), "2"));
-//    print(chrResult.getChrName() + " " + chrResult.getGenomeName() + " " + chrResult.getLength() + " " + chrResult.getSegmentNumber());
-//
-//
-//    //      admin.disableTable(tableName);
-//    //      admin.deleteTable(tableName);
-//    admin.close();
+
+    hBaseGenome.closeConections();
     }
 
   private static void print(byte[] str)

@@ -28,7 +28,8 @@ public class GenomeRow extends Row
 
   public void addParentColumn(String parentId)
     {
-    super.addColumn( new Column("info", "parent", parentId) );
+    if (parentId != null)
+      super.addColumn( new Column("info", "parent", parentId) );
     }
 
   public void addChromosomeColumn(String... chrs)

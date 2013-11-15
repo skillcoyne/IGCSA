@@ -67,27 +67,36 @@ public class HBaseGenome
     {
     List<String> chromosomeRowIds = new ArrayList<String>();
 
-    // create genome
-    GenomeRow gRow = new GenomeRow(name);
-    if (parentName != null)
+    GenomeResult genome = gT.queryTable(name);
+    if (genome != null)
+      {
+      log.warn(name + " genome already exists in the genome table.  Not overwriting");
+      for (String c : genome.getChromosomes())
+        chromosomeRowIds.add(ChromosomeRow.createRowId(name, c));
+      }
+    else
+      {
+      // create genome
+      GenomeRow gRow = new GenomeRow(name);
       gRow.addParentColumn(parentName);
 
-    String[] chrs = new String[chromosomes.length];
-    for (int i = 0; i < chromosomes.length; i++)
-      chrs[i] = chromosomes[i].getChrName();
+      String[] chrs = new String[chromosomes.length];
+      for (int i = 0; i < chromosomes.length; i++)
+        chrs[i] = chromosomes[i].getChrName();
 
-    gRow.addChromosomeColumn(chrs);
-    gT.addRow(gRow);
+      gRow.addChromosomeColumn(chrs);
+      gT.addRow(gRow);
 
-    // add a chromosome row for each chromosome in the genome
-    for (ChromosomeResult chr : chromosomes)
-      {
-      ChromosomeRow cRow = new ChromosomeRow(ChromosomeRow.createRowId(name, chr.getChrName()));
-      cRow.addGenome(name);
-      cRow.addChromosomeInfo(chr.getChrName(), chr.getLength(), chr.getSegmentNumber());
-      cT.addRow(cRow);
+      // add a chromosome row for each chromosome in the genome
+      for (ChromosomeResult chr : chromosomes)
+        {
+        ChromosomeRow cRow = new ChromosomeRow(ChromosomeRow.createRowId(name, chr.getChrName()));
+        cRow.addGenome(name);
+        cRow.addChromosomeInfo(chr.getChrName(), chr.getLength(), chr.getSegmentNumber());
+        cT.addRow(cRow);
 
-      chromosomeRowIds.add(cRow.getRowIdAsString());
+        chromosomeRowIds.add(cRow.getRowIdAsString());
+        }
       }
 
     return chromosomeRowIds;
@@ -109,6 +118,7 @@ public class HBaseGenome
     SequenceRow sRow = new SequenceRow(SequenceRow.createRowId(chromosome.getGenomeName(), chromosome.getChrName(), segmentNumber));
     sRow.addBasePairs(seq);
     sRow.addLocation(chromosome.getChrName(), segmentNumber, start, end);
+    sRow.addGenome(chromosome.getGenomeName());
 
     sT.addRow(sRow);
 
@@ -124,17 +134,18 @@ public class HBaseGenome
    * @return Small mutation table row id
    * @throws IOException
    */
-  public String addSmallMutation(String sequenceRowId, int start, int end, SmallMutationRow.SmallMutation mutation, String seq) throws IOException
+  public String addSmallMutation(String sequenceRowId, int start, int end, SmallMutationRow.SmallMutation mutation,
+                                 String seq) throws IOException
     {
     SequenceResult sequence = sT.queryTable(sequenceRowId);
 
-    SmallMutationRow smRow = new SmallMutationRow(SmallMutationRow.createRowId(sequence.getGenome(), sequence.getChr(), sequence.getSegment(), start));
+    SmallMutationRow smRow = new SmallMutationRow(SmallMutationRow.createRowId(sequence.getGenome(), sequence.getChr(),
+                                                                               sequence.getSegment(), start));
     smRow.addGenomeInfo(sequence.getGenome(), mutation);
     smRow.addLocation(sequence.getChr(), sequence.getSegment(), start, end);
-    if (seq != null)
-      smRow.addSequence(seq);
+    smRow.addSequence(seq);
 
-    sT.addRow(smRow);
+    smT.addRow(smRow);
 
     return smRow.getRowIdAsString();
     }
@@ -147,8 +158,7 @@ public class HBaseGenome
    */
   public List<String> addAberration(String genome, List<String> aberrations) throws IOException
     {
-    if (gT.queryTable(genome) == null)
-      throw new IllegalArgumentException("No genome named '" + genome + "' defined in the genome table.");
+    if (gT.queryTable(genome) == null) throw new IllegalArgumentException("No genome named '" + genome + "' defined in the genome table.");
 
     KaryotypeIndexRow kRow = new KaryotypeIndexRow(genome);
     kRow.addAberrations(aberrations.toArray(new String[aberrations.size()]));
@@ -158,8 +168,7 @@ public class HBaseGenome
     for (String abr : aberrations)
       {
       KaryotypeRow karyotypeRow = new KaryotypeRow(KaryotypeRow.createRowId(genome, abr));
-      if (!expectedIds.contains(karyotypeRow))
-        throw new IOException("Karyotype ids created incorrectly???"); // should not happen
+      if (!expectedIds.contains(karyotypeRow)) throw new IOException("Karyotype ids created incorrectly???"); // should not happen
 
       Matcher m = p.matcher(abr);
       MatchResult mr = m.toMatchResult();
@@ -199,9 +208,8 @@ public class HBaseGenome
 
 
   /**
-   *
    * @param genomeName
-   * @return  All aberrations
+   * @return All aberrations
    * @throws IOException
    */
   public List<KaryotypeResult> retrieveKaryotype(String genomeName) throws IOException
@@ -209,7 +217,7 @@ public class HBaseGenome
     KaryotypeIndexTable.KaryotypeIndexResult result = kiT.queryTable(genomeName);
 
     List<KaryotypeResult> karyotypeResults = new ArrayList<KaryotypeResult>();
-    for (String abr: result.getAberrations())
+    for (String abr : result.getAberrations())
       karyotypeResults.add(kT.queryTable(KaryotypeRow.createRowId(genomeName, abr)));
 
     return karyotypeResults;
@@ -218,6 +226,7 @@ public class HBaseGenome
 
   /**
    * From last queried genome.
+   *
    * @return
    * @throws IOException
    */
@@ -229,6 +238,7 @@ public class HBaseGenome
 
   /**
    * Retrieve chromosomes from the last retrieved genome
+   *
    * @return
    * @throws IOException
    */
@@ -256,8 +266,8 @@ public class HBaseGenome
   public List<SequenceResult> retrieveSequences(ChromosomeResult chromosome) throws IOException
     {
     List<SequenceResult> sequences = new ArrayList<SequenceResult>();
-    for (int i=1; i<chromosome.getSegmentNumber(); i++)
-      sequences.add( sT.queryTable(SequenceRow.createRowId(chromosome.getGenomeName(), chromosome.getChrName(), i)) );
+    for (int i = 1; i < chromosome.getSegmentNumber(); i++)
+      sequences.add(sT.queryTable(SequenceRow.createRowId(chromosome.getGenomeName(), chromosome.getChrName(), i)));
 
     return sequences;
     }
@@ -265,30 +275,34 @@ public class HBaseGenome
   public List<SmallMutationsResult> retrieveMutations(SequenceResult segment) throws IOException
     {
     List<SmallMutationsResult> mutations = new ArrayList<SmallMutationsResult>();
-    for (int i=1; i<=segment.getSequenceLength(); i++)
-      mutations.add( smT.queryTable(SmallMutationRow.createRowId(segment.getGenome(), segment.getChr(), segment.getSegment(), i)) );
+    for (int i = 1; i <= segment.getSequenceLength(); i++)
+      mutations.add(smT.queryTable(SmallMutationRow.createRowId(segment.getGenome(), segment.getChr(), segment.getSegment(), i)));
 
     return mutations;
     }
 
   /**
    * Gets the sequences that overlap the aberration locations
+   *
    * @param karyotypeResult
    */
   public void retrieveSequence(KaryotypeResult karyotypeResult)
     {
 
-    for (KaryotypeResult.AberrationLocation loc: karyotypeResult.getAberrationDefinitions())
+    for (KaryotypeResult.AberrationLocation loc : karyotypeResult.getAberrationDefinitions())
       {
-//      sT.
-//
-//      loc.getStart()
+      //      sT.
+      //
+      //      loc.getStart()
       }
 
     }
 
 
-
+  public void closeConections() throws IOException
+    {
+    hbaseAdmin.close();
+    }
 
   public void disableDatabases() throws IOException
     {
@@ -300,15 +314,29 @@ public class HBaseGenome
     hbaseAdmin.disableTable("karyotype");
     }
 
-  private void createTables() throws IOException
+  private void createTables()
     {
-    // I should really just instantiate these as needed
-    gT = new GenomeTable(this.conf, this.hbaseAdmin, "genome", true);
-    cT = new ChromosomeTable(this.conf, this.hbaseAdmin, "chromosome", true);
-    sT = new SequenceTable(this.conf, this.hbaseAdmin, "sequence", true);
-    smT = new SmallMutationsTable(this.conf, this.hbaseAdmin, "small_mutations", true);
-    kiT = new KaryotypeIndexTable(this.conf, this.hbaseAdmin, "karytoype_index", true);
-    kT = new KaryotypeTable(this.conf, this.hbaseAdmin, "karyotype", true);
+    boolean create = false;
+    try
+      {
+      if (hbaseAdmin.getTableNames().length < 6)
+        {
+        log.info("Creating tables");
+        create = true;
+        }
+      // I should really just instantiate these as needed
+      gT = new GenomeTable(this.conf, this.hbaseAdmin, "genome", create);
+      cT = new ChromosomeTable(this.conf, this.hbaseAdmin, "chromosome", create);
+      sT = new SequenceTable(this.conf, this.hbaseAdmin, "sequence", create);
+      smT = new SmallMutationsTable(this.conf, this.hbaseAdmin, "small_mutations", create);
+      kiT = new KaryotypeIndexTable(this.conf, this.hbaseAdmin, "karytoype_index", create);
+      kT = new KaryotypeTable(this.conf, this.hbaseAdmin, "karyotype", create);
+      }
+    catch (IOException e)
+      {
+      e.printStackTrace();
+      }
+
     }
 
 

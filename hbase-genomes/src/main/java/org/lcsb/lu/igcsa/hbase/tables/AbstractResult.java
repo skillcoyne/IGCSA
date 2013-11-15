@@ -30,6 +30,9 @@ public abstract class AbstractResult
     this.rowId = rowId;
     }
 
+  protected AbstractResult()
+    {
+    }
 
   // this may break encapsulation but my class structure isn't very smart anyhow
   public List<? extends AbstractResult> getAssociatedResults(String rowId, AbstractTable connectedTable) throws IOException

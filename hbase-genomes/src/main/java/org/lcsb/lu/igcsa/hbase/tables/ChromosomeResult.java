@@ -27,12 +27,19 @@ public class ChromosomeResult extends AbstractResult
   private String genomeName;
 
 
-  public ChromosomeResult(byte[] rowId)
+  public ChromosomeResult(String chromosomeName, int length, int numSegments)
+    {
+    this.chrName = chromosomeName;
+    this.length = length;
+    this.segmentNumber = numSegments;
+    }
+
+  protected ChromosomeResult(byte[] rowId)
     {
     super(rowId);
     }
 
-  public ChromosomeResult(String rowId)
+  protected ChromosomeResult(String rowId)
     {
     super(rowId);
     }
@@ -68,6 +75,8 @@ public class ChromosomeResult extends AbstractResult
   public void setGenomeName(String genomeName)
     {
     this.genomeName = genomeName;
+    if (rowId == null)
+      rowId = ChromosomeRow.createRowId(genomeName, this.chrName);
     }
 
   public int getLength()

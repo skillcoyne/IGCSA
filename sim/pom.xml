@@ -90,7 +90,7 @@
                             <descriptorRefs>
                                 <descriptorRef>jar-with-dependencies</descriptorRef>
                             </descriptorRefs>
-                            <finalName>${build.finalName}-${project.version}</finalName>
+                            <finalName>${project.build.finalName}-${project.version}</finalName>
                             <appendAssemblyId>false</appendAssemblyId>
                             <archive>
                                 <manifest>
@@ -106,7 +106,7 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
-                            <finalName>${build.finalName}-${project.version}</finalName>
+                            <finalName>${project.build.finalName}-${project.version}</finalName>
                             <appendAssemblyId>false</appendAssemblyId>
                             <attach>true</attach>
                             <descriptor>assembly.xml</descriptor>

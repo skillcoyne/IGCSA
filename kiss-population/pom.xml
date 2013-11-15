@@ -100,7 +100,7 @@
                             <!--<descriptorRefs>-->
                                 <!--<descriptorRef>jar-with-dependencies</descriptorRef>-->
                             <!--</descriptorRefs>-->
-                            <!--<finalName>${build.finalName}-${project.version}</finalName>-->
+                            <!--<finalName>${project.build.finalName}-${project.version}</finalName>-->
                             <!--<appendAssemblyId>false</appendAssemblyId>-->
                             <!--<archive>-->
                                 <!--<manifest>-->
