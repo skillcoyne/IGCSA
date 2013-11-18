@@ -131,7 +131,7 @@ repeat
   newPop = pop  # default
   for (i in 1:nrow(pop))
     {
-    ## differential MUTATION step, randomly select 3 members of the population
+    ## differential CROSSOVER step, randomly select 3 members of the population
     samples = pop[sample(nrow(pop), 3), ]
     trial = samples[3,]  # default values come from the target vector
     

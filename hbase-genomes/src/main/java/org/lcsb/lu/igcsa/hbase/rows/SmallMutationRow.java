@@ -10,26 +10,11 @@ package org.lcsb.lu.igcsa.hbase.rows;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.hbase.tables.Column;
+import org.lcsb.lu.igcsa.hbase.tables.SmallMutation;
 
 public class SmallMutationRow extends Row
   {
   static Logger log = Logger.getLogger(SmallMutationRow.class.getName());
-
-  public static enum SmallMutation
-    {
-    SNV("SNV"), DEL("deletion"), INS("insertion"), INDEL("indel"), SUB("substitution");
-
-    private String type;
-    private SmallMutation(String type)
-      {
-      this.type = type;
-      }
-
-    public String getType()
-      {
-      return this.type;
-      }
-    }
 
   private String genome;
   private String chr;

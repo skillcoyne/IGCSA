@@ -5,6 +5,7 @@ import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.lcsb.lu.igcsa.hbase.rows.GenericRow;
 
 import java.io.IOException;
 import java.util.*;
@@ -128,6 +129,19 @@ public abstract class AbstractTable
     return transformScannerResults(scanner);
     }
 
+
+  public void updateRow(String rowId, Column... columns) throws IOException
+    {
+    Result result = hTable.get( new Get(Bytes.toBytes(rowId)) );
+    if (result == null || !Bytes.toString(result.getRow()).equals(rowId))
+      throw new IOException("No row for id " + rowId);
+
+    org.lcsb.lu.igcsa.hbase.rows.Row row = new GenericRow(rowId);
+    for (Column c: columns)
+      row.addColumn(c);
+
+    addRow(row);
+    }
 
   public void addRow(org.lcsb.lu.igcsa.hbase.rows.Row row) throws IOException
     {

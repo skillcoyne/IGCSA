@@ -11,16 +11,14 @@ import org.apache.log4j.Logger;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
-import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.*;
 
-import org.lcsb.lu.igcsa.hbase.rows.ChromosomeRow;
+import org.lcsb.lu.igcsa.hbase.HBaseGenome;
+import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 import org.lcsb.lu.igcsa.hbase.rows.SmallMutationRow;
 import org.lcsb.lu.igcsa.hbase.tables.*;
-import org.lcsb.lu.igcsa.hbase.rows.GenomeRow;
 
 import java.util.List;
-import java.util.Map;
 
 public class TestHBase
   {
@@ -29,32 +27,41 @@ public class TestHBase
   public static void main(String[] args) throws Exception
     {
     Configuration conf = HBaseConfiguration.create();
-    conf.setInt("timeout", 10);
+    //conf.setInt("timeout", 1);
 
-    HBaseGenome hBaseGenome = new HBaseGenome(conf);
+    //    conf.set("hbase.zookeeper.quorum", "10.79.5.22");
+    //    conf.set("hbase.zookeeper.property.clientPort","2182");
+    //    conf.set("hbase.master", "10.79.5.22:60000");
 
-    // create genome
-    List<String> chrRowIds = hBaseGenome.addGenome("GRCh37", null,
-                                                   new ChromosomeResult("1", 1000, 10),
-                                                   new ChromosomeResult("2", 2000, 20),
-                                                   new ChromosomeResult("3", 3000, 30));
 
-    // add sequences
-    String sequenceRowId = null; // no, this isn't the way it should be done. Just testing
-    for (String chrRowId: chrRowIds)
-      {
-      sequenceRowId = hBaseGenome.addSequence(chrRowId, 1, 1, 100, "AAAACCCTGC");
-      hBaseGenome.addSequence(chrRowId, 1, 100, 200, "AAAACCCTGC");
-      }
+    HBaseGenomeAdmin admin = new HBaseGenomeAdmin(conf);
 
-    // adds mutations
-    hBaseGenome.addSmallMutation(sequenceRowId, 10, 10, SmallMutationRow.SmallMutation.SNV, "A");
-    hBaseGenome.addSmallMutation(sequenceRowId, 100, 120, SmallMutationRow.SmallMutation.DEL, null);
 
-    // Karyotype!
+    HBaseGenome genome = admin.addGenome("GRCh37", null);
+
+    genome.addChromosome("X", 200200, 2919);
+    genome.addChromosome("1", 5000, 200);
 
 
 
+
+//    // create genome
+//    List<String> chrRowIds = hBaseGenome.addGenome("GRCh37", null, new ChromosomeResult("1", 1000, 10), new ChromosomeResult("2", 2000, 20), new ChromosomeResult("3", 3000, 30));
+//
+//    // add sequences
+//    String sequenceRowId = null; // no, this isn't the way it should be done. Just testing
+//    for (String chrRowId : chrRowIds)
+//      {
+//      sequenceRowId = hBaseGenome.addSequence(chrRowId, 1, 1, 100, "AAAACCCTGC");
+//      hBaseGenome.addSequence(chrRowId, 1, 100, 200, "AAAACCCTGC");
+//      }
+//
+//    // adds mutations
+//    hBaseGenome.addSmallMutation(sequenceRowId, 10, 10, SmallMutationRow.SmallMutation.SNV, "A");
+//    hBaseGenome.addSmallMutation(sequenceRowId, 100, 120, SmallMutationRow.SmallMutation.DEL, null);
+//
+//    // Karyotype!
+//
 
     hBaseGenome.closeConections();
     }

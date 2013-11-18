@@ -24,6 +24,18 @@
             <version>2.2.0</version>
         </dependency>
 
+        <!--<dependency>-->
+            <!--<groupId>org.apache.hbase</groupId>-->
+            <!--<artifactId>hbase-client</artifactId>-->
+            <!--<version>0.96.0-hadoop2</version>-->
+            <!--<exclusions>-->
+                <!--<exclusion>-->
+                    <!--<groupId>org.slf4j</groupId>-->
+                    <!--<artifactId>slf4j-log4j12</artifactId>-->
+                <!--</exclusion>-->
+            <!--</exclusions>-->
+        <!--</dependency>-->
+
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase</artifactId>
@@ -36,26 +48,7 @@
             </exclusions>
         </dependency>
 
-        <dependency>
-            <groupId>com.salesforce</groupId>
-            <artifactId>phoenix</artifactId>
-            <version>2.1.1</version>
-        </dependency>
-
     </dependencies>
 
-    <repositories>
-        <repository>
-            <id>phoenix-github</id>
-            <name>Phoenix Github Maven</name>
-            <url>https://raw.github.com/forcedotcom/phoenix/maven-artifacts/releases</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </repository>
-    </repositories>
 
 </project>

@@ -6,17 +6,13 @@
  */
 
 
-package org.lcsb.lu.igcsa;
+package org.lcsb.lu.igcsa.hbase;
 
-import org.apache.avro.generic.GenericData;
-import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.MasterNotRunningException;
-import org.apache.hadoop.hbase.ZooKeeperConnectionException;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.hbase.GenomeTableAdmin;
 import org.lcsb.lu.igcsa.hbase.rows.*;
 import org.lcsb.lu.igcsa.hbase.tables.*;
 
@@ -27,9 +23,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-public class HBaseGenome
+public class HBaseGenomeAdmin
   {
-  static Logger log = Logger.getLogger(HBaseGenome.class.getName());
+  static Logger log = Logger.getLogger(HBaseGenomeAdmin.class.getName());
 
   private Configuration conf;
   private HBaseAdmin hbaseAdmin;
@@ -43,12 +39,25 @@ public class HBaseGenome
 
   private GenomeResult lastRetrievedGenome;
 
-  public HBaseGenome() throws IOException, MasterNotRunningException
+
+  private static HBaseGenomeAdmin adminInstance;
+  public static HBaseGenomeAdmin getHBaseGenomeAdmin() throws IOException
     {
-    this(HBaseConfiguration.create());
+    if (adminInstance == null)
+        adminInstance = new HBaseGenomeAdmin(HBaseConfiguration.create());
+
+    return adminInstance;
     }
 
-  public HBaseGenome(Configuration configuration) throws IOException, MasterNotRunningException
+  public static HBaseGenomeAdmin getHBaseGenomeAdmin(Configuration configuration) throws IOException
+    {
+    if (adminInstance == null)
+      adminInstance = new HBaseGenomeAdmin(configuration);
+
+    return adminInstance;
+    }
+
+  private HBaseGenomeAdmin(Configuration configuration) throws IOException, MasterNotRunningException
     {
     this.conf = configuration;
     this.conf.setInt("timeout", 10);
@@ -56,74 +65,36 @@ public class HBaseGenome
     this.createTables();
     }
 
-  /**
-   * @param name
-   * @param parentName
-   * @param chromosomes
-   * @return List of chromosome row ids
-   * @throws IOException
-   */
-  public List<String> addGenome(String name, String parentName, ChromosomeResult... chromosomes) throws IOException
+  public GenomeTable getGenomeTable()
     {
-    List<String> chromosomeRowIds = new ArrayList<String>();
-
-    GenomeResult genome = gT.queryTable(name);
-    if (genome != null)
-      {
-      log.warn(name + " genome already exists in the genome table.  Not overwriting");
-      for (String c : genome.getChromosomes())
-        chromosomeRowIds.add(ChromosomeRow.createRowId(name, c));
-      }
-    else
-      {
-      // create genome
-      GenomeRow gRow = new GenomeRow(name);
-      gRow.addParentColumn(parentName);
-
-      String[] chrs = new String[chromosomes.length];
-      for (int i = 0; i < chromosomes.length; i++)
-        chrs[i] = chromosomes[i].getChrName();
-
-      gRow.addChromosomeColumn(chrs);
-      gT.addRow(gRow);
-
-      // add a chromosome row for each chromosome in the genome
-      for (ChromosomeResult chr : chromosomes)
-        {
-        ChromosomeRow cRow = new ChromosomeRow(ChromosomeRow.createRowId(name, chr.getChrName()));
-        cRow.addGenome(name);
-        cRow.addChromosomeInfo(chr.getChrName(), chr.getLength(), chr.getSegmentNumber());
-        cT.addRow(cRow);
-
-        chromosomeRowIds.add(cRow.getRowIdAsString());
-        }
-      }
-
-    return chromosomeRowIds;
+    return gT;
     }
 
-  /**
-   * @param chromosomeRowId
-   * @param segmentNumber
-   * @param start
-   * @param end
-   * @param seq
-   * @return Sequence row id
-   * @throws IOException
-   */
-  public String addSequence(String chromosomeRowId, int segmentNumber, int start, int end, String seq) throws IOException
+  public ChromosomeTable getChromosomeTable()
     {
-    ChromosomeResult chromosome = cT.queryTable(chromosomeRowId);
-
-    SequenceRow sRow = new SequenceRow(SequenceRow.createRowId(chromosome.getGenomeName(), chromosome.getChrName(), segmentNumber));
-    sRow.addBasePairs(seq);
-    sRow.addLocation(chromosome.getChrName(), segmentNumber, start, end);
-    sRow.addGenome(chromosome.getGenomeName());
-
-    sT.addRow(sRow);
-
-    return sRow.getRowIdAsString();
+    return cT;
     }
+
+  public SequenceTable getSequenceTable()
+    {
+    return sT;
+    }
+
+  public SmallMutationsTable getSmallMutationsTable()
+    {
+    return smT;
+    }
+
+  public KaryotypeIndexTable getKaryotypeIndexTable()
+    {
+    return kiT;
+    }
+
+  public KaryotypeTable getKaryotypeTable()
+    {
+    return kT;
+    }
+
 
   /**
    * @param sequenceRowId
@@ -134,13 +105,11 @@ public class HBaseGenome
    * @return Small mutation table row id
    * @throws IOException
    */
-  public String addSmallMutation(String sequenceRowId, int start, int end, SmallMutationRow.SmallMutation mutation,
-                                 String seq) throws IOException
+  public String addSmallMutation(String sequenceRowId, int start, int end, SmallMutation mutation, String seq) throws IOException
     {
     SequenceResult sequence = sT.queryTable(sequenceRowId);
 
-    SmallMutationRow smRow = new SmallMutationRow(SmallMutationRow.createRowId(sequence.getGenome(), sequence.getChr(),
-                                                                               sequence.getSegment(), start));
+    SmallMutationRow smRow = new SmallMutationRow(SmallMutationRow.createRowId(sequence.getGenome(), sequence.getChr(), sequence.getSegment(), start));
     smRow.addGenomeInfo(sequence.getGenome(), mutation);
     smRow.addLocation(sequence.getChr(), sequence.getSegment(), start, end);
     smRow.addSequence(seq);
@@ -158,7 +127,8 @@ public class HBaseGenome
    */
   public List<String> addAberration(String genome, List<String> aberrations) throws IOException
     {
-    if (gT.queryTable(genome) == null) throw new IllegalArgumentException("No genome named '" + genome + "' defined in the genome table.");
+    if (gT.queryTable(genome) == null)
+      throw new IllegalArgumentException("No genome named '" + genome + "' defined in the genome table.");
 
     KaryotypeIndexRow kRow = new KaryotypeIndexRow(genome);
     kRow.addAberrations(aberrations.toArray(new String[aberrations.size()]));
@@ -168,7 +138,8 @@ public class HBaseGenome
     for (String abr : aberrations)
       {
       KaryotypeRow karyotypeRow = new KaryotypeRow(KaryotypeRow.createRowId(genome, abr));
-      if (!expectedIds.contains(karyotypeRow)) throw new IOException("Karyotype ids created incorrectly???"); // should not happen
+      if (!expectedIds.contains(karyotypeRow))
+        throw new IOException("Karyotype ids created incorrectly???"); // should not happen
 
       Matcher m = p.matcher(abr);
       MatchResult mr = m.toMatchResult();
