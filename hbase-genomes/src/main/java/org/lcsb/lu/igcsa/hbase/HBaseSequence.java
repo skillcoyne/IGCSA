@@ -11,6 +11,7 @@ package org.lcsb.lu.igcsa.hbase;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.hbase.rows.SmallMutationRow;
 import org.lcsb.lu.igcsa.hbase.tables.*;
+import org.lcsb.lu.igcsa.variation.fragment.Variation;
 
 import java.io.IOException;
 
@@ -36,7 +37,7 @@ public class HBaseSequence extends HBaseConnectedObjects
     }
 
 
-  public boolean addSmallMutation(SmallMutation mutation, int start, int end, String mutationSequence) throws IOException
+  public boolean addSmallMutation(Variation mutation, int start, int end, String mutationSequence) throws IOException
     {
     if (end < start || mutation == null)
       throw new IllegalArgumentException("The end must be >= start and mutation cannot be null");
@@ -60,10 +61,10 @@ public class HBaseSequence extends HBaseConnectedObjects
     }
 
 
-
-
-
-
+  public SequenceResult getSequence()
+    {
+    return sequence;
+    }
 
   @Override
   protected void getTables() throws IOException

@@ -68,36 +68,42 @@ public class ChromosomeTable extends AbstractTable
   protected List<? extends AbstractResult> createResults(List<Result> results)
     {
     List<ChromosomeResult> chrResults = new ArrayList<ChromosomeResult>();
-    for (Result r: results)
-      chrResults.add( this.createResult(r) );
+    for (Result r : results)
+      chrResults.add(this.createResult(r));
     return chrResults;
     }
 
   @Override
   protected ChromosomeResult createResult(Result result)
     {
-    ChromosomeResult chrResult = new ChromosomeResult(result.getRow());
-
-    for (KeyValue kv: result.list())
+    if (result.getRow() != null)
       {
-      String family = Bytes.toString(kv.getFamily());
-      String qualifier = Bytes.toString(kv.getQualifier());
-      byte[] value = kv.getValue();
+      ChromosomeResult chrResult = new ChromosomeResult(result.getRow());
 
-      if (family.equals("chr"))
+      for (KeyValue kv : result.list())
         {
-        if (qualifier.equals("length"))
-          chrResult.setLength(value);
-        if (qualifier.equals("segments"))
-          chrResult.setSegmentNumber(value);
-        if (qualifier.equals("name"))
-          chrResult.setChrName(value);
-        }
-      else if (family.equals("info") && qualifier.equals("genome"))
+        String family = Bytes.toString(kv.getFamily());
+        String qualifier = Bytes.toString(kv.getQualifier());
+        byte[] value = kv.getValue();
+
+        if (family.equals("chr"))
+          {
+          if (qualifier.equals("length"))
+            chrResult.setLength(value);
+          if (qualifier.equals("segments"))
+            chrResult.setSegmentNumber(value);
+          if (qualifier.equals("name"))
+            chrResult.setChrName(value);
+          }
+        else if (family.equals("info") && qualifier.equals("genome"))
           chrResult.setGenomeName(value);
+        }
+
+      return chrResult;
       }
 
-    return chrResult;
+    return null;
     }
+
 
   }

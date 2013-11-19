@@ -51,20 +51,22 @@ public class GenomeSimulator
     if (cl.hasOption('o') || cl.hasOption("overwrite"))
       overwriteGenome = true;
 
-    setupGenomeDirectory(genomeName, overwriteGenome);
+    //setupGenomeDirectory(genomeName, overwriteGenome);
 
     if (cl.hasOption("f"))
       {
-      FragmentInsilicoGenome insGen = new FragmentInsilicoGenome(context, cl);
-      insGen.applyMutations();
+      new HBaseFIGG(context, cl);
+
+//      FragmentInsilicoGenome insGen = new FragmentInsilicoGenome(context, cl);
+//      insGen.applyMutations();
       }
 
-    if (cl.hasOption("s"))
-      {
-      setupKaryotypeDirectory(genomeName, overwriteGenome);
-      KaryotypeInsilicoGenome karGen = new KaryotypeInsilicoGenome(context, cl);
-      karGen.applyMutations();
-      }
+//    if (cl.hasOption("s"))
+//      {
+//      setupKaryotypeDirectory(genomeName, overwriteGenome);
+//      KaryotypeInsilicoGenome karGen = new KaryotypeInsilicoGenome(context, cl);
+//      karGen.applyMutations();
+//      }
 
     log.info("FINISHED mutating tables " + genomeName);
     }
@@ -136,7 +138,8 @@ public class GenomeSimulator
   private CommandLine parseCommandLine(String[] args)
     {
     Options options = new Options();
-    options.addOption("n", "name", true, "Genome directory name, if not provided a random name is generated.");
+    options.addOption("n", "name", true, "Genome name, if not provided a random name is generated and the assembly directory from properties file is used for sequence.");
+    options.addOption("p", "parent", true, "Parent genome.");
     options.addOption("o", "overwrite", false, "Overwrite tables directory if name already exists. [false]");
     options.addOption("t", "threads", true, "Number of concurrent threads. Each thread handles a single chromosome. [5]");
     options.addOption("c", "chromosome", true, "List of chromosomes to use/mutate, comma-separated (e.g.  21,3," +

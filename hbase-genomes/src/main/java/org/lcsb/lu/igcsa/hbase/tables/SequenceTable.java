@@ -65,8 +65,8 @@ public class SequenceTable extends AbstractTable
   protected List<SequenceResult> createResults(List<Result> results)
     {
     List<SequenceResult> sequenceResults = new ArrayList<SequenceResult>();
-    for (Result r: results)
-      sequenceResults.add( createResult(r) );
+    for (Result r : results)
+      sequenceResults.add(createResult(r));
 
     return sequenceResults;
     }
@@ -74,34 +74,39 @@ public class SequenceTable extends AbstractTable
   @Override
   protected SequenceResult createResult(Result result)
     {
-    SequenceResult seqResult = new SequenceResult(result.getRow());
-
-    for (KeyValue kv: result.list())
+    if (result.getRow() != null)
       {
-      String family = Bytes.toString(kv.getFamily());
-      String qualifier = Bytes.toString(kv.getQualifier());
-      byte[] value = kv.getValue();
+      SequenceResult seqResult = new SequenceResult(result.getRow());
 
-      if (family.equals("info") && qualifier.equals("genome"))
-        seqResult.setGenome(value);
-
-      if (family.equals("bp") && qualifier.equals("seq"))
-        seqResult.setSequence(value);
-
-      if (family.equals("loc"))
+      for (KeyValue kv : result.list())
         {
-        if (qualifier.equals("start"))
-          seqResult.setStart(value);
-        else if (qualifier.equals("end"))
-          seqResult.setEnd(value);
-        else if (qualifier.equals("chr"))
-          seqResult.setChr(value);
-        else if (qualifier.equals("segment"))
-          seqResult.setSegment(value);
+        String family = Bytes.toString(kv.getFamily());
+        String qualifier = Bytes.toString(kv.getQualifier());
+        byte[] value = kv.getValue();
+
+        if (family.equals("info") && qualifier.equals("genome"))
+          seqResult.setGenome(value);
+
+        if (family.equals("bp") && qualifier.equals("seq"))
+          seqResult.setSequence(value);
+
+        if (family.equals("loc"))
+          {
+          if (qualifier.equals("start"))
+            seqResult.setStart(value);
+          else if (qualifier.equals("end"))
+            seqResult.setEnd(value);
+          else if (qualifier.equals("chr"))
+            seqResult.setChr(value);
+          else if (qualifier.equals("segment"))
+            seqResult.setSegment(value);
+          }
         }
+
+      return seqResult;
       }
 
-    return seqResult;
+    return null;
     }
 
   }

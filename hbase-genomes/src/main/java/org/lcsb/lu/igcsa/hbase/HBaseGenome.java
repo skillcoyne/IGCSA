@@ -13,6 +13,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.hbase.rows.ChromosomeRow;
 import org.lcsb.lu.igcsa.hbase.rows.GenomeRow;
+import org.lcsb.lu.igcsa.hbase.rows.KaryotypeIndexRow;
+import org.lcsb.lu.igcsa.hbase.rows.KaryotypeRow;
 import org.lcsb.lu.igcsa.hbase.tables.*;
 
 import java.io.IOException;
@@ -29,7 +31,8 @@ public class HBaseGenome extends HBaseConnectedObjects
 
   private GenomeTable gT;
   private ChromosomeTable cT;
-
+  private KaryotypeTable kT;
+  private KaryotypeIndexTable kiT;
 
   protected HBaseGenome(GenomeResult result) throws IOException
     {
@@ -43,9 +46,48 @@ public class HBaseGenome extends HBaseConnectedObjects
     this.genome = this.gT.queryTable(rowId);
     }
 
-  public boolean addChromosome(String chr, int length, int numSegments) throws IOException
+  public HBaseGenome(String genomeName, String parentGenome) throws IOException
+    {
+    super(genomeName);
+
+    if (parentGenome != null && this.gT.queryTable(parentGenome) == null)
+      throw new IOException("No genome matching parent: " + parentGenome);
+
+    this.genome = this.gT.queryTable(genomeName);
+    if (genome == null)
+      {
+      GenomeRow row = new GenomeRow(genomeName);
+      row.addParentColumn(parentGenome);
+      gT.addRow(row);
+
+      this.genome = this.gT.queryTable(genomeName);
+      }
+
+    }
+
+  public HBaseChromosome updateChromosome(String chr, int length, int numSegments) throws IOException
     {
     GenomeResult result = gT.queryTable(genome.getName(), new Column("chr", "list"));
+
+    List<String> currentChrs = result.getChromosomes();
+    if (!currentChrs.contains(chr))
+      return addChromosome(chr, length, numSegments);
+
+    ChromosomeResult cR = cT.queryTable(ChromosomeRow.createRowId(genome.getName(), chr));
+
+    ChromosomeRow updatedRow = new ChromosomeRow(ChromosomeRow.createRowId(genome.getName(), chr));
+    updatedRow.addChromosomeInfo(chr, length, numSegments);
+    updatedRow.addGenome(cR.getGenomeName());
+
+    cT.addRow(updatedRow);
+
+    return new HBaseChromosome(cT.queryTable(updatedRow.getRowIdAsString()));
+    }
+
+
+  public HBaseChromosome addChromosome(String chr, int length, int numSegments) throws IOException
+    {
+    GenomeResult result = gT.queryTable(genome.getName());
 
     List<String> currentChrs = result.getChromosomes();
     if (currentChrs.contains(chr))
@@ -61,16 +103,49 @@ public class HBaseGenome extends HBaseConnectedObjects
       row.addChromosomeInfo(chr, length, numSegments);
 
       cT.addRow(row);
-      return true;
+
+      return new HBaseChromosome(cT.queryTable(row.getRowIdAsString()));
       }
 
-    return false;
+    return new HBaseChromosome(cT.queryTable(ChromosomeRow.createRowId(genome.getName(), chr)));
     }
 
   public HBaseChromosome getChromosome(String chr) throws IOException
     {
-    ChromosomeResult result = cT.queryTable( ChromosomeRow.createRowId(genome.getName(), chr) );
+    ChromosomeResult result = cT.queryTable(ChromosomeRow.createRowId(genome.getName(), chr));
     return new HBaseChromosome(result);
+    }
+
+  public void createKaryotype()
+    {
+    KaryotypeIndexRow row = new KaryotypeIndexRow(this.rowId);
+
+
+
+    }
+
+
+  public List<HBaseKaryotype> getKaryotypes() throws IOException
+    {
+    KaryotypeIndexTable.KaryotypeIndexResult kiResults = this.kiT.queryTable(this.rowId);
+    //kiResults.
+
+    //List<KaryotypeResult> = this.kT.getRows();
+    return null;
+    }
+
+  public List<HBaseChromosome> getChromosomes() throws IOException
+    {
+    List<HBaseChromosome> chromosomes = new ArrayList<HBaseChromosome>();
+    for (String chr: this.getGenome().getChromosomes())
+      chromosomes.add( getChromosome(chr) );
+    return chromosomes;
+    }
+
+
+  public GenomeResult getGenome()
+    {
+    return this.genome;
     }
 
   @Override
@@ -78,5 +153,7 @@ public class HBaseGenome extends HBaseConnectedObjects
     {
     this.gT = HBaseGenomeAdmin.getHBaseGenomeAdmin().getGenomeTable();
     this.cT = HBaseGenomeAdmin.getHBaseGenomeAdmin().getChromosomeTable();
+    this.kT = HBaseGenomeAdmin.getHBaseGenomeAdmin().getKaryotypeTable();
+    this.kiT = HBaseGenomeAdmin.getHBaseGenomeAdmin().getKaryotypeIndexTable();
     }
   }

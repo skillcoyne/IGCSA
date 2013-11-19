@@ -10,7 +10,7 @@ package org.lcsb.lu.igcsa.hbase.rows;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.hbase.tables.Column;
-import org.lcsb.lu.igcsa.hbase.tables.SmallMutation;
+import org.lcsb.lu.igcsa.variation.fragment.Variation;
 
 public class SmallMutationRow extends Row
   {
@@ -31,10 +31,10 @@ public class SmallMutationRow extends Row
     super(rowId);
     }
 
-  public void addGenomeInfo(String genome, SmallMutation sm)
+  public void addGenomeInfo(String genome, Variation sm)
     {
     this.addColumn(new Column("info", "genome", genome));
-    this.addColumn(new Column("info", "mutation", sm.getType()));
+    this.addColumn(new Column("info", "mutation", sm.getVariationName()));
 
     this.genome = genome;
     }

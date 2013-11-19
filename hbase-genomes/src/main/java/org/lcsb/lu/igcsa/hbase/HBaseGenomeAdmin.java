@@ -12,6 +12,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.MasterNotRunningException;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.hbase.rows.*;
 import org.lcsb.lu.igcsa.hbase.tables.*;
@@ -41,10 +43,11 @@ public class HBaseGenomeAdmin
 
 
   private static HBaseGenomeAdmin adminInstance;
+
   public static HBaseGenomeAdmin getHBaseGenomeAdmin() throws IOException
     {
     if (adminInstance == null)
-        adminInstance = new HBaseGenomeAdmin(HBaseConfiguration.create());
+      adminInstance = new HBaseGenomeAdmin(HBaseConfiguration.create());
 
     return adminInstance;
     }
@@ -65,227 +68,115 @@ public class HBaseGenomeAdmin
     this.createTables();
     }
 
-  public GenomeTable getGenomeTable()
+  protected GenomeTable getGenomeTable()
     {
     return gT;
     }
 
-  public ChromosomeTable getChromosomeTable()
+  protected ChromosomeTable getChromosomeTable()
     {
     return cT;
     }
 
-  public SequenceTable getSequenceTable()
+  protected SequenceTable getSequenceTable()
     {
     return sT;
     }
 
-  public SmallMutationsTable getSmallMutationsTable()
+  protected SmallMutationsTable getSmallMutationsTable()
     {
     return smT;
     }
 
-  public KaryotypeIndexTable getKaryotypeIndexTable()
+  protected KaryotypeIndexTable getKaryotypeIndexTable()
     {
     return kiT;
     }
 
-  public KaryotypeTable getKaryotypeTable()
+  protected KaryotypeTable getKaryotypeTable()
     {
     return kT;
     }
 
-
-  /**
-   * @param sequenceRowId
-   * @param start
-   * @param end
-   * @param mutation
-   * @param seq
-   * @return Small mutation table row id
-   * @throws IOException
-   */
-  public String addSmallMutation(String sequenceRowId, int start, int end, SmallMutation mutation, String seq) throws IOException
+  public List<HBaseGenome> retrieveGenomes() throws IOException
     {
-    SequenceResult sequence = sT.queryTable(sequenceRowId);
-
-    SmallMutationRow smRow = new SmallMutationRow(SmallMutationRow.createRowId(sequence.getGenome(), sequence.getChr(), sequence.getSegment(), start));
-    smRow.addGenomeInfo(sequence.getGenome(), mutation);
-    smRow.addLocation(sequence.getChr(), sequence.getSegment(), start, end);
-    smRow.addSequence(seq);
-
-    smT.addRow(smRow);
-
-    return smRow.getRowIdAsString();
+    List<HBaseGenome> genomes = new ArrayList<HBaseGenome>();
+    for(GenomeResult r: gT.getRows())
+      genomes.add( new HBaseGenome(r) );
+    return genomes;
     }
 
-  /**
-   * @param genome
-   * @param aberrations
-   * @return Karyotype aberration row ids (one per aberration, multiple per genome).
-   * @throws IOException
-   */
-  public List<String> addAberration(String genome, List<String> aberrations) throws IOException
+  public HBaseGenome getGenome(String genomeName) throws IOException
     {
-    if (gT.queryTable(genome) == null)
-      throw new IllegalArgumentException("No genome named '" + genome + "' defined in the genome table.");
-
-    KaryotypeIndexRow kRow = new KaryotypeIndexRow(genome);
-    kRow.addAberrations(aberrations.toArray(new String[aberrations.size()]));
-
-    Pattern p = Pattern.compile("(\\d+|X|Y):(\\d+-\\d+)");
-    Set<String> expectedIds = new HashSet<String>(kRow.getKaryotypeTableRowIds());
-    for (String abr : aberrations)
-      {
-      KaryotypeRow karyotypeRow = new KaryotypeRow(KaryotypeRow.createRowId(genome, abr));
-      if (!expectedIds.contains(karyotypeRow))
-        throw new IOException("Karyotype ids created incorrectly???"); // should not happen
-
-      Matcher m = p.matcher(abr);
-      MatchResult mr = m.toMatchResult();
-
-      String type = abr.substring(0, abr.indexOf("("));
-
-      List<String[]> separatedAberrations = new ArrayList<String[]>();
-      for (int i = 1; i <= mr.groupCount(); i += 2)
-        {
-        String chr = mr.group(i);
-        String loc = mr.group(i + 1);
-
-        separatedAberrations.add(new String[]{chr, loc});
-        }
-
-      karyotypeRow.addAberration(type, separatedAberrations);
-
-      kT.addRow(karyotypeRow);
-      }
-
-    kiT.addRow(kRow);
-
-    return kRow.getKaryotypeTableRowIds();
+    GenomeResult result = gT.queryTable(genomeName);
+    return (result != null)? new HBaseGenome(result): null;
     }
 
-  public List<GenomeResult> retrieveGenomes() throws IOException
+  public HBaseGenome getReference() throws IOException
     {
-    return gT.getRows();
-    }
-
-  public GenomeResult retrieveGenome(String genomeName) throws IOException
-    {
-    GenomeResult genome = gT.queryTable(genomeName);
-    this.lastRetrievedGenome = genome;
-    return genome;
+    return new HBaseGenome((GenomeResult) gT.queryTable(new Column("info", "parent", "reference")));
     }
 
 
   /**
-   * @param genomeName
-   * @return All aberrations
-   * @throws IOException
-   */
-  public List<KaryotypeResult> retrieveKaryotype(String genomeName) throws IOException
-    {
-    KaryotypeIndexTable.KaryotypeIndexResult result = kiT.queryTable(genomeName);
-
-    List<KaryotypeResult> karyotypeResults = new ArrayList<KaryotypeResult>();
-    for (String abr : result.getAberrations())
-      karyotypeResults.add(kT.queryTable(KaryotypeRow.createRowId(genomeName, abr)));
-
-    return karyotypeResults;
-    }
-
-
-  /**
-   * From last queried genome.
+   * All
    *
    * @return
    * @throws IOException
    */
-  public List<KaryotypeResult> retrieveKaryotype() throws IOException
+  public List<KaryotypeResult> retrieveKaryotypes() throws IOException
     {
-    return retrieveKaryotype(this.lastRetrievedGenome.getName());
+    return this.kT.getRows();
     }
 
-
-  /**
-   * Retrieve chromosomes from the last retrieved genome
-   *
-   * @return
-   * @throws IOException
-   */
-  public List<ChromosomeResult> retrieveChromosomes() throws IOException
+  public void deleteGenome(String genomeName) throws IOException
     {
-    return retrieveChromosomes(this.lastRetrievedGenome);
+    Column toFilter = new Column("info", "genome", genomeName);
+
+    for (ChromosomeResult chr: cT.queryTable(toFilter))
+      cT.delete(chr.getRowId());
+
+    Iterator<Result> iterator = sT.getResultIterator(toFilter);
+    while (iterator.hasNext())
+      sT.delete(Bytes.toString(iterator.next().getRow()));
+
+    iterator =  smT.getResultIterator(toFilter);
+    while (iterator.hasNext())
+      smT.delete(Bytes.toString(iterator.next().getRow()));
+
+    iterator = kT.getResultIterator(toFilter);
+    while (iterator.hasNext())
+      kT.delete(Bytes.toString(iterator.next().getRow()));
+
+    kiT.delete(genomeName);
+    gT.delete(genomeName);
     }
-
-  public List<ChromosomeResult> retrieveChromosomes(GenomeResult genome) throws IOException
-    {
-    Map<GenomeResult, List<ChromosomeResult>> data = new HashMap<GenomeResult, List<ChromosomeResult>>();
-    // associated chromosomes
-    List<ChromosomeResult> chromosomes = new ArrayList<ChromosomeResult>();
-
-    for (String chr : genome.getChromosomes())
-      {
-      ChromosomeResult chromosome = cT.queryTable(ChromosomeRow.createRowId(genome.getName(), chr));
-      chromosomes.add(chromosome);
-      }
-
-    return chromosomes;
-    }
-
-
-  public List<SequenceResult> retrieveSequences(ChromosomeResult chromosome) throws IOException
-    {
-    List<SequenceResult> sequences = new ArrayList<SequenceResult>();
-    for (int i = 1; i < chromosome.getSegmentNumber(); i++)
-      sequences.add(sT.queryTable(SequenceRow.createRowId(chromosome.getGenomeName(), chromosome.getChrName(), i)));
-
-    return sequences;
-    }
-
-  public List<SmallMutationsResult> retrieveMutations(SequenceResult segment) throws IOException
-    {
-    List<SmallMutationsResult> mutations = new ArrayList<SmallMutationsResult>();
-    for (int i = 1; i <= segment.getSequenceLength(); i++)
-      mutations.add(smT.queryTable(SmallMutationRow.createRowId(segment.getGenome(), segment.getChr(), segment.getSegment(), i)));
-
-    return mutations;
-    }
-
-  /**
-   * Gets the sequences that overlap the aberration locations
-   *
-   * @param karyotypeResult
-   */
-  public void retrieveSequence(KaryotypeResult karyotypeResult)
-    {
-
-    for (KaryotypeResult.AberrationLocation loc : karyotypeResult.getAberrationDefinitions())
-      {
-      //      sT.
-      //
-      //      loc.getStart()
-      }
-
-    }
-
 
   public void closeConections() throws IOException
     {
     hbaseAdmin.close();
     }
 
-  public void disableDatabases() throws IOException
+  public void disableTables() throws IOException
     {
-    hbaseAdmin.disableTable("genome");
-    hbaseAdmin.disableTable("chromosome");
-    hbaseAdmin.disableTable("sequence");
-    hbaseAdmin.disableTable("small_mutations");
-    hbaseAdmin.disableTable("karyotype_index");
-    hbaseAdmin.disableTable("karyotype");
+    for (String t : new String[]{"genome", "chromosome", "sequence", "small_mutations", "karytoype_index", "karyotype"})
+      {
+      if (hbaseAdmin.isTableEnabled(t))
+        hbaseAdmin.disableTable(t);
+      }
     }
 
-  private void createTables()
+  public void deleteTables() throws IOException
+    {
+    disableTables();
+    for (String t : new String[]{"genome", "chromosome", "sequence", "small_mutations", "karyotype_index", "karyotype"})
+      {
+      if (hbaseAdmin.tableExists(t))
+        hbaseAdmin.deleteTable(t);
+      }
+    }
+
+  public void createTables()
     {
     boolean create = false;
     try
@@ -300,7 +191,7 @@ public class HBaseGenomeAdmin
       cT = new ChromosomeTable(this.conf, this.hbaseAdmin, "chromosome", create);
       sT = new SequenceTable(this.conf, this.hbaseAdmin, "sequence", create);
       smT = new SmallMutationsTable(this.conf, this.hbaseAdmin, "small_mutations", create);
-      kiT = new KaryotypeIndexTable(this.conf, this.hbaseAdmin, "karytoype_index", create);
+      kiT = new KaryotypeIndexTable(this.conf, this.hbaseAdmin, "karyotype_index", create);
       kT = new KaryotypeTable(this.conf, this.hbaseAdmin, "karyotype", create);
       }
     catch (IOException e)

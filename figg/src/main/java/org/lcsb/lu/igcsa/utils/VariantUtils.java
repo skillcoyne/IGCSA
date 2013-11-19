@@ -38,7 +38,7 @@ public class VariantUtils
 
   public List<Variation> getVariantList(String chr) throws IllegalAccessException, ProbabilityException, InstantiationException
     {
-    log.info("Getting variations for chromosome " + chr);
+    //log.info("Getting variations for chromosome " + chr);
     if (!variantListByChr.containsKey(chr))
       {
       List<Variation> variantList = new ArrayList<Variation>();

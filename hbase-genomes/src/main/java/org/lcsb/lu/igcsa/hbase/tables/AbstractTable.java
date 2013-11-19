@@ -4,8 +4,11 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.filter.CompareFilter;
+import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.lcsb.lu.igcsa.hbase.rows.GenericRow;
+import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.hbase.rows.*;
 
 import java.io.IOException;
 import java.util.*;
@@ -19,6 +22,9 @@ import java.util.*;
 
 public abstract class AbstractTable
   {
+  static Logger log = Logger.getLogger(AbstractTable.class.getName());
+
+
   protected HBaseAdmin admin;
   protected Configuration configuration;
 
@@ -28,6 +34,7 @@ public abstract class AbstractTable
   protected Set<String> families;
 
   protected Map<String, Set<String>> requiredFields;
+
 
 
   public AbstractTable(Configuration configuration, HBaseAdmin admin, String tableName, Map<String, Set<String>> fields, boolean create) throws IOException
@@ -87,11 +94,14 @@ public abstract class AbstractTable
     return this.families.toArray(new String[this.families.size()]);
     }
 
+
   public Object queryTable(String rowId, Column column) throws IOException
     {
     Get get = new Get(Bytes.toBytes(rowId));
 
-    if (column.hasQualifier()) // has both family & qualifier
+    if (column.hasQualifier() && column.hasValue())
+      get.setFilter(new SingleColumnValueFilter(column.getFamliy(), column.getQualifier(), CompareFilter.CompareOp.EQUAL, column.getValue()));
+    else if (column.hasQualifier() && !column.hasValue()) // has both family & qualifier, but no value
       get.addColumn(column.getFamliy(), column.getQualifier());
     else if (column.hasFamily()) // only family
       get.addFamily(column.getFamliy());
@@ -113,16 +123,43 @@ public abstract class AbstractTable
     return transformScannerResults(scanner);
     }
 
+
+  public Iterator<Result> getResultIterator(Column... columns) throws IOException
+    {
+    Scan scan = new Scan();
+
+    for (Column column : columns)
+      {
+      if (column.hasQualifier() && column.hasValue())
+        {
+        if (column.hasValue())
+          scan.setFilter(new SingleColumnValueFilter(column.getFamliy(), column.getQualifier(), CompareFilter.CompareOp.EQUAL, column.getValue()));
+        else if (column.hasQualifier() && !column.hasValue()) // has both family & qualifier, but no value
+          scan.addColumn(column.getFamliy(), column.getQualifier());
+        else if (column.hasFamily()) // only family
+          scan.addFamily(column.getFamliy());
+        }
+      }
+    ResultScanner scanner = hTable.getScanner(scan);
+    return scanner.iterator();
+    }
+
+
   public List<? extends Object> queryTable(Column... columns) throws IOException
     {
     Scan scan = new Scan();
 
     for (Column column : columns)
       {
-      if (column.hasQualifier()) // has both family & qualifier
-        scan.addColumn(column.getFamliy(), column.getQualifier());
-      else if (column.hasFamily()) // only family
-        scan.addFamily(column.getFamliy());
+      if (column.hasQualifier() && column.hasValue())
+        {
+        if (column.hasValue())
+          scan.setFilter(new SingleColumnValueFilter(column.getFamliy(), column.getQualifier(), CompareFilter.CompareOp.EQUAL, column.getValue()));
+        else if (column.hasQualifier() && !column.hasValue()) // has both family & qualifier, but no value
+          scan.addColumn(column.getFamliy(), column.getQualifier());
+        else if (column.hasFamily()) // only family
+          scan.addFamily(column.getFamliy());
+        }
       }
     ResultScanner scanner = hTable.getScanner(scan);
 
@@ -132,12 +169,12 @@ public abstract class AbstractTable
 
   public void updateRow(String rowId, Column... columns) throws IOException
     {
-    Result result = hTable.get( new Get(Bytes.toBytes(rowId)) );
+    Result result = hTable.get(new Get(Bytes.toBytes(rowId)));
     if (result == null || !Bytes.toString(result.getRow()).equals(rowId))
       throw new IOException("No row for id " + rowId);
 
     org.lcsb.lu.igcsa.hbase.rows.Row row = new GenericRow(rowId);
-    for (Column c: columns)
+    for (Column c : columns)
       row.addColumn(c);
 
     addRow(row);
@@ -159,6 +196,17 @@ public abstract class AbstractTable
       }
 
     hTable.put(put);
+    }
+
+
+  public void delete(String rowId) throws IOException
+    {
+    if (queryTable(rowId) != null)
+      {
+      log.info("Deleting " + rowId);
+      Delete del = new Delete(Bytes.toBytes(rowId));
+      hTable.delete(del);
+      }
     }
 
   private List<Result> transformScannerResults(ResultScanner scanner)

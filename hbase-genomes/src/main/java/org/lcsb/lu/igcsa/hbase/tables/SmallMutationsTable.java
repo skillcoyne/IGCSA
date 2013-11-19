@@ -73,7 +73,7 @@ public class SmallMutationsTable extends AbstractTable
   @Override
   protected SmallMutationsResult createResult(Result result)
     {
-    if (result != null)
+    if (result.getRow() != null)
       {
       SmallMutationsResult mutResult = new SmallMutationsResult(result.getRow());
 

@@ -23,6 +23,7 @@ public class KaryotypeIndexTable extends AbstractTable
   static Logger log = Logger.getLogger(KaryotypeIndexTable.class.getName());
 
   private static final Map<String, Set<String>> reqFields;
+
   static
     {
     reqFields = new HashMap<String, Set<String>>();
@@ -64,27 +65,31 @@ public class KaryotypeIndexTable extends AbstractTable
   protected List<KaryotypeIndexResult> createResults(List<Result> results)
     {
     List<KaryotypeIndexResult> indexResults = new ArrayList<KaryotypeIndexResult>();
-    for (Result r: results)
-      indexResults.add( createResult(r) );
+    for (Result r : results)
+      indexResults.add(createResult(r));
     return indexResults;
     }
 
   @Override
   protected KaryotypeIndexResult createResult(Result result)
     {
-    KaryotypeIndexResult indexResult = new KaryotypeIndexResult(result.getRow());
-
-    for (KeyValue kv : result.list())
+    if (result.getRow() != null)
       {
-      String family = Bytes.toString(kv.getFamily());
-      //String qualifier = Bytes.toString(kv.getQualifier());
-      byte[] value = kv.getValue();
+      KaryotypeIndexResult indexResult = new KaryotypeIndexResult(result.getRow());
 
-      if (family.equals("abr"))
-        indexResult.addAberration(value);
+      for (KeyValue kv : result.list())
+        {
+        String family = Bytes.toString(kv.getFamily());
+        //String qualifier = Bytes.toString(kv.getQualifier());
+        byte[] value = kv.getValue();
+
+        if (family.equals("abr"))
+          indexResult.addAberration(value);
+        }
+
+      return indexResult;
       }
-
-    return indexResult;
+    return null;
     }
 
 

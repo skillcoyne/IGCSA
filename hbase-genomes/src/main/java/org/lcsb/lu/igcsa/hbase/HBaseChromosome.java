@@ -39,7 +39,7 @@ public class HBaseChromosome extends HBaseConnectedObjects
     this.chromosome = cT.queryTable(rowId);
     }
 
-  public boolean addSequence(int start, int end, int segmentNumber, String sequence) throws IOException
+  public HBaseSequence addSequence(int start, int end, int segmentNumber, String sequence) throws IOException
     {
     if (end <= start || sequence.length() <=0 || (segmentNumber > 0 && segmentNumber <= this.chromosome.getSegmentNumber()))
       throw new IllegalArgumentException("End location must be greater than start, segment must be between 1-" + this.chromosome.getSegmentNumber() + ", and the sequence must have a minimum length of 1");
@@ -55,16 +55,19 @@ public class HBaseChromosome extends HBaseConnectedObjects
       row.addGenome(this.chromosome.getGenomeName());
 
       sT.addRow(row);
-      return true;
       }
 
-    return false;
+    return new HBaseSequence( sT.queryTable(sequenceId) );
     }
 
   public HBaseSequence getSequence(int segmentNumber) throws IOException
     {
-    String sequenceId = SequenceRow.createRowId(this.chromosome.getGenomeName(), this.chromosome.getChrName(), segmentNumber);
-    return new HBaseSequence( sT.queryTable(sequenceId) );
+    if ( chromosome.getSegmentNumber() >= segmentNumber )
+      {
+      String sequenceId = SequenceRow.createRowId(this.chromosome.getGenomeName(), this.chromosome.getChrName(), segmentNumber);
+      return new HBaseSequence( sT.queryTable(sequenceId) );
+      }
+    return null;
     }
 
   // TODO This could be done with HBase filters, might be faster
@@ -84,15 +87,20 @@ public class HBaseChromosome extends HBaseConnectedObjects
 
 
   // TODO Again, there's probably a better way to do this with a filter but...
-  public List<HBaseSequence> getAllSequences() throws IOException
+//  public List<HBaseSequence> getAllSequences() throws IOException
+//    {
+//    List<HBaseSequence> sequences = new ArrayList<HBaseSequence>();
+//    for (int i=1; i<=this.chromosome.getSegmentNumber(); i++)
+//      sequences.add(new HBaseSequence(this.sT.queryTable(SequenceRow.createRowId(this.chromosome.getGenomeName(), this.chromosome.getChrName(), i))));
+//
+//    return sequences;
+//    }
+
+
+  public ChromosomeResult getChromosome()
     {
-    List<HBaseSequence> sequences = new ArrayList<HBaseSequence>();
-    for (int i=1; i<=this.chromosome.getSegmentNumber(); i++)
-      sequences.add(new HBaseSequence(this.sT.queryTable(SequenceRow.createRowId(this.chromosome.getGenomeName(), this.chromosome.getChrName(), i))));
-
-    return sequences;
+    return this.chromosome;
     }
-
 
 
   @Override

@@ -64,7 +64,7 @@ public class KaryotypeTable extends AbstractTable
   protected List<KaryotypeResult> createResults(List<Result> results)
     {
     List<KaryotypeResult> karyotypeResults = new ArrayList<KaryotypeResult>();
-    for (Result r: results)
+    for (Result r : results)
       karyotypeResults.add(createResult(r));
 
     return karyotypeResults;
@@ -73,23 +73,28 @@ public class KaryotypeTable extends AbstractTable
   @Override
   protected KaryotypeResult createResult(Result result)
     {
-    KaryotypeResult karyotypeResult = new KaryotypeResult(result.getRow());
-
-    KeyValue kv = result.getColumn(Bytes.toBytes("info"), Bytes.toBytes("genome")).get(0);
-    karyotypeResult.setGenome(kv.getValue());
-
-    kv = result.getColumn(Bytes.toBytes("abr"), Bytes.toBytes("type")).get(0);
-    karyotypeResult.setAbrType(kv.getValue());
-
-    // chances of there being very many aberrations (like more than 3) are pretty much nil
-    for (int i=1; i<=10; i++)
+    if (result.getRow() != null)
       {
-      KeyValue kvc = result.getColumn(Bytes.toBytes("abr"), Bytes.toBytes("chr"+i)).get(0);
-      KeyValue kvl = result.getColumn(Bytes.toBytes("abr"), Bytes.toBytes("chr"+i)).get(0);
+      KaryotypeResult karyotypeResult = new KaryotypeResult(result.getRow());
 
-      karyotypeResult.addAberrationDefinitions(kvc.getValue(), kvl.getValue());
+      KeyValue kv = result.getColumn(Bytes.toBytes("info"), Bytes.toBytes("genome")).get(0);
+      karyotypeResult.setGenome(kv.getValue());
+
+      kv = result.getColumn(Bytes.toBytes("abr"), Bytes.toBytes("type")).get(0);
+      karyotypeResult.setAbrType(kv.getValue());
+
+      // chances of there being very many aberrations (like more than 3) are pretty much nil
+      for (int i = 1; i <= 10; i++)
+        {
+        KeyValue kvc = result.getColumn(Bytes.toBytes("abr"), Bytes.toBytes("chr" + i)).get(0);
+        KeyValue kvl = result.getColumn(Bytes.toBytes("abr"), Bytes.toBytes("chr" + i)).get(0);
+
+        karyotypeResult.addAberrationDefinitions(kvc.getValue(), kvl.getValue());
+        }
+
+      return karyotypeResult;
       }
 
-    return karyotypeResult;
+    return null;
     }
   }
