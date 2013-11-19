@@ -35,8 +35,6 @@ public abstract class AbstractTable
 
   protected Map<String, Set<String>> requiredFields;
 
-
-
   public AbstractTable(Configuration configuration, HBaseAdmin admin, String tableName, Map<String, Set<String>> fields, boolean create) throws IOException
     {
     this.admin = admin;
@@ -221,6 +219,7 @@ public abstract class AbstractTable
   protected abstract List<? extends AbstractResult> createResults(List<Result> results);
 
   protected abstract AbstractResult createResult(Result result);
+
 
 
   }

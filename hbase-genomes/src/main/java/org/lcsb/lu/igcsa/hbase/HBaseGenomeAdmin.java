@@ -41,6 +41,7 @@ public class HBaseGenomeAdmin
 
   private GenomeResult lastRetrievedGenome;
 
+  private static String[] tables = new String[]{"genome", "chromosome", "sequence", "small_mutations", "karyotype_index", "karyotype"};
 
   private static HBaseGenomeAdmin adminInstance;
 
@@ -68,32 +69,32 @@ public class HBaseGenomeAdmin
     this.createTables();
     }
 
-  protected GenomeTable getGenomeTable()
+  public GenomeTable getGenomeTable()
     {
     return gT;
     }
 
-  protected ChromosomeTable getChromosomeTable()
+  public ChromosomeTable getChromosomeTable()
     {
     return cT;
     }
 
-  protected SequenceTable getSequenceTable()
+  public SequenceTable getSequenceTable()
     {
     return sT;
     }
 
-  protected SmallMutationsTable getSmallMutationsTable()
+  public SmallMutationsTable getSmallMutationsTable()
     {
     return smT;
     }
 
-  protected KaryotypeIndexTable getKaryotypeIndexTable()
+  public KaryotypeIndexTable getKaryotypeIndexTable()
     {
     return kiT;
     }
 
-  protected KaryotypeTable getKaryotypeTable()
+  public KaryotypeTable getKaryotypeTable()
     {
     return kT;
     }
@@ -159,7 +160,7 @@ public class HBaseGenomeAdmin
 
   public void disableTables() throws IOException
     {
-    for (String t : new String[]{"genome", "chromosome", "sequence", "small_mutations", "karytoype_index", "karyotype"})
+    for (String t : tables)
       {
       if (hbaseAdmin.isTableEnabled(t))
         hbaseAdmin.disableTable(t);
@@ -169,7 +170,7 @@ public class HBaseGenomeAdmin
   public void deleteTables() throws IOException
     {
     disableTables();
-    for (String t : new String[]{"genome", "chromosome", "sequence", "small_mutations", "karyotype_index", "karyotype"})
+    for (String t : tables)
       {
       if (hbaseAdmin.tableExists(t))
         hbaseAdmin.deleteTable(t);
