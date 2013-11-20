@@ -7,6 +7,8 @@
 
 package org.lcsb.lu.igcsa;
 
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.Scan;
 import org.apache.log4j.Logger;
 
 import org.apache.hadoop.conf.Configuration;
@@ -21,6 +23,7 @@ import org.lcsb.lu.igcsa.hbase.rows.SmallMutationRow;
 import org.lcsb.lu.igcsa.hbase.tables.*;
 
 import java.io.File;
+import java.util.Iterator;
 import java.util.List;
 
 public class TestHBase
@@ -38,9 +41,20 @@ public class TestHBase
 
 
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(conf);
-    admin.deleteTables();
-    admin.createTables();
 
+
+    Iterator<Result> ri = admin.getSequenceTable().getResultIterator(new Column("info", "genome", "igcsa1"),
+                                                                     new Column("loc", "chr", "22"));
+
+    while(ri.hasNext())
+      {
+      SequenceResult r = admin.getSequenceTable().createResult(ri.next());
+      print( r.getChr() + " " + r.getStart() + "-" + r.getEnd());
+      }
+
+//    admin.deleteTables();
+//    admin.createTables();
+//
     System.exit(1);
 
     FASTAReader reader = new FASTAReader( new File("/Users/sarah.killcoyne/Data/FASTA/chrX.fa.gz") );
