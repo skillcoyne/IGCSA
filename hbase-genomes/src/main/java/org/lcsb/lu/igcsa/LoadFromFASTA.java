@@ -60,31 +60,22 @@ public class LoadFromFASTA extends Configured implements Tool
     Job job = new Job(config, "Reference Genome Fragmentation");
 
     job.setJarByClass(LoadFromFASTA.class);
+    job.setMapperClass(FragmentMapper.class);
 
     job.setMapOutputKeyClass(ImmutableBytesWritable.class);
     job.setMapOutputValueClass(Text.class);
 
-    job.setOutputFormatClass(NullOutputFormat.class);   // because we aren't emitting anything from mapper
-
-//    job.setOutputKeyClass(ImmutableBytesWritable.class);
-//    job.setOutputValueClass(Text.class);
-
     job.setInputFormatClass(FASTAInputFormat.class);
-
     FileInputFormat.addInputPath(job, new Path(fastaPath));
-    //FileOutputFormat.setOutputPath(job, new Path("/tmp/figg2/chr"+chr));
 
-    job.setMapperClass(FragmentMapper.class);
-//    job.setReducerClass(FragmentReducer.class);
-    // output to a table
-//    TableMapReduceUtil.initTableReducerJob(genomeAdmin.getSequenceTable().getTableName(), FragmentReducer.class, job);
+     // because we aren't emitting anything from mapper
+    job.setOutputFormatClass(NullOutputFormat.class);
 
     job.submit();
     final long elapsedTime = System.currentTimeMillis() - startTime;
     log.info("Finished job " + elapsedTime / 1000 + " seconds");
 
     return 1;
-    //return rj;
     }
 
   public static class FragmentMapper extends Mapper<ImmutableBytesWritable, Text, ImmutableBytesWritable, Text>
@@ -124,7 +115,7 @@ public class LoadFromFASTA extends Configured implements Tool
 
     for (String s: new String[]{"22","1", "2", "3", "4", "5"})
       {
-      String path = "/Users/sarah.killcoyne/Data/FASTA/chr" + s + ".fa.gz";
+      String path = "/Users/skillcoyne/Data/FASTA/chr" + s + ".fa.gz";
       if ( !(new File(path).exists()))
         throw new IOException(path + " does not exist");
       String[] pathArgs = (String[]) ArrayUtils.addAll(args, new String[]{s, path});
