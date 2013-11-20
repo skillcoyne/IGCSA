@@ -113,7 +113,7 @@ public class HBaseGenome extends HBaseConnectedObjects
   public HBaseChromosome getChromosome(String chr) throws IOException
     {
     ChromosomeResult result = cT.queryTable(ChromosomeRow.createRowId(genome.getName(), chr));
-    return new HBaseChromosome(result);
+    return (result != null)? new HBaseChromosome(result): null;
     }
 
   public void createKaryotype()

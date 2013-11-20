@@ -22,30 +22,30 @@ import org.apache.hadoop.io.Text;
 
 import org.apache.hadoop.mapreduce.Job;
 
-import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 
-
 import org.lcsb.lu.igcsa.database.normal.Bin;
 import org.lcsb.lu.igcsa.database.normal.Fragment;
 import org.lcsb.lu.igcsa.database.normal.FragmentDAO;
 import org.lcsb.lu.igcsa.database.normal.GCBinDAO;
+
 import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.genome.Location;
+
 import org.lcsb.lu.igcsa.hbase.HBaseChromosome;
 import org.lcsb.lu.igcsa.hbase.HBaseGenome;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 import org.lcsb.lu.igcsa.hbase.HBaseSequence;
 import org.lcsb.lu.igcsa.hbase.tables.Column;
 import org.lcsb.lu.igcsa.hbase.tables.SequenceResult;
-import org.lcsb.lu.igcsa.mapreduce.FASTAInputFormat;
-import org.lcsb.lu.igcsa.mapreduce.FragmentKey;
+
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.lcsb.lu.igcsa.utils.VariantUtils;
 import org.lcsb.lu.igcsa.variation.fragment.Variation;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.io.IOException;
@@ -75,6 +75,8 @@ public class MutateFragments extends Configured implements Tool
     config.set("parent", "GRCh37");
     //    config.set("genome", "GRCh37");
     //    config.set("chromosome", chr);
+
+    genomeAdmin.deleteGenome("igcsa1");
 
     HBaseGenome genome = new HBaseGenome("igcsa1", "GRCh37");
 
@@ -138,6 +140,8 @@ public class MutateFragments extends Configured implements Tool
       {
       SequenceResult seq = HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().createResult(value);
 
+      log.info(seq.getChr() + " " + seq.getStart() + "-" + seq.getEnd());
+
       // get hbase objects for new genome
       HBaseGenome genome = HBaseGenomeAdmin.getHBaseGenomeAdmin().getGenome(genomeName);
       HBaseChromosome chromosome = genome.getChromosome(seq.getChr());
@@ -149,8 +153,8 @@ public class MutateFragments extends Configured implements Tool
       /* Don't bother to try and mutate a fragment that is more than 70% 'N' */
       if (mutatedSequence.calculateNucleotides() > (0.3 * seq.getSequenceLength()))
         {
-        Bin gcBin = this.binDAO.getBinByGC(seq.getChr(), mutatedSequence.calculateGC()); // TODO some of these calls take > 20ms (not even most though)
-        // get random fragment within the GC bin for each variation
+        Bin gcBin = this.binDAO.getBinByGC(seq.getChr(), mutatedSequence.calculateGC());
+        // TODO get random fragment within the GC bin for each variation -- this is the slowest query!!!
         Map<String, Fragment> fragmentVarMap = fragmentDAO.getFragment(seq.getChr(), gcBin.getBinId(), randomFragment.nextInt(gcBin.getSize()));
 
         Map<Variation, Map<Location, DNASequence>> mutations = new HashMap<Variation, Map<Location, DNASequence>>();
@@ -168,19 +172,20 @@ public class MutateFragments extends Configured implements Tool
             mutations.put(variation, variation.getLastMutations());
           }
 
-        HBaseSequence hBaseSequence = chromosome.addSequence(seq.getStart(), seq.getEnd(), seq.getSegment(), seq.getSequence());
+        HBaseSequence hBaseSequence = chromosome.addSequence(seq.getStart(),
+                                                             seq.getStart()+mutatedSequence.getLength(),
+                                                             seq.getSegment(),
+                                                             mutatedSequence.getSequence());
         for (Variation v : mutations.keySet())
           {
           for (Map.Entry<Location, DNASequence> entry : mutations.get(v).entrySet())
-            hBaseSequence.addSmallMutation(v, entry.getKey().getStart(), entry.getKey().getEnd(), entry.getValue().getSequence());
+            hBaseSequence.addSmallMutation(v, entry.getKey().getStart(),
+                                              entry.getKey().getEnd(),
+                                              entry.getValue().getSequence());
           }
         }
       else
         chromosome.addSequence(seq.getStart(), seq.getEnd(), seq.getSegment(), seq.getSequence());
-
-      log.info("foo");
-
-      //super.map(key, value, context);
       }
 
 
@@ -218,6 +223,7 @@ public class MutateFragments extends Configured implements Tool
 
   public static void main(String[] args) throws Exception
     {
+    // TODO At the end of this run each chromosome needs to be updated with the #segments and the length (as it may have changed due to insertions/duplications/deletions
     ToolRunner.run(new MutateFragments(), args);
     }
   }
