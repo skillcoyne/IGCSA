@@ -8,6 +8,7 @@ import org.apache.hadoop.hbase.filter.CompareFilter;
 import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
+import org.joni.ScanEnvironment;
 import org.lcsb.lu.igcsa.hbase.rows.*;
 
 import java.io.IOException;
@@ -50,7 +51,6 @@ public abstract class AbstractTable
       this.createTable();
 
     this.hTable = new HTable(configuration, tableName);
-    //this.hTable = getHTable(configuration, tableName);
     }
 
   private void createTable() throws IOException
@@ -122,7 +122,7 @@ public abstract class AbstractTable
     }
 
 
-  public Iterator<Result> getResultIterator(Column... columns) throws IOException
+  public Scan getScanFor(Column... columns)
     {
     Scan scan = new Scan();
 
@@ -138,7 +138,13 @@ public abstract class AbstractTable
           scan.addFamily(column.getFamliy());
         }
       }
-    ResultScanner scanner = hTable.getScanner(scan);
+    return scan;
+    }
+
+
+  public Iterator<Result> getResultIterator(Column... columns) throws IOException
+    {
+    ResultScanner scanner = hTable.getScanner(getScanFor(columns));
     return scanner.iterator();
     }
 
@@ -180,6 +186,12 @@ public abstract class AbstractTable
 
   public void addRow(org.lcsb.lu.igcsa.hbase.rows.Row row) throws IOException
     {
+    hTable.put(getPut(row));
+    }
+
+
+  public Put getPut(org.lcsb.lu.igcsa.hbase.rows.Row row) throws IOException
+    {
     Put put = new Put(row.getRowId());
 
     if (!row.isRowIdCorrect())
@@ -193,8 +205,10 @@ public abstract class AbstractTable
       put.add(col.getFamliy(), col.getQualifier(), col.getValue());
       }
 
-    hTable.put(put);
+    return put;
     }
+
+
 
 
   public void delete(String rowId) throws IOException
@@ -215,6 +229,8 @@ public abstract class AbstractTable
 
     return results;
     }
+
+
 
   protected abstract List<? extends AbstractResult> createResults(List<Result> results);
 

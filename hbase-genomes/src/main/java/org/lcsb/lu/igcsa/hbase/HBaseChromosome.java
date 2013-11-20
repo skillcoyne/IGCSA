@@ -9,6 +9,7 @@
 package org.lcsb.lu.igcsa.hbase;
 
 import org.apache.commons.lang.math.IntRange;
+import org.apache.hadoop.hbase.client.Put;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.hbase.rows.SequenceRow;
 import org.lcsb.lu.igcsa.hbase.tables.*;
@@ -37,6 +38,27 @@ public class HBaseChromosome extends HBaseConnectedObjects
     {
     super(rowId);
     this.chromosome = cT.queryTable(rowId);
+    }
+
+
+  public Put add(int start, int end, int segmentNumber, String sequence) throws IOException
+    {
+    if (end <= start || sequence.length() <=0 || (segmentNumber > 0 && segmentNumber <= this.chromosome.getSegmentNumber()))
+      throw new IllegalArgumentException("End location must be greater than start, segment must be between 1-" + this.chromosome.getSegmentNumber() + ", and the sequence must have a minimum length of 1");
+
+    String sequenceId = SequenceRow.createRowId(this.chromosome.getGenomeName(), this.chromosome.getChrName(), segmentNumber);
+    if (sT.queryTable(sequenceId) != null)
+      log.warn("Sequence "+ sequenceId + " already exists. Not overwriting.");
+    else
+      {
+      SequenceRow row = new SequenceRow( sequenceId );
+      row.addBasePairs(sequence);
+      row.addLocation(this.chromosome.getChrName(), segmentNumber, start, end);
+      row.addGenome(this.chromosome.getGenomeName());
+
+      return sT.getPut(row);
+      }
+    return null;
     }
 
   public HBaseSequence addSequence(int start, int end, int segmentNumber, String sequence) throws IOException

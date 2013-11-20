@@ -77,7 +77,7 @@
         <module>derby-db</module>
         <module>kiss-derby</module>
         <module>hbase-genomes</module>
-        <module>mapreduce</module>
+        <!--<module>mapreduce</module>-->
 
         <module>figg</module>
         <module>kiss</module>

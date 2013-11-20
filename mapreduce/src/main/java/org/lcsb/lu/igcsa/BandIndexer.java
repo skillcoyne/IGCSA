@@ -23,17 +23,11 @@ import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.database.ChromosomeBandDAO;
-import org.lcsb.lu.igcsa.database.sql.JDBCChromosomeBandDAO;
-import org.lcsb.lu.igcsa.mapreduce.FASTAFragmentInputFormat;
-import org.lcsb.lu.igcsa.mapreduce.FASTAInputFormat;
 import org.lcsb.lu.igcsa.mapreduce.FASTAOutputFormat;
-import org.lcsb.lu.igcsa.mapreduce.job.Job;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Properties;
 
 public class BandIndexer extends Configured implements Tool
   {

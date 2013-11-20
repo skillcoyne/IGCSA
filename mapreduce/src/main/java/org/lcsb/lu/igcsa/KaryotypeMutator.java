@@ -24,10 +24,6 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.generator.Aberration;
-import org.lcsb.lu.igcsa.generator.KaryotypeGenerator;
-import org.lcsb.lu.igcsa.genome.Karyotype;
-import org.lcsb.lu.igcsa.mapreduce.FASTAFragmentInputFormat;
-import org.lcsb.lu.igcsa.mapreduce.FASTAInputFormat;
 import org.lcsb.lu.igcsa.mapreduce.FASTAOutputFormat;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 

@@ -72,7 +72,7 @@ public class SequenceTable extends AbstractTable
     }
 
   @Override
-  protected SequenceResult createResult(Result result)
+  public SequenceResult createResult(Result result)
     {
     if (result.getRow() != null)
       {
