@@ -69,7 +69,7 @@ public class KaryotypeSelectionStrategy implements SelectionStrategy<Object>
     while (eI.hasNext())
       {
       DefaultWeightedEdge edge = eI.next();
-      if (cg.getEdgeWeight(edge) >= this.maxSimilarity)
+      if (cg.getEdgeWeight(edge) <= maxSimilarity)
         {
         KaryotypeCandidate notSelected = cg.getNodes(edge).get(rng.nextInt(2));
         cg.removeNode(notSelected);
@@ -78,9 +78,6 @@ public class KaryotypeSelectionStrategy implements SelectionStrategy<Object>
       }
 
     log.info("Removed " + newCandidates + " candidates with > " + maxFitness + " fitness; and " + removeFromPopulation.size() + " with NCD > " + this.maxSimilarity);
-
-
-
 
     List<S> selection = new ArrayList<S>();
     for(EvaluatedCandidate<S> candidate: evaluatedCandidates)

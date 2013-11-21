@@ -111,8 +111,8 @@ public class Evaluator implements FitnessEvaluator<KaryotypeCandidate> // this i
     double apScore = (karyotypeCandidate.getAneuploidies().size() > 0)? (getAneuploidyScore(karyotypeCandidate)): 0;
 
     // not using the list of candidates at the moment. I could integrate into the fitness score a population level score rather than leaving that to the termination criteria.  Have to think about how as it would perhaps simplify the code somewhat.
-    return  bpScore + apScore + similaritySum;
-//    return getBreakpointScore(karyotypeCandidate) +  similaritySum;
+    //return  bpScore + apScore + similaritySum;
+    return getBreakpointScore(karyotypeCandidate) +  similaritySum;
     }
 
   // Higher scores are naturally fit for watchmaker;

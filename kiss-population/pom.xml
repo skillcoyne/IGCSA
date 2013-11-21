@@ -73,7 +73,7 @@
                             <outputDirectory>${resources.to.dir}</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>../sim/dist-resources</directory>
+                                    <directory>../sim/dist-resources/${props.dir}</directory>
                                     <filtering>true</filtering>
                                     <includes>
                                         <include>*.properties</include>
