@@ -124,6 +124,7 @@ public class LoadFromFASTA extends Configured implements Tool
 
     Map<String, File> files = org.lcsb.lu.igcsa.utils.FileUtils.getFASTAFiles(new File(fastaDir));
 
+    // ideally I would do this all in one job but I'll work that one out later
     for (String chr: files.keySet())
       {
       final long startTime = System.currentTimeMillis();

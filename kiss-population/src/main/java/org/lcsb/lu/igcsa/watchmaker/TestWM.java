@@ -49,7 +49,7 @@ public class TestWM
 
     Probability aneuploidyProb = dao.getAneuploidyDAO().getChromosomeProbabilities();
     Probability ploidyCountProb = dao.getGeneralKarytoypeDAO().getProbabilityClass("aneuploidy");
-    Probability bpCountProb = dao.getGeneralKarytoypeDAO().getProbabilityClass("aberration"); // not really used right now
+    Probability bpCountProb = dao.getGeneralKarytoypeDAO().getProbab  ilityClass("aberration"); // not really used right now
     Probability bandProbability = dao.getGeneralKarytoypeDAO().getOverallBandProbabilities();
 
 
