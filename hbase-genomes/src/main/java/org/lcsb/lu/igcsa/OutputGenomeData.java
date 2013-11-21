@@ -16,6 +16,7 @@ import org.lcsb.lu.igcsa.hbase.HBaseGenome;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 import org.lcsb.lu.igcsa.hbase.HBaseSequence;
 import org.lcsb.lu.igcsa.hbase.tables.GenomeResult;
+import org.lcsb.lu.igcsa.hbase.tables.SequenceResult;
 
 import java.io.IOException;
 
@@ -29,22 +30,32 @@ public class OutputGenomeData
     Configuration conf = HBaseConfiguration.create();
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(conf);
 
-    for (HBaseGenome gr: admin.retrieveGenomes())
+    //    SequenceResult seq = admin.getGenome("igcsa1").getChromosome("22").getSequence(17547).getSequence();
+
+
+    //
+
+
+//    SequenceResult seq = admin.getSequenceTable().queryTable("igcsa1-22:17547");
+//    System.out.println(seq.getChr() + " " + seq.getSegment() + " " + seq.getStart() + "-" + seq.getEnd() + " length:" + seq.getSequenceLength());
+//    System.exit(1);
+
+
+    for (HBaseGenome gr : admin.retrieveGenomes())
       {
-      log.info( gr.getGenome().getName() + " " + gr.getGenome().getChromosomes() );
-      for (HBaseChromosome chr: gr.getChromosomes())
+      log.info(gr.getGenome().getName() + " " + gr.getGenome().getChromosomes());
+      for (HBaseChromosome chr : gr.getChromosomes())
         {
-        log.info( chr.getChromosome().getChrName() + " length:" + chr.getChromosome().getLength() + " num segments:" + chr.getChromosome().getSegmentNumber());
+        log.info(chr.getChromosome().getChrName() + " length:" + chr.getChromosome().getLength() + " num segments:" + chr.getChromosome().getSegmentNumber());
 
         // first and last just to check
-//        HBaseSequence seq = chr.getSequence(1);
-//        log.info(seq.getSequence().getSegment() + " :" + seq.getSequence().getStart() + "-" + seq.getSequence().getEnd());
-//        seq = chr.getSequence( chr.getChromosome().getSegmentNumber() );
-//        log.info(seq.getSequence().getSegment() + " :" + seq.getSequence().getStart() + "-" + seq.getSequence().getEnd());
+        //        HBaseSequence seq = chr.getSequence(1);
+        //        log.info(seq.getSequence().getSegment() + " :" + seq.getSequence().getStart() + "-" + seq.getSequence().getEnd());
+        //        seq = chr.getSequence( chr.getChromosome().getSegmentNumber() );
+        //        log.info(seq.getSequence().getSegment() + " :" + seq.getSequence().getStart() + "-" + seq.getSequence().getEnd());
 
 
         }
-
 
 
       }

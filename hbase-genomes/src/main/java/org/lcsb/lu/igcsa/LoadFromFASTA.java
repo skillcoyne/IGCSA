@@ -28,6 +28,7 @@ import org.lcsb.lu.igcsa.mapreduce.FragmentKey;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 
 /**
@@ -43,18 +44,20 @@ public class LoadFromFASTA extends Configured implements Tool
   @Override
   public int run(String[] args) throws Exception
     {
-    final long startTime = System.currentTimeMillis();
+    if (args.length < 2)
+      throw new Exception("Missing required parameters: <genome name>, <chromosome>, <fasta file path>");
 
-    String chr = args[0];
-    String fastaPath = args[1];
+    String genomeName = args[0];
+    String chr = args[1];
+    String fastaPath = args[2];
 
     Configuration config = HBaseConfiguration.create();
     HBaseGenomeAdmin genomeAdmin = HBaseGenomeAdmin.getHBaseGenomeAdmin(config);
 
-    config.set("genome", "GRCh37");
+    config.set("genome", genomeName);
     config.set("chromosome", chr);
 
-    HBaseGenome genome = new HBaseGenome("GRCh37", null);
+    HBaseGenome genome = new HBaseGenome(genomeName, null);
     genome.addChromosome(chr, 0, 0);
 
     Job job = new Job(config, "Reference Genome Fragmentation");
@@ -71,11 +74,8 @@ public class LoadFromFASTA extends Configured implements Tool
      // because we aren't emitting anything from mapper
     job.setOutputFormatClass(NullOutputFormat.class);
 
-    job.submit();
-    final long elapsedTime = System.currentTimeMillis() - startTime;
-    log.info("Finished job " + elapsedTime / 1000 + " seconds");
 
-    return 1;
+    return (job.waitForCompletion(true) ? 0 : 1);
     }
 
   public static class FragmentMapper extends Mapper<ImmutableBytesWritable, Text, ImmutableBytesWritable, Text>
@@ -111,69 +111,29 @@ public class LoadFromFASTA extends Configured implements Tool
 
   public static void main(String[] args) throws Exception
     {
-    FileUtils.deleteDirectory(new File("/tmp/figg2"));
-
-    for (String s: new String[]{"22","1", "2", "3", "4", "5"})
+    if (args.length < 2)
       {
-      String path = "/Users/skillcoyne/Data/FASTA/chr" + s + ".fa.gz";
-      if ( !(new File(path).exists()))
-        throw new IOException(path + " does not exist");
-      String[] pathArgs = (String[]) ArrayUtils.addAll(args, new String[]{s, path});
-      ToolRunner.run(new LoadFromFASTA(), pathArgs);
+      System.err.println("Usage: LoadFromFASTA <genome name> <fasta directory>");
+      System.exit(-1);
+      }
 
-      break;
+    String genomeName = args[0];
+    String fastaDir = args[1];
+
+    //HBaseGenomeAdmin.getHBaseGenomeAdmin().deleteGenome(genomeName);
+
+    Map<String, File> files = org.lcsb.lu.igcsa.utils.FileUtils.getFASTAFiles(new File(fastaDir));
+
+    for (String chr: files.keySet())
+      {
+      final long startTime = System.currentTimeMillis();
+      ToolRunner.run(new LoadFromFASTA(),  new String[]{genomeName, chr, files.get(chr).getAbsolutePath()});
+      final long elapsedTime = System.currentTimeMillis() - startTime;
+      log.info("Finished job " + elapsedTime / 1000 + " seconds");
       }
     }
-
-
   }
 
 
 
 
-
-
-//  public static class FragmentReducer extends TableReducer<ImmutableBytesWritable, Text, ImmutableBytesWritable>
-//    {
-//    private String chr;
-//    private String genomeName;
-//
-//    private HBaseGenomeAdmin admin;
-//
-//    @Override
-//    protected void setup(Context context) throws IOException, InterruptedException
-//      {
-//      super.setup(context);
-//
-//      admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(context.getConfiguration());
-//
-//      genomeName = context.getConfiguration().get("genome");
-//      chr = context.getConfiguration().get("chromosome");
-//
-//      //tables = (MutableGenome) springContext.getBean("tables");
-//
-//      log.info("CHROMOSOME " + chr);
-//      }
-//
-//    @Override
-//    public void reduce(ImmutableBytesWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException
-//      {
-//      FragmentKey fragment = FragmentKey.fromBytes(key.get());
-//
-//      String s = "";
-//      for (Text v: values)
-//        s += v.toString();
-//
-//      //Text result = new Text();
-//      /*
-//      so I don't understand what's going on here.  Each mapper should have only one value per key but if I iterate over the values I get
-//      each value duplicated for each key.
-//      for now I just won't iterate since I'm missing something
-//      */
-//
-//      Put put = this.admin.getGenome(genomeName).getChromosome(chr).add((int)fragment.getStart(), (int)fragment.getEnd(), fragment.getSegment(), s);
-//
-//      //result.set(values.iterator().next().toString());
-//      context.write(null, put);
-//      }
-//    }

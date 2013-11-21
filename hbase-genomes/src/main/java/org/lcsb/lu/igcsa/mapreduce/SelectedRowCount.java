@@ -26,6 +26,7 @@ public class SelectedRowCount extends TableMapper<ImmutableBytesWritable, IntWri
   protected void map(ImmutableBytesWritable key, Result value, Context context) throws IOException, InterruptedException
     {
     context.getCounter(Counters.ROWS).increment(1);
+    context.write(key, new IntWritable(1));
     }
 
 

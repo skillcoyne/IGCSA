@@ -9,7 +9,9 @@ import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * org.lcsb.lu.igcsa.utils
@@ -74,6 +76,30 @@ public class FileUtils
       }
 
     return chromosomes;
+    }
+
+  public static Map<String, File> getFASTAFiles(File fastaDir) throws FileNotFoundException
+    {
+    if (!fastaDir.exists() || !fastaDir.canRead())
+      throw new FileNotFoundException("FASTA directory does not exist or is not readable " + fastaDir.getAbsolutePath());
+
+    FilenameFilter fastaFilter = new FilenameFilter()
+    {
+    public boolean accept(File dir, String name)
+      {
+      for ( String suffix: new String[]{".fa", ".fasta", ".fa.gz", ".fasta.gz"} )
+        if (name.endsWith(suffix)) return true;
+      return false;
+      }
+    };
+
+    Map<String, File> files = new HashMap<String, File>();
+    for (File file : listFASTAFiles(fastaDir, fastaFilter))
+      {
+      String name = getChromosomeFromFASTA(file);
+      files.put(name, file);
+      }
+    return files;
     }
 
   private static File[] listFASTAFiles(File fastaDir, FilenameFilter filter) throws FileNotFoundException

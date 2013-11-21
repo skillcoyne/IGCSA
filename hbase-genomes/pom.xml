@@ -12,20 +12,19 @@
     <artifactId>hbase-genomes</artifactId>
 
     <dependencies>
-
+        <!-- internal libraries -->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>figg</artifactId>
             <version>${project.version}</version>
         </dependency>
-
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>kiss</artifactId>
             <version>${project.version}</version>
         </dependency>
 
-        <!-- hadoop libraries -->
+        <!-- hadoop & hbase libraries -->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-core</artifactId>
@@ -36,7 +35,6 @@
             <artifactId>hadoop-common</artifactId>
             <version>2.2.0</version>
         </dependency>
-
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase</artifactId>
@@ -83,9 +81,26 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>create-executable-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <finalName>${project.build.finalName}-${project.version}</finalName>
+                            <appendAssemblyId>false</appendAssemblyId>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
         </plugins>
     </build>
-
-
 </project>

@@ -55,10 +55,8 @@ public class GenomeSimulator
 
     if (cl.hasOption("f"))
       {
-      new HBaseFIGG(context, cl);
-
-//      FragmentInsilicoGenome insGen = new FragmentInsilicoGenome(context, cl);
-//      insGen.applyMutations();
+      FragmentInsilicoGenome insGen = new FragmentInsilicoGenome(context, cl);
+      insGen.applyMutations();
       }
 
 //    if (cl.hasOption("s"))

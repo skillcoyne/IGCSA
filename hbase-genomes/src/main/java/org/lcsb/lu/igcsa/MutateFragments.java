@@ -64,102 +64,54 @@ public class MutateFragments extends Configured implements Tool
   {
   static Logger log = Logger.getLogger(MutateFragments.class.getName());
 
-  public static enum Counters
-    {
-      ROWS
-    }
-
   static ClassPathXmlApplicationContext springContext;
 
   public MutateFragments()
     {
     springContext = new ClassPathXmlApplicationContext(new String[]{"classpath*:spring-config.xml", "classpath*:/conf/genome.xml"});
-    if (springContext == null) throw new RuntimeException("Failed to load Spring application context");
+    if (springContext == null)
+      throw new RuntimeException("Failed to load Spring application context");
     }
-
 
   @Override
   public int run(String[] args) throws Exception
     {
+    String genome = args[0];
+    String parent = args[1];
+
     Configuration config = HBaseConfiguration.create();
     HBaseGenomeAdmin genomeAdmin = HBaseGenomeAdmin.getHBaseGenomeAdmin(config);
 
     // don't think I need these
-    config.set("genome", "igcsa1");
-    config.set("parent", "GRCh37");
-    //
-    //    genomeAdmin.deleteGenome("igcsa1");
-    //
-    //    // make sure the new genome is created before we start
-    //    new HBaseGenome("igcsa1", "GRCh37");
-    //
-    //    Job job = new Job(config, "Reference Genome Fragmentation");
-    //    job.setJarByClass(MutateFragments.class);
-    //
-    //    // this scan will get all sequences for the given genome (so 300 million)
-    //    Scan seqScan = genomeAdmin.getSequenceTable().getScanFor(new Column("info", "genome", "GRCh37"));
-    //    seqScan.setCaching(500);        // 1 is the default in Scan, which will be bad for MapReduce jobs
-    //    seqScan.setCacheBlocks(false);
-    //
-    //    job.setMapperClass(SequenceTableMapper.class);
-    //    TableMapReduceUtil.initTableMapperJob(genomeAdmin.getSequenceTable().getTableName(), seqScan, SequenceTableMapper.class, null,
-    // null, job);
-    //
-    //    // because we aren't emitting anything from mapper
-    //    job.setOutputFormatClass(NullOutputFormat.class);
-    //
-    //    job.waitForCompletion(true);
+    config.set("genome", genome);
+    config.set("parent", parent);
 
+    genomeAdmin.deleteGenome(genome);
 
-    // after the job is complete we run another one to update each chromosome based on the sequence information
+    // make sure the new genome is created before we start
+    new HBaseGenome(genome, parent);
 
-    Job job = new Job(config, "Mutated Genome Chromosome Update");
+    Job job = new Job(config, "Reference Genome Fragmentation");
     job.setJarByClass(MutateFragments.class);
 
+    // this scan will get all sequences for the given genome (so 300 million)
+    Scan seqScan = genomeAdmin.getSequenceTable().getScanFor(new Column("info", "genome", "GRCh37"));
+    seqScan.setCaching(500);        // 1 is the default in Scan, which will be bad for MapReduce jobs
+    seqScan.setCacheBlocks(false);
 
-    Scan chrScan = genomeAdmin.getSequenceTable().getScanFor(new Column("info", "genome", "igcsa1"), new Column("loc", "chr", "22"));
-    chrScan.setCaching(500);
-    chrScan.setCacheBlocks(false);
+    job.setMapperClass(SequenceTableMapper.class);
+    TableMapReduceUtil.initTableMapperJob(genomeAdmin.getSequenceTable().getTableName(), seqScan, SequenceTableMapper.class, null, null, job);
 
-    job.setMapperClass(SelectedRowCount.class);
-
-    TableMapReduceUtil.initTableMapperJob(genomeAdmin.getSequenceTable().getTableName(), chrScan, SelectedRowCount.class, ImmutableBytesWritable.class, IntWritable.class, job);
-
-    job.setReducerClass(NullReducer.class);
-
+    // because we aren't emitting anything from mapper
     job.setOutputFormatClass(NullOutputFormat.class);
 
-    job.waitForCompletion(true);
-
-    long count = job.getCounters().findCounter(SelectedRowCount.Counters.ROWS).getValue();
-
-    log.info(count);
-
-    return 0;
+    return (job.waitForCompletion(true) ? 0 : 1);
     }
-
-
-  public static class ChromosomeUpdate extends TableReducer<ImmutableBytesWritable, IntWritable, ImmutableBytesWritable>
-    {
-    @Override
-    protected void reduce(ImmutableBytesWritable key, Iterable<IntWritable> values, Context context) throws IOException,
-    InterruptedException
-      {
-      //      log.info(Bytes.toString(key.get()));
-      //
-      //      int sum = 0;
-      //      for(IntWritable i: values)
-      //        sum += i.get();
-      //
-      //      log.info(sum);
-      //super.reduce(key, values, context);
-      }
-    }
-
 
   public static class SequenceTableMapper extends TableMapper<ImmutableBytesWritable, Text>
     {
     private String genomeName;
+    private String parentName;
     private VariantUtils variantUtils;
     private GCBinDAO binDAO;
     private FragmentDAO fragmentDAO;
@@ -169,6 +121,7 @@ public class MutateFragments extends Configured implements Tool
       {
       super.setup(context);
       genomeName = context.getConfiguration().get("genome");
+      parentName = context.getConfiguration().get("parent");
       variantUtils = (VariantUtils) springContext.getBean("variantUtils");
       binDAO = (GCBinDAO) springContext.getBean("GCBinDAO");
       fragmentDAO = (FragmentDAO) springContext.getBean("FragmentDAO");
@@ -185,7 +138,8 @@ public class MutateFragments extends Configured implements Tool
       // get hbase objects for new genome
       HBaseGenome genome = HBaseGenomeAdmin.getHBaseGenomeAdmin().getGenome(genomeName);
       HBaseChromosome chromosome = genome.getChromosome(seq.getChr());
-      if (chromosome == null) chromosome = genome.addChromosome(seq.getChr(), 0, 0);
+      if (chromosome == null)
+        chromosome = genome.addChromosome(seq.getChr(), 0, 0);
 
       Random randomFragment = new Random();
       DNASequence mutatedSequence = new DNASequence(seq.getSequence());
@@ -194,8 +148,7 @@ public class MutateFragments extends Configured implements Tool
         {
         Bin gcBin = this.binDAO.getBinByGC(seq.getChr(), mutatedSequence.calculateGC());
         // TODO get random fragment within the GC bin for each variation -- this is the slowest query!!!
-        Map<String, Fragment> fragmentVarMap = fragmentDAO.getFragment(seq.getChr(), gcBin.getBinId(),
-                                                                       randomFragment.nextInt(gcBin.getSize()));
+        Map<String, Fragment> fragmentVarMap = fragmentDAO.getFragment(seq.getChr(), gcBin.getBinId(), randomFragment.nextInt(gcBin.getSize()));
 
         Map<Variation, Map<Location, DNASequence>> mutations = new HashMap<Variation, Map<Location, DNASequence>>();
 
@@ -208,20 +161,21 @@ public class MutateFragments extends Configured implements Tool
 
           mutatedSequence = variation.mutateSequence(mutatedSequence);
 
-          if (variation.getLastMutations().size() > 0) mutations.put(variation, variation.getLastMutations());
+          if (variation.getLastMutations().size() > 0)
+            mutations.put(variation, variation.getLastMutations());
           }
 
-        HBaseSequence hBaseSequence = chromosome.addSequence(seq.getStart(), seq.getStart() + mutatedSequence.getLength(),
-                                                             seq.getSegment(), mutatedSequence.getSequence());
+        HBaseSequence hBaseSequence = chromosome.addSequence(seq.getStart(), seq.getStart() + mutatedSequence.getLength(), seq.getSegment(), mutatedSequence.getSequence());
         for (Variation v : mutations.keySet())
           {
+          // add any mutations to the small mutations table
           for (Map.Entry<Location, DNASequence> entry : mutations.get(v).entrySet())
             hBaseSequence.addSmallMutation(v, entry.getKey().getStart(), entry.getKey().getEnd(), entry.getValue().getSequence());
           }
         }
-      else chromosome.addSequence(seq.getStart(), seq.getEnd(), seq.getSegment(), seq.getSequence());
+      else
+        chromosome.addSequence(seq.getStart(), seq.getEnd(), seq.getSegment(), seq.getSequence());
       }
-
 
     private List<Variation> getVariants(String chr)
       {
@@ -244,20 +198,19 @@ public class MutateFragments extends Configured implements Tool
       return new ArrayList<Variation>();
       }
 
-
-    //    @Override
-    //    protected void map(ImmutableBytesWritable key, Text value, Context context) throws IOException, InterruptedException
-    //      {
-    //      //super.map(key, value, context);
-    //      HBaseGenome genome = HBaseGenomeAdmin.getHBaseGenomeAdmin().getGenome(genomeName);
-    //      }
-
     }
 
 
   public static void main(String[] args) throws Exception
     {
-    // TODO At the end of this run each chromosome needs to be updated with the #segments and the length (as it may have changed due to insertions/duplications/deletions
-    ToolRunner.run(new MutateFragments(), args);
+    String genome = "igcsa2", parent = "GRCh37";
+    long start = System.currentTimeMillis();
+    ToolRunner.run(new MutateFragments(), new String[]{genome, parent});
+    long end = System.currentTimeMillis() - start;
+
+    // after the job is complete we run another one to update each chromosome based on the sequence information
+    ToolRunner.run(new UpdateGenome(), new String[]{genome});
+
+    log.info("Finished mutations for " + genome + ": " + (end/1000) );
     }
   }
