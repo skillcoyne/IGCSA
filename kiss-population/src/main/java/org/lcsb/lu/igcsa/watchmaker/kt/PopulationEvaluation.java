@@ -1,13 +1,10 @@
 package org.lcsb.lu.igcsa.watchmaker.kt;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.database.Band;
-import org.lcsb.lu.igcsa.watchmaker.kt.statistics.BreakpointRepresentation;
 import org.lcsb.lu.igcsa.watchmaker.kt.statistics.CandidateBreakpoints;
 import org.lcsb.lu.igcsa.watchmaker.kt.statistics.CandidateEvaluation;
 import org.uncommons.maths.statistics.DataSet;
 import org.uncommons.watchmaker.framework.EvaluatedCandidate;
-import org.uncommons.watchmaker.framework.PopulationData;
 
 import java.util.*;
 

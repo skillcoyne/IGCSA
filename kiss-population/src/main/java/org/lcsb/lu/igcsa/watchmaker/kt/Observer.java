@@ -9,15 +9,11 @@
 package org.lcsb.lu.igcsa.watchmaker.kt;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.utils.GenerationStatistics;
-import org.lcsb.lu.igcsa.watchmaker.kt.KaryotypeCandidate;
 import org.lcsb.lu.igcsa.watchmaker.kt.statistics.PopulationStatistic;
 import org.uncommons.maths.statistics.DataSet;
 import org.uncommons.watchmaker.framework.EvolutionObserver;
 import org.uncommons.watchmaker.framework.PopulationData;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public class Observer implements EvolutionObserver<KaryotypeCandidate>
   {

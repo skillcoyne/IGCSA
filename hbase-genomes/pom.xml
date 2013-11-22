@@ -102,6 +102,11 @@
                             </descriptorRefs>
                             <finalName>${project.build.finalName}-${project.version}</finalName>
                             <appendAssemblyId>false</appendAssemblyId>
+                            <archive>
+                                <manifest>
+                                    <mainClass>org.lcsb.lu.igcsa.LoadFromFASTA</mainClass>
+                                </manifest>
+                            </archive>
                         </configuration>
                     </execution>
                 </executions>
