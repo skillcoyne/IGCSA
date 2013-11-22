@@ -12,18 +12,13 @@ import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.lcsb.lu.igcsa.aberrations.AberrationTypes;
 import org.lcsb.lu.igcsa.database.Band;
-import org.paukov.combinatorics.Factory;
-import org.paukov.combinatorics.Generator;
 import org.paukov.combinatorics.ICombinatoricsVector;
-import org.paukov.combinatorics.util.ComplexCombinationGenerator;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -133,5 +128,18 @@ public class AberrationRulesTest
 
     rules.applyRules(bands);
     }
+
+
+  @Test
+  public void testGetDeletionAcrossCentromere() throws Exception  // can't occur
+  {
+  Band[] bands = new Band[]{new Band("10p", "12"), new Band("10", "q25")};
+
+  rules.applyRules(bands);
+  List<ICombinatoricsVector<Band>> sets = rules.getOrderedAberrationSets().get(AberrationTypes.DELETION);
+
+  for (ICombinatoricsVector<Band> iv: sets)
+    assertEquals(iv.getVector().size(), 1);
+  }
 
   }

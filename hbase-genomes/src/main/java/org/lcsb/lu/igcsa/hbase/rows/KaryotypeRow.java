@@ -10,6 +10,9 @@ package org.lcsb.lu.igcsa.hbase.rows;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.database.Band;
+import org.lcsb.lu.igcsa.generator.Aberration;
+import org.lcsb.lu.igcsa.generator.Aneuploidy;
 import org.lcsb.lu.igcsa.hbase.tables.Column;
 
 import java.io.IOException;
@@ -19,8 +22,8 @@ public class KaryotypeRow extends Row
   {
   static Logger log = Logger.getLogger(KaryotypeRow.class.getName());
 
-  private String genome;
-  private String aberration;
+  private String karyotypeName;
+  private Aberration aberration;
 
 
   public static String createRowId(String genome, String abr)
@@ -33,37 +36,28 @@ public class KaryotypeRow extends Row
     super(rowId);
     }
 
-  public void addGenome(String genome)
+  public void addKaryotype(String karyotype)
     {
-    this.addColumn(new Column("info", "genome", genome));
-    this.genome = genome;
+    this.karyotypeName = karyotype;
+    this.addColumn(new Column("info", "karyotype", karyotypeName));
     }
 
-  public void addAberration(String type, List<String[]> abr) throws IOException
+  public void addAberration(Aberration abr) throws IOException
     {
-    aberration = "";
-
-    this.addColumn( new Column("abr", "type", type) );
-    for (int i=0; i<abr.size(); i++)
+    addColumn(new Column("abr", "type", abr.getAberration().getCytogeneticDesignation()));
+    int i = 1;
+    for (Band band: abr.getBands())
       {
-      String[] a = abr.get(i);
-
-      if (a.length != 2)
-        throw new IOException("Aberrations must come in pairs [chr, loc-loc]");
-
-      this.addColumn( new Column("abr", "chr"+(i+1), a[0]) );
-      this.addColumn( new Column("abr", "chr"+(i+1), a[1]) );
-
-      aberration += StringUtils.join(a, ":") + ",";
+      addColumn( new Column("abr", "chr"+i, band.getChromosomeName()) );
+      addColumn( new Column("abr", "loc"+i, band.getLocation().getStart() + "-" + band.getLocation().getEnd()));
+      ++i;
       }
-
-    aberration = StringUtils.removeEnd(aberration, ",");
+    aberration = abr;
     }
-
 
   @Override
   public boolean isRowIdCorrect()
     {
-    return (genome == null || aberration == null || !this.getRowIdAsString().equals(createRowId(genome, aberration)))? false: true;
+    return (karyotypeName == null || aberration == null || !this.getRowIdAsString().equals(createRowId(karyotypeName, aberration.getWithLocations())))? false: true;
     }
   }

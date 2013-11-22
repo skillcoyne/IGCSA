@@ -8,13 +8,13 @@
 
 package org.lcsb.lu.igcsa;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.math3.distribution.PoissonDistribution;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.database.KaryotypeDAO;
 import org.lcsb.lu.igcsa.generator.Aberration;
 import org.lcsb.lu.igcsa.generator.AberrationRules;
-import org.lcsb.lu.igcsa.genome.Karyotype;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.lcsb.lu.igcsa.watchmaker.kt.*;
@@ -34,23 +34,23 @@ import org.uncommons.watchmaker.framework.termination.GenerationCount;
 
 import java.util.*;
 
-public class InitialPopulationGenerator
+public class PopulationGenerator
   {
-  static Logger log = Logger.getLogger(InitialPopulationGenerator.class.getName());
+  static Logger log = Logger.getLogger(PopulationGenerator.class.getName());
 
   static ApplicationContext context;
 
   public static void main(String[] args) throws Exception
     {
-    new InitialPopulationGenerator().run();
+    new PopulationGenerator().run(1000);
     }
 
-  public InitialPopulationGenerator()
+  public PopulationGenerator()
     {
     context = new ClassPathXmlApplicationContext(new String[]{"classpath*:spring-config.xml", "classpath*:/conf/genome.xml", "classpath*:/conf/database-config.xml"});
     }
 
-  public void run() throws ProbabilityException
+  public List<MinimalKaryotype> run(int maxGen) throws ProbabilityException
     {
     KaryotypeDAO dao = (KaryotypeDAO) context.getBean("karyotypeDAO");
 
@@ -86,21 +86,20 @@ public class InitialPopulationGenerator
         maxPop,
         0,
         new BreakpointCondition(allPossibleBands, 2),
-        //new PopulationConditions( new BreakpointRepresentation(2.0) )
-        new GenerationCount(1000));
+        new GenerationCount(maxGen));
 
+    List<MinimalKaryotype> karyotypes = new ArrayList<MinimalKaryotype>();
     for (EvaluatedCandidate<KaryotypeCandidate> candidate : pop)
       {
       log.info(candidate.getFitness() + " " + candidate.getCandidate());
-
-       createKaryotype(candidate.getCandidate()) ;
+      karyotypes.add( createKaryotype(candidate.getCandidate()) );
       }
 
-
+    return karyotypes;
     }
 
 
-  private List<Aberration> createKaryotype(KaryotypeCandidate candidate)
+  private MinimalKaryotype createKaryotype(KaryotypeCandidate candidate)
     {
     Collection<Band> bps = candidate.getBreakpoints();
 
@@ -148,13 +147,7 @@ public class InitialPopulationGenerator
       abrList.add(abr);
       }
 
-    // TODO collect aneuploidies & aberrations, put into HBase tables.  Write extractor job that will assemble a karyotype from the HBase tables
-
-    log.info(candidate.getAneuploidies());
-    log.info(abrList);
-
-
-    return abrList;
+    return new MinimalKaryotype(abrList, candidate.getAneuploidies());
     }
 
 

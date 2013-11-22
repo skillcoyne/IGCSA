@@ -9,10 +9,10 @@
 package org.lcsb.lu.igcsa.utils;
 
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.generator.Aneuploidy;
 import org.lcsb.lu.igcsa.watchmaker.kt.KaryotypeCandidate;
 import org.uncommons.watchmaker.framework.EvaluatedCandidate;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -76,7 +76,7 @@ public class PopulationAneuploidy
      for (EvaluatedCandidate c: candidates)
        {
        KaryotypeCandidate kc = (KaryotypeCandidate) c.getCandidate();
-       for(KaryotypeCandidate.Aneuploidy ap: kc.getAneuploidies())
+       for(Aneuploidy ap: kc.getAneuploidies())
          {
          initChr(ap.getChromosome());
 

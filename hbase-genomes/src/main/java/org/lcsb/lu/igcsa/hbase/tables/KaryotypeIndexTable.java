@@ -93,6 +93,8 @@ public class KaryotypeIndexTable extends AbstractTable
     }
 
 
+
+
   public class KaryotypeIndexResult extends AbstractResult
     {
 

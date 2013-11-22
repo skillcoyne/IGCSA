@@ -11,6 +11,8 @@ package org.lcsb.lu.igcsa.hbase;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.MinimalKaryotype;
+import org.lcsb.lu.igcsa.generator.Aberration;
 import org.lcsb.lu.igcsa.hbase.rows.ChromosomeRow;
 import org.lcsb.lu.igcsa.hbase.rows.GenomeRow;
 import org.lcsb.lu.igcsa.hbase.rows.KaryotypeIndexRow;
@@ -18,10 +20,7 @@ import org.lcsb.lu.igcsa.hbase.rows.KaryotypeRow;
 import org.lcsb.lu.igcsa.hbase.tables.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class HBaseGenome extends HBaseConnectedObjects
   {
@@ -116,11 +115,31 @@ public class HBaseGenome extends HBaseConnectedObjects
     return (result != null)? new HBaseChromosome(result): null;
     }
 
-  public void createKaryotype()
+  public void createKaryotype(String baseKaryotypeName, String parentGenome, List<MinimalKaryotype> karyotypes) throws IOException
     {
-    KaryotypeIndexRow row = new KaryotypeIndexRow(this.rowId);
+    int i = 0;
+    for (MinimalKaryotype kt: karyotypes)
+      {
+      ++i;
+      String karyotypeName = baseKaryotypeName+i;
+      KaryotypeIndexRow row = new KaryotypeIndexRow(karyotypeName, parentGenome);
+      row.addAberrations(kt.getAberrations());
+      this.kiT.addRow(row);
 
+      for (Map.Entry<String, Aberration> ktrid: row.getKaryotypeTableRowIds().entrySet())
+        {
+        KaryotypeRow krow = new KaryotypeRow(ktrid.getKey());
+        krow.addKaryotype(karyotypeName);
+        krow.addAberration(ktrid.getValue());
 
+        log.info(krow.getRowIdAsString());
+        this.kT.addRow(krow);
+        }
+
+      //kt.getAneuploidies()
+      // TODO I need a separate table for aneuploidies!!!
+
+      }
 
     }
 

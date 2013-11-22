@@ -12,6 +12,7 @@ import org.apache.commons.lang.math.DoubleRange;
 import org.apache.commons.lang.math.Range;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.Band;
+import org.lcsb.lu.igcsa.generator.Aneuploidy;
 import org.uncommons.watchmaker.framework.EvolutionaryOperator;
 import org.uncommons.watchmaker.framework.FitnessEvaluator;
 
@@ -68,7 +69,7 @@ public class Crossover implements EvolutionaryOperator<KaryotypeCandidate>
     breakpoints.addAll(xr3.getBreakpoints());
 
     // each ploidy is independent, this means that 12x1 (or 19x-3) could show up multiple times or not at all for crossover anyhow
-    List<KaryotypeCandidate.Aneuploidy> ploidy = new ArrayList<KaryotypeCandidate.Aneuploidy>(xr1.getAneuploidies());
+    List<Aneuploidy> ploidy = new ArrayList<Aneuploidy>(xr1.getAneuploidies());
     ploidy.addAll(xr2.getAneuploidies());
     ploidy.addAll(xr3.getAneuploidies());
 
@@ -112,7 +113,7 @@ public class Crossover implements EvolutionaryOperator<KaryotypeCandidate>
     while (abrI.hasNext())
       {
       Band band = null;
-      KaryotypeCandidate.Aneuploidy pdy = null;
+      Aneuploidy pdy = null;
 
       if (random.nextDouble() <= CR)
         {
@@ -127,7 +128,7 @@ public class Crossover implements EvolutionaryOperator<KaryotypeCandidate>
           }
         else
           {
-          pdy = (KaryotypeCandidate.Aneuploidy) curr;
+          pdy = (Aneuploidy) curr;
           x1 = candidates[0].getAneuploidy(pdy.getChromosome()).getCount();
           x2 = candidates[1].getAneuploidy(pdy.getChromosome()).getCount();
           x3 = candidates[2].getAneuploidy(pdy.getChromosome()).getCount();
@@ -162,14 +163,14 @@ public class Crossover implements EvolutionaryOperator<KaryotypeCandidate>
     }
 
   // not sure this should actually be separate
-  private void crossAneuploidy(List<KaryotypeCandidate.Aneuploidy> ploidy, KaryotypeCandidate[] candidates, KaryotypeCandidate trial, Random random)
+  private void crossAneuploidy(List<Aneuploidy> ploidy, KaryotypeCandidate[] candidates, KaryotypeCandidate trial, Random random)
     {
     Collections.shuffle(ploidy, random); // "noisy random vector"
 
-    Iterator<KaryotypeCandidate.Aneuploidy> pI = ploidy.iterator();
+    Iterator<Aneuploidy> pI = ploidy.iterator();
     while(pI.hasNext())
       {
-      KaryotypeCandidate.Aneuploidy aneuploidy = pI.next();
+      Aneuploidy aneuploidy = pI.next();
 
       if (random.nextDouble() <= CR)
         {

@@ -23,6 +23,12 @@
             <artifactId>kiss</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>kiss-population</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
 
         <!-- hadoop & hbase libraries -->
         <dependency>

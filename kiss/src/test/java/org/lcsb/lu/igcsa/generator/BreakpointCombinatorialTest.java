@@ -11,6 +11,7 @@ package org.lcsb.lu.igcsa.generator;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.lcsb.lu.igcsa.aberrations.AberrationTypes;
 import org.lcsb.lu.igcsa.database.Band;
 import org.paukov.combinatorics.ICombinatoricsVector;
 import org.springframework.test.context.ContextConfiguration;
@@ -20,16 +21,16 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-@RunWith (SpringJUnit4ClassRunner.class)
-@ContextConfiguration (locations = {"classpath:kiss-test-spring-config.xml"})
+@RunWith (SpringJUnit4ClassRunner.class) @ContextConfiguration (locations = {"classpath:kiss-test-spring-config.xml"})
 public class BreakpointCombinatorialTest
   {
   static Logger log = Logger.getLogger(BreakpointCombinatorialTest.class.getName());
 
-  Band[] bands = new Band[]{new Band("22","q11"), new Band("12","p31"), new Band("3","q42")};
+  Band[] bands = new Band[]{new Band("22", "q11"), new Band("12", "p31"), new Band("3", "q42")};
 
-  Object[] objects = new String[]{"inv", "dup", "del", "ins"};
+  //Object[] objects = new String[]{"inv", "dup", "del", "ins"};
 
+  AberrationTypes[] abrs = new AberrationTypes[]{AberrationTypes.INVERSION, AberrationTypes.DUPLICATION, AberrationTypes.DELETION, AberrationTypes.TRANSLOCATION};
 
   @Test
   public void testSimple() throws Exception
@@ -55,9 +56,8 @@ public class BreakpointCombinatorialTest
     {
     BreakpointCombinatorial.GENERATOR = BreakpointCombinatorial.MULTI_GEN;
 
-    List<ICombinatoricsVector<Aberration>> comb = new BreakpointCombinatorial().getAberrationCombination(objects, bands, 2);
-    assertEquals(comb.size(), 6*objects.length);
+    List<ICombinatoricsVector<Aberration>> comb = new BreakpointCombinatorial().getAberrationCombination(abrs, bands, 2);
+    assertEquals(comb.size(), 6 * abrs.length);
     }
-
 
   }

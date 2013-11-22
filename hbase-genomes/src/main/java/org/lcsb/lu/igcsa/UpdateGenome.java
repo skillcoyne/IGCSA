@@ -113,6 +113,7 @@ public class UpdateGenome extends Configured implements Tool
 
   public static void main(String args[]) throws Exception
     {
+    args = new String[]{"GRCh37"};
     if (args.length < 1)
       throw new Exception("Missing argument: genome name.");
 

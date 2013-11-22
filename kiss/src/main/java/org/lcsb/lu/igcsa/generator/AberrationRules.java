@@ -9,6 +9,7 @@
 package org.lcsb.lu.igcsa.generator;
 
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.aberrations.AberrationTypes;
 import org.lcsb.lu.igcsa.database.Band;
 import org.paukov.combinatorics.CombinatoricsVector;
 import org.paukov.combinatorics.ICombinatoricsVector;
@@ -28,12 +29,13 @@ public class AberrationRules
   static boolean UNIQUE_BP_PAIRS = true;
 
   // SequenceAberration rules
-  static final Object[] SINGLE_CENTROMERE = new String[]{ISOCENTRIC.getShortName(), DUPLICATION.getShortName(), DELETION.getShortName()};
-  static final Object[] TWO_CENTROMERES = new String[]{DICENTRIC.getShortName(), DUPLICATION.getShortName(), DELETION.getShortName(), INVERSION.getShortName() };
+  static final AberrationTypes[] SINGLE_CENTROMERE = new AberrationTypes[]{ISOCENTRIC, DUPLICATION, DELETION};
+  static final AberrationTypes[] TWO_CENTROMERES = new AberrationTypes[]{DICENTRIC, DUPLICATION, DELETION, INVERSION};
 
-  static final Object[] ONE_CHROMOSOME = new String[]{DELETION.getShortName(), DUPLICATION.getShortName(), INVERSION.getShortName()};
-  static final Object[] MULTI_CHROMOSOME = new String[]{ TRANSLOCATION.getShortName() };
+  static final AberrationTypes[] ONE_CHROMOSOME = new AberrationTypes[]{DELETION, DUPLICATION, INVERSION};
+  static final AberrationTypes[] MULTI_CHROMOSOME = new AberrationTypes[]{TRANSLOCATION};
 
+  static final AberrationTypes[] NO_CENT_SPAN = new AberrationTypes[]{DELETION};
 
   private BreakpointCombinatorial combinatorial;
   private List<ICombinatoricsVector<Aberration>> aberrations;
@@ -48,7 +50,7 @@ public class AberrationRules
   public Map<List<Band>, List<ICombinatoricsVector<Aberration>>> getOrderedBreakpointSets()
     {
     Map<List<Band>, List<ICombinatoricsVector<Aberration>>> map = new HashMap<List<Band>, List<ICombinatoricsVector<Aberration>>>();
-    for (ICombinatoricsVector<Aberration> vector: aberrations)
+    for (ICombinatoricsVector<Aberration> vector : aberrations)
       {
       List<Band> bandList = vector.getVector().get(0).getBands();
 
@@ -61,30 +63,22 @@ public class AberrationRules
       map.put(bandList, abrList);
       }
 
-//    for(Map.Entry<List<Band>, List<ICombinatoricsVector<SequenceAberration>>> entry: map.entrySet())
-//      {
-//      log.info("--->" + entry.getKey());
-//      for (ICombinatoricsVector<SequenceAberration> a: entry.getValue())
-//        {
-//        log.info(a);
-//        }
-//      }
     return map;
     }
 
-  public Map<Object, List<ICombinatoricsVector<Band>>> getOrderedAberrationSets()
+  public Map<AberrationTypes, List<ICombinatoricsVector<Band>>> getOrderedAberrationSets()
     {
-    Map<Object, List<ICombinatoricsVector<Band>>> map = new HashMap<Object, List<ICombinatoricsVector<Band>>>();
+    Map<AberrationTypes, List<ICombinatoricsVector<Band>>> map = new HashMap<AberrationTypes, List<ICombinatoricsVector<Band>>>();
 
-    for (ICombinatoricsVector<Aberration> vector: aberrations)
+    for (ICombinatoricsVector<Aberration> vector : aberrations)
       {
-      for (Aberration abr: vector.getVector())
+      for (Aberration abr : vector.getVector())
         {
         if (!map.containsKey(abr.getAberration()))
           map.put(abr.getAberration(), new ArrayList<ICombinatoricsVector<Band>>());
 
         List<ICombinatoricsVector<Band>> list = map.get(abr.getAberration());
-        list.add( new CombinatoricsVector<Band>(abr.getBands()) );
+        list.add(new CombinatoricsVector<Band>(abr.getBands()));
 
         map.put(abr.getAberration(), list);
         }
@@ -102,23 +96,22 @@ public class AberrationRules
     return aberrations;
     }
 
-  public Object[] getAberrationClasses()
+  public AberrationTypes[] getAberrationClasses()
     {
-    Set<Object> classes = new HashSet<Object>();
+    Set<AberrationTypes> classes = new HashSet<AberrationTypes>();
 
-    classes.addAll( Arrays.asList(SINGLE_CENTROMERE) );
-    classes.addAll( Arrays.asList(TWO_CENTROMERES) );
-    classes.addAll( Arrays.asList(ONE_CHROMOSOME) );
-    classes.addAll( Arrays.asList(MULTI_CHROMOSOME) );
+    classes.addAll(Arrays.asList(SINGLE_CENTROMERE));
+    classes.addAll(Arrays.asList(TWO_CENTROMERES));
+    classes.addAll(Arrays.asList(ONE_CHROMOSOME));
+    classes.addAll(Arrays.asList(MULTI_CHROMOSOME));
 
-    return classes.toArray(new Object[classes.size()]);
+    return classes.toArray(new AberrationTypes[classes.size()]);
     }
 
   /* -- Application of rules -- */
   public void applyRules(Band[] bands)
     {
     Set<String> chromosomes = new HashSet<String>();
-
 
     for (Band b : bands)
       {
@@ -138,13 +131,37 @@ public class AberrationRules
       }
     breakpointSets = bandSets;
 
-
     if (chromosomes.size() == 1)
       aberrations = ruleSingleChromosome(bandSets);
     else
       aberrations = ruleMultiChromosome(bandSets);
+
+    //ruleSpanningCentromere();
     }
 
+  // Some aberrations cannot span a centromere -- at the moment this doesn't seem to be a problem.  I think I'm not allowing multiple bands for some aberrations anyhow
+  private void ruleSpanningCentromere()
+    {
+    // TODO implement
+    log.warn("ruleSpanningCentromere() not yet implemented");
+    for (ICombinatoricsVector<Aberration> a : aberrations)
+      {
+      Iterator<Aberration> abrI = a.getVector().iterator();
+      while (abrI.hasNext())
+        {
+        Aberration abr = abrI.next();
+        if (abr.getBands().size() > 1)
+          {
+          for (AberrationTypes type : NO_CENT_SPAN)
+            {
+            // bands are not on the same arm and at least one is a centromere, remove
+            if (abr.getAberration().equals(type) && !abr.bandsOnSameArm() && abr.bandsIncludeCentromere())
+              abrI.remove();
+            }
+          }
+        }
+      }
+    }
 
   // Exactly what it sounds like.  Avoid pairs like [a, a]  (or don't...)
   private List<ICombinatoricsVector<Band>> ruleUniqueBreakpointPairs(Band[] bands, int setSize)
@@ -170,7 +187,7 @@ public class AberrationRules
     1. In all cases a translocation cannot occur.
     2. Single band & centromere == ISO/DIC
     3. Pair of centromeric bands == DIC, DEL, DUP, INS, or INV
-    4. Multiple bands DEL, DUP, INS, or INV
+    4. Multiple bands DEL, DUP, INS, or INV.  Deletions cannot occur ACROSS a centromere however.
    */
   private List<ICombinatoricsVector<Aberration>> ruleSingleChromosome(List<ICombinatoricsVector<Band>> bandsVector)
     {
@@ -181,6 +198,7 @@ public class AberrationRules
       aberrations = ruleSingleCentromere(bandsVector);
     else
       {
+      // multiple bands
       for (ICombinatoricsVector<Band> vector : bandsVector)
         {
         // singleton is a centromere
@@ -207,7 +225,6 @@ public class AberrationRules
           }
         }
       }
-    //log.info(aberrations);
     return aberrations;
     }
 

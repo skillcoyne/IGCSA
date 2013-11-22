@@ -66,6 +66,12 @@ public enum AberrationTypes
     return nameMap.get(cytogenetic).getAberrationClass();
     }
 
+
+  public static boolean hasClassFor(AberrationTypes type) throws ClassNotFoundException
+    {
+    return (type.getAberrationClass() == null)? false: true;
+    }
+
   public static boolean hasClassFor(String cytogenetic)
     {
     return nameMap.containsKey(cytogenetic);

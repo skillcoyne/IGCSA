@@ -10,6 +10,7 @@ package org.lcsb.lu.igcsa.watchmaker.kt;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.Band;
+import org.lcsb.lu.igcsa.generator.Aneuploidy;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -98,27 +99,6 @@ public class KaryotypeCandidate
 //      aneuploidy.remove(aneuploidy.get(ploidy.getChromosome())); // count doesn't need to match, just the chromosome
     }
 
-  public void compress()
-    {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    GZIPOutputStream gz = null;
-    try
-      {
-      gz = new GZIPOutputStream(baos);
-      ObjectOutputStream oos = new ObjectOutputStream(gz);
-
-      oos.writeObject(this.getBreakpoints());
-      oos.close();
-
-
-      }
-    catch (IOException e)
-      {
-      log.error(e);
-      }
-
-    }
-
   public Aneuploidy getAneuploidy(String chr)
     {
     if (aneuploidy.containsKey(chr))
@@ -146,92 +126,6 @@ public class KaryotypeCandidate
   public String toString()
     {
     return this.getClass().getSimpleName() + "[" + this.hashCode() + "] " + this.getBreakpoints() + "\t" + this.getAneuploidies();
-    }
-
-
-
-
-  public class Aneuploidy
-    {
-    private String chr;
-    private int gain = 0;
-    private int loss = 0;
-
-    private int max = 6;
-    private int min = -2;
-
-    protected Aneuploidy(String chr, int count)
-      {
-      this.chr = chr;
-      if (count > 0)
-        this.gain += count;
-      else
-        this.loss += count;
-      }
-
-    protected void gain(int count)
-      {
-      this.gain += count;
-      }
-
-    protected void lose(int count)
-      {
-      this.loss += count;
-      }
-
-
-//    protected void addToCount(int count)
-//      {
-//      this.count += count;
-//
-//      if (this.count > max)
-//        this.count = max;
-//      if (this.count < min)
-//        this.count = min;
-//      }
-
-    public String getChromosome()
-      {
-      return chr;
-      }
-
-    public int getGain()
-      {
-      return gain;
-      }
-
-    public int getLoss()
-      {
-      return loss;
-      }
-
-    public int getCount()
-      {
-      return gain - loss;
-      }
-
-//    public int getCount()
-//      {
-//      return count;
-//      }
-
-//    public boolean isGain()
-//      {
-//      return (count > 0) ? true : false;
-//      }
-
-    @Override
-    public boolean equals(Object o)
-      {
-      Aneuploidy obj = (Aneuploidy) o;
-      return (obj.getChromosome().equals(this.getChromosome())) ? true : false;
-      }
-
-    @Override
-    public String toString()
-      {
-      return this.getChromosome() + "(+" + gain + ", -" + loss + ")";
-      }
     }
 
 

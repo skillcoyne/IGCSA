@@ -173,11 +173,11 @@ public class Karyotype extends Genome
 
     try
       {
-      if (AberrationTypes.hasClassFor((String) abr.getAberration()))
+      if (AberrationTypes.hasClassFor(abr.getAberration()))
 //      if (SequenceAberration.hasClassForAberrationType((String) abr.getAberration()))
         {
 //        sequenceAberration = (SequenceAberration) SequenceAberration.getClassForAberrationType((String) abr.getAberration()).newInstance();
-        sequenceAberration = (SequenceAberration) AberrationTypes.getClassFor((String) abr.getAberration()).newInstance();
+        sequenceAberration = (SequenceAberration) abr.getAberration().getAberrationClass().newInstance();
         for (Band b : abr.getBands())
           sequenceAberration.addFragment(b, this.getChromosome(b.getChromosomeName()));
 

@@ -57,8 +57,7 @@ public class LoadFromFASTA extends Configured implements Tool
     config.set("genome", genomeName);
     config.set("chromosome", chr);
 
-    HBaseGenome genome = new HBaseGenome(genomeName, null);
-    genome.addChromosome(chr, 0, 0);
+    genomeAdmin.getGenome(genomeName).addChromosome(chr, 0, 0);
 
     Job job = new Job(config, "Reference Genome Fragmentation");
 
@@ -120,7 +119,7 @@ public class LoadFromFASTA extends Configured implements Tool
     String genomeName = args[0];
     String fastaDir = args[1];
 
-    //HBaseGenomeAdmin.getHBaseGenomeAdmin().deleteGenome(genomeName);
+    new HBaseGenome(genomeName, null);
 
     Map<String, File> files = org.lcsb.lu.igcsa.utils.FileUtils.getFASTAFiles(new File(fastaDir));
 
@@ -132,6 +131,8 @@ public class LoadFromFASTA extends Configured implements Tool
       final long elapsedTime = System.currentTimeMillis() - startTime;
       log.info("Finished job " + elapsedTime / 1000 + " seconds");
       }
+
+    ToolRunner.run(new UpdateGenome(), new String[]{genomeName});
     }
   }
 

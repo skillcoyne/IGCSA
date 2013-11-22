@@ -8,13 +8,12 @@
 
 package org.lcsb.lu.igcsa.generator;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.aberrations.AberrationTypes;
 import org.lcsb.lu.igcsa.database.Band;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 /**
@@ -25,9 +24,9 @@ public class Aberration
   static Logger log = Logger.getLogger(Aberration.class.getName());
 
   private List<Band> bands;
-  private Object aberration;
+  private AberrationTypes aberration;
 
-  public Aberration(List<Band> bands, Object aberration)
+  public Aberration(List<Band> bands, AberrationTypes aberration)
     {
     this.bands = bands;
     this.aberration = aberration;
@@ -38,7 +37,7 @@ public class Aberration
     return bands;
     }
 
-  public Object getAberration()
+  public AberrationTypes getAberration()
     {
     return aberration;
     }
@@ -56,8 +55,36 @@ public class Aberration
     return false;
     }
 
+  public boolean bandsOnSameArm()
+    {
+    String arm = bands.get(0).whichArm();
+    for (Band b: bands)
+      {
+      if (!arm.equals(b.whichArm()))
+        return false;
+      }
+    return true;
+    }
+
+  public boolean bandsIncludeCentromere()
+    {
+    for (Band b: bands)
+      {
+      if (b.isCentromere())
+        return true;
+      }
+    return false;
+    }
 
 
+  public String getWithLocations()
+    {
+    List<String> strs = new ArrayList<String>();
+    for(Band b: bands)
+      strs.add(b.getChromosomeName() + ":" + b.getLocation().getStart() + "-" + b.getLocation().getEnd());
+
+    return this.getAberration().getCytogeneticDesignation() + "(" + StringUtils.join(strs.iterator(), ",") + ")";
+    }
 
   @Override
   public String toString()

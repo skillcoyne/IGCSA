@@ -9,6 +9,7 @@
 package org.lcsb.lu.igcsa.generator;
 
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.aberrations.AberrationTypes;
 import org.lcsb.lu.igcsa.database.Band;
 import org.paukov.combinatorics.CombinatoricsVector;
 import org.paukov.combinatorics.Factory;
@@ -96,7 +97,7 @@ public class BreakpointCombinatorial
    * @param setSize
    * @return
    */
-  public List<ICombinatoricsVector<Aberration>> getAberrationCombination(Object[] abrs, Band[] bands, int setSize)
+  public List<ICombinatoricsVector<Aberration>> getAberrationCombination(AberrationTypes[] abrs, Band[] bands, int setSize)
     {
     Collection<Band> collection = new HashSet<Band>();
     for (Band o : bands)
@@ -114,19 +115,19 @@ public class BreakpointCombinatorial
    * @param setSize
    * @return
    */
-  public List<ICombinatoricsVector<Aberration>> getAberrationCombination(Object[] abrs, Collection<Band> bands, int setSize)
+  public List<ICombinatoricsVector<Aberration>> getAberrationCombination(AberrationTypes[] abrs, Collection<Band> bands, int setSize)
     {
     List<ICombinatoricsVector<Band>> bandsVector = getCombinations(bands, setSize);
     return getAberrationCombination(abrs, bandsVector);
     }
 
-  public List<ICombinatoricsVector<Aberration>> getAberrationCombination(Object[] abrs, List<ICombinatoricsVector<Band>> bandsVector)
+  public List<ICombinatoricsVector<Aberration>> getAberrationCombination(AberrationTypes[] abrs, List<ICombinatoricsVector<Band>> bandsVector)
     {
     orderedAberrations = new HashMap<Object, List<ICombinatoricsVector<Band>>>();
 
     List<ICombinatoricsVector<Aberration>> abrList = new ArrayList<ICombinatoricsVector<Aberration>>();
 
-    for (Object o : abrs)
+    for (AberrationTypes o : abrs)
       {
       List<ICombinatoricsVector<Band>> bandList = new ArrayList<ICombinatoricsVector<Band>>();
       for (ICombinatoricsVector<Band> vector : bandsVector)

@@ -3,6 +3,7 @@ package org.lcsb.lu.igcsa.watchmaker.kt;
 import org.apache.log4j.Logger;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.lcsb.lu.igcsa.database.Band;
+import org.lcsb.lu.igcsa.generator.Aneuploidy;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.utils.CandidateUtils;
 import org.uncommons.watchmaker.framework.FitnessEvaluator;
@@ -77,7 +78,7 @@ public class Evaluator implements FitnessEvaluator<KaryotypeCandidate> // this i
 
     int apCount = 0;
     Set<String> chromosomes = new HashSet<String>();
-    for (KaryotypeCandidate.Aneuploidy aneuploidy : karyotypeCandidate.getAneuploidies())
+    for (Aneuploidy aneuploidy : karyotypeCandidate.getAneuploidies())
       {
       double prob = gainLossProb.getRawProbabilities().get(aneuploidy.getChromosome());
       score += prob * (aneuploidy.getGain() + aneuploidy.getLoss());

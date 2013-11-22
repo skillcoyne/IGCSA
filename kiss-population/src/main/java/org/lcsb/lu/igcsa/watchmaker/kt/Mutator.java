@@ -12,6 +12,7 @@ import org.apache.commons.lang.math.DoubleRange;
 import org.apache.commons.lang.math.Range;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.Band;
+import org.lcsb.lu.igcsa.generator.Aneuploidy;
 import org.uncommons.watchmaker.framework.CandidateFactory;
 import org.uncommons.watchmaker.framework.EvolutionaryOperator;
 import org.uncommons.watchmaker.framework.FitnessEvaluator;
@@ -92,7 +93,7 @@ public class Mutator implements EvolutionaryOperator<KaryotypeCandidate>
   private void flipPloidy(KaryotypeCandidate individual, KaryotypeCandidate randomCand)
     {
     // maybe we do ploidy differently? Or not at all...
-    for (KaryotypeCandidate.Aneuploidy pdy : randomCand.getAneuploidies())
+    for (Aneuploidy pdy : randomCand.getAneuploidies())
       {
       if (individual.getAneuploidies().contains(pdy))
         {

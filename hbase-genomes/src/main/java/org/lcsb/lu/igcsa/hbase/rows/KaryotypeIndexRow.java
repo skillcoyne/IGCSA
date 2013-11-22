@@ -9,11 +9,14 @@
 package org.lcsb.lu.igcsa.hbase.rows;
 
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.generator.Aberration;
 import org.lcsb.lu.igcsa.hbase.tables.Column;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,44 +24,48 @@ public class KaryotypeIndexRow extends Row
   {
   static Logger log = Logger.getLogger(KaryotypeIndexRow.class.getName());
 
-  private String genome;
-  private String[] abrs;
+  private String parentGenome;
+  //private String[] abrs;
+  private List<Aberration> aberrations;
 
-  public KaryotypeIndexRow(String rowId)
+  public KaryotypeIndexRow(String rowId, String parentGenome)
     {
     super(rowId);
-    this.addColumn(new Column("info", "genome", rowId));
+    this.addColumn(new Column("info", "genome", parentGenome));
+    this.parentGenome = parentGenome;
     }
 
-  public void addAberrations(String... abrs) throws IOException
+  public void addAberrations(List<Aberration> abrs) throws IOException
     {
-    for (int i=0; i<abrs.length; i++)
+    int i = 1;
+    for (Aberration abr : abrs)
       {
-      checkAberrationFormat(abrs[i]);
-      this.addColumn( new Column("abr", Integer.toString(i+1), abrs[i]) );
+      checkAberrationFormat(abr.getWithLocations());
+      this.addColumn(new Column("abr", Integer.toString(i), abr.getWithLocations()));
+      ++i;
       }
-    this.abrs = abrs;
+    this.aberrations = abrs;
     }
 
 
-  public List<String> getKaryotypeTableRowIds()
+  public Map<String, Aberration> getKaryotypeTableRowIds()
     {
-    List<String> rowIds = new ArrayList<String>();
-    for (String abr: abrs)
-      rowIds.add( genome + "-" + abr );
+    Map<String, Aberration> karyotypeTableRows = new HashMap<String, Aberration>();
+    for (Aberration abr : this.aberrations)
+      karyotypeTableRows.put(this.getRowIdAsString() + "-" + abr.getWithLocations(), abr);
 
-    return rowIds;
+    return karyotypeTableRows;
     }
 
 
   private void checkAberrationFormat(String abr) throws IOException
     {
-    Pattern p = Pattern.compile("^\\w+\\(((\\d+|X|Y):\\d+-\\d+)((,(\\d+|X|Y):\\d+-\\d+)){0,}\\)$");
+    Pattern p = Pattern.compile("^\\w+\\((\\d+|X|Y):\\d+-\\d+(,\\s?(\\d+|X|Y):\\d+-\\d+){0,}\\)$");
     Matcher m = p.matcher(abr);
     boolean formatOk = m.matches();
 
     if (!formatOk)
-      throw new IOException("Aberration format incorrect. Expected  <characters>(chr:loc-loc)");
+      throw new IOException("Aberration format incorrect. Expected  <characters>(chr:loc-loc), got " + abr);
 
     }
 

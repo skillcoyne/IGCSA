@@ -30,17 +30,6 @@ public class OutputGenomeData
     Configuration conf = HBaseConfiguration.create();
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(conf);
 
-    //    SequenceResult seq = admin.getGenome("igcsa1").getChromosome("22").getSequence(17547).getSequence();
-
-
-    //
-
-
-//    SequenceResult seq = admin.getSequenceTable().queryTable("igcsa1-22:17547");
-//    System.out.println(seq.getChr() + " " + seq.getSegment() + " " + seq.getStart() + "-" + seq.getEnd() + " length:" + seq.getSequenceLength());
-//    System.exit(1);
-
-
     for (HBaseGenome gr : admin.retrieveGenomes())
       {
       log.info(gr.getGenome().getName() + " " + gr.getGenome().getChromosomes());

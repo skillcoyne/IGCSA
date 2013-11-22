@@ -27,7 +27,7 @@ public class KaryotypeTable extends AbstractTable
   static
     {
     reqFields = new HashMap<String, Set<String>>();
-    reqFields.put("info", new HashSet<String>(Arrays.asList("genome")));
+    reqFields.put("info", new HashSet<String>(Arrays.asList("karyotype")));
     reqFields.put("abr", new HashSet<String>(Arrays.asList("type", "chr1", "loc1")));
     }
 
