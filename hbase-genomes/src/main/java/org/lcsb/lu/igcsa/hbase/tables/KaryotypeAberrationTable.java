@@ -18,9 +18,9 @@ import org.apache.log4j.Logger;
 import java.io.IOException;
 import java.util.*;
 
-public class KaryotypeTable extends AbstractTable
+public class KaryotypeAberrationTable extends AbstractTable
   {
-  static Logger log = Logger.getLogger(KaryotypeTable.class.getName());
+  static Logger log = Logger.getLogger(KaryotypeAberrationTable.class.getName());
 
   private static final Map<String, Set<String>> reqFields;
 
@@ -31,57 +31,57 @@ public class KaryotypeTable extends AbstractTable
     reqFields.put("abr", new HashSet<String>(Arrays.asList("type", "chr1", "loc1")));
     }
 
-  public KaryotypeTable(Configuration configuration, HBaseAdmin admin, String tableName, boolean create) throws IOException
+  public KaryotypeAberrationTable(Configuration configuration, HBaseAdmin admin, String tableName, boolean create) throws IOException
     {
     super(configuration, admin, tableName, reqFields, create);
     }
 
   @Override
-  public KaryotypeResult queryTable(String rowId, Column column) throws IOException
+  public AberrationResult queryTable(String rowId, Column column) throws IOException
     {
     return createResult((Result) super.queryTable(rowId, column));
     }
 
   @Override
-  public KaryotypeResult queryTable(String rowId) throws IOException
+  public AberrationResult queryTable(String rowId) throws IOException
     {
     return createResult((Result) super.queryTable(rowId));
     }
 
   @Override
-  public List<KaryotypeResult> getRows() throws IOException
+  public List<AberrationResult> getRows() throws IOException
     {
     return createResults((List<Result>) super.getRows());
     }
 
   @Override
-  public List<KaryotypeResult> queryTable(Column... columns) throws IOException
+  public List<AberrationResult> queryTable(Column... columns) throws IOException
     {
     return createResults((List<Result>) super.queryTable(columns));
     }
 
   @Override
-  protected List<KaryotypeResult> createResults(List<Result> results)
+  protected List<AberrationResult> createResults(List<Result> results)
     {
-    List<KaryotypeResult> karyotypeResults = new ArrayList<KaryotypeResult>();
+    List<AberrationResult> aberrationResults = new ArrayList<AberrationResult>();
     for (Result r : results)
-      karyotypeResults.add(createResult(r));
+      aberrationResults.add(createResult(r));
 
-    return karyotypeResults;
+    return aberrationResults;
     }
 
   @Override
-  protected KaryotypeResult createResult(Result result)
+  protected AberrationResult createResult(Result result)
     {
     if (result.getRow() != null)
       {
-      KaryotypeResult karyotypeResult = new KaryotypeResult(result.getRow());
+      AberrationResult aberrationResult = new AberrationResult(result.getRow());
 
       KeyValue kv = result.getColumn(Bytes.toBytes("info"), Bytes.toBytes("genome")).get(0);
-      karyotypeResult.setGenome(kv.getValue());
+      aberrationResult.setGenome(kv.getValue());
 
       kv = result.getColumn(Bytes.toBytes("abr"), Bytes.toBytes("type")).get(0);
-      karyotypeResult.setAbrType(kv.getValue());
+      aberrationResult.setAbrType(kv.getValue());
 
       // chances of there being very many aberrations (like more than 3) are pretty much nil
       for (int i = 1; i <= 10; i++)
@@ -89,10 +89,10 @@ public class KaryotypeTable extends AbstractTable
         KeyValue kvc = result.getColumn(Bytes.toBytes("abr"), Bytes.toBytes("chr" + i)).get(0);
         KeyValue kvl = result.getColumn(Bytes.toBytes("abr"), Bytes.toBytes("chr" + i)).get(0);
 
-        karyotypeResult.addAberrationDefinitions(kvc.getValue(), kvl.getValue());
+        aberrationResult.addAberrationDefinitions(kvc.getValue(), kvl.getValue());
         }
 
-      return karyotypeResult;
+      return aberrationResult;
       }
 
     return null;

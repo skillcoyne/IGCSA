@@ -10,6 +10,7 @@ package org.lcsb.lu.igcsa.hbase.rows;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.generator.Aberration;
+import org.lcsb.lu.igcsa.generator.Aneuploidy;
 import org.lcsb.lu.igcsa.hbase.tables.Column;
 
 import java.io.IOException;
@@ -27,6 +28,7 @@ public class KaryotypeIndexRow extends Row
   private String parentGenome;
   //private String[] abrs;
   private List<Aberration> aberrations;
+  private List<Aneuploidy> aneuploidies;
 
   public KaryotypeIndexRow(String rowId, String parentGenome)
     {
@@ -48,13 +50,28 @@ public class KaryotypeIndexRow extends Row
     }
 
 
-  public Map<String, Aberration> getKaryotypeTableRowIds()
+  public void addAneuploidies(List<Aneuploidy> aps) throws IOException
     {
-    Map<String, Aberration> karyotypeTableRows = new HashMap<String, Aberration>();
-    for (Aberration abr : this.aberrations)
-      karyotypeTableRows.put(this.getRowIdAsString() + "-" + abr.getWithLocations(), abr);
+    int i = 1;
+    for (Aneuploidy ap: aps)
+      {
+      if (ap.getGain() > 0)
+        addColumn( new Column("gain", "chr"+i, ap.getChromosome()+"("+ ap.getGain()+")") );
+      if (ap.getLoss() > 0)
+        addColumn( new Column("loss", "chr"+i, ap.getChromosome()+"("+ ap.getLoss()+")") );
+      ++i;
+      }
+    this.aneuploidies = aps;
+    }
 
-    return karyotypeTableRows;
+
+  public Map<String, Aberration> getAberrationRowIds()
+    {
+    Map<String, Aberration> aberrationTableRows = new HashMap<String, Aberration>();
+    for (Aberration abr : this.aberrations)
+      aberrationTableRows.put(this.getRowIdAsString() + "-" + abr.getWithLocations(), abr);
+
+    return aberrationTableRows;
     }
 
 

@@ -15,14 +15,10 @@ import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.hbase.rows.*;
 import org.lcsb.lu.igcsa.hbase.tables.*;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.regex.MatchResult;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 public class HBaseGenomeAdmin
@@ -37,7 +33,7 @@ public class HBaseGenomeAdmin
   private SequenceTable sT;
   private SmallMutationsTable smT;
   private KaryotypeIndexTable kiT;
-  private KaryotypeTable kT;
+  private KaryotypeAberrationTable kT;
 
   private GenomeResult lastRetrievedGenome;
 
@@ -94,7 +90,7 @@ public class HBaseGenomeAdmin
     return kiT;
     }
 
-  public KaryotypeTable getKaryotypeTable()
+  public KaryotypeAberrationTable getKaryotypeTable()
     {
     return kT;
     }
@@ -125,7 +121,7 @@ public class HBaseGenomeAdmin
    * @return
    * @throws IOException
    */
-  public List<KaryotypeResult> retrieveKaryotypes() throws IOException
+  public List<AberrationResult> retrieveKaryotypes() throws IOException
     {
     return this.kT.getRows();
     }
@@ -193,7 +189,7 @@ public class HBaseGenomeAdmin
       sT = new SequenceTable(this.conf, this.hbaseAdmin, "sequence", create);
       smT = new SmallMutationsTable(this.conf, this.hbaseAdmin, "small_mutations", create);
       kiT = new KaryotypeIndexTable(this.conf, this.hbaseAdmin, "karyotype_index", create);
-      kT = new KaryotypeTable(this.conf, this.hbaseAdmin, "karyotype", create);
+      kT = new KaryotypeAberrationTable(this.conf, this.hbaseAdmin, "karyotype", create);
       }
     catch (IOException e)
       {

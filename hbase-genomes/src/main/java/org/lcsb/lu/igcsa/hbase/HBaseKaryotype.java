@@ -10,18 +10,16 @@ package org.lcsb.lu.igcsa.hbase;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.hbase.tables.AbstractResult;
+import org.lcsb.lu.igcsa.hbase.tables.KaryotypeAberrationTable;
 import org.lcsb.lu.igcsa.hbase.tables.KaryotypeIndexTable;
-import org.lcsb.lu.igcsa.hbase.tables.KaryotypeResult;
-import org.lcsb.lu.igcsa.hbase.tables.KaryotypeTable;
 
 import java.io.IOException;
-import java.util.List;
 
 public class HBaseKaryotype extends HBaseConnectedObjects
   {
   static Logger log = Logger.getLogger(HBaseKaryotype.class.getName());
 
-  private KaryotypeTable kT;
+  private KaryotypeAberrationTable kT;
   private KaryotypeIndexTable kiT;
 
   private KaryotypeIndexTable.KaryotypeIndexResult karyotype;
@@ -42,7 +40,7 @@ public class HBaseKaryotype extends HBaseConnectedObjects
 
   private void getAberrations()
     {
-    //KaryotypeResult r = this.kT.getRows();
+    //AberrationResult r = this.kT.getRows();
     }
 
 

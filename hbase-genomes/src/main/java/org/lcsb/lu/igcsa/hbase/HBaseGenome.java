@@ -8,15 +8,14 @@
 
 package org.lcsb.lu.igcsa.hbase;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.MinimalKaryotype;
 import org.lcsb.lu.igcsa.generator.Aberration;
+import org.lcsb.lu.igcsa.hbase.rows.AberrationRow;
 import org.lcsb.lu.igcsa.hbase.rows.ChromosomeRow;
 import org.lcsb.lu.igcsa.hbase.rows.GenomeRow;
 import org.lcsb.lu.igcsa.hbase.rows.KaryotypeIndexRow;
-import org.lcsb.lu.igcsa.hbase.rows.KaryotypeRow;
 import org.lcsb.lu.igcsa.hbase.tables.*;
 
 import java.io.IOException;
@@ -30,7 +29,7 @@ public class HBaseGenome extends HBaseConnectedObjects
 
   private GenomeTable gT;
   private ChromosomeTable cT;
-  private KaryotypeTable kT;
+  private KaryotypeAberrationTable kT;
   private KaryotypeIndexTable kiT;
 
   protected HBaseGenome(GenomeResult result) throws IOException
@@ -124,11 +123,13 @@ public class HBaseGenome extends HBaseConnectedObjects
       String karyotypeName = baseKaryotypeName+i;
       KaryotypeIndexRow row = new KaryotypeIndexRow(karyotypeName, parentGenome);
       row.addAberrations(kt.getAberrations());
+      row.addAneuploidies(kt.getAneuploidies());
+
       this.kiT.addRow(row);
 
-      for (Map.Entry<String, Aberration> ktrid: row.getKaryotypeTableRowIds().entrySet())
+      for (Map.Entry<String, Aberration> ktrid: row.getAberrationRowIds().entrySet())
         {
-        KaryotypeRow krow = new KaryotypeRow(ktrid.getKey());
+        AberrationRow krow = new AberrationRow(ktrid.getKey());
         krow.addKaryotype(karyotypeName);
         krow.addAberration(ktrid.getValue());
 
@@ -149,7 +150,7 @@ public class HBaseGenome extends HBaseConnectedObjects
     KaryotypeIndexTable.KaryotypeIndexResult kiResults = this.kiT.queryTable(this.rowId);
     //kiResults.
 
-    //List<KaryotypeResult> = this.kT.getRows();
+    //List<AberrationResult> = this.kT.getRows();
     return null;
     }
 

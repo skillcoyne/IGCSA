@@ -19,6 +19,11 @@ public class Aneuploidy
   private int max = 6;
   private int min = -2;
 
+  public Aneuploidy(String chr)
+    {
+    this.chr = chr;
+    }
+
   public Aneuploidy(String chr, int count)
     {
     this.chr = chr;

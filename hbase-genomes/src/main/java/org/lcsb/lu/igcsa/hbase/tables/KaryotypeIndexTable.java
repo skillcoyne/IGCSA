@@ -14,6 +14,7 @@ import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.generator.Aneuploidy;
 
 import java.io.IOException;
 import java.util.*;
@@ -29,6 +30,8 @@ public class KaryotypeIndexTable extends AbstractTable
     reqFields = new HashMap<String, Set<String>>();
     reqFields.put("info", new HashSet<String>(Arrays.asList("genome")));
     reqFields.put("abr", new HashSet<String>());
+    reqFields.put("gain", new HashSet<String>());
+    reqFields.put("loss", new HashSet<String>());
     }
 
 
@@ -85,6 +88,10 @@ public class KaryotypeIndexTable extends AbstractTable
 
         if (family.equals("abr"))
           indexResult.addAberration(value);
+        else if (family.equals("gain"))
+          indexResult.addAneuploidy(value, true);
+        else if (family.equals("loss"))
+          indexResult.addAneuploidy(value, false);
         }
 
       return indexResult;
@@ -100,12 +107,14 @@ public class KaryotypeIndexTable extends AbstractTable
 
     private String genome;
     private List<String> abrs;
+    private List<Aneuploidy> aps;
 
     protected KaryotypeIndexResult(byte[] rowId)
       {
       super(rowId);
       this.genome = Bytes.toString(rowId);
       abrs = new ArrayList<String>();
+      aps = new ArrayList<Aneuploidy>();
       }
 
     public List<String> getAberrations()
@@ -118,6 +127,21 @@ public class KaryotypeIndexTable extends AbstractTable
       String abr = Bytes.toString(aberration);
       this.abrs.add(abr);
       }
+
+    public void addAneuploidy(byte[] aneuploidy, boolean gain)
+      {
+      String value = Bytes.toString(aneuploidy);
+      Aneuploidy ap = new Aneuploidy( value.substring(0, value.indexOf("(")) );
+      if (gain)
+        ap.gain( Integer.valueOf(value.substring(value.indexOf("("+1), value.indexOf(")")))  );
+      else
+        ap.lose( Integer.valueOf(value.substring(value.indexOf("("+1), value.indexOf(")")))  );
+
+      aps.add(ap);
+      }
+
+
+
     }
 
   }

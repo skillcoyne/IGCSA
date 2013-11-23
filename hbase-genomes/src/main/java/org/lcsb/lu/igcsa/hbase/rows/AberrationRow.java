@@ -8,19 +8,16 @@
 
 package org.lcsb.lu.igcsa.hbase.rows;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.generator.Aberration;
-import org.lcsb.lu.igcsa.generator.Aneuploidy;
 import org.lcsb.lu.igcsa.hbase.tables.Column;
 
 import java.io.IOException;
-import java.util.List;
 
-public class KaryotypeRow extends Row
+public class AberrationRow extends Row
   {
-  static Logger log = Logger.getLogger(KaryotypeRow.class.getName());
+  static Logger log = Logger.getLogger(AberrationRow.class.getName());
 
   private String karyotypeName;
   private Aberration aberration;
@@ -31,7 +28,7 @@ public class KaryotypeRow extends Row
     return genome + "-" + abr;
     }
 
-  public KaryotypeRow(String rowId)
+  public AberrationRow(String rowId)
     {
     super(rowId);
     }

@@ -14,16 +14,16 @@ import org.apache.log4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
-public class KaryotypeResult extends AbstractResult
+public class AberrationResult extends AbstractResult
   {
-  static Logger log = Logger.getLogger(KaryotypeResult.class.getName());
+  static Logger log = Logger.getLogger(AberrationResult.class.getName());
 
   private String genome;
   private String abrType;
 
   private List<AberrationLocation> aberrationDefs = new ArrayList<AberrationLocation>();
 
-  protected KaryotypeResult(byte[] rowId)
+  protected AberrationResult(byte[] rowId)
     {
     super(rowId);
     }
