@@ -8,13 +8,10 @@
 
 package org.lcsb.lu.igcsa;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.database.Band;
-import org.lcsb.lu.igcsa.generator.Aberration;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
+import org.lcsb.lu.igcsa.hbase.HBaseKaryotype;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class CreateKaryotypes
@@ -29,9 +26,15 @@ public class CreateKaryotypes
 
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin();
 
-    List<MinimalKaryotype> pop = new PopulationGenerator().run(5);
+    admin.deleteKaryotypes(parentGenome);
 
-    admin.getGenome(parentGenome).createKaryotype("kiss", "GRCh37", pop);
+    List<HBaseKaryotype> karyotypes = admin.getGenome(parentGenome).getKaryotypes();
+
+    log.info(karyotypes.size());
+
+    List<MinimalKaryotype> pop = new PopulationGenerator().run(1000);
+
+    admin.getGenome(parentGenome).createKaryotypes("kiss", "GRCh37", pop);
 
     }
 

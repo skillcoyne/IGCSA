@@ -9,11 +9,14 @@
 package org.lcsb.lu.igcsa.hbase;
 
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.hbase.rows.SequenceRow;
 import org.lcsb.lu.igcsa.hbase.rows.SmallMutationRow;
 import org.lcsb.lu.igcsa.hbase.tables.*;
 import org.lcsb.lu.igcsa.variation.fragment.Variation;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class HBaseSequence extends HBaseConnectedObjects
   {
@@ -42,14 +45,14 @@ public class HBaseSequence extends HBaseConnectedObjects
     if (end < start || mutation == null)
       throw new IllegalArgumentException("The end must be >= start and mutation cannot be null");
 
-    String smRowId = SmallMutationRow.createRowId(this.sequence.getGenome(), this.sequence.getChr(), this.sequence.getSegment(), start );
+    String smRowId = SmallMutationRow.createRowId(this.sequence.getGenome(), this.sequence.getChr(), this.sequence.getStart(), start );
     if (smT.queryTable(smRowId) != null)
       log.warn("Row " + smRowId + " exists in mutations table, not overwriting");
     else
       {
       SmallMutationRow row = new SmallMutationRow(smRowId);
       row.addGenomeInfo(this.sequence.getGenome(), mutation);
-      row.addLocation(this.sequence.getChr(), this.sequence.getSegment(), start, end);
+      row.addLocation(this.sequence.getChr(), this.sequence.getStart(), start, end);
       row.addSequence(mutationSequence);
 
       smT.addRow(row);

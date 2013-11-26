@@ -63,7 +63,7 @@ public class PopulationGenerator
     for (Object b : bandProbability.getRawProbabilities().keySet())
       allPossibleBands.add((Band) b);
 
-    CandidateFactory<KaryotypeCandidate> factory = new KaryotypeCandidateFactory(dao, new PoissonDistribution(5), true);
+    CandidateFactory<KaryotypeCandidate> factory = new KaryotypeCandidateFactory(dao, new PoissonDistribution(5), false);
 
     Evaluator evaluator = new Evaluator(bandProbability, bpCountProb, aneuploidyProb, ploidyCountProb, false);
     List<EvolutionaryOperator<KaryotypeCandidate>> operators = new LinkedList<EvolutionaryOperator<KaryotypeCandidate>>();

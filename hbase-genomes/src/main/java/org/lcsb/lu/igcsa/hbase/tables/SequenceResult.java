@@ -25,25 +25,13 @@ public class SequenceResult extends AbstractResult
   private String chr;
   private String genome;
 
-  private int start;
-  private int end;
-  private int segment;
+  private long start;
+  private long end;
+
 
   protected SequenceResult(byte[] rowId)
     {
     super(rowId);
-    }
-
-  @Override
-  public List<SmallMutationsResult> getAssociatedResults(String rowId, AbstractTable connectedTable) throws IOException
-    {
-    SmallMutationsTable smTable = (SmallMutationsTable) connectedTable;
-
-    List<SmallMutationsResult> smallMutations = new ArrayList<SmallMutationsResult>();
-    for (int i=start; i<=end; i++)
-      smallMutations.add(smTable.queryTable(SmallMutationRow.createRowId(genome, chr, segment, start)));
-
-    return smallMutations;
     }
 
   public String getSequence()
@@ -76,7 +64,7 @@ public class SequenceResult extends AbstractResult
     this.genome = Bytes.toString(genome);
     }
 
-  public int getStart()
+  public long getStart()
     {
     return start;
     }
@@ -86,7 +74,7 @@ public class SequenceResult extends AbstractResult
     this.start = Bytes.toInt(start);
     }
 
-  public int getEnd()
+  public long getEnd()
     {
     return end;
     }
@@ -96,16 +84,6 @@ public class SequenceResult extends AbstractResult
     this.end = Bytes.toInt(end);
     }
 
-  public int getSegment()
-    {
-    return segment;
-    }
-
-  public void setSegment(byte[] segment)
-    {
-    this.segment = Bytes.toInt(segment);
-    }
-
   public int getGC()
     {
     int guanine = StringUtils.countOccurrencesOf(sequence, "G");
@@ -113,7 +91,7 @@ public class SequenceResult extends AbstractResult
     return guanine+cytosine;
     }
 
-  public int getSequenceLength()
+  public long getSequenceLength()
     {
     return sequence.length();
     }

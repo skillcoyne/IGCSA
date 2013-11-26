@@ -79,11 +79,12 @@ public class KaryotypeIndexTable extends AbstractTable
     if (result.getRow() != null)
       {
       KaryotypeIndexResult indexResult = new KaryotypeIndexResult(result.getRow());
+      indexResult.addParentGenome(result.getValue(Bytes.toBytes("info"), Bytes.toBytes("genome")));
 
       for (KeyValue kv : result.list())
         {
         String family = Bytes.toString(kv.getFamily());
-        //String qualifier = Bytes.toString(kv.getQualifier());
+        String qualifier = Bytes.toString(kv.getQualifier());
         byte[] value = kv.getValue();
 
         if (family.equals("abr"))
@@ -105,16 +106,32 @@ public class KaryotypeIndexTable extends AbstractTable
   public class KaryotypeIndexResult extends AbstractResult
     {
 
-    private String genome;
+    private String karyotype;
+    private String parentGenome;
     private List<String> abrs;
     private List<Aneuploidy> aps;
 
     protected KaryotypeIndexResult(byte[] rowId)
       {
       super(rowId);
-      this.genome = Bytes.toString(rowId);
+      this.karyotype = Bytes.toString(rowId);
       abrs = new ArrayList<String>();
       aps = new ArrayList<Aneuploidy>();
+      }
+
+    public String getKaryotype()
+      {
+      return karyotype;
+      }
+
+    public String getParentGenome()
+      {
+      return parentGenome;
+      }
+
+    public void addParentGenome(byte[] parentGenome)
+      {
+      this.parentGenome = Bytes.toString(parentGenome);
       }
 
     public List<String> getAberrations()
@@ -128,14 +145,21 @@ public class KaryotypeIndexTable extends AbstractTable
       this.abrs.add(abr);
       }
 
+    public List<Aneuploidy> getAneuploidy()
+      {
+      return aps;
+      }
+
     public void addAneuploidy(byte[] aneuploidy, boolean gain)
       {
       String value = Bytes.toString(aneuploidy);
       Aneuploidy ap = new Aneuploidy( value.substring(0, value.indexOf("(")) );
+
+      int count = Integer.valueOf(value.substring(value.indexOf("(")+1, value.length()-1));
       if (gain)
-        ap.gain( Integer.valueOf(value.substring(value.indexOf("("+1), value.indexOf(")")))  );
+        ap.gain(count);
       else
-        ap.lose( Integer.valueOf(value.substring(value.indexOf("("+1), value.indexOf(")")))  );
+        ap.lose(count);
 
       aps.add(ap);
       }

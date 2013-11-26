@@ -8,14 +8,19 @@
 
 package org.lcsb.lu.igcsa.hbase;
 
-import org.apache.commons.lang.math.IntRange;
 import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.filter.CompareFilter;
+import org.apache.hadoop.hbase.filter.FilterList;
+import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.hbase.rows.SequenceRow;
 import org.lcsb.lu.igcsa.hbase.tables.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 public class HBaseChromosome extends HBaseConnectedObjects
@@ -41,19 +46,19 @@ public class HBaseChromosome extends HBaseConnectedObjects
     }
 
 
-  public Put add(int start, int end, int segmentNumber, String sequence) throws IOException
+  public Put add(long start, long end, String sequence) throws IOException
     {
-    if (end <= start || sequence.length() <=0 || (segmentNumber > 0 && segmentNumber <= this.chromosome.getSegmentNumber()))
+    if (end <= start || sequence.length() <=0 )
       throw new IllegalArgumentException("End location must be greater than start, segment must be between 1-" + this.chromosome.getSegmentNumber() + ", and the sequence must have a minimum length of 1");
 
-    String sequenceId = SequenceRow.createRowId(this.chromosome.getGenomeName(), this.chromosome.getChrName(), segmentNumber);
+    String sequenceId = SequenceRow.createRowId(this.chromosome.getGenomeName(), this.chromosome.getChrName(), start);
     if (sT.queryTable(sequenceId) != null)
       log.warn("Sequence "+ sequenceId + " already exists. Not overwriting.");
     else
       {
       SequenceRow row = new SequenceRow( sequenceId );
       row.addBasePairs(sequence);
-      row.addLocation(this.chromosome.getChrName(), segmentNumber, start, end);
+      row.addLocation(this.chromosome.getChrName(), start, end);
       row.addGenome(this.chromosome.getGenomeName());
 
       return sT.getPut(row);
@@ -61,19 +66,19 @@ public class HBaseChromosome extends HBaseConnectedObjects
     return null;
     }
 
-  public HBaseSequence addSequence(int start, int end, int segmentNumber, String sequence) throws IOException
+  public HBaseSequence addSequence(long start, long end, String sequence) throws IOException
     {
-    if (end <= start || sequence.length() <=0 || (segmentNumber > 0 && segmentNumber <= this.chromosome.getSegmentNumber()))
-      throw new IllegalArgumentException("End location must be greater than start, segment must be between 1-" + this.chromosome.getSegmentNumber() + ", and the sequence must have a minimum length of 1");
+    if (!(end >= start || sequence.length() >=0)  )
+      throw new IllegalArgumentException("End location must be greater than start, segment must be > 0, and the sequence must have a minimum length of 1 (" + start + "," + end + "," + sequence.length() + ")");
 
-    String sequenceId = SequenceRow.createRowId(this.chromosome.getGenomeName(), this.chromosome.getChrName(), segmentNumber);
+    String sequenceId = SequenceRow.createRowId(this.chromosome.getGenomeName(), this.chromosome.getChrName(), start);
     if (sT.queryTable(sequenceId) != null)
-      log.warn("Sequence "+ sequenceId + " already exists. Not overwriting.");
+      throw new RuntimeException("Sequence "+ sequenceId + " already exists. Not overwriting.");
     else
       {
       SequenceRow row = new SequenceRow( sequenceId );
       row.addBasePairs(sequence);
-      row.addLocation(this.chromosome.getChrName(), segmentNumber, start, end);
+      row.addLocation(this.chromosome.getChrName(), start, end);
       row.addGenome(this.chromosome.getGenomeName());
 
       sT.addRow(row);
@@ -82,41 +87,54 @@ public class HBaseChromosome extends HBaseConnectedObjects
     return new HBaseSequence( sT.queryTable(sequenceId) );
     }
 
-  public HBaseSequence getSequence(int segmentNumber) throws IOException
+  public HBaseSequence getSequence(long startLocation) throws IOException
     {
-    if ( chromosome.getSegmentNumber() >= segmentNumber )
+    if ( chromosome.getSegmentNumber() >= startLocation )
       {
-      String sequenceId = SequenceRow.createRowId(this.chromosome.getGenomeName(), this.chromosome.getChrName(), segmentNumber);
+      String sequenceId = SequenceRow.createRowId(this.chromosome.getGenomeName(), this.chromosome.getChrName(), startLocation);
       return new HBaseSequence( sT.queryTable(sequenceId) );
       }
     return null;
     }
 
-  // TODO This could be done with HBase filters, might be faster
-  public List<HBaseSequence> getSequences(int startLoc, int endLoc) throws IOException
-    {
-    List<HBaseSequence> sequences = new ArrayList<HBaseSequence>();
-    for (int i=1; i<=this.chromosome.getSegmentNumber(); i++)
-      {
-      SequenceResult currResult = this.sT.queryTable(SequenceRow.createRowId(this.chromosome.getGenomeName(), this.chromosome.getChrName(), i));
-      IntRange resultRange = new IntRange(currResult.getStart(), currResult.getEnd());
-      if (resultRange.containsRange( new IntRange(startLoc, endLoc)) )
-        sequences.add(new HBaseSequence(currResult));
-      }
 
-    return sequences;
+  public List<String> getSequenceRowIds(long startLoc, long endLoc) throws IOException
+    {
+    List<String> rowIds = new LinkedList<String>();
+    Iterator<Result> rI = getSequences(startLoc, endLoc);
+    while (rI.hasNext())
+      rowIds.add( Bytes.toString(rI.next().getRow()) );
+
+    return rowIds;
     }
 
 
-  // TODO Again, there's probably a better way to do this with a filter but...
-//  public List<HBaseSequence> getAllSequences() throws IOException
-//    {
-//    List<HBaseSequence> sequences = new ArrayList<HBaseSequence>();
-//    for (int i=1; i<=this.chromosome.getSegmentNumber(); i++)
-//      sequences.add(new HBaseSequence(this.sT.queryTable(SequenceRow.createRowId(this.chromosome.getGenomeName(), this.chromosome.getChrName(), i))));
-//
-//    return sequences;
-//    }
+  public Iterator<Result> getSequences(long startLoc, long endLoc) throws IOException
+    {
+    FilterList filters = new FilterList(FilterList.Operator.MUST_PASS_ALL);
+
+    filters.addFilter( new SingleColumnValueFilter(
+        Bytes.toBytes("info"), Bytes.toBytes("genome"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(chromosome.getGenomeName())));
+    filters.addFilter( new SingleColumnValueFilter(
+        Bytes.toBytes("loc"), Bytes.toBytes("chr"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(chromosome.getChrName())) );
+    filters.addFilter( new SingleColumnValueFilter(
+        Bytes.toBytes("loc"), Bytes.toBytes("start"), CompareFilter.CompareOp.GREATER_OR_EQUAL, Bytes.toBytes(startLoc)));
+    filters.addFilter( new SingleColumnValueFilter(
+        Bytes.toBytes("loc"), Bytes.toBytes("end"), CompareFilter.CompareOp.LESS_OR_EQUAL, Bytes.toBytes(endLoc)));
+
+    return this.sT.getScanner(filters);
+    }
+
+  public Iterator<Result> getSequences() throws IOException
+    {
+    FilterList filters = new FilterList(FilterList.Operator.MUST_PASS_ALL);
+    filters.addFilter( new SingleColumnValueFilter(
+        Bytes.toBytes("info"), Bytes.toBytes("genome"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(chromosome.getGenomeName())));
+    filters.addFilter( new SingleColumnValueFilter(
+        Bytes.toBytes("loc"), Bytes.toBytes("chr"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(chromosome.getChrName())) );
+
+    return this.sT.getScanner(filters);
+    }
 
 
   public ChromosomeResult getChromosome()

@@ -18,14 +18,12 @@ public class FragmentKey implements Serializable
   static Logger log = Logger.getLogger(FragmentKey.class.getName());
 
   private String chr;
-  private int segment;
   private long start;
   private long end;
 
-  public FragmentKey(String chr, int segment, long start, long end)
+  public FragmentKey(String chr,long start, long end)
     {
     this.chr = chr;
-    this.segment = segment;
     this.start = start;
     this.end = end;
     }
@@ -34,11 +32,6 @@ public class FragmentKey implements Serializable
   public String getChr()
     {
     return chr;
-    }
-
-  public int getSegment()
-    {
-    return segment;
     }
 
   public long getStart()
@@ -54,7 +47,7 @@ public class FragmentKey implements Serializable
   @Override
   public String toString()
     {
-    return chr + ":" + segment + "(" + start + "-" + end + ")";
+    return chr + ":" + "(" + start + "-" + end + ")";
     }
 
   public static byte[] toBytes(FragmentKey obj)

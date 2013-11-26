@@ -14,6 +14,7 @@ import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.generator.Aberration;
 
 import java.io.IOException;
 import java.util.*;
@@ -77,19 +78,24 @@ public class KaryotypeAberrationTable extends AbstractTable
       {
       AberrationResult aberrationResult = new AberrationResult(result.getRow());
 
-      KeyValue kv = result.getColumn(Bytes.toBytes("info"), Bytes.toBytes("genome")).get(0);
+      KeyValue kv = result.getColumn(Bytes.toBytes("info"), Bytes.toBytes("karyotype")).get(0);
       aberrationResult.setGenome(kv.getValue());
 
       kv = result.getColumn(Bytes.toBytes("abr"), Bytes.toBytes("type")).get(0);
       aberrationResult.setAbrType(kv.getValue());
 
       // chances of there being very many aberrations (like more than 3) are pretty much nil
-      for (int i = 1; i <= 10; i++)
+      int i = 1;
+      while(true)
         {
+        if (result.getColumn(Bytes.toBytes("abr"), Bytes.toBytes("chr" + i)).size() <= 0 )
+          break;
+
         KeyValue kvc = result.getColumn(Bytes.toBytes("abr"), Bytes.toBytes("chr" + i)).get(0);
-        KeyValue kvl = result.getColumn(Bytes.toBytes("abr"), Bytes.toBytes("chr" + i)).get(0);
+        KeyValue kvl = result.getColumn(Bytes.toBytes("abr"), Bytes.toBytes("loc" + i)).get(0);
 
         aberrationResult.addAberrationDefinitions(kvc.getValue(), kvl.getValue());
+        i++;
         }
 
       return aberrationResult;

@@ -1,7 +1,5 @@
 package org.lcsb.lu.igcsa;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
@@ -14,7 +12,6 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.apache.hadoop.util.Tool;
@@ -23,6 +20,7 @@ import org.apache.log4j.Logger;
 
 import org.lcsb.lu.igcsa.hbase.HBaseGenome;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
+import org.lcsb.lu.igcsa.hbase.rows.ChromosomeRow;
 import org.lcsb.lu.igcsa.mapreduce.FASTAInputFormat;
 import org.lcsb.lu.igcsa.mapreduce.FragmentKey;
 
@@ -74,7 +72,9 @@ public class LoadFromFASTA extends Configured implements Tool
     job.setOutputFormatClass(NullOutputFormat.class);
 
 
+    //job.submit();
     return (job.waitForCompletion(true) ? 0 : 1);
+    //return 0;
     }
 
   public static class FragmentMapper extends Mapper<ImmutableBytesWritable, Text, ImmutableBytesWritable, Text>
@@ -103,18 +103,23 @@ public class LoadFromFASTA extends Configured implements Tool
       //log.info(value.toString());
 
       FragmentKey fragment = FragmentKey.fromBytes(key.get());
-      this.admin.getGenome(genomeName).getChromosome(chr).addSequence((int)fragment.getStart(), (int)fragment.getEnd(), fragment.getSegment(), value.toString());
+      this.admin.getGenome(genomeName).getChromosome(chr).addSequence((int)fragment.getStart(), (int)fragment.getEnd(), value.toString());
+      this.admin.getChromosomeTable().incrementSize(ChromosomeRow.createRowId(genomeName, chr), 1, (fragment.getEnd() - fragment.getStart())) ;
       context.write(key, value);
       }
     }
 
   public static void main(String[] args) throws Exception
     {
+    //args = new String[]{"GRCh37", "/Users/sarah.killcoyne/Data/FASTA"};
+
     if (args.length < 2)
       {
       System.err.println("Usage: LoadFromFASTA <genome name> <fasta directory>");
       System.exit(-1);
       }
+
+    HBaseGenomeAdmin.getHBaseGenomeAdmin().createTables();
 
     String genomeName = args[0];
     String fastaDir = args[1];
@@ -131,8 +136,6 @@ public class LoadFromFASTA extends Configured implements Tool
       final long elapsedTime = System.currentTimeMillis() - startTime;
       log.info("Finished job " + elapsedTime / 1000 + " seconds");
       }
-
-    ToolRunner.run(new UpdateGenome(), new String[]{genomeName});
     }
   }
 

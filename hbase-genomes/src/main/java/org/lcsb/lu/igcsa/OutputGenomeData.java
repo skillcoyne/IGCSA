@@ -10,15 +10,15 @@ package org.lcsb.lu.igcsa;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.hbase.HBaseChromosome;
 import org.lcsb.lu.igcsa.hbase.HBaseGenome;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
-import org.lcsb.lu.igcsa.hbase.HBaseSequence;
-import org.lcsb.lu.igcsa.hbase.tables.GenomeResult;
 import org.lcsb.lu.igcsa.hbase.tables.SequenceResult;
 
-import java.io.IOException;
+import java.util.Iterator;
 
 public class OutputGenomeData
   {
@@ -30,25 +30,22 @@ public class OutputGenomeData
     Configuration conf = HBaseConfiguration.create();
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(conf);
 
-    for (HBaseGenome gr : admin.retrieveGenomes())
+    HBaseGenome genome = admin.getGenome("GRCh37");
+
+    for (HBaseChromosome chr: genome.getChromosomes())
+      log.info( chr.getChromosome().getChrName() + " " + chr.getChromosome().getSegmentNumber() + " " + chr.getChromosome().getLength());
+
+
+    Iterator<Result> rI = genome.getChromosome("1").getSequences(16550001, 249250622);
+    log.info(rI.toString());
+    while (rI.hasNext())
       {
-      log.info(gr.getGenome().getName() + " " + gr.getGenome().getChromosomes());
-      for (HBaseChromosome chr : gr.getChromosomes())
-        {
-        log.info(chr.getChromosome().getChrName() + " length:" + chr.getChromosome().getLength() + " num segments:" + chr.getChromosome().getSegmentNumber());
-
-        // first and last just to check
-        //        HBaseSequence seq = chr.getSequence(1);
-        //        log.info(seq.getSequence().getSegment() + " :" + seq.getSequence().getStart() + "-" + seq.getSequence().getEnd());
-        //        seq = chr.getSequence( chr.getChromosome().getSegmentNumber() );
-        //        log.info(seq.getSequence().getSegment() + " :" + seq.getSequence().getStart() + "-" + seq.getSequence().getEnd());
-
-
-        }
-
-
+      log.info(Bytes.toString(rI.next().getRow()) );
       }
 
     }
+
+
+
 
   }

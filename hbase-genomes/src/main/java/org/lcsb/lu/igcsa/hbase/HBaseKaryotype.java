@@ -9,11 +9,15 @@
 package org.lcsb.lu.igcsa.hbase;
 
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.hbase.rows.AberrationRow;
+import org.lcsb.lu.igcsa.hbase.tables.AberrationResult;
 import org.lcsb.lu.igcsa.hbase.tables.AbstractResult;
 import org.lcsb.lu.igcsa.hbase.tables.KaryotypeAberrationTable;
 import org.lcsb.lu.igcsa.hbase.tables.KaryotypeIndexTable;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class HBaseKaryotype extends HBaseConnectedObjects
   {
@@ -23,7 +27,7 @@ public class HBaseKaryotype extends HBaseConnectedObjects
   private KaryotypeIndexTable kiT;
 
   private KaryotypeIndexTable.KaryotypeIndexResult karyotype;
-  //private List<>
+  private List<AberrationResult> aberrations;
 
   protected HBaseKaryotype(AbstractResult result) throws IOException
     {
@@ -37,10 +41,21 @@ public class HBaseKaryotype extends HBaseConnectedObjects
     this.karyotype = this.kiT.queryTable(rowId);
     }
 
-
-  private void getAberrations()
+  public KaryotypeIndexTable.KaryotypeIndexResult getKaryotype()
     {
-    //AberrationResult r = this.kT.getRows();
+    return karyotype;
+    }
+
+  public List<AberrationResult> getAberrations() throws IOException
+    {
+    if (aberrations == null)
+      {
+      aberrations = new ArrayList<AberrationResult>();
+      for (String abr : karyotype.getAberrations())
+        aberrations.add(kT.queryTable(AberrationRow.createRowId(karyotype.getRowId(), abr)));
+      }
+
+    return aberrations;
     }
 
 

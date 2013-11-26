@@ -8,8 +8,6 @@
 
 package org.lcsb.lu.igcsa.hbase;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.MinimalKaryotype;
 import org.lcsb.lu.igcsa.generator.Aberration;
 import org.lcsb.lu.igcsa.hbase.rows.AberrationRow;
@@ -20,6 +18,10 @@ import org.lcsb.lu.igcsa.hbase.tables.*;
 
 import java.io.IOException;
 import java.util.*;
+
+import org.apache.log4j.Logger;
+import org.apache.commons.lang.StringUtils;
+
 
 public class HBaseGenome extends HBaseConnectedObjects
   {
@@ -83,7 +85,7 @@ public class HBaseGenome extends HBaseConnectedObjects
     }
 
 
-  public HBaseChromosome addChromosome(String chr, int length, int numSegments) throws IOException
+  public HBaseChromosome addChromosome(String chr, long length, long numSegments) throws IOException
     {
     GenomeResult result = gT.queryTable(genome.getName());
 
@@ -114,44 +116,53 @@ public class HBaseGenome extends HBaseConnectedObjects
     return (result != null)? new HBaseChromosome(result): null;
     }
 
-  public void createKaryotype(String baseKaryotypeName, String parentGenome, List<MinimalKaryotype> karyotypes) throws IOException
+
+  public HBaseKaryotype createKaryotype(String karyotypeName, String parentGenome, MinimalKaryotype karyotype) throws IOException
     {
+    KaryotypeIndexRow row = new KaryotypeIndexRow(karyotypeName, parentGenome);
+    row.addAberrations(karyotype.getAberrations());
+    row.addAneuploidies(karyotype.getAneuploidies());
+
+    this.kiT.addRow(row);
+
+    for (Map.Entry<String, Aberration> ktrid: row.getAberrationRowIds().entrySet())
+      {
+      AberrationRow krow = new AberrationRow(ktrid.getKey());
+      krow.addKaryotype(karyotypeName);
+      krow.addAberration(ktrid.getValue());
+
+      log.info(krow.getRowIdAsString());
+      this.kT.addRow(krow);
+      }
+
+    return new HBaseKaryotype(kiT.queryTable(row.getRowIdAsString()));
+    }
+
+  public List<HBaseKaryotype> createKaryotypes(String baseKaryotypeName, String parentGenome, List<MinimalKaryotype> karyotypes) throws IOException
+    {
+    List<HBaseKaryotype> karyotypeList = new ArrayList<HBaseKaryotype>();
+
     int i = 0;
     for (MinimalKaryotype kt: karyotypes)
       {
       ++i;
       String karyotypeName = baseKaryotypeName+i;
-      KaryotypeIndexRow row = new KaryotypeIndexRow(karyotypeName, parentGenome);
-      row.addAberrations(kt.getAberrations());
-      row.addAneuploidies(kt.getAneuploidies());
 
-      this.kiT.addRow(row);
-
-      for (Map.Entry<String, Aberration> ktrid: row.getAberrationRowIds().entrySet())
-        {
-        AberrationRow krow = new AberrationRow(ktrid.getKey());
-        krow.addKaryotype(karyotypeName);
-        krow.addAberration(ktrid.getValue());
-
-        log.info(krow.getRowIdAsString());
-        this.kT.addRow(krow);
-        }
-
-      //kt.getAneuploidies()
-      // TODO I need a separate table for aneuploidies!!!
-
+      karyotypeList.add(createKaryotype(karyotypeName, parentGenome, kt));
       }
 
+    return karyotypeList;
     }
-
 
   public List<HBaseKaryotype> getKaryotypes() throws IOException
     {
-    KaryotypeIndexTable.KaryotypeIndexResult kiResults = this.kiT.queryTable(this.rowId);
-    //kiResults.
+    List<KaryotypeIndexTable.KaryotypeIndexResult> results = kiT.queryTable(new Column("info", "genome", genome.getRowId()));
 
-    //List<AberrationResult> = this.kT.getRows();
-    return null;
+    List<HBaseKaryotype> karyotypes = new ArrayList<HBaseKaryotype>();
+    for (KaryotypeIndexTable.KaryotypeIndexResult r: results)
+      karyotypes.add( new HBaseKaryotype(r) );
+
+    return karyotypes;
     }
 
   public List<HBaseChromosome> getChromosomes() throws IOException

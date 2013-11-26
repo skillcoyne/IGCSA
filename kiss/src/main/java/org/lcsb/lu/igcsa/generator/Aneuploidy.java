@@ -16,8 +16,8 @@ public class Aneuploidy
   private int gain = 0;
   private int loss = 0;
 
-  private int max = 6;
-  private int min = -2;
+  private int maxGain = 6;
+  private int maxLoss = 2;
 
   public Aneuploidy(String chr)
     {
@@ -36,11 +36,15 @@ public class Aneuploidy
   public void gain(int count)
     {
     this.gain += count;
+    if (gain > maxGain)
+      gain = maxGain;
     }
 
   public void lose(int count)
     {
     this.loss += count;
+    if (loss > maxLoss)
+      loss = maxLoss;
     }
 
   public String getChromosome()

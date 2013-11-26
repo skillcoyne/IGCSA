@@ -27,18 +27,6 @@ public class GenomeResult extends AbstractResult
     this.chromosomes = new ArrayList<String>();
     }
 
-  @Override
-  public List<ChromosomeResult> getAssociatedResults(String rowId, AbstractTable connectedTable) throws IOException
-    {
-    ChromosomeTable chrTable = (ChromosomeTable) connectedTable;
-    List<ChromosomeResult> chromosomesList = new ArrayList<ChromosomeResult>();
-    for (String chr: this.getChromosomes())
-      chrTable.queryTable(ChromosomeRow.createRowId(this.getName(), chr));
-
-    return chromosomesList;
-    }
-
-
   protected GenomeResult(byte[] rowId, byte[] name, byte[] parent, byte[] chromosomes)
     {
     super(rowId);

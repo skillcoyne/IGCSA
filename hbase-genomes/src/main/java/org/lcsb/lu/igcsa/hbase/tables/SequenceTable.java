@@ -10,10 +10,13 @@ package org.lcsb.lu.igcsa.hbase.tables;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.KeyValue;
-import org.apache.hadoop.hbase.client.HBaseAdmin;
-import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.filter.CompareFilter;
+import org.apache.hadoop.hbase.filter.FilterList;
+import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.hbase.rows.SequenceRow;
 
 import java.io.IOException;
 import java.util.*;
@@ -28,7 +31,7 @@ public class SequenceTable extends AbstractTable
     {
     reqFields = new HashMap<String, Set<String>>();
     reqFields.put("info", new HashSet<String>(Arrays.asList("genome")));
-    reqFields.put("loc", new HashSet<String>(Arrays.asList("start", "end", "chr", "segment")));
+    reqFields.put("loc", new HashSet<String>(Arrays.asList("start", "end", "chr")));
     reqFields.put("bp", new HashSet<String>(Arrays.asList("seq")));
     }
 
@@ -98,8 +101,8 @@ public class SequenceTable extends AbstractTable
             seqResult.setEnd(value);
           else if (qualifier.equals("chr"))
             seqResult.setChr(value);
-          else if (qualifier.equals("segment"))
-            seqResult.setSegment(value);
+//          else if (qualifier.equals("segment"))
+//            seqResult.setSegment(value);
           }
         }
 
@@ -107,6 +110,23 @@ public class SequenceTable extends AbstractTable
       }
 
     return null;
+    }
+
+  public Iterator<Result> getSequencesFor(String genome, String chr, long fromLoc, long toLoc) throws IOException
+    {
+    FilterList filters = new FilterList(FilterList.Operator.MUST_PASS_ALL);
+
+    filters.addFilter( new SingleColumnValueFilter( Bytes.toBytes("info"), Bytes.toBytes("genome"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(genome)));
+    filters.addFilter( new SingleColumnValueFilter( Bytes.toBytes("loc"), Bytes.toBytes("chr"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(chr)) );
+    filters.addFilter( new SingleColumnValueFilter( Bytes.toBytes("loc"), Bytes.toBytes("start"), CompareFilter.CompareOp.GREATER_OR_EQUAL, Bytes.toBytes(fromLoc)));
+    filters.addFilter( new SingleColumnValueFilter( Bytes.toBytes("loc"), Bytes.toBytes("end"), CompareFilter.CompareOp.LESS_OR_EQUAL, Bytes.toBytes(toLoc)));
+
+    Scan scan = new Scan();
+    scan.setFilter(filters);
+
+    ResultScanner scanner = this.hTable.getScanner(scan);
+
+    return scanner.iterator();
     }
 
   }

@@ -47,17 +47,15 @@ public class CharacterReader
     this.bufferedReader = new BufferedReader(new InputStreamReader(in));
     this.in = in;
     filePos += startChar;
-//    try
-//      {
-      //this.bufferedReader.skip(startChar);
-
-//      }
-//    catch (IOException e)
-//      {
-//      e.printStackTrace();
-//      }
+    try
+      {
+      bufferedReader.skip(startChar);
+      }
+    catch (IOException e)
+      {
+      e.printStackTrace();
+      }
     }
-
   public String readLine() throws IOException
     {
     String line = bufferedReader.readLine();

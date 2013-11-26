@@ -5,6 +5,8 @@ import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.CompareFilter;
+import org.apache.hadoop.hbase.filter.Filter;
+import org.apache.hadoop.hbase.filter.FilterList;
 import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
@@ -121,24 +123,43 @@ public abstract class AbstractTable
     return transformScannerResults(scanner);
     }
 
-
   public Scan getScanFor(Column... columns)
     {
+    return getScanFor(CompareFilter.CompareOp.EQUAL, columns);
+    }
+
+  public Scan getScanFor(CompareFilter.CompareOp op, Column... columns)
+    {
     Scan scan = new Scan();
+
+    FilterList filterList = new FilterList(FilterList.Operator.MUST_PASS_ALL);
 
     for (Column column : columns)
       {
       if (column.hasQualifier() && column.hasValue())
         {
         if (column.hasValue())
-          scan.setFilter(new SingleColumnValueFilter(column.getFamliy(), column.getQualifier(), CompareFilter.CompareOp.EQUAL, column.getValue()));
+          filterList.addFilter(new SingleColumnValueFilter(column.getFamliy(), column.getQualifier(), op, column.getValue()));
+          //scan.setFilter(new SingleColumnValueFilter(column.getFamliy(), column.getQualifier(), CompareFilter.CompareOp.EQUAL, column.getValue()));
         else if (column.hasQualifier() && !column.hasValue()) // has both family & qualifier, but no value
           scan.addColumn(column.getFamliy(), column.getQualifier());
         else if (column.hasFamily()) // only family
           scan.addFamily(column.getFamliy());
         }
       }
+    scan.setFilter(filterList);
+
     return scan;
+    }
+
+  public Iterator<Result> getScanner(FilterList filters) throws IOException
+    {
+    Scan scan = new Scan();
+    scan.setCaching(300);
+    scan.setBatch(100);
+    scan.setFilter(filters);
+    ResultScanner scanner = hTable.getScanner(scan);
+    return scanner.iterator();
     }
 
 

@@ -41,9 +41,11 @@ public class UpdateGenome extends Configured implements Tool
   @Override
   public int run(String[] args) throws Exception
     {
-    String genome = args[0];
-    if (args.length < 1)
-      throw new Exception("Missing argument: genome name.");
+//    if (args.length < 1)
+//      throw new Exception("Missing argument: genome name.");
+
+
+    String genome = "GRCh37";//args[0];
 
     Configuration config = HBaseConfiguration.create();
     HBaseGenomeAdmin genomeAdmin = HBaseGenomeAdmin.getHBaseGenomeAdmin(config);
@@ -51,9 +53,9 @@ public class UpdateGenome extends Configured implements Tool
     config.set("genome", genome);
 
     // get all sequences for the given genome and chromosome
-    Scan chrScan = genomeAdmin.getSequenceTable().getScanFor(new Column("info", "genome", genome));
-    chrScan.setCaching(500);
-    chrScan.setCacheBlocks(false);
+    Scan chrScan = genomeAdmin.getSequenceTable().getScanFor(new Column("info", "genome", genome), new Column("loc", "chr", "1"));
+    chrScan.setCaching(200);
+    chrScan.setCacheBlocks(true);
 
     // set up the job
     Job job = new Job(config, "Mutated Genome Chromosome Update");
@@ -104,7 +106,7 @@ public class UpdateGenome extends Configured implements Tool
       {
       // Keyed on the chromosome name log the length of each segment sequence
       SequenceResult result = HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().createResult(value);
-      context.write(new Text(result.getChr()), new IntWritable(result.getSequenceLength()));
+      context.write(new Text(result.getChr()), new IntWritable( (int)result.getSequenceLength()) );
       }
 
 

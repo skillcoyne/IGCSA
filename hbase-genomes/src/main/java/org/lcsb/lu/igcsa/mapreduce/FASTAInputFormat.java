@@ -19,6 +19,7 @@ import org.apache.hadoop.io.compress.CompressionCodecFactory;
 import org.apache.hadoop.io.compress.CompressionInputStream;
 
 import org.apache.hadoop.mapreduce.InputSplit;
+import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
@@ -32,12 +33,18 @@ public class FASTAInputFormat extends FileInputFormat<ImmutableBytesWritable, Te
   static Logger log = Logger.getLogger(FASTAInputFormat.class.getName());
 
   @Override
+  protected boolean isSplitable(JobContext context, Path filename)
+    {
+    // force the entire file to be read in a single split. Basically this is the only way I can think of currently to ensure that the segments are numbered consecutively
+    return false;
+    }
+
+  @Override
   public RecordReader<ImmutableBytesWritable, Text> createRecordReader(InputSplit inputSplit, TaskAttemptContext context) throws IOException, InterruptedException
     {
     int nucWindow = 1000;
     return new FASTAFragmentRecordReader(nucWindow);
     }
-
 
   public static class FASTAFragmentRecordReader extends RecordReader<ImmutableBytesWritable, Text>
     {
@@ -69,8 +76,6 @@ public class FASTAInputFormat extends FileInputFormat<ImmutableBytesWritable, Te
     private long splitEnd;
     private String splitChr;
 
-    private int positionAdj = 0;
-
     private long lastStart = 1;
 
     public FASTAFragmentRecordReader(int window)
@@ -93,18 +98,17 @@ public class FASTAInputFormat extends FileInputFormat<ImmutableBytesWritable, Te
       CompressionCodec codec = factory.getCodec(path);
 
       inputStream = path.getFileSystem(context.getConfiguration()).open(path);
-      inputStream.seek(split.getStart());
-
-      reader = new CharacterReader(inputStream, inputStream.getPos());
 
       if (codec != null)
         {
         CompressionInputStream is = codec.createInputStream(inputStream);
-        reader = new CharacterReader(is);
+        reader = new CharacterReader(is, split.getStart());
         }
+      else
+        reader = new CharacterReader(inputStream, inputStream.getPos());
 
       // read the header
-      if (reader.getPos() == 0)
+      if (splitStart == 0)
         {
         if (reader.read() == HEADER_IDENTIFIER)
           {
@@ -118,7 +122,7 @@ public class FASTAInputFormat extends FileInputFormat<ImmutableBytesWritable, Te
           }
         }
 
-      log.info("foo");
+
       }
 
     @Override
@@ -128,7 +132,6 @@ public class FASTAInputFormat extends FileInputFormat<ImmutableBytesWritable, Te
         return false;
 
       long adjustedStart = lastStart;
-      ++positionAdj;
       String fragment = reader.readCharacters(window);
 
       // no more data
@@ -138,7 +141,7 @@ public class FASTAInputFormat extends FileInputFormat<ImmutableBytesWritable, Te
       long adjustedEnd = adjustedStart + fragment.length();
       lastStart = adjustedEnd;
 
-      FragmentKey f = new FragmentKey(splitChr, positionAdj, adjustedStart, adjustedEnd);
+      FragmentKey f = new FragmentKey(splitChr, adjustedStart, adjustedEnd);
 
       key = new ImmutableBytesWritable( FragmentKey.toBytes(f) );
       value = new Text(fragment);

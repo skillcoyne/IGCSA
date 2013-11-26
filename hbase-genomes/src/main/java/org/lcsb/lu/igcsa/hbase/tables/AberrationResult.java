@@ -10,6 +10,7 @@ package org.lcsb.lu.igcsa.hbase.tables;
 
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.genome.Location;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +22,7 @@ public class AberrationResult extends AbstractResult
   private String genome;
   private String abrType;
 
-  private List<AberrationLocation> aberrationDefs = new ArrayList<AberrationLocation>();
+  private List<Location> aberrationDefs = new ArrayList<Location>();
 
   protected AberrationResult(byte[] rowId)
     {
@@ -48,7 +49,7 @@ public class AberrationResult extends AbstractResult
     this.abrType = Bytes.toString(abrType);
     }
 
-  public List<AberrationLocation> getAberrationDefinitions()
+  public List<Location> getAberrationDefinitions()
     {
     return aberrationDefs;
     }
@@ -56,38 +57,9 @@ public class AberrationResult extends AbstractResult
   public void addAberrationDefinitions(byte[] chr, byte[] loc)
     {
     String chromosome = Bytes.toString(chr);
-    String[] locationDef = Bytes.toString(loc).split(",");
+    String[] locationDef = Bytes.toString(loc).split("-");
 
-    this.aberrationDefs.add(new AberrationLocation(chromosome, Integer.parseInt(locationDef[0]), Integer.parseInt(locationDef[1])));
-    }
-
-  public class AberrationLocation
-    {
-    private int start;
-    private int stop;
-    private String chr;
-
-    protected AberrationLocation(String chr, int start, int stop)
-      {
-      this.start = start;
-      this.stop = stop;
-      this.chr = chr;
-      }
-
-    public int getStart()
-      {
-      return start;
-      }
-
-    public int getStop()
-      {
-      return stop;
-      }
-
-    public String getChr()
-      {
-      return chr;
-      }
+    aberrationDefs.add(new Location(chromosome, Integer.parseInt(locationDef[0]), Integer.parseInt(locationDef[1])));
     }
 
   }

@@ -109,6 +109,13 @@ public class HBaseGenomeAdmin
     return (result != null)? new HBaseGenome(result): null;
     }
 
+  public HBaseKaryotype getKaryotype(String karyotypeName) throws IOException
+    {
+    KaryotypeIndexTable.KaryotypeIndexResult result = kiT.queryTable(karyotypeName);
+    return (result != null)? new HBaseKaryotype(result): null;
+    }
+
+
   public HBaseGenome getReference() throws IOException
     {
     return new HBaseGenome((GenomeResult) gT.queryTable(new Column("info", "parent", "reference")));
@@ -141,12 +148,26 @@ public class HBaseGenomeAdmin
     while (iterator.hasNext())
       smT.delete(Bytes.toString(iterator.next().getRow()));
 
-    iterator = kT.getResultIterator(toFilter);
-    while (iterator.hasNext())
-      kT.delete(Bytes.toString(iterator.next().getRow()));
+    deleteKaryotypes(genomeName);
 
-    kiT.delete(genomeName);
     gT.delete(genomeName);
+    }
+
+  public void deleteKaryotypes(String genomeName) throws IOException
+    {
+    Column toFilter = new Column("info", "genome", genomeName);
+
+    Iterator<Result> iterator = kiT.getResultIterator(toFilter);
+    while (iterator.hasNext())
+      {
+      Result result = iterator.next();
+
+      Iterator<Result> abrI = kT.getResultIterator(new Column("info", "karyotype", Bytes.toString(result.getRow())));
+      while (abrI.hasNext())
+        kT.delete(Bytes.toString(abrI.next().getRow()));
+
+      kiT.delete(Bytes.toString(result.getRow()));
+      }
     }
 
   public void closeConections() throws IOException
@@ -158,7 +179,7 @@ public class HBaseGenomeAdmin
     {
     for (String t : tables)
       {
-      if (hbaseAdmin.isTableEnabled(t))
+      if (hbaseAdmin.tableExists(t) && hbaseAdmin.isTableEnabled(t))
         hbaseAdmin.disableTable(t);
       }
     }

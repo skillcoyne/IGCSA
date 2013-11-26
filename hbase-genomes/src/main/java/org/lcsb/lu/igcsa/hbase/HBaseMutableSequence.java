@@ -55,10 +55,9 @@ public class HBaseMutableSequence implements Callable<HBaseSequence>
   private void mutateFragment() throws IOException
     {
     String chromosmeName = hBaseSequence.getSequence().getChr();
-    int start = hBaseSequence.getSequence().getStart(), end = hBaseSequence.getSequence().getEnd();
+    //long start = hBaseSequence.getSequence().getStart(), end = hBaseSequence.getSequence().getEnd();
 
-    log.info("Mutating " + chromosmeName + " " + hBaseSequence.getSequence().getSegment());
-
+    log.info("Mutating " + chromosmeName + " " + hBaseSequence.getSequence().getStart());
 
     long timeStart = System.currentTimeMillis();
     DNASequence mutatedSequence = new DNASequence(hBaseSequence.getSequence().getSequence());
@@ -88,7 +87,7 @@ public class HBaseMutableSequence implements Callable<HBaseSequence>
         }
 
       long elapsed = System.currentTimeMillis() - timeStart;
-      log.info(chromosmeName + " " + start + "-" + end + " took " + elapsed);
+      //log.info(chromosmeName + " " + start + "-" + end + " took " + elapsed);
       }
     }
 

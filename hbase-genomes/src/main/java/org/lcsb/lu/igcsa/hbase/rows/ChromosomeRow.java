@@ -41,7 +41,7 @@ public class ChromosomeRow extends Row
     this.genome = name;
     }
 
-  public void addChromosomeInfo(String chrName, int length, int numSegments)
+  public void addChromosomeInfo(String chrName, long length, long numSegments)
     {
     super.addColumn( new Column("chr", "name", chrName) );
     super.addColumn( new Column("chr", "length", length) );

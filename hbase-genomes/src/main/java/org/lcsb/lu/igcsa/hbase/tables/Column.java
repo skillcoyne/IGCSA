@@ -43,6 +43,12 @@ public class Column
     this.value = Bytes.toBytes(value);
     }
 
+  public Column(String family, String qualifier, long value)
+    {
+    this.setColumn(family, qualifier);
+    this.value = Bytes.toBytes(value);
+    }
+
   public byte[] getFamliy()
     {
     return famliy;

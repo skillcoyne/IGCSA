@@ -21,8 +21,8 @@ public class ChromosomeResult extends AbstractResult
   {
   static Logger log = Logger.getLogger(ChromosomeResult.class.getName());
 
-  private int length;
-  private int segmentNumber;
+  private long length;
+  private long segmentNumber;
   private String chrName;
   private String genomeName;
 
@@ -44,25 +44,12 @@ public class ChromosomeResult extends AbstractResult
     super(rowId);
     }
 
-  @Override
-  public List<SequenceResult> getAssociatedResults(String rowId, AbstractTable connectedTable) throws IOException
-    {
-    SequenceTable seqTable = (SequenceTable) connectedTable;
-
-    List<SequenceResult> sequences = new ArrayList<SequenceResult>();
-    for (int i = 1; i <= this.getSegmentNumber(); i++)
-      sequences.add(seqTable.queryTable(SequenceRow.createRowId(genomeName, chrName, i)));
-
-    return sequences;
-    }
-
-
-  public void setLength(int length)
+  public void setLength(long length)
     {
     this.length = length;
     }
 
-  public void setSegmentNumber(int segmentNumber)
+  public void setSegmentNumber(long segmentNumber)
     {
     this.segmentNumber = segmentNumber;
     }
@@ -79,24 +66,24 @@ public class ChromosomeResult extends AbstractResult
       rowId = ChromosomeRow.createRowId(genomeName, this.chrName);
     }
 
-  public int getLength()
+  public long getLength()
     {
     return length;
     }
 
   public void setLength(byte[] length)
     {
-    this.length = Bytes.toInt(length);
+    this.length = Bytes.toLong(length);
     }
 
-  public int getSegmentNumber()
+  public long getSegmentNumber()
     {
     return segmentNumber;
     }
 
   public void setSegmentNumber(byte[] segmentNumber)
     {
-    this.segmentNumber = Bytes.toInt(segmentNumber);
+    this.segmentNumber = Bytes.toLong(segmentNumber);
     }
 
   public String getChrName()

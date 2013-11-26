@@ -11,6 +11,7 @@ package org.lcsb.lu.igcsa.hbase.tables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
+import org.apache.hadoop.hbase.client.Increment;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
@@ -80,30 +81,34 @@ public class ChromosomeTable extends AbstractTable
       {
       ChromosomeResult chrResult = new ChromosomeResult(result.getRow());
 
-      for (KeyValue kv : result.list())
-        {
-        String family = Bytes.toString(kv.getFamily());
-        String qualifier = Bytes.toString(kv.getQualifier());
-        byte[] value = kv.getValue();
+      byte[] chrFam = Bytes.toBytes("chr");
 
-        if (family.equals("chr"))
-          {
-          if (qualifier.equals("length"))
-            chrResult.setLength(value);
-          if (qualifier.equals("segments"))
-            chrResult.setSegmentNumber(value);
-          if (qualifier.equals("name"))
-            chrResult.setChrName(value);
-          }
-        else if (family.equals("info") && qualifier.equals("genome"))
-          chrResult.setGenomeName(value);
-        }
+      chrResult.setLength( result.getValue( chrFam, Bytes.toBytes("length")) );
+      chrResult.setSegmentNumber( result.getValue( chrFam, Bytes.toBytes("segments")) );
+      chrResult.setChrName( result.getValue(chrFam, Bytes.toBytes("name")) );
+      chrResult.setGenomeName( result.getValue(Bytes.toBytes("info"), Bytes.toBytes("genome")) );
 
       return chrResult;
       }
 
     return null;
     }
+
+  public ChromosomeResult incrementSize(String rowId, long segment, long length) throws IOException
+    {
+    Increment inc = new Increment( Bytes.toBytes(rowId) );
+
+    if (segment > 0)
+      inc.addColumn(Bytes.toBytes("chr"), Bytes.toBytes("segments"), segment);
+
+    if (length > 0)
+      inc.addColumn(Bytes.toBytes("chr"), Bytes.toBytes("length"), length);
+
+    Result r = this.hTable.increment(inc);
+
+    return this.createResult(r);
+    }
+
 
 
   }
