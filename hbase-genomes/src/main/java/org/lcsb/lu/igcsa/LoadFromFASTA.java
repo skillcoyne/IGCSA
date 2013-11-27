@@ -112,6 +112,9 @@ public class LoadFromFASTA extends Configured implements Tool
   public static void main(String[] args) throws Exception
     {
     //args = new String[]{"GRCh37", "/Users/sarah.killcoyne/Data/FASTA"};
+    //args = new String[]{"GRCh37", "/Users/skillcoyne/Data/FASTA"};
+
+    //args = new String[]{"GRCh37", "s3n://insilico/FASTA"};
 
     if (args.length < 2)
       {

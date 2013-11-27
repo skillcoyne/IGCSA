@@ -28,24 +28,26 @@ public class OutputGenomeData
   public static void main(String[] args) throws Exception
     {
     Configuration conf = HBaseConfiguration.create();
+//    conf.setInt("timeout", 120000);
+//    conf.set("hbase.master", "*" + "bmf00004.uni.lux" + ":9000*");
+//    conf.set("hbase.zookeeper.quorum", "bmf00004.uni.lux");
+//    conf.set("hbase.zookeeper.property.clientPort", "2181");
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(conf);
 
     HBaseGenome genome = admin.getGenome("GRCh37");
 
-    for (HBaseChromosome chr: genome.getChromosomes())
-      log.info( chr.getChromosome().getChrName() + " " + chr.getChromosome().getSegmentNumber() + " " + chr.getChromosome().getLength());
+    for (HBaseChromosome chr : genome.getChromosomes())
+      log.info(chr.getChromosome().getChrName() + " " + chr.getChromosome().getSegmentNumber() + " " + chr.getChromosome().getLength());
 
 
-    Iterator<Result> rI = genome.getChromosome("1").getSequences(16550001, 249250622);
+    Iterator<Result> rI = genome.getChromosome("22").getSequences(1, 51273001);
     log.info(rI.toString());
     while (rI.hasNext())
       {
-      log.info(Bytes.toString(rI.next().getRow()) );
+      log.info(Bytes.toString(rI.next().getRow()));
       }
 
     }
-
-
 
 
   }
