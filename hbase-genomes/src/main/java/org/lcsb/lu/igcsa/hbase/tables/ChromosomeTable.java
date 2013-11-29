@@ -32,9 +32,9 @@ public class ChromosomeTable extends AbstractTable
     reqFields.put("chr", new HashSet<String>(Arrays.asList("length", "segments", "name")));
     }
 
-  public ChromosomeTable(Configuration configuration, HBaseAdmin admin, String tableName, boolean create) throws IOException
+  public ChromosomeTable(Configuration configuration, HBaseAdmin admin, String tableName) throws IOException
     {
-    super(configuration, admin, tableName, reqFields, create);
+    super(configuration, admin, tableName, reqFields);
     }
 
   @Override

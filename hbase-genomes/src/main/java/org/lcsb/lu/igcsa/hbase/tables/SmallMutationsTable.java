@@ -32,9 +32,9 @@ public class SmallMutationsTable extends AbstractTable
     reqFields.put("bp", new HashSet<String>(Arrays.asList("seq")));
     }
 
-  public SmallMutationsTable(Configuration configuration, HBaseAdmin admin, String tableName, boolean create) throws IOException
+  public SmallMutationsTable(Configuration configuration, HBaseAdmin admin, String tableName) throws IOException
     {
-    super(configuration, admin, tableName, reqFields, create);
+    super(configuration, admin, tableName, reqFields);
     }
 
   @Override

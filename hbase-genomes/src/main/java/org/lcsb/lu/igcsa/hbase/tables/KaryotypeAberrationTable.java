@@ -32,9 +32,9 @@ public class KaryotypeAberrationTable extends AbstractTable
     reqFields.put("abr", new HashSet<String>(Arrays.asList("type", "chr1", "loc1")));
     }
 
-  public KaryotypeAberrationTable(Configuration configuration, HBaseAdmin admin, String tableName, boolean create) throws IOException
+  public KaryotypeAberrationTable(Configuration configuration, HBaseAdmin admin, String tableName) throws IOException
     {
-    super(configuration, admin, tableName, reqFields, create);
+    super(configuration, admin, tableName, reqFields);
     }
 
   @Override

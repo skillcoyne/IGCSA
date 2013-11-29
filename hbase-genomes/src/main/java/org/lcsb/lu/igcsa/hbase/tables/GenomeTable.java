@@ -31,9 +31,9 @@ public class GenomeTable extends AbstractTable
     reqFields.put("chr", new HashSet<String>(Arrays.asList("list")));
     }
 
-  public GenomeTable(Configuration configuration, HBaseAdmin admin, String tableName, boolean create) throws IOException
+  public GenomeTable(Configuration configuration, HBaseAdmin admin, String tableName) throws IOException
     {
-    super(configuration, admin, tableName, reqFields, create);
+    super(configuration, admin, tableName, reqFields);
     }
 
   @Override

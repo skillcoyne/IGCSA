@@ -83,6 +83,8 @@ public class FASTAInputFormat extends FileInputFormat<ImmutableBytesWritable, Te
       this.window = window;
       }
 
+
+
     @Override
     public void initialize(InputSplit inputSplit, TaskAttemptContext context) throws IOException, InterruptedException
       {

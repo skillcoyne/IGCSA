@@ -55,7 +55,7 @@ public class DeleteGenome
     //admin.deleteGenome(genome);
 
     admin.deleteTables();
-    admin.createTables();
+    //admin.createTables();
 
     admin.closeConections();
     }

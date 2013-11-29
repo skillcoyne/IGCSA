@@ -35,9 +35,9 @@ public class KaryotypeIndexTable extends AbstractTable
     }
 
 
-  public KaryotypeIndexTable(Configuration configuration, HBaseAdmin admin, String tableName, boolean create) throws IOException
+  public KaryotypeIndexTable(Configuration configuration, HBaseAdmin admin, String tableName) throws IOException
     {
-    super(configuration, admin, tableName, reqFields, create);
+    super(configuration, admin, tableName, reqFields);
     }
 
   @Override
@@ -105,7 +105,6 @@ public class KaryotypeIndexTable extends AbstractTable
 
   public class KaryotypeIndexResult extends AbstractResult
     {
-
     private String karyotype;
     private String parentGenome;
     private List<String> abrs;

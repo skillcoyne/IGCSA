@@ -10,7 +10,7 @@ import org.apache.hadoop.hbase.filter.FilterList;
 import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
-import org.joni.ScanEnvironment;
+//import org.joni.ScanEnvironment;
 import org.lcsb.lu.igcsa.hbase.rows.*;
 
 import java.io.IOException;
@@ -38,7 +38,7 @@ public abstract class AbstractTable
 
   protected Map<String, Set<String>> requiredFields;
 
-  public AbstractTable(Configuration configuration, HBaseAdmin admin, String tableName, Map<String, Set<String>> fields, boolean create) throws IOException
+  public AbstractTable(Configuration configuration, HBaseAdmin admin, String tableName, Map<String, Set<String>> fields) throws IOException
     {
     this.admin = admin;
     this.configuration = configuration;
@@ -49,8 +49,9 @@ public abstract class AbstractTable
 
     this.setTableName(tableName);
 
-    if (create)
+    if (! admin.tableExists(tableName) )
       this.createTable();
+
 
     this.hTable = new HTable(configuration, tableName);
     }
