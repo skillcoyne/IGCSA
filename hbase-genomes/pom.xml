@@ -35,14 +35,23 @@
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-core</artifactId>
             <version>1.2.1</version>
-            <!--<scope>provided</scope>-->
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
             <version>2.2.0</version>
-            <!--<scope>provided</scope>-->
+            <scope>provided</scope>
         </dependency>
+
+        <dependency>
+        	<groupId>org.apache.hadoop</groupId>
+        	<artifactId>hadoop-mapreduce-client-core</artifactId>
+        	<version>2.2.0</version>
+            <scope>compile</scope>
+        </dependency>
+
+
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase</artifactId>
@@ -52,19 +61,19 @@
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-log4j12</artifactId>
                 </exclusion>
-                <exclusion>
-                    <groupId>org.apache.hbase</groupId>
-                    <artifactId>hbase-client</artifactId>
-                </exclusion>
+                <!--<exclusion>-->
+                    <!--<groupId>org.apache.hbase</groupId>-->
+                    <!--<artifactId>hbase-client</artifactId>-->
+                <!--</exclusion>-->
             </exclusions>
             <!--<scope>provided</scope>-->
         </dependency>
-        <dependency>
-            <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-client</artifactId>
-            <version>0.95.0</version>
-            <scope>compile</scope>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.apache.hbase</groupId>-->
+            <!--<artifactId>hbase-client</artifactId>-->
+            <!--<version>0.95.0</version>-->
+            <!--<scope>compile</scope>-->
+        <!--</dependency>-->
 
         <dependency>
             <groupId>com.amazonaws</groupId>
@@ -155,7 +164,12 @@
                     </execution>
                 </executions>
             </plugin>
+<!--
+Exception in thread "main" java.io.IOException: Mkdirs failed to create /Users/skillcoyne/Tools/hd/hadoopdata/hadoop-unjar6550527998235391805/META-INF/license
+ Have to remove this file:  MAC ONLY
+ zip -d HBase-Genomes-1.1.jar META-INF/LICENSE
 
+-->
         </plugins>
     </build>
 </project>

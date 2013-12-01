@@ -37,7 +37,8 @@ public class AWSUtils
     {
     Map<String, S3ObjectSummary> objects = new HashMap<String, S3ObjectSummary>();
     AWSCredentials creds = AWSUtils.getCredentials();
-    AmazonS3 s3 = new AmazonS3Client(creds);
+    //AmazonS3 s3 = new AmazonS3Client(creds);
+    AmazonS3 s3 = new AmazonS3Client();
     ObjectListing listing = s3.listObjects(new ListObjectsRequest().withBucketName(bucket).withPrefix("FASTA"));
 
     Pattern p = Pattern.compile("^FASTA\\/chr(\\d+|X|Y)\\.fa.*");
