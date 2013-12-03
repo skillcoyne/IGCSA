@@ -21,8 +21,6 @@ import java.util.*;
 
 public class ChromosomeTable extends AbstractTable
   {
-  static Logger log = Logger.getLogger(ChromosomeTable.class.getName());
-
   private static final Map<String, Set<String>> reqFields;
 
   static

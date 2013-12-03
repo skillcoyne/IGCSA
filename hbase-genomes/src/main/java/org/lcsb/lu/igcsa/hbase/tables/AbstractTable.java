@@ -1,5 +1,7 @@
 package org.lcsb.lu.igcsa.hbase.tables;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
@@ -25,8 +27,7 @@ import java.util.*;
 
 public abstract class AbstractTable
   {
-  static Logger log = Logger.getLogger(AbstractTable.class.getName());
-
+  protected static final Log log = LogFactory.getLog(AbstractTable.class);
 
   protected HBaseAdmin admin;
   protected Configuration configuration;

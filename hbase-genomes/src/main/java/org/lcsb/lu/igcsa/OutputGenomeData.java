@@ -8,6 +8,8 @@
 
 package org.lcsb.lu.igcsa;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Result;
@@ -24,7 +26,7 @@ import java.util.List;
 
 public class OutputGenomeData
   {
-  static Logger log = Logger.getLogger(OutputGenomeData.class.getName());
+  private static final Log log = LogFactory.getLog(OutputGenomeData.class);
 
 
   public static void main(String[] args) throws Exception

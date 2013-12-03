@@ -13,8 +13,6 @@ import org.lcsb.lu.igcsa.hbase.tables.Column;
 
 public class ChromosomeRow extends Row
   {
-  static Logger log = Logger.getLogger(ChromosomeRow.class.getName());
-
   private String chr;
   private String genome;
 

@@ -14,8 +14,6 @@ import org.lcsb.lu.igcsa.variation.fragment.Variation;
 
 public class SmallMutationRow extends Row
   {
-  static Logger log = Logger.getLogger(SmallMutationRow.class.getName());
-
   private String genome;
   private String chr;
   private long chrLoc = 0;

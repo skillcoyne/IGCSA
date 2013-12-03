@@ -8,6 +8,8 @@
 
 package org.lcsb.lu.igcsa.hbase;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.hbase.rows.AberrationRow;
 import org.lcsb.lu.igcsa.hbase.tables.AberrationResult;
@@ -21,7 +23,7 @@ import java.util.List;
 
 public class HBaseKaryotype extends HBaseConnectedObjects
   {
-  static Logger log = Logger.getLogger(HBaseKaryotype.class.getName());
+  private static final Log log = LogFactory.getLog(HBaseKaryotype.class);
 
   private KaryotypeAberrationTable kT;
   private KaryotypeIndexTable kiT;

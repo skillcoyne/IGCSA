@@ -8,6 +8,8 @@
 
 package org.lcsb.lu.igcsa.hbase;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.lcsb.lu.igcsa.MinimalKaryotype;
 import org.lcsb.lu.igcsa.generator.Aberration;
 import org.lcsb.lu.igcsa.hbase.rows.AberrationRow;
@@ -25,7 +27,7 @@ import org.apache.commons.lang.StringUtils;
 
 public class HBaseGenome extends HBaseConnectedObjects
   {
-  static Logger log = Logger.getLogger(HBaseGenome.class.getName());
+  private static final Log log = LogFactory.getLog(HBaseGenome.class);
 
   private GenomeResult genome;
 

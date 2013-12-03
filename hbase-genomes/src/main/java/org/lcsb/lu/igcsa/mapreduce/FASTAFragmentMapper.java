@@ -10,7 +10,6 @@ package org.lcsb.lu.igcsa.mapreduce;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 
@@ -23,7 +22,6 @@ import java.io.IOException;
 public class FASTAFragmentMapper  extends Mapper<LongWritable, FragmentWritable, LongWritable, FragmentWritable>
   {
   private static final Log log = LogFactory.getLog(FASTAFragmentMapper.class);
-  //private static Logger log = Logger.getLogger(FASTAFragmentMapper.class.getName());
 
   private HBaseGenomeAdmin admin;
   private String genomeName;

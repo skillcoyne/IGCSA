@@ -12,14 +12,10 @@ import org.apache.log4j.Logger;
 
 public class GenericRow extends Row
   {
-  static Logger log = Logger.getLogger(GenericRow.class.getName());
-
   public GenericRow(String rowId)
     {
     super(rowId);
     }
-
-
 
   @Override
   public boolean isRowIdCorrect()

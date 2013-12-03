@@ -20,7 +20,6 @@ import java.util.List;
 
 public class SequenceResult extends AbstractResult
   {
-  static Logger log = Logger.getLogger(SequenceResult.class.getName());
 
   private String sequence;
   private String chr;

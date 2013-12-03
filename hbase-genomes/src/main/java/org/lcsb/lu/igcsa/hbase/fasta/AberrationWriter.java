@@ -9,6 +9,8 @@
 package org.lcsb.lu.igcsa.hbase.fasta;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
@@ -27,7 +29,7 @@ import java.util.ListIterator;
 
 public class AberrationWriter
   {
-  static Logger log = Logger.getLogger(AberrationWriter.class.getName());
+  private static final Log log = LogFactory.getLog(AberrationWriter.class);
 
   public static void writeDeletion(AberrationResult aberration, HBaseGenome genome, FASTAWriter writer) throws IOException
     {

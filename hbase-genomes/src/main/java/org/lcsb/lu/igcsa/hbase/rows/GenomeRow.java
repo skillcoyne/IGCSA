@@ -13,7 +13,6 @@ import org.lcsb.lu.igcsa.hbase.tables.Column;
 
 public class GenomeRow extends Row
   {
-
   public GenomeRow(String rowId)
     {
     super(rowId);

@@ -8,6 +8,8 @@
 
 package org.lcsb.lu.igcsa.hbase.rows;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.hbase.tables.Column;
@@ -18,7 +20,7 @@ import java.util.List;
 
 public abstract class Row
   {
-  static Logger log = Logger.getLogger(Row.class.getName());
+  protected static final Log log = LogFactory.getLog(Row.class);
 
   private String rowId;
 

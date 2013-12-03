@@ -23,8 +23,6 @@ import java.util.*;
 
 public class SequenceTable extends AbstractTable
   {
-  static Logger log = Logger.getLogger(SequenceTable.class.getName());
-
   private static final Map<String, Set<String>> reqFields;
 
   static

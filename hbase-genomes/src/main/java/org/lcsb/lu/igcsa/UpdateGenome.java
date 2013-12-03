@@ -8,6 +8,8 @@
 
 package org.lcsb.lu.igcsa;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -36,7 +38,7 @@ import java.io.IOException;
 
 public class UpdateGenome extends Configured implements Tool
   {
-  static Logger log = Logger.getLogger(UpdateGenome.class.getName());
+  private static final Log log = LogFactory.getLog(UpdateGenome.class);
 
   @Override
   public int run(String[] args) throws Exception

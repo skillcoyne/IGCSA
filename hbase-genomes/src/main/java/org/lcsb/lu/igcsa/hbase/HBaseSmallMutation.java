@@ -8,6 +8,8 @@
 
 package org.lcsb.lu.igcsa.hbase;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.hbase.tables.AbstractResult;
 import org.lcsb.lu.igcsa.hbase.tables.SmallMutationsResult;
@@ -17,10 +19,9 @@ import java.io.IOException;
 
 public class HBaseSmallMutation extends HBaseConnectedObjects
   {
-  static Logger log = Logger.getLogger(HBaseSmallMutation.class.getName());
+  private static final Log log = LogFactory.getLog(HBaseSmallMutation.class);
 
   private SmallMutationsTable smT;
-
   private SmallMutationsResult mutation;
 
   protected HBaseSmallMutation(AbstractResult result) throws IOException

@@ -8,6 +8,8 @@
 
 package org.lcsb.lu.igcsa.hbase;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.filter.CompareFilter;
@@ -26,13 +28,12 @@ import java.util.Scanner;
 
 public class HBaseChromosome extends HBaseConnectedObjects
   {
-  static Logger log = Logger.getLogger(HBaseChromosome.class.getName());
+  private static final Log log = LogFactory.getLog(HBaseChromosome.class);
 
   private ChromosomeResult chromosome;
 
   private ChromosomeTable cT;
   private SequenceTable sT;
-
 
   protected HBaseChromosome(AbstractResult result) throws IOException
     {

@@ -9,6 +9,8 @@
 package org.lcsb.lu.igcsa.mapreduce;
 
 import org.apache.commons.lang.SerializationUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.io.WritableComparable;
@@ -22,7 +24,7 @@ import java.io.Serializable;
 @InterfaceAudience.Public @InterfaceStability.Stable
 public class FragmentWritable implements WritableComparable<FragmentWritable> //Serializable, Comparable<FragmentWritable> //WritableComparable<FragmentWritable>
   {
-  static Logger log = Logger.getLogger(FragmentWritable.class.getName());
+  private static final Log log = LogFactory.getLog(FragmentWritable.class);
 
   private String chr;
   private long start;

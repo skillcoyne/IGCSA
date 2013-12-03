@@ -19,8 +19,6 @@ import java.util.List;
 
 public class ChromosomeResult extends AbstractResult
   {
-  static Logger log = Logger.getLogger(ChromosomeResult.class.getName());
-
   private long length;
   private long segmentNumber;
   private String chrName;

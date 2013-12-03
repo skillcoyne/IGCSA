@@ -8,6 +8,8 @@
 
 package org.lcsb.lu.igcsa.hbase;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.MasterNotRunningException;
@@ -23,7 +25,8 @@ import java.util.*;
 
 public class HBaseGenomeAdmin
   {
-  static Logger log = Logger.getLogger(HBaseGenomeAdmin.class.getName());
+  private static final Log log = LogFactory.getLog(HBaseGenomeAdmin.class);
+
 
   private Configuration conf;
   private HBaseAdmin hbaseAdmin;

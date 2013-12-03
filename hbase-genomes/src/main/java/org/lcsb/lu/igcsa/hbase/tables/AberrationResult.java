@@ -17,8 +17,6 @@ import java.util.List;
 
 public class AberrationResult extends AbstractResult
   {
-  static Logger log = Logger.getLogger(AberrationResult.class.getName());
-
   private String genome;
   private String abrType;
 

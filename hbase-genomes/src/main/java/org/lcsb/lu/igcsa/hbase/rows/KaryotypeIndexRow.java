@@ -23,8 +23,6 @@ import java.util.regex.Pattern;
 
 public class KaryotypeIndexRow extends Row
   {
-  static Logger log = Logger.getLogger(KaryotypeIndexRow.class.getName());
-
   private String parentGenome;
   //private String[] abrs;
   private List<Aberration> aberrations;

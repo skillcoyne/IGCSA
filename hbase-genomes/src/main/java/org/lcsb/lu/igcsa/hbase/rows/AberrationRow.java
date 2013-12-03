@@ -17,8 +17,6 @@ import java.io.IOException;
 
 public class AberrationRow extends Row
   {
-  static Logger log = Logger.getLogger(AberrationRow.class.getName());
-
   private String karyotypeName;
   private Aberration aberration;
 

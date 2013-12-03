@@ -8,6 +8,8 @@
 
 package org.lcsb.lu.igcsa.hbase;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.hbase.rows.SequenceRow;
 import org.lcsb.lu.igcsa.hbase.rows.SmallMutationRow;
@@ -20,7 +22,7 @@ import java.util.List;
 
 public class HBaseSequence extends HBaseConnectedObjects
   {
-  static Logger log = Logger.getLogger(HBaseSequence.class.getName());
+  private static final Log log = LogFactory.getLog(HBaseSequence.class);
 
   private SequenceTable sT;
   private SmallMutationsTable smT;

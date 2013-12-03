@@ -21,8 +21,6 @@ import java.util.*;
 
 public class KaryotypeIndexTable extends AbstractTable
   {
-  static Logger log = Logger.getLogger(KaryotypeIndexTable.class.getName());
-
   private static final Map<String, Set<String>> reqFields;
 
   static

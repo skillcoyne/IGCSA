@@ -13,8 +13,6 @@ import org.lcsb.lu.igcsa.hbase.tables.Column;
 
 public class SequenceRow extends Row
   {
-  static Logger log = Logger.getLogger(SequenceRow.class.getName());
-
   private String genome;
   private String chr;
   private long segmentNum;

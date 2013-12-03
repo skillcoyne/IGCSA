@@ -21,8 +21,6 @@ import java.util.*;
 
 public class KaryotypeAberrationTable extends AbstractTable
   {
-  static Logger log = Logger.getLogger(KaryotypeAberrationTable.class.getName());
-
   private static final Map<String, Set<String>> reqFields;
 
   static

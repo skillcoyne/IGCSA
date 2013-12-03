@@ -8,6 +8,8 @@
 
 package org.lcsb.lu.igcsa.hbase;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.normal.Bin;
 import org.lcsb.lu.igcsa.database.normal.Fragment;
@@ -26,7 +28,7 @@ import java.util.concurrent.Callable;
 
 public class HBaseMutableSequence implements Callable<HBaseSequence>
   {
-  static Logger log = Logger.getLogger(HBaseMutableSequence.class.getName());
+  private static final Log log = LogFactory.getLog(HBaseMutableSequence.class);
 
   // Database connections
   private GCBinDAO binDAO;

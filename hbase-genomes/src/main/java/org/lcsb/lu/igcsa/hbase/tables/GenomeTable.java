@@ -20,8 +20,6 @@ import java.util.*;
 
 public class GenomeTable extends AbstractTable
   {
-  static Logger log = Logger.getLogger(GenomeTable.class.getName());
-
   private static final Map<String, Set<String>> reqFields;
 
   static

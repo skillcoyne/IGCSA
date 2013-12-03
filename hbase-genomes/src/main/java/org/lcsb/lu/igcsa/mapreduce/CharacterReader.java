@@ -8,6 +8,8 @@
 
 package org.lcsb.lu.igcsa.mapreduce;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
@@ -17,7 +19,7 @@ import java.io.InputStreamReader;
 
 public class CharacterReader
   {
-  static Logger log = Logger.getLogger(CharacterReader.class.getName());
+  private static final Log log = LogFactory.getLog(CharacterReader.class);
 
   private static final int DEFAULT_BUFFER_SIZE = 65536;
 

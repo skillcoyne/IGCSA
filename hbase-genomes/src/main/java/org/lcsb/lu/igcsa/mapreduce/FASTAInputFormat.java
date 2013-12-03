@@ -8,6 +8,8 @@
 
 package org.lcsb.lu.igcsa.mapreduce;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
 
@@ -24,13 +26,12 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
-import org.apache.log4j.Logger;
 
 import java.io.IOException;
 
 public class FASTAInputFormat extends FileInputFormat<LongWritable, FragmentWritable>
   {
-  static Logger log = Logger.getLogger(FASTAInputFormat.class.getName());
+  private static final Log log = LogFactory.getLog(FASTAInputFormat.class);
 
   @Override
   protected boolean isSplitable(JobContext context, Path filename)
@@ -48,13 +49,12 @@ public class FASTAInputFormat extends FileInputFormat<LongWritable, FragmentWrit
 
   public static class FASTAFragmentRecordReader extends RecordReader<LongWritable, FragmentWritable>
     {
-    static Logger log = Logger.getLogger(FASTAFragmentRecordReader.class.getName());
+    private static final Log log = LogFactory.getLog(FASTAFragmentRecordReader.class);
 
     private int window;
 
     private LongWritable key = new LongWritable();
     private FragmentWritable value = new FragmentWritable();
-    //private ImmutableBytesWritable value = new ImmutableBytesWritable();
 
     // The standard gamut of line terminators, plus EOF
     private static final char CARRIAGE_RETURN = 0x000A;
@@ -147,7 +147,6 @@ public class FASTAInputFormat extends FileInputFormat<LongWritable, FragmentWrit
 
       key = new LongWritable(segment);
       value = new FragmentWritable(splitChr, adjustedStart, adjustedEnd, segment, fragment);
-      //value = new ImmutableBytesWritable(new FragmentWritable(splitChr, adjustedStart, adjustedEnd, segment, fragment).write());
 
       return true;
       }
