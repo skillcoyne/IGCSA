@@ -19,9 +19,9 @@ public class SmallMutationRow extends Row
   private long chrLoc = 0;
   private long start = 0;
 
-  public static String createRowId(String genome, String chr, long chrStart, long startLoc)
+  public static String createRowId(String genome, String chr, long segment, long startLoc)
     {
-    return SequenceRow.createRowId(genome, chr, chrStart) + "-" + startLoc;
+    return SequenceRow.createRowId(genome, chr, segment) + "-" + startLoc;
     }
 
   public SmallMutationRow(String rowId)

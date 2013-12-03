@@ -33,7 +33,7 @@ public class DeleteGenome
 
   public static void main(String[] args) throws Exception
     {
-    args = new String[]{"GRCh37"};
+    args = new String[]{"Test"};
     if (args.length < 1)
       {
       System.err.println("Genome name required.");

@@ -47,7 +47,7 @@ public class HBaseSequence extends HBaseConnectedObjects
     if (end < start || mutation == null)
       throw new IllegalArgumentException("The end must be >= start and mutation cannot be null");
 
-    String smRowId = SmallMutationRow.createRowId(this.sequence.getGenome(), this.sequence.getChr(), this.sequence.getStart(), start );
+    String smRowId = SmallMutationRow.createRowId(this.sequence.getGenome(), this.sequence.getChr(), this.sequence.getSegmentNum(), start );
     if (smT.queryTable(smRowId) != null)
       log.warn("Row " + smRowId + " exists in mutations table, not overwriting");
     else

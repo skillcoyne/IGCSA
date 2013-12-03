@@ -127,7 +127,7 @@
                             <attach>false</attach>
                             <archive>
                                 <manifest>
-                                    <!--<mainClass>org.lcsb.lu.igcsa.LoadFromFASTA</mainClass>-->
+                                    <mainClass>org.lcsb.lu.igcsa.LoadFromFASTA</mainClass>
                                 </manifest>
                             </archive>
                         </configuration>
