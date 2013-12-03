@@ -16,9 +16,11 @@ import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.hbase.HBaseChromosome;
 import org.lcsb.lu.igcsa.hbase.HBaseGenome;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
+import org.lcsb.lu.igcsa.hbase.HBaseSequence;
 import org.lcsb.lu.igcsa.hbase.tables.SequenceResult;
 
 import java.util.Iterator;
+import java.util.List;
 
 public class OutputGenomeData
   {
@@ -34,18 +36,37 @@ public class OutputGenomeData
 //    conf.set("hbase.zookeeper.property.clientPort", "2181");
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(conf);
 
-    HBaseGenome genome = admin.getGenome("GRCh37");
+    HBaseGenome genome = admin.getGenome("test");
 
     for (HBaseChromosome chr : genome.getChromosomes())
       log.info(chr.getChromosome().getChrName() + " " + chr.getChromosome().getSegmentNumber() + " " + chr.getChromosome().getLength());
 
 
-    Iterator<Result> rI = genome.getChromosome("22").getSequences(1, 51273001);
-    log.info(rI.toString());
-    while (rI.hasNext())
+    //genome.getChromosome("21").getChromosome().
+    HBaseChromosome chr = genome.getChromosome("21");
+
+    long start = 1;
+    List<String> rowIds = chr.getSequenceRowIds(start, start+10000);
+    while (rowIds != null && rowIds.size() > 0)
       {
-      log.info(Bytes.toString(rI.next().getRow()));
+      log.info(rowIds.size());
+      for (String id: rowIds)
+        {
+        SequenceResult seq = admin.getSequenceTable().queryTable(id);
+        log.info(seq.getChr() + " " + seq.getStart() + "-" + seq.getEnd());
+        }
+      start += 10000;
+      rowIds =  chr.getSequenceRowIds(start, start+10000);
       }
+
+
+
+    //Iterator<Result> rI = genome.getChromosome("21").getSequences();
+//    log.info(rI.toString());
+//    while (rI.hasNext())
+//      {
+//      log.info(Bytes.toString(rI.next().getRow()));
+//      }
 
     }
 

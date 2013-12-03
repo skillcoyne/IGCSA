@@ -33,13 +33,14 @@ public class DeleteGenome
 
   public static void main(String[] args) throws Exception
     {
-//    if (args.length < 1)
-//      {
-//      System.err.println("Genome name required.");
-//      System.exit(-1);
-//      }
+    args = new String[]{"GRCh37"};
+    if (args.length < 1)
+      {
+      System.err.println("Genome name required.");
+      System.exit(-1);
+      }
 
-    String genome = "GRCh37"; // args[0];
+    String genome = args[0];
 
     print("Deleteing genome " + genome);
 
@@ -55,7 +56,7 @@ public class DeleteGenome
     //admin.deleteGenome(genome);
 
     admin.deleteTables();
-    //admin.createTables();
+    admin.createTables();
 
     admin.closeConections();
     }

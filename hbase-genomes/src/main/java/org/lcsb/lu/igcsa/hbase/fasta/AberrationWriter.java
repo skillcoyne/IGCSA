@@ -10,6 +10,7 @@ package org.lcsb.lu.igcsa.hbase.fasta;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.genome.Location;
@@ -145,8 +146,8 @@ public class AberrationWriter
 
       //List<String> rowIds = chr.getSequenceRowIds(1, firstLoc.getStart());
 
-      Iterator<Result> seqI = chr.getSequences(1, firstLoc.getStart());
-      total += write(seqI, writer);
+//      Iterator<Result> seqI = chr.getSequences(1, firstLoc.getStart());
+//      total += write(seqI, writer);
       }
     log.info(total + " written from " + firstLoc.getChromosome());
 
@@ -156,10 +157,10 @@ public class AberrationWriter
       {
       chr = genome.getChromosome(loc.getChromosome());
       log.info("Writing " + loc);
-      Iterator<Result> seqI = chr.getSequences(loc.getStart(), loc.getEnd() + 1);
-      int currentTotal = write(seqI, writer);
-      total += currentTotal;
-      log.info(currentTotal + " written from " + chr.getChromosome().getChrName());
+//      Iterator<Result> seqI = chr.getSequences(loc.getStart(), loc.getEnd() + 1);
+//      int currentTotal = write(seqI, writer);
+//      total += currentTotal;
+//      log.info(currentTotal + " written from " + chr.getChromosome().getChrName());
 
       finalLoc = loc;
       }
@@ -167,8 +168,13 @@ public class AberrationWriter
     // write the remainder of the final chromosome
     log.info("Writing remaining " + finalLoc);
     chr = genome.getChromosome(finalLoc.getChromosome());
-    Iterator<Result> seqI = chr.getSequences(finalLoc.getEnd(), (int) chr.getChromosome().getLength());
-    total += write(seqI, writer);
+
+    Iterator<Result> allI = chr.getSequences();
+    while (allI.hasNext())
+      log.info(Bytes.toString(allI.next().getRow()));
+
+//    Iterator<Result> seqI = chr.getSequences(finalLoc.getEnd(), chr.getChromosome().getLength());
+//    total += write(seqI, writer);
 
     log.info("Total written: " + total);
     }
@@ -188,7 +194,7 @@ public class AberrationWriter
 
     Location secondLoc = aberration.getAberrationDefinitions().get(0);
     chr = genome.getChromosome(secondLoc.getChromosome());
-    seqI = chr.getSequences(secondLoc.getStart(), (int)chr.getChromosome().getLength());
+    seqI = chr.getSequences(secondLoc.getStart(), (int) chr.getChromosome().getLength());
     total += write(seqI, writer);
 
     log.info("Total written: " + total);
@@ -210,6 +216,10 @@ public class AberrationWriter
 
     return total;
     }
+
+
+
+
 
   private static int reverseWrite(ListIterator<String> seqRowIds, FASTAWriter writer) throws IOException
     {

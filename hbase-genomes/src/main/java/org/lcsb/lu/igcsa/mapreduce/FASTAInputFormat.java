@@ -12,7 +12,7 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
 
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
-
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.CompressionCodecFactory;
@@ -28,32 +28,33 @@ import org.apache.log4j.Logger;
 
 import java.io.IOException;
 
-public class FASTAInputFormat extends FileInputFormat<ImmutableBytesWritable, Text>
+public class FASTAInputFormat extends FileInputFormat<LongWritable, ImmutableBytesWritable>
   {
   static Logger log = Logger.getLogger(FASTAInputFormat.class.getName());
 
   @Override
   protected boolean isSplitable(JobContext context, Path filename)
     {
-    // force the entire file to be read in a single split. Basically this is the only way I can think of currently to ensure that the segments are numbered consecutively
+    // force the entire file to be read in a single split. Basically this is the only way I can think of currently to ensure that the segments are numbered consecutively.  This is important!  If splitting is permitted segments cannot be kept consecutive.
     return false;
     }
 
   @Override
-  public RecordReader<ImmutableBytesWritable, Text> createRecordReader(InputSplit inputSplit, TaskAttemptContext context) throws IOException, InterruptedException
+  public RecordReader<LongWritable, ImmutableBytesWritable> createRecordReader(InputSplit inputSplit, TaskAttemptContext context) throws IOException, InterruptedException
     {
     int nucWindow = 1000;
     return new FASTAFragmentRecordReader(nucWindow);
     }
 
-  public static class FASTAFragmentRecordReader extends RecordReader<ImmutableBytesWritable, Text>
+  public static class FASTAFragmentRecordReader extends RecordReader<LongWritable, ImmutableBytesWritable>
     {
     static Logger log = Logger.getLogger(FASTAFragmentRecordReader.class.getName());
 
     private int window;
 
-    private ImmutableBytesWritable key = new ImmutableBytesWritable();
-    private Text value = new Text();
+
+    private LongWritable key = new LongWritable();
+    private ImmutableBytesWritable value = new ImmutableBytesWritable();
 
     // The standard gamut of line terminators, plus EOF
     private static final char CARRIAGE_RETURN = 0x000A;
@@ -68,7 +69,6 @@ public class FASTAInputFormat extends FileInputFormat<ImmutableBytesWritable, Te
     private final char COMMENT_IDENTIFIER = ';';
     private final char HEADER_IDENTIFIER = '>';
 
-
     private CharacterReader reader;
     private FSDataInputStream inputStream;
 
@@ -76,14 +76,14 @@ public class FASTAInputFormat extends FileInputFormat<ImmutableBytesWritable, Te
     private long splitEnd;
     private String splitChr;
 
+    private long segment = 0;
+
     private long lastStart = 1;
 
     public FASTAFragmentRecordReader(int window)
       {
       this.window = window;
       }
-
-
 
     @Override
     public void initialize(InputSplit inputSplit, TaskAttemptContext context) throws IOException, InterruptedException
@@ -123,8 +123,6 @@ public class FASTAInputFormat extends FileInputFormat<ImmutableBytesWritable, Te
           log.warn("Start of stream (pos 0) in split but no header" + ((FileSplit) inputSplit).getStart());
           }
         }
-
-
       }
 
     @Override
@@ -133,32 +131,34 @@ public class FASTAInputFormat extends FileInputFormat<ImmutableBytesWritable, Te
       if (splitEnd < inputStream.getPos())
         return false;
 
+      ++segment;
       long adjustedStart = lastStart;
       String fragment = reader.readCharacters(window);
 
       // no more data
       if (fragment == null)
+        {
+        log.info(splitEnd + ", " + inputStream.getPos());
         return false;
+        }
 
       long adjustedEnd = adjustedStart + fragment.length();
       lastStart = adjustedEnd;
 
-      FragmentKey f = new FragmentKey(splitChr, adjustedStart, adjustedEnd);
-
-      key = new ImmutableBytesWritable( FragmentKey.toBytes(f) );
-      value = new Text(fragment);
+      key = new LongWritable(segment);
+      value = new ImmutableBytesWritable(new FragmentWritable(splitChr, adjustedStart, adjustedEnd, segment, fragment).write());
 
       return true;
       }
 
     @Override
-    public ImmutableBytesWritable getCurrentKey() throws IOException, InterruptedException
+    public LongWritable getCurrentKey() throws IOException, InterruptedException
       {
       return key;
       }
 
     @Override
-    public Text getCurrentValue() throws IOException, InterruptedException
+    public ImmutableBytesWritable getCurrentValue() throws IOException, InterruptedException
       {
       return value;
       }
@@ -172,7 +172,6 @@ public class FASTAInputFormat extends FileInputFormat<ImmutableBytesWritable, Te
     @Override
     public void close() throws IOException
       {
-      //inputStream.close();
       reader.close();
       }
 

@@ -4,6 +4,7 @@ import org.lcsb.lu.igcsa.FragmentInsilicoGenome;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
@@ -21,34 +22,50 @@ import java.util.Map;
  */
 public class FileUtils
   {
+  public static final FilenameFilter FASTA_FILE = new FilenameFilter()
+  {
+  @Override
+  public boolean accept(File dir, String name)
+    {
+    for (String suffix : new String[]{".fa", ".fasta", ".fa.gz", ".fasta.gz"})
+      if (name.endsWith(suffix))
+        return true;
+    return false;
+    }
+  };
+
+
   public static File getFASTA(String chromosome, File fastaDir) throws IOException
     {
-    final String chr = "chr"+chromosome;
+    final String chr = "chr" + chromosome;
     FilenameFilter fastaFilter = new FilenameFilter()
     {
     public boolean accept(File dir, String name)
       {
-      for ( String suffix: new String[]{".fa", ".fasta", ".fa.gz", ".fasta.gz"} )
-        if (name.equalsIgnoreCase(chr+suffix)) return true;
+      for (String suffix : new String[]{".fa", ".fasta", ".fa.gz", ".fasta.gz"})
+        if (name.equalsIgnoreCase(chr + suffix))
+          return true;
       return false;
       }
     };
 
     File[] files = listFASTAFiles(fastaDir, fastaFilter);
-    if (files.length > 1) throw new IOException("Multiple FASTA files identified for chromosome " + chromosome);
-    if (files.length <= 0) throw new IOException("No FASTA file found for chromosome " + chromosome + " in directory " + fastaDir.getAbsolutePath());
+    if (files.length > 1)
+      throw new IOException("Multiple FASTA files identified for chromosome " + chromosome);
+    if (files.length <= 0)
+      throw new IOException("No FASTA file found for chromosome " + chromosome + " in directory " + fastaDir.getAbsolutePath());
 
     return files[0];
     }
 
 
   /**
-   * @param file
+   * @param fileName
    * @return Chromosome object with the name set based on the file name.
    */
-  public static String getChromosomeFromFASTA(File file)
+  public static String getChromosomeFromFASTA(String fileName)
     {
-    String fastaChr = file.getName().replace("chr", "");
+    String fastaChr = fileName.replace("chr", "");
     fastaChr = fastaChr.replaceAll(fastaChr.substring(fastaChr.indexOf("."), fastaChr.length()), "");
     return fastaChr;
     }
@@ -58,20 +75,10 @@ public class FileUtils
     if (!fastaDir.exists() || !fastaDir.canRead())
       throw new FileNotFoundException("FASTA directory does not exist or is not readable " + fastaDir.getAbsolutePath());
 
-    FilenameFilter fastaFilter = new FilenameFilter()
-    {
-    public boolean accept(File dir, String name)
-      {
-      for ( String suffix: new String[]{".fa", ".fasta", ".fa.gz", ".fasta.gz"} )
-        if (name.endsWith(suffix)) return true;
-      return false;
-      }
-    };
-
     ArrayList<Chromosome> chromosomes = new ArrayList<Chromosome>();
-    for (File file : listFASTAFiles(fastaDir, fastaFilter))
+    for (File file : listFASTAFiles(fastaDir, FASTA_FILE))
       {
-      String name = getChromosomeFromFASTA(file);
+      String name = getChromosomeFromFASTA(file.getName());
       chromosomes.add(new Chromosome(name, file));
       }
 
@@ -83,20 +90,10 @@ public class FileUtils
     if (!fastaDir.exists() || !fastaDir.canRead())
       throw new FileNotFoundException("FASTA directory does not exist or is not readable " + fastaDir.getAbsolutePath());
 
-    FilenameFilter fastaFilter = new FilenameFilter()
-    {
-    public boolean accept(File dir, String name)
-      {
-      for ( String suffix: new String[]{".fa", ".fasta", ".fa.gz", ".fasta.gz"} )
-        if (name.endsWith(suffix)) return true;
-      return false;
-      }
-    };
-
     Map<String, File> files = new HashMap<String, File>();
-    for (File file : listFASTAFiles(fastaDir, fastaFilter))
+    for (File file : listFASTAFiles(fastaDir, FASTA_FILE))
       {
-      String name = getChromosomeFromFASTA(file);
+      String name = getChromosomeFromFASTA(file.getName());
       files.put(name, file);
       }
     return files;
@@ -105,11 +102,10 @@ public class FileUtils
   private static File[] listFASTAFiles(File fastaDir, FilenameFilter filter) throws FileNotFoundException
     {
     File[] fastaFiles = fastaDir.listFiles(filter);
-    if (fastaFiles.length <= 0) throw new FileNotFoundException("No FASTA files found in directory (.fa, .fasta, .fa.gz, .fasta.gz) " + fastaDir);
+    if (fastaFiles.length <= 0)
+      throw new FileNotFoundException("No FASTA files found in directory (.fa, .fasta, .fa.gz, .fasta.gz) " + fastaDir);
     return fastaFiles;
     }
-
-
 
 
   }

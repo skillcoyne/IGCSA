@@ -1,23 +1,19 @@
 package org.lcsb.lu.igcsa;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.services.ec2.model.S3Storage;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.ListObjectsRequest;
-import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 
+import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
-import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.LongWritable;
 
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
@@ -29,16 +25,12 @@ import org.lcsb.lu.igcsa.aws.AWSProperties;
 import org.lcsb.lu.igcsa.aws.AWSUtils;
 import org.lcsb.lu.igcsa.hbase.HBaseGenome;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
-import org.lcsb.lu.igcsa.hbase.rows.ChromosomeRow;
+import org.lcsb.lu.igcsa.mapreduce.FASTAFragmentMapper;
 import org.lcsb.lu.igcsa.mapreduce.FASTAInputFormat;
-import org.lcsb.lu.igcsa.mapreduce.FragmentKey;
+import org.lcsb.lu.igcsa.utils.FileUtils;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -53,26 +45,39 @@ public class LoadFromFASTA extends Configured implements Tool
   {
   static Logger log = Logger.getLogger(LoadFromFASTA.class.getName());
 
+  private static Configuration config;
   private String genomeName;
   private String chr;
+  private Path path;
 
-  private File file;
-  private S3Object s3Object;
+  private LoadFromFASTA(String genomeName, String chr)
+    {
+    config = HBaseConfiguration.create();
+    this.genomeName = genomeName;
+    this.chr = chr;
+    }
+
+  public LoadFromFASTA(String genomeName, String chr, Path path)
+    {
+    this(genomeName, chr);
+    this.path = path;
+    }
 
   public LoadFromFASTA(String genomeName, String chr, File file)
     {
-    this.genomeName = genomeName;
-    this.chr = chr;
-    this.file = file;
+    this(genomeName, chr);
+    path = new Path(file.getAbsolutePath());
     }
 
   public LoadFromFASTA(String genomeName, String chr, S3Object s3Object)
     {
-    this.genomeName = genomeName;
-    this.chr = chr;
-    this.s3Object = s3Object;
-    }
+    this(genomeName, chr);
 
+    AWSProperties props = AWSProperties.getProperties();
+    config.set("fs.s3n.awsAccessKeyId", props.getAccessKey());
+    config.set("fs.s3n.awsSecretAccessKey", props.getSecretKey());
+    path = new Path("s3n://" + s3Object.getBucketName() + "/" + s3Object.getKey());
+    }
 
   @Override
   public int run(String[] args) throws Exception
@@ -83,26 +88,15 @@ public class LoadFromFASTA extends Configured implements Tool
     config.set("genome", genomeName);
     config.set("chromosome", chr);
 
-    Path path;
-    if (s3Object != null)
-      {
-      AWSProperties props = AWSProperties.getProperties();
-      path = new Path("s3n://" + s3Object.getBucketName() + "/" + s3Object.getKey());
-      config.set("fs.s3n.awsAccessKeyId", props.getAccessKey());
-      config.set("fs.s3n.awsSecretAccessKey", props.getSecretKey());
-      }
-    else
-      path = new Path(file.getAbsolutePath());
-
     genomeAdmin.getGenome(genomeName).addChromosome(chr, 0, 0);
 
     Job job = new Job(config, "Reference Genome Fragmentation");
 
     job.setJarByClass(LoadFromFASTA.class);
-    job.setMapperClass(FragmentMapper.class);
+    job.setMapperClass(FASTAFragmentMapper.class);
 
-    job.setMapOutputKeyClass(ImmutableBytesWritable.class);
-    job.setMapOutputValueClass(Text.class);
+    job.setMapOutputKeyClass(LongWritable.class);
+    job.setMapOutputValueClass(ImmutableBytesWritable.class);
 
     job.setInputFormatClass(FASTAInputFormat.class);
     FileInputFormat.addInputPath(job, path);
@@ -110,50 +104,14 @@ public class LoadFromFASTA extends Configured implements Tool
     // because we aren't emitting anything from mapper
     job.setOutputFormatClass(NullOutputFormat.class);
 
-
     //job.submit();
     return (job.waitForCompletion(true) ? 0 : 1);
     //return 0;
     }
 
-  public static class FragmentMapper extends Mapper<ImmutableBytesWritable, Text, ImmutableBytesWritable, Text>
-    {
-    private static Logger log = Logger.getLogger(FragmentMapper.class.getName());
-
-    private HBaseGenomeAdmin admin;
-    private String genomeName;
-    private String chr;
-
-    @Override
-    protected void setup(Context context) throws IOException, InterruptedException
-      {
-      super.setup(context);
-      admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(context.getConfiguration());
-
-      genomeName = context.getConfiguration().get("genome");
-      chr = context.getConfiguration().get("chromosome");
-      }
-
-    @Override
-    protected void map(ImmutableBytesWritable key, Text value, Context context) throws IOException, InterruptedException
-      {
-      // pretty much just chopping the file up and spitting it back out, bet I don't even need a reducer
-      log.info(FragmentKey.fromBytes(key.get()).toString() + value.toString().length());
-      //log.info(value.toString());
-
-      FragmentKey fragment = FragmentKey.fromBytes(key.get());
-      this.admin.getGenome(genomeName).getChromosome(chr).addSequence((int) fragment.getStart(), (int) fragment.getEnd(), value.toString());
-      this.admin.getChromosomeTable().incrementSize(ChromosomeRow.createRowId(genomeName, chr), 1, (fragment.getEnd() - fragment.getStart()));
-      context.write(key, value);
-      }
-    }
-
   public static void main(String[] args) throws Exception
     {
-    //args = new String[]{"GRCh37", "file:///Users/sarah.killcoyne/Data/FASTA"};
-    //args = new String[]{"GRCh37", "/Users/skillcoyne/Data/FASTA"};
-    //args = new String[]{"GRCh37", "s3n://insilico/FASTA"};
-
+    //args = new String[]{"test", "hdfs://FASTA"};
     if (args.length < 2)
       {
       System.err.println("Usage: LoadFromFASTA <genome name> <fasta directory>");
@@ -162,10 +120,12 @@ public class LoadFromFASTA extends Configured implements Tool
 
     Configuration conf = HBaseConfiguration.create();
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(conf);
-    admin.createTables();
+    //admin.createTables();
 
     String genomeName = args[0];
     String fastaDir = args[1];
+
+    admin.deleteGenome(genomeName);
 
     HBaseGenome genome = admin.getGenome(genomeName);
     if (genome == null)
@@ -182,6 +142,22 @@ public class LoadFromFASTA extends Configured implements Tool
       Map<String, S3ObjectSummary> chromosomes = AWSUtils.listFASTAFiles(bucket);
       for (String chr : chromosomes.keySet())
         runTool(genome, chr, new LoadFromFASTA(genomeName, chr, AWSUtils.getS3Object(chromosomes.get(chr))));
+      }
+    else if (fastaDir.startsWith("hdfs"))
+      {
+      fastaDir = conf.get("fs.default.name") + "/" + fastaDir.replace("hdfs://", "");
+      FileSystem fs = FileSystem.get(conf);
+      log.info(fs.getWorkingDirectory().getName());
+      RemoteIterator<LocatedFileStatus> rI = fs.listFiles(new Path(fastaDir), true);
+      while (rI.hasNext())
+        {
+        LocatedFileStatus lfs = rI.next();
+        if (FileUtils.FASTA_FILE.accept(null, lfs.getPath().getName()))
+          {
+          String chr = FileUtils.getChromosomeFromFASTA(lfs.getPath().getName());
+          runTool(genome, chr, new LoadFromFASTA(genomeName, chr, lfs.getPath()));
+          }
+        }
       }
     else // local files
       {

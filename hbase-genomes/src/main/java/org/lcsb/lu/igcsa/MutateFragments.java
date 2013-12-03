@@ -165,7 +165,11 @@ public class MutateFragments extends Configured implements Tool
             mutations.put(variation, variation.getLastMutations());
           }
 
-        HBaseSequence hBaseSequence = chromosome.addSequence(seq.getStart(), seq.getStart() + mutatedSequence.getLength(), mutatedSequence.getSequence());
+        HBaseSequence hBaseSequence = chromosome.addSequence(seq.getStart(),
+            seq.getStart() + mutatedSequence.getLength(),
+            mutatedSequence.getSequence(),
+            seq.getSegmentNum());
+
         for (Variation v : mutations.keySet())
           {
           // add any mutations to the small mutations table
@@ -174,7 +178,7 @@ public class MutateFragments extends Configured implements Tool
           }
         }
       else
-        chromosome.addSequence(seq.getStart(), seq.getEnd(), seq.getSequence());
+        chromosome.addSequence(seq.getStart(), seq.getEnd(), seq.getSequence(), seq.getSegmentNum());
       }
 
     private List<Variation> getVariants(String chr)

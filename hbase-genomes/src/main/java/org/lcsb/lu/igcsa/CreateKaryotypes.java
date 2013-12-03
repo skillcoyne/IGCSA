@@ -20,13 +20,18 @@ public class CreateKaryotypes
 
   public static void main(String[] args) throws Exception
     {
-
-    String parentGenome = "GRCh37";
-    // TODO collect aneuploidies & aberrations, put into HBase tables.  Write extractor job that will assemble a karyotype from the HBase tables
+    if (args.length < 2)
+      {
+      System.err.println("Usage: CreateKaryotypes <parent genome name> <karyotype name>");
+      System.exit(-1);
+      }
 
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin();
+    String parentGenome = args[0];
+    if (admin.getGenome(parentGenome) == null)
+      throw new Exception("Genome " + parentGenome + " does not exist. Exiting.");
 
-    admin.deleteKaryotypes(parentGenome);
+      admin.deleteKaryotypes(parentGenome);
 
     List<HBaseKaryotype> karyotypes = admin.getGenome(parentGenome).getKaryotypes();
 
@@ -34,8 +39,7 @@ public class CreateKaryotypes
 
     List<MinimalKaryotype> pop = new PopulationGenerator().run(1000);
 
-    admin.getGenome(parentGenome).createKaryotypes("kiss", "GRCh37", pop);
-
+    admin.getGenome(parentGenome).createKaryotypes(args[1], parentGenome, pop);
     }
 
 

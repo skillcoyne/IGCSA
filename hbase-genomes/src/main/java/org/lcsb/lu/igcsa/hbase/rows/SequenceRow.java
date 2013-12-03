@@ -17,11 +17,12 @@ public class SequenceRow extends Row
 
   private String genome;
   private String chr;
-  private long startLoc;
+  private long segmentNum;
 
-  public static String createRowId(String genome, String chr, long startLoc)
+  public static String createRowId(String genome, String chr, long segmentNum)
     {
-    return ChromosomeRow.createRowId(genome, chr) + ":" + startLoc;
+    String formattedSeg = String.format("%08d", segmentNum);
+    return ChromosomeRow.createRowId(genome, chr) + ":" + formattedSeg;
     }
 
   public SequenceRow(String rowId)
@@ -34,16 +35,15 @@ public class SequenceRow extends Row
     super.addColumn( new Column("bp", "seq", sequence));
     }
 
-  public void addLocation(String chr, long start, long end)
+  public void addLocation(String chr, long start, long end, long segmentNum)
     {
     super.addColumn( new Column("loc", "chr", chr) );
     super.addColumn( new Column("loc", "start", start) );
     super.addColumn( new Column("loc", "end", end) );
-    //super.addColumn( new Column("loc", "segment", segmentNumber) );
+    super.addColumn( new Column("loc", "segment", segmentNum) );
 
     this.chr = chr;
-    this.startLoc = start;
-    //this.segment = (int)segmentNumber;
+    this.segmentNum = segmentNum;
     }
 
   public void addGenome(String name)
@@ -55,7 +55,9 @@ public class SequenceRow extends Row
   @Override
   public boolean isRowIdCorrect()
     {
-    return (chr == null || startLoc <= 0 || genome == null || ( !this.getRowIdAsString().equals(createRowId(genome, chr, startLoc))) )? false: true;
+    if (chr == null || segmentNum <= 0 || genome == null )
+      return false;
+    return this.getRowIdAsString().equals(createRowId(genome, chr, segmentNum));
     }
 
   }

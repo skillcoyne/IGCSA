@@ -34,7 +34,15 @@ public class GenerateFASTA
 
   public static void main(String[] args) throws Exception
     {
-    String karyotypeName = "kiss188";
+    args = new String[]{"kiss188"};
+
+    if (args.length < 1)
+      {
+      System.err.println("Usage: GenerateFASTA <karyotype name>");
+      System.exit(-1);
+      }
+
+    String karyotypeName = args[0];
 
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin();
 
@@ -49,8 +57,8 @@ public class GenerateFASTA
     for (AberrationResult aberration : karyotype.getAberrations())
       {
       String fastaName = "der" + aberration.getAberrationDefinitions().get(0).getChromosome();
+      log.info("Writing new derivative: " + fastaName);
       FASTAWriter writer = new FASTAWriter(new File("/tmp/" + fastaName + ".fa"), new FASTAHeader("hb", fastaName, karyotypeName, "creating fasta from hbase"));
-
 
       log.info(aberration.getAbrType() + " " + aberration.getAberrationDefinitions());
 
