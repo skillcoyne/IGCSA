@@ -28,7 +28,7 @@ import org.apache.log4j.Logger;
 
 import java.io.IOException;
 
-public class FASTAInputFormat extends FileInputFormat<LongWritable, ImmutableBytesWritable>
+public class FASTAInputFormat extends FileInputFormat<LongWritable, FragmentWritable>
   {
   static Logger log = Logger.getLogger(FASTAInputFormat.class.getName());
 
@@ -40,21 +40,21 @@ public class FASTAInputFormat extends FileInputFormat<LongWritable, ImmutableByt
     }
 
   @Override
-  public RecordReader<LongWritable, ImmutableBytesWritable> createRecordReader(InputSplit inputSplit, TaskAttemptContext context) throws IOException, InterruptedException
+  public RecordReader<LongWritable, FragmentWritable> createRecordReader(InputSplit inputSplit, TaskAttemptContext context) throws IOException, InterruptedException
     {
     int nucWindow = 1000;
     return new FASTAFragmentRecordReader(nucWindow);
     }
 
-  public static class FASTAFragmentRecordReader extends RecordReader<LongWritable, ImmutableBytesWritable>
+  public static class FASTAFragmentRecordReader extends RecordReader<LongWritable, FragmentWritable>
     {
     static Logger log = Logger.getLogger(FASTAFragmentRecordReader.class.getName());
 
     private int window;
 
-
     private LongWritable key = new LongWritable();
-    private ImmutableBytesWritable value = new ImmutableBytesWritable();
+    private FragmentWritable value = new FragmentWritable();
+    //private ImmutableBytesWritable value = new ImmutableBytesWritable();
 
     // The standard gamut of line terminators, plus EOF
     private static final char CARRIAGE_RETURN = 0x000A;
@@ -146,7 +146,8 @@ public class FASTAInputFormat extends FileInputFormat<LongWritable, ImmutableByt
       lastStart = adjustedEnd;
 
       key = new LongWritable(segment);
-      value = new ImmutableBytesWritable(new FragmentWritable(splitChr, adjustedStart, adjustedEnd, segment, fragment).write());
+      value = new FragmentWritable(splitChr, adjustedStart, adjustedEnd, segment, fragment);
+      //value = new ImmutableBytesWritable(new FragmentWritable(splitChr, adjustedStart, adjustedEnd, segment, fragment).write());
 
       return true;
       }
@@ -158,7 +159,7 @@ public class FASTAInputFormat extends FileInputFormat<LongWritable, ImmutableByt
       }
 
     @Override
-    public ImmutableBytesWritable getCurrentValue() throws IOException, InterruptedException
+    public FragmentWritable getCurrentValue() throws IOException, InterruptedException
       {
       return value;
       }

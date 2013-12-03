@@ -11,12 +11,16 @@ package org.lcsb.lu.igcsa.mapreduce;
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.io.WritableComparable;
 import org.apache.log4j.Logger;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 import java.io.Serializable;
 
 @InterfaceAudience.Public @InterfaceStability.Stable
-public class FragmentWritable implements Serializable, Comparable<FragmentWritable> //WritableComparable<FragmentWritable>
+public class FragmentWritable implements WritableComparable<FragmentWritable> //Serializable, Comparable<FragmentWritable> //WritableComparable<FragmentWritable>
   {
   static Logger log = Logger.getLogger(FragmentWritable.class.getName());
 
@@ -40,10 +44,41 @@ public class FragmentWritable implements Serializable, Comparable<FragmentWritab
     this.sequence = sequence;
     }
 
-  public byte[] write()
+  @Override
+  public void write(DataOutput output) throws IOException
     {
-    return SerializationUtils.serialize(this);
+    output.writeChars(chr);
+    output.writeLong(start);
+    output.writeLong(end);
+    output.writeLong(segment);
+    output.writeChars(sequence);
     }
+
+  @Override
+  public void readFields(DataInput dataInput) throws IOException
+    {
+    chr = dataInput.readLine();
+    start = dataInput.readLong();
+    end = dataInput.readLong();
+    segment = dataInput.readLong();
+    sequence = dataInput.readLine();
+    }
+
+  public static FragmentWritable read(DataInput dataInput) throws IOException
+    {
+    String chr = dataInput.readLine();
+    long start = dataInput.readLong();
+    long end = dataInput.readLong();
+    long segment = dataInput.readLong();
+    String sequence = dataInput.readLine();
+    return new FragmentWritable(chr, start, end, segment,  sequence);
+    }
+
+
+  //  public byte[] write()
+//    {
+//    return SerializationUtils.serialize(this);
+//    }
 
   public static FragmentWritable read(byte[] bytes)
     {

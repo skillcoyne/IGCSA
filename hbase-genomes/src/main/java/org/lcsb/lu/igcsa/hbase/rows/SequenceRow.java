@@ -21,6 +21,8 @@ public class SequenceRow extends Row
 
   public static String createRowId(String genome, String chr, long segmentNum)
     {
+    //1000000000
+
     String formattedSeg = String.format("%08d", segmentNum);
     return ChromosomeRow.createRowId(genome, chr) + ":" + formattedSeg;
     }

@@ -10,6 +10,7 @@ package org.lcsb.lu.igcsa.hbase.tables;
 
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.hbase.rows.SequenceRow;
 import org.lcsb.lu.igcsa.hbase.rows.SmallMutationRow;
 import org.springframework.util.StringUtils;
 
@@ -107,6 +108,9 @@ public class SequenceResult extends AbstractResult
     return sequence.length();
     }
 
-
-
+  @Override
+  public String toString()
+    {
+    return SequenceRow.createRowId(genome, chr, segmentNum);
+    }
   }

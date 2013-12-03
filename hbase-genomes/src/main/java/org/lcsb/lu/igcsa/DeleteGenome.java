@@ -53,10 +53,10 @@ public class DeleteGenome
 
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(conf);
     print("Connected");
-    //admin.deleteGenome(genome);
+    admin.deleteGenome(genome);
 
-    admin.deleteTables();
-    admin.createTables();
+//    admin.deleteTables();
+//    admin.createTables();
 
     admin.closeConections();
     }

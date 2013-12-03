@@ -27,6 +27,7 @@ import org.lcsb.lu.igcsa.hbase.HBaseGenome;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 import org.lcsb.lu.igcsa.mapreduce.FASTAFragmentMapper;
 import org.lcsb.lu.igcsa.mapreduce.FASTAInputFormat;
+import org.lcsb.lu.igcsa.mapreduce.FragmentWritable;
 import org.lcsb.lu.igcsa.utils.FileUtils;
 
 import java.io.File;
@@ -96,7 +97,8 @@ public class LoadFromFASTA extends Configured implements Tool
     job.setMapperClass(FASTAFragmentMapper.class);
 
     job.setMapOutputKeyClass(LongWritable.class);
-    job.setMapOutputValueClass(ImmutableBytesWritable.class);
+    //job.setMapOutputValueClass(ImmutableBytesWritable.class);
+    job.setMapOutputValueClass(FragmentWritable.class);
 
     job.setInputFormatClass(FASTAInputFormat.class);
     FileInputFormat.addInputPath(job, path);
@@ -165,8 +167,6 @@ public class LoadFromFASTA extends Configured implements Tool
       for (String chr : files.keySet())
         runTool(genome, chr, new LoadFromFASTA(genomeName, chr, files.get(chr)));
       }
-
-
     }
 
   private static void runTool(HBaseGenome genome, String chr, LoadFromFASTA lff) throws Exception

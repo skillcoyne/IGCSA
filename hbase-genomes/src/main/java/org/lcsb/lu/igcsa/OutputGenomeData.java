@@ -36,32 +36,22 @@ public class OutputGenomeData
 //    conf.set("hbase.zookeeper.property.clientPort", "2181");
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(conf);
 
-    HBaseGenome genome = admin.getGenome("test");
+    HBaseGenome genome = admin.getGenome("Test");
 
     for (HBaseChromosome chr : genome.getChromosomes())
       log.info(chr.getChromosome().getChrName() + " " + chr.getChromosome().getSegmentNumber() + " " + chr.getChromosome().getLength());
 
-
-    //genome.getChromosome("21").getChromosome().
-    HBaseChromosome chr = genome.getChromosome("21");
-
-    long start = 1;
-    List<String> rowIds = chr.getSequenceRowIds(start, start+10000);
-    while (rowIds != null && rowIds.size() > 0)
+    String c = "21";
+    long segments = genome.getChromosome(c).getChromosome().getSegmentNumber();
+    for (int i=1; i<=segments; i++)
       {
-      log.info(rowIds.size());
-      for (String id: rowIds)
-        {
-        SequenceResult seq = admin.getSequenceTable().queryTable(id);
-        log.info(seq.getChr() + " " + seq.getStart() + "-" + seq.getEnd());
-        }
-      start += 10000;
-      rowIds =  chr.getSequenceRowIds(start, start+10000);
+      HBaseSequence seq = genome.getChromosome(c).getSequence(i);
+      log.info(seq.getSequence().toString());
       }
+    log.info(segments);
 
 
-
-    //Iterator<Result> rI = genome.getChromosome("21").getSequences();
+    //    Iterator<Result> rI = genome.getChromosome("21").getSequences();
 //    log.info(rI.toString());
 //    while (rI.hasNext())
 //      {

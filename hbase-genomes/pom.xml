@@ -109,23 +109,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <!--<plugin>-->
-            <!--<groupId>org.apache.maven.plugins</groupId>-->
-            <!--<artifactId>maven-jar-plugin</artifactId>-->
-
-            <!--<configuration>-->
-            <!--<archive>-->
-            <!--<manifest>-->
-            <!--<addClasspath>true</addClasspath>-->
-            <!--<classpathMavenRepositoryLayout>true</classpathMavenRepositoryLayout>-->
-            <!--<classpathPrefix>lib/</classpathPrefix>-->
-            <!--<mainClass>org.lcsb.lu.igcsa.LoadFromFASTA</mainClass>-->
-            <!--</manifest>-->
-            <!--</archive>-->
-            <!--</configuration>-->
-            <!--</plugin>-->
-
-
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <executions>

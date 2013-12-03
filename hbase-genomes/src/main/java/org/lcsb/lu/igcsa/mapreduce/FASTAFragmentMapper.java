@@ -8,20 +8,22 @@
 
 package org.lcsb.lu.igcsa.mapreduce;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.log4j.Logger;
+
 
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 import org.lcsb.lu.igcsa.hbase.rows.ChromosomeRow;
 
 import java.io.IOException;
 
-public class FASTAFragmentMapper  extends Mapper<LongWritable, ImmutableBytesWritable, LongWritable, ImmutableBytesWritable>
+public class FASTAFragmentMapper  extends Mapper<LongWritable, FragmentWritable, LongWritable, FragmentWritable>
   {
-  private static Logger log = Logger.getLogger(FASTAFragmentMapper.class.getName());
+  private static final Log log = LogFactory.getLog(FASTAFragmentMapper.class);
+  //private static Logger log = Logger.getLogger(FASTAFragmentMapper.class.getName());
 
   private HBaseGenomeAdmin admin;
   private String genomeName;
@@ -38,13 +40,20 @@ public class FASTAFragmentMapper  extends Mapper<LongWritable, ImmutableBytesWri
     }
 
   @Override
-  protected void map(LongWritable key, ImmutableBytesWritable value, Context context) throws IOException, InterruptedException
+  protected void map(LongWritable key, FragmentWritable value, Context context) throws IOException, InterruptedException
     {
     // pretty much just chopping the file up and spitting it back out into the HBase tables
-    FragmentWritable fragment = FragmentWritable.read(value.get());
-    this.admin.getGenome(genomeName).getChromosome(chr).addSequence(fragment.getStart(), fragment.getEnd(), fragment.getSequence(), fragment.getSegment());
+    FragmentWritable fragment = value;// FragmentWritable.read(value.get());
+    this.admin.getGenome(genomeName).getChromosome(chr).addSequence(
+        fragment.getStart(),
+        fragment.getEnd(),
+        fragment.getSequence(),
+        fragment.getSegment());
     this.admin.getChromosomeTable().incrementSize(ChromosomeRow.createRowId(genomeName, chr), 1, (fragment.getEnd() - fragment.getStart()));
+    /*
+    In this case I don't need to write the keys/values, however using a custom writable I am getting a strange EOFException when hadoop tries to deserialize
     context.write(key, value);
-    log.info(key + ":" + fragment.toString());
+    */
+    log.info(key + " " + value.toString());
     }
   }

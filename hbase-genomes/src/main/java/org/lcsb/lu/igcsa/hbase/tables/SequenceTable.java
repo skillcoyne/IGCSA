@@ -101,8 +101,8 @@ public class SequenceTable extends AbstractTable
             seqResult.setEnd(value);
           else if (qualifier.equals("chr"))
             seqResult.setChr(value);
-//          else if (qualifier.equals("segment"))
-//            seqResult.setSegment(value);
+          else if (qualifier.equals("segment"))
+            seqResult.setSegmentNum(value);
           }
         }
 
