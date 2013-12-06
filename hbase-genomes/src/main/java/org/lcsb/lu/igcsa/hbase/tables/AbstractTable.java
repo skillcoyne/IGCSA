@@ -164,6 +164,12 @@ public abstract class AbstractTable
     return scanner.iterator();
     }
 
+  public Iterator<Result> runScan(Scan scan) throws IOException
+    {
+    ResultScanner scanner = hTable.getScanner(scan);
+    return scanner.iterator();
+    }
+
 
   public Iterator<Result> getResultIterator(Column... columns) throws IOException
     {

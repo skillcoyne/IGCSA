@@ -167,6 +167,10 @@ public class MutateFragments extends Configured implements Tool
             mutations.put(variation, variation.getLastMutations());
           }
 
+        /*
+        NOTE: I could cut down on the size of the HBase (and actually use derby or something similar) by keeping only the actual segments from the original reference
+        all subsequent mutations could be applied at runtime when I generate a FASTA file.
+         */
         HBaseSequence hBaseSequence = chromosome.addSequence(seq.getStart(),
             seq.getStart() + mutatedSequence.getLength(),
             mutatedSequence.getSequence(),

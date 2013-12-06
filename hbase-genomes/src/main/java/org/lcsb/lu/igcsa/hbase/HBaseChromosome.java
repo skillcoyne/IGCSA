@@ -12,6 +12,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.ResultScanner;
+import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.filter.CompareFilter;
 import org.apache.hadoop.hbase.filter.FilterList;
 import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
@@ -95,33 +97,34 @@ public class HBaseChromosome extends HBaseConnectedObjects
     return (result == null)? null: new HBaseSequence(result);
     }
 
-//  public HBaseSequence getSequence(long startLocation) throws IOException
-//    {
-//    FilterList filters = new FilterList(FilterList.Operator.MUST_PASS_ALL);
-//
-//    filters.addFilter( new SingleColumnValueFilter(
-//        Bytes.toBytes("info"), Bytes.toBytes("genome"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(chromosome.getGenomeName())));
-//    filters.addFilter( new SingleColumnValueFilter(
-//        Bytes.toBytes("loc"), Bytes.toBytes("chr"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(chromosome.getChrName())) );
-//    filters.addFilter( new SingleColumnValueFilter(
-//        Bytes.toBytes("loc"), Bytes.toBytes("start"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(startLocation)) );
-//
-//    Iterator<Result> rI = this.sT.getScanner(filters);
-//    SequenceResult result = this.sT.createResult(rI.next());
-//
-//    if (rI.hasNext())
-//      log.warn("Multiple results for " + startLocation + " returning only the first one.");
-//
-//    if (result != null)
-//      return new HBaseSequence(result);
-//
-////    if ( chromosome.getSegmentNumber() >= startLocation )
-////      {
-////      String sequenceId = SequenceRow.createRowId(this.chromosome.getGenomeName(), this.chromosome.getChrName(), startLocation);
-////      return new HBaseSequence( sT.queryTable(sequenceId) );
-////      }
-//    return null;
-//    }
+  public HBaseSequence getSequenceByStart(long startLocation) throws IOException
+    {
+    FilterList filters = new FilterList(FilterList.Operator.MUST_PASS_ALL);
+
+    filters.addFilter( new SingleColumnValueFilter(
+        Bytes.toBytes("info"), Bytes.toBytes("genome"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(chromosome.getGenomeName())));
+    filters.addFilter( new SingleColumnValueFilter(
+        Bytes.toBytes("loc"), Bytes.toBytes("chr"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(chromosome.getChrName())) );
+    filters.addFilter( new SingleColumnValueFilter(
+        Bytes.toBytes("loc"), Bytes.toBytes("start"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(startLocation)) );
+
+    Iterator<Result> rI = this.sT.getScanner(filters);
+    Result r = rI.next();
+    SequenceResult result = this.sT.createResult(r);
+
+    if (rI.hasNext())
+      log.warn("Multiple results for " + startLocation + " returning only the first one.");
+
+    if (result != null)
+      return new HBaseSequence(result);
+
+//    if ( chromosome.getSegmentNumber() >= startLocation )
+//      {
+//      String sequenceId = SequenceRow.createRowId(this.chromosome.getGenomeName(), this.chromosome.getChrName(), startLocation);
+//      return new HBaseSequence( sT.queryTable(sequenceId) );
+//      }
+    return null;
+    }
 
 
   public List<String> getSequenceRowIds(long startLoc, long endLoc) throws IOException
@@ -130,7 +133,6 @@ public class HBaseChromosome extends HBaseConnectedObjects
     Iterator<Result> rI = getSequences(startLoc, endLoc);
     while (rI.hasNext())
       rowIds.add( Bytes.toString(rI.next().getRow()) );
-
     return rowIds;
     }
 

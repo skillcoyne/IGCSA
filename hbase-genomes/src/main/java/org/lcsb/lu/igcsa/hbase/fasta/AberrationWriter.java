@@ -13,12 +13,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.hbase.HBaseChromosome;
 import org.lcsb.lu.igcsa.hbase.HBaseGenome;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
+import org.lcsb.lu.igcsa.hbase.HBaseSequence;
 import org.lcsb.lu.igcsa.hbase.tables.AberrationResult;
 import org.lcsb.lu.igcsa.hbase.tables.SequenceResult;
 
@@ -26,6 +26,10 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+
+/*
+These are all suited for M/R jobs...Map the request (as this can be thousands of rows), reduce the file sections...
+ */
 
 public class AberrationWriter
   {
@@ -144,12 +148,19 @@ public class AberrationWriter
     // write start to first location
     if (firstLoc.getStart() > 1)
       {
-      log.info("Writing from start to " + firstLoc.getChromosome() + " " + firstLoc.getStart());
-
-      //List<String> rowIds = chr.getSequenceRowIds(1, firstLoc.getStart());
-
-//      Iterator<Result> seqI = chr.getSequences(1, firstLoc.getStart());
-//      total += write(seqI, writer);
+//      log.info("Writing from start to " + firstLoc.getChromosome() + " " + firstLoc.getStart());
+//
+//      long segment = 1;
+//      HBaseSequence seq = chr.getSequence(segment);
+//      while (seq.getSequence().getStart() <= firstLoc.getStart())
+//        {
+//        writer.write(seq.getSequence().getSequence());
+//        total += seq.getSequence().getSequenceLength();
+//        ++segment;
+//        seq = chr.getSequence(segment);
+//        }
+//      log.info("segments " + segment);
+//
       }
     log.info(total + " written from " + firstLoc.getChromosome());
 
@@ -158,25 +169,42 @@ public class AberrationWriter
     for (Location loc : aberration.getAberrationDefinitions())
       {
       chr = genome.getChromosome(loc.getChromosome());
-      log.info("Writing " + loc);
-//      Iterator<Result> seqI = chr.getSequences(loc.getStart(), loc.getEnd() + 1);
-//      int currentTotal = write(seqI, writer);
+//      log.info("Writing " + loc);
+//
+//      long currentTotal = 0;
+//      HBaseSequence seq = chr.getSequenceByStart(loc.getStart());
+//      long segment = seq.getSequence().getSegmentNum();
+//      while (seq.getSequence().getEnd() <= loc.getEnd())
+//        {
+//        writer.write(seq.getSequence().getSequence());
+//        currentTotal += seq.getSequence().getSequenceLength();
+//        ++segment;
+//        seq = chr.getSequence(segment);
+//        }
 //      total += currentTotal;
+//
 //      log.info(currentTotal + " written from " + chr.getChromosome().getChrName());
-
-      finalLoc = loc;
+//
+//      finalLoc = loc;
       }
 
     // write the remainder of the final chromosome
     log.info("Writing remaining " + finalLoc);
-    chr = genome.getChromosome(finalLoc.getChromosome());
+    //chr = genome.getChromosome(finalLoc.getChromosome());
 
-    Iterator<Result> allI = chr.getSequences();
-    while (allI.hasNext())
-      log.info(Bytes.toString(allI.next().getRow()));
+    long currentTotal = 0;
+    HBaseSequence seq = chr.getSequenceByStart(finalLoc.getEnd());
+    long segment = seq.getSequence().getSegmentNum();
+    while (seq != null && seq.getSequence().getEnd() <= chr.getChromosome().getLength())
+      {
+      writer.write(seq.getSequence().getSequence());
+      currentTotal += seq.getSequence().getSequenceLength();
+      ++segment;
+      seq = chr.getSequence(segment);
+      }
+    log.info("Write " + currentTotal);
 
-//    Iterator<Result> seqI = chr.getSequences(finalLoc.getEnd(), chr.getChromosome().getLength());
-//    total += write(seqI, writer);
+    total += currentTotal;
 
     log.info("Total written: " + total);
     }
