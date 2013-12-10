@@ -4,13 +4,12 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 
-import org.apache.hadoop.fs.RemoteIterator;
+import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.io.LongWritable;
 
 import org.apache.hadoop.mapreduce.Job;
@@ -150,15 +149,18 @@ public class LoadFromFASTA extends Configured implements Tool
       fastaDir = conf.get("fs.default.name") + "/" + fastaDir.replace("hdfs://", "");
       FileSystem fs = FileSystem.get(conf);
       log.info(fs.getWorkingDirectory().getName());
-      RemoteIterator<LocatedFileStatus> rI = fs.listFiles(new Path(fastaDir), true);
-      while (rI.hasNext())
+      FileStatus[] statuses = fs.listStatus(new Path(fastaDir), new PathFilter()
+      {
+      @Override
+      public boolean accept(Path path)
         {
-        LocatedFileStatus lfs = rI.next();
-        if (FileUtils.FASTA_FILE.accept(null, lfs.getPath().getName()))
-          {
-          String chr = FileUtils.getChromosomeFromFASTA(lfs.getPath().getName());
-          runTool(genome, chr, new LoadFromFASTA(genomeName, chr, lfs.getPath()));
-          }
+        return FileUtils.FASTA_FILE.accept(null, path.getName());
+        }
+      });
+      for (FileStatus status: statuses)
+        {
+        String chr = FileUtils.getChromosomeFromFASTA(status.getPath().getName());
+        runTool(genome, chr, new LoadFromFASTA(genomeName, chr, status.getPath()));
         }
       }
     else // local files

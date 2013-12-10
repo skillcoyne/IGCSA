@@ -8,21 +8,17 @@
 
 package org.lcsb.lu.igcsa.mapreduce;
 
-import org.apache.commons.lang.SerializationUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
-import org.apache.log4j.Logger;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-import java.io.Serializable;
+import java.io.*;
 
 @InterfaceAudience.Public @InterfaceStability.Stable
-public class FragmentWritable implements WritableComparable<FragmentWritable> //Serializable, Comparable<FragmentWritable> //WritableComparable<FragmentWritable>
+public class FragmentWritable implements WritableComparable<FragmentWritable>
   {
   private static final Log log = LogFactory.getLog(FragmentWritable.class);
 
@@ -49,44 +45,23 @@ public class FragmentWritable implements WritableComparable<FragmentWritable> //
   @Override
   public void write(DataOutput output) throws IOException
     {
-    output.writeChars(chr);
+    Text.writeString(output, chr);
     output.writeLong(start);
     output.writeLong(end);
     output.writeLong(segment);
-    output.writeChars(sequence);
+    Text.writeString(output, sequence);
     }
+
 
   @Override
   public void readFields(DataInput dataInput) throws IOException
     {
-    chr = dataInput.readLine();
+    chr = Text.readString(dataInput);
     start = dataInput.readLong();
     end = dataInput.readLong();
     segment = dataInput.readLong();
-    sequence = dataInput.readLine();
+    sequence = Text.readString(dataInput);
     }
-
-  public static FragmentWritable read(DataInput dataInput) throws IOException
-    {
-    String chr = dataInput.readLine();
-    long start = dataInput.readLong();
-    long end = dataInput.readLong();
-    long segment = dataInput.readLong();
-    String sequence = dataInput.readLine();
-    return new FragmentWritable(chr, start, end, segment,  sequence);
-    }
-
-
-  //  public byte[] write()
-//    {
-//    return SerializationUtils.serialize(this);
-//    }
-
-  public static FragmentWritable read(byte[] bytes)
-    {
-    return (FragmentWritable) SerializationUtils.deserialize(bytes);
-    }
-
 
   @Override
   public int compareTo(FragmentWritable fragment)

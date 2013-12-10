@@ -38,6 +38,8 @@ public class OutputGenomeData
 //    conf.set("hbase.zookeeper.property.clientPort", "2181");
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(conf);
 
+  SequenceResult sr =     admin.getSequenceTable().queryTable("GRCh37-11:00043501");
+    log.info(sr);
 
 //    HBaseGenome genome = admin.getGenome("Test");
 //

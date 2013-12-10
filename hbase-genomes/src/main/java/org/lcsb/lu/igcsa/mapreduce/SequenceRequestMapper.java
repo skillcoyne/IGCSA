@@ -13,9 +13,8 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.TableMapper;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Mapper;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 import org.lcsb.lu.igcsa.hbase.tables.SequenceResult;
@@ -27,7 +26,10 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class SequenceRequestMapper extends TableMapper<LongWritable, Text>
+
+
+
+public class SequenceRequestMapper extends TableMapper<SequenceFragmentReducer.SegmentOrderComparator, FragmentWritable>
   {
   private static final Log log = LogFactory.getLog(SequenceRequestMapper.class);
 
@@ -59,13 +61,35 @@ public class SequenceRequestMapper extends TableMapper<LongWritable, Text>
     {
     boolean reverse = (context.getConfiguration().get(CFG_ABR).equals("inv")) ;
 
-    SequenceResult sequence = HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().createResult(value);
+    // is there anything to be done with this really?
+    String rowId = Bytes.toString(key.get());
+    log.info(rowId + " reverse:" + reverse);
 
-    // check how much of the sequence should be output and in what order
+    SequenceResult sr = HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().createResult(value);
+
+    int sectionKey = -1;
+    for (Location loc: locations)
+      {
+      if (loc.getChromosome().equals(sr.getChr()) && loc.overlapsLocation( new Location((int)sr.getStart(), (int)sr.getEnd())) )
+        sectionKey = locations.indexOf(loc);
+      }
+    if (sectionKey < 0)
+      throw new RuntimeException("somehow I didn't match anything and that should never happen!");
+
+    // if reverse the text sequence needs to be reversed and it needs to somehow be indicated with the key I think
+    String sequence = sr.getSequence();
+    if (reverse)
+      sequence = new StringBuffer(sequence).reverse().toString();
+
+    SequenceFragmentReducer.SegmentOrderComparator soc = new SequenceFragmentReducer.SegmentOrderComparator(sectionKey, sr.getSegmentNum());
+    if (reverse)
+      soc = new SequenceFragmentReducer.SegmentOrderComparator(sectionKey, (-1*sr.getSegmentNum()));
 
 
-    context.write(new LongWritable(sequence.getSegmentNum()), new Text(sequence.getSequence()) );
 
-    super.map(key, value, context);
+    FragmentWritable fw = new FragmentWritable(sr.getChr(), sr.getStart(), sr.getEnd(), sr.getSegmentNum(), sequence);
+
+    // TODO check how much of the sequence should be output and in what order
+    context.write(soc, fw);
     }
   }
