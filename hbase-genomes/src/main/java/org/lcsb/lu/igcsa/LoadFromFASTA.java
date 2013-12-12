@@ -90,24 +90,24 @@ public class LoadFromFASTA extends Configured implements Tool
 
     genomeAdmin.getGenome(genomeName).addChromosome(chr, 0, 0);
 
-    Job job = new Job(config, "Reference Genome Fragmentation");
-
-    job.setJarByClass(LoadFromFASTA.class);
-    job.setMapperClass(FASTAFragmentMapper.class);
-
-    job.setMapOutputKeyClass(LongWritable.class);
-    //job.setMapOutputValueClass(ImmutableBytesWritable.class);
-    job.setMapOutputValueClass(FragmentWritable.class);
-
-    job.setInputFormatClass(FASTAInputFormat.class);
-    FileInputFormat.addInputPath(job, path);
-
-    // because we aren't emitting anything from mapper
-    job.setOutputFormatClass(NullOutputFormat.class);
-
-    //job.submit();
-    return (job.waitForCompletion(true) ? 0 : 1);
-    //return 0;
+//    Job job = new Job(config, "Reference Genome Fragmentation");
+//
+//    job.setJarByClass(LoadFromFASTA.class);
+//    job.setMapperClass(FASTAFragmentMapper.class);
+//
+//    job.setMapOutputKeyClass(LongWritable.class);
+//    //job.setMapOutputValueClass(ImmutableBytesWritable.class);
+//    job.setMapOutputValueClass(FragmentWritable.class);
+//
+//    job.setInputFormatClass(FASTAInputFormat.class);
+//    FileInputFormat.addInputPath(job, path);
+//
+//    // because we aren't emitting anything from mapper
+//    job.setOutputFormatClass(NullOutputFormat.class);
+//
+//    //job.submit();
+//    return (job.waitForCompletion(true) ? 0 : 1);
+    return 0;
     }
 
   public static void main(String[] args) throws Exception
@@ -126,7 +126,7 @@ public class LoadFromFASTA extends Configured implements Tool
     String genomeName = args[0];
     String fastaDir = args[1];
 
-    admin.deleteGenome(genomeName);
+    //admin.deleteGenome(genomeName);
 
     HBaseGenome genome = admin.getGenome(genomeName);
     if (genome == null)

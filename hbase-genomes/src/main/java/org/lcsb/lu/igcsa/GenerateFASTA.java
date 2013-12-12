@@ -28,6 +28,7 @@ import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.hbase.*;
+import org.lcsb.lu.igcsa.hbase.filters.AberrationLocationFilter;
 import org.lcsb.lu.igcsa.hbase.rows.SequenceRow;
 import org.lcsb.lu.igcsa.hbase.tables.AberrationResult;
 import org.lcsb.lu.igcsa.hbase.tables.Column;
@@ -78,32 +79,37 @@ public class GenerateFASTA  extends Configured implements Tool
       log.info(aberration.getAbrType() + " " + aberration.getAberrationDefinitions());
 
       config.set(SequenceRequestMapper.CFG_ABR, aberration.getAbrType());
+
       List<String> locations = new ArrayList<String>();
       for (Location loc : aberration.getAberrationDefinitions())
         locations.add(loc.toString());
 
       config.setStrings(SequenceRequestMapper.CFG_LOC, locations.toArray(new String[locations.size()]));
 
-      // this FilterList will contain nested filter lists that putt all of the necessary locations
-      FilterList filterList = new FilterList(FilterList.Operator.MUST_PASS_ONE);
+      AberrationLocationFilter alf = new AberrationLocationFilter();
+      FilterList filterList = alf.getFilter(aberration, genome);
 
+
+      // this FilterList will contain nested filter lists that putt all of the necessary locations
+//      FilterList filterList = new FilterList(FilterList.Operator.MUST_PASS_ONE);
+//
       List<String> abrs = new ArrayList<String>();
       for (Location loc : aberration.getAberrationDefinitions())
         {
-        log.info(loc.toString());
-
-        long start = (loc.getStart() + 1000) / 1000;
-        long stop = (loc.getEnd() + 1000) / 1000;
-
-        RowFilter range1 = new RowFilter(CompareFilter.CompareOp.GREATER_OR_EQUAL, new BinaryComparator(Bytes.toBytes(SequenceRow.createRowId("GRCh37", loc.getChromosome(), start))));
-        RowFilter range2 = new RowFilter(CompareFilter.CompareOp.LESS, new BinaryComparator(Bytes.toBytes(SequenceRow.createRowId("GRCh37", loc.getChromosome(), stop))));
-
-        FilterList range = new FilterList(FilterList.Operator.MUST_PASS_ALL);
-        range.addFilter(range1);
-        range.addFilter(range2);
-
-        filterList.addFilter(range);
-
+//        log.info(loc.toString());
+//
+//        long start = (loc.getStart() + 1000) / 1000;
+//        long stop = (loc.getEnd() + 1000) / 1000;
+//
+//        RowFilter range1 = new RowFilter(CompareFilter.CompareOp.GREATER_OR_EQUAL, new BinaryComparator(Bytes.toBytes(SequenceRow.createRowId("GRCh37", loc.getChromosome(), start))));
+//        RowFilter range2 = new RowFilter(CompareFilter.CompareOp.LESS, new BinaryComparator(Bytes.toBytes(SequenceRow.createRowId("GRCh37", loc.getChromosome(), stop))));
+//
+//        FilterList range = new FilterList(FilterList.Operator.MUST_PASS_ALL);
+//        range.addFilter(range1);
+//        range.addFilter(range2);
+//
+//        filterList.addFilter(range);
+//
         abrs.add( loc.getChromosome() + ":" + loc.getStart() + "-" + loc.getEnd() );
         }
       Scan scan = new Scan();
