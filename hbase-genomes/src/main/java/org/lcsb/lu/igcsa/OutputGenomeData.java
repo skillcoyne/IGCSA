@@ -38,13 +38,13 @@ public class OutputGenomeData
 //    conf.set("hbase.zookeeper.property.clientPort", "2181");
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(conf);
 
-  SequenceResult sr =     admin.getSequenceTable().queryTable("GRCh37-11:00043501");
-    log.info(sr);
+//  SequenceResult sr =     admin.getSequenceTable().queryTable("GRCh37-11:00043501");
+//    log.info(sr);
 
-//    HBaseGenome genome = admin.getGenome("Test");
-//
-//    for (HBaseChromosome chr : genome.getChromosomes())
-//      log.info(chr.getChromosome().getChrName() + " " + chr.getChromosome().getSegmentNumber() + " " + chr.getChromosome().getLength());
+    HBaseGenome genome = admin.getGenome("GRCh37");
+
+    for (HBaseChromosome chr : genome.getChromosomes())
+      log.info(chr.getChromosome().getChrName() + " " + chr.getChromosome().getSegmentNumber() + " " + chr.getChromosome().getLength());
 //
 //    String c = "21";
 //    long segments = genome.getChromosome(c).getChromosome().getSegmentNumber();

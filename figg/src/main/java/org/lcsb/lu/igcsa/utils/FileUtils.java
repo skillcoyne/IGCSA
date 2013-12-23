@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * org.lcsb.lu.igcsa.utils
@@ -65,9 +67,16 @@ public class FileUtils
    */
   public static String getChromosomeFromFASTA(String fileName)
     {
-    String fastaChr = fileName.replace("chr", "");
-    fastaChr = fastaChr.replaceAll(fastaChr.substring(fastaChr.indexOf("."), fastaChr.length()), "");
-    return fastaChr;
+    Pattern p = Pattern.compile("^.*chr(\\d+|X|Y)\\.fa.*$");
+    Matcher matcher = p.matcher(fileName);
+
+    if (matcher.matches())
+      return matcher.group(1);
+
+    return null;
+//    String fastaChr = fileName.replace("chr", "");
+//    fastaChr = fastaChr.replaceAll(fastaChr.substring(fastaChr.indexOf("."), fastaChr.length()), "");
+//    return fastaChr;
     }
 
   public static List<Chromosome> getChromosomesFromFASTA(File fastaDir) throws FileNotFoundException, ProbabilityException, InstantiationException, IllegalAccessException

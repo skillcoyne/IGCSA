@@ -36,7 +36,7 @@ public  class AberrationLocationFilter
     List<Location> locations = aberration.getAberrationDefinitions();
 
     // get all segments up to first location
-    if (locations.get(0).getStart() < 1)
+    if (locations.get(0).getStart() > 1)
       getInitialLocationFilters(locations.get(0), genomeName);
 
     // get subsequent locations

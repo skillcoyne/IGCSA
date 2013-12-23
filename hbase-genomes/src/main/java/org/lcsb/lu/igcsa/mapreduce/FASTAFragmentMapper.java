@@ -14,8 +14,10 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 
 
+import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 import org.lcsb.lu.igcsa.hbase.rows.ChromosomeRow;
+import org.lcsb.lu.igcsa.hbase.tables.ChromosomeResult;
 
 import java.io.IOException;
 
@@ -33,8 +35,19 @@ public class FASTAFragmentMapper  extends Mapper<LongWritable, FragmentWritable,
     super.setup(context);
     admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(context.getConfiguration());
 
+    FileSplit fileSplit = (FileSplit) context.getInputSplit();
+    String filePath = fileSplit.getPath().toString();
+
+    log.info("CREATING MAPPER FOR: " + filePath);
+
+    chr = org.lcsb.lu.igcsa.utils.FileUtils.getChromosomeFromFASTA(filePath);
+
     genomeName = context.getConfiguration().get("genome");
-    chr = context.getConfiguration().get("chromosome");
+    context.getConfiguration().set("chromosome", chr);
+    //chr = context.getConfiguration().get("chromosome");
+
+    if (admin.getGenome(genomeName).getChromosome(chr) == null)
+      admin.getGenome(genomeName).addChromosome(chr, 0, 0);
     }
 
   @Override
@@ -47,11 +60,9 @@ public class FASTAFragmentMapper  extends Mapper<LongWritable, FragmentWritable,
         fragment.getEnd(),
         fragment.getSequence(),
         fragment.getSegment());
-    this.admin.getChromosomeTable().incrementSize(ChromosomeRow.createRowId(genomeName, chr), 1, (fragment.getEnd() - fragment.getStart()));
-    /*
-    In this case I don't need to write the keys/values, however using a custom writable I am getting a strange EOFException when hadoop tries to deserialize
-    context.write(key, value);
-    */
-    log.info(key + " " + value.toString());
+
+    ChromosomeResult incremented = this.admin.getChromosomeTable().incrementSize(ChromosomeRow.createRowId(genomeName, chr), 1, (fragment.getEnd() - fragment.getStart()));
+
+    log.info(key + " " + value.toString() + "seg/length: " + incremented.getSegmentNumber() + "," + incremented.getLength());
     }
   }

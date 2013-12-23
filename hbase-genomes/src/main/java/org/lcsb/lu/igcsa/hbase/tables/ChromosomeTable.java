@@ -96,10 +96,13 @@ public class ChromosomeTable extends AbstractTable
     {
     Increment inc = new Increment( Bytes.toBytes(rowId) );
 
-    if (segment > 0)
+    if (segment <= 0 || length <= 0)
+      throw new IOException("Cannot increment segment/length of 0 (" + segment + "," + length + ")");
+
+    //if (segment > 0)
       inc.addColumn(Bytes.toBytes("chr"), Bytes.toBytes("segments"), segment);
 
-    if (length > 0)
+    //if (length > 0)
       inc.addColumn(Bytes.toBytes("chr"), Bytes.toBytes("length"), length);
 
     Result r = this.hTable.increment(inc);
