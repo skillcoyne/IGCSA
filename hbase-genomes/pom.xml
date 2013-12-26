@@ -58,6 +58,12 @@
             <version>1.6.7</version>
         </dependency>
         <dependency>
+          <groupId>com.amazonaws.s3</groupId>
+          <artifactId>jets3t</artifactId>
+          <version>0.5.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpcore</artifactId>
             <version>4.3</version>

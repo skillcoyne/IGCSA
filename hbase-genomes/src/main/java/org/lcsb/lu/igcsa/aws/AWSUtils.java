@@ -28,7 +28,17 @@ public class AWSUtils
 
   private static AmazonS3 s3;
 
+  public static void main(String[] args) throws Exception
+    {
+    AmazonS3 s3 = getS3();
+    String bucket = "insilico";
 
+    ObjectListing listing = s3.listObjects(new ListObjectsRequest().withBucketName(bucket).withPrefix("FASTA"));
+
+//    GetObjectRequest req = new GetObjectRequest("insilico", "FASTA");
+//    S3Object obj = s3.getObject(req);
+    log.info(listing.toString());
+    }
 
 
   /**

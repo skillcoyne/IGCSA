@@ -30,6 +30,9 @@ import org.lcsb.lu.igcsa.mapreduce.FragmentWritable;
 import org.lcsb.lu.igcsa.utils.FileUtils;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -47,42 +50,30 @@ public class LoadFromFASTA extends Configured implements Tool
 
   private static Configuration config;
   private String genomeName;
-  private String chr;
+
+  private Collection<Path> paths;
+
   private Path path;
 
-  private LoadFromFASTA(String genomeName)
+  public LoadFromFASTA(String genomeName, Collection<Path> paths)
     {
     config = HBaseConfiguration.create();
     this.genomeName = genomeName;
-    //this.chr = chr;
+    this.paths = paths;
+
+    if (paths.iterator().next().toString().contains("s3"))
+      {
+      AWSProperties props = AWSProperties.getProperties();
+      config.set("fs.s3n.awsAccessKeyId", props.getAccessKey());
+      config.set("fs.s3n.awsSecretAccessKey", props.getSecretKey());
+      }
     }
 
-  public LoadFromFASTA(String genomeName, Path path)
-    {
-    this(genomeName);
-    this.path = path;
-    }
-
-  public LoadFromFASTA(String genomeName, File file)
-    {
-    this(genomeName);
-    path = new Path(file.getAbsolutePath());
-    }
-
-  public LoadFromFASTA(String genomeName, S3Object s3Object)
-    {
-    this(genomeName);
-
-    AWSProperties props = AWSProperties.getProperties();
-    config.set("fs.s3n.awsAccessKeyId", props.getAccessKey());
-    config.set("fs.s3n.awsSecretAccessKey", props.getSecretKey());
-    path = new Path("s3n://" + s3Object.getBucketName() + "/" + s3Object.getKey());
-    }
 
   @Override
   public int run(String[] args) throws Exception
     {
-    Configuration config = HBaseConfiguration.create();
+    //Configuration config = HBaseConfiguration.create();
 
     config.set("genome", genomeName);
 
@@ -96,7 +87,9 @@ public class LoadFromFASTA extends Configured implements Tool
     job.setMapOutputValueClass(FragmentWritable.class);
 
     job.setInputFormatClass(FASTAInputFormat.class);
-    FileInputFormat.addInputPath(job, path);
+
+    for (Path path : paths)
+      FileInputFormat.addInputPath(job, path);
 
     // because we aren't emitting anything from mapper
     job.setOutputFormatClass(NullOutputFormat.class);
@@ -126,60 +119,43 @@ public class LoadFromFASTA extends Configured implements Tool
     if (genome == null)
       genome = new HBaseGenome(genomeName, null);
 
+    Collection<Path> filePaths = new ArrayList<Path>();
     if (fastaDir.startsWith("s3"))
       {
       Pattern s3pattern = Pattern.compile("^s3n?:\\/\\/(\\w+[-\\w+]*).*");
       Matcher s3file = s3pattern.matcher(fastaDir);
-      if (!s3file.matches())
-        throw new Exception("A S3 bucket name could not be determined from " + fastaDir);
+      if (!s3file.matches()) throw new Exception("A S3 bucket name could not be determined from " + fastaDir);
 
-      // TODO FIX THIS
       String bucket = s3file.group(1);
       Map<String, S3ObjectSummary> chromosomes = AWSUtils.listFASTAFiles(bucket);
-//      ToolRunner.run(new LoadFromFASTA(genomeName, AWSUtils), null);
-//        runTool(genome, chr, new LoadFromFASTA(genomeName, chr, AWSUtils.getS3Object(chromosomes.get(chr))));
+      for (S3ObjectSummary s3Object : chromosomes.values())
+        filePaths.add(new Path("s3n://" + s3Object.getBucketName() + "/" + s3Object.getKey()));
       }
     else if (fastaDir.startsWith("hdfs"))
       {
-      FileSystem fs = FileSystem.get(conf);
-      ToolRunner.run(new LoadFromFASTA(genomeName, new Path(fastaDir)), null);
-//      log.info(fs.getWorkingDirectory().getName());
-//      FileStatus[] statuses = fs.listStatus(new Path(fastaDir), new PathFilter()
-//      {
-//      @Override
-//      public boolean accept(Path path)
-//        {
-//        return FileUtils.FASTA_FILE.accept(null, path.getName());
-//        }
-//      });
-//      for (FileStatus status: statuses)
-//        {
-//        String chr = FileUtils.getChromosomeFromFASTA(status.getPath().getName());
-//        runTool(genome, chr, new LoadFromFASTA(genomeName, chr, status.getPath()));
-//        }
+      FileSystem fs = new Path(fastaDir).getFileSystem(conf);
+      FileStatus[] statuses = fs.listStatus(new Path(fastaDir), new PathFilter()
+      {
+      @Override
+      public boolean accept(Path path)
+        {
+        return FileUtils.FASTA_FILE.accept(null, path.getName());
+        }
+      });
+      for (FileStatus status : statuses)
+        filePaths.add(status.getPath());
       }
     else // local files
       {
       Map<String, File> files = org.lcsb.lu.igcsa.utils.FileUtils.getFASTAFiles(new File(fastaDir));
-      ToolRunner.run(new LoadFromFASTA(genomeName, new File(fastaDir)), null);
-
-//      for (String chr : files.keySet())
-//        runTool(genome, chr, new LoadFromFASTA(genomeName, chr, files.get(chr)));
+      for (File file: files.values())
+        filePaths.add( new Path(file.getPath()) );
       }
-    }
 
-
-  private static void runTool(HBaseGenome genome, String chr, LoadFromFASTA lff) throws Exception
-    {
-    if (genome.getChromosome(chr) == null)
-      {
-      final long startTime = System.currentTimeMillis();
-      ToolRunner.run(lff, null);
-      final long elapsedTime = System.currentTimeMillis() - startTime;
-      log.info("Finished job " + elapsedTime / 1000 + " seconds");
-      }
-    else
-      log.info("Chromosome " + chr + " already exists. Skipping job.");
+    final long startTime = System.currentTimeMillis();
+    ToolRunner.run(new LoadFromFASTA(genomeName, filePaths), null);
+    final long elapsedTime = System.currentTimeMillis() - startTime;
+    log.info("Finished job " + elapsedTime / 1000 + " seconds");
     }
 
   }
