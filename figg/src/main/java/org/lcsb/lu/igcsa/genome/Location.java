@@ -27,6 +27,11 @@ public class Location implements Comparable<Location>
     chromosome = chr;
     }
 
+  public Location(String chr, long s, long e) throws IllegalArgumentException
+    {
+    this(chr, (int)s, (int)e);
+    }
+
   public Location(int s, int e) throws IllegalArgumentException
     {
     this.start = s; this.end = e;
@@ -35,6 +40,12 @@ public class Location implements Comparable<Location>
 
     if (start > end) throw new IllegalArgumentException("The start position should come before the end position.");
     }
+
+  public Location(long s, long e) throws IllegalArgumentException
+    {
+    this((int)s, (int)e);
+    }
+
 
   public String getChromosome()
     {

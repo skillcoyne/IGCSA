@@ -13,6 +13,7 @@ import org.lcsb.lu.igcsa.hbase.tables.AberrationResult;
 import org.lcsb.lu.igcsa.hbase.tables.GenomeResult;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -23,12 +24,11 @@ import java.util.List;
  */
 
 
-public  class AberrationLocationFilter
+public class AberrationLocationFilter
   {
   // this FilterList will contain nested filter lists that putt all of the necessary locations
   protected FilterList filterList = new FilterList(FilterList.Operator.MUST_PASS_ONE);
-
-  //public abstract FilterList getFilter(AberrationResult aberration, HBaseGenome genome) throws IOException;
+  protected List<Location> locationList = new ArrayList<Location>();
 
   public FilterList getFilter(AberrationResult aberration, HBaseGenome genome) throws IOException
     {
@@ -45,23 +45,21 @@ public  class AberrationLocationFilter
       long start = (loc.getStart() + 1000) / 1000;
       long stop = (loc.getEnd() + 1000) / 1000;
 
+      locationList.add(loc);
+
       addFilters(genomeName, loc, start, stop);
       }
 
     // get the rest of the chromosome
-    Location lastLoc = locations.get(locations.size() - 1);
-    genome.getChromosome(lastLoc.getChromosome());
-    if (lastLoc.getEnd() < genome.getChromosome(lastLoc.getChromosome()).getChromosome().getLength())
-      {
-      long start = (lastLoc.getEnd() + 1000) / 1000;
-      long stop = (genome.getChromosome(lastLoc.getChromosome()).getChromosome().getLength() + 1000) / 1000;
-
-      addFilters(genomeName, lastLoc, start, stop);
-      }
+    getFinalLocationFilter(locations.get(locations.size() - 1), genome);
 
     return filterList;
     }
 
+  public List<Location> getFilterLocationList()
+    {
+    return locationList;
+    }
 
 
   protected void getInitialLocationFilters(Location loc, String genomeName)
@@ -70,7 +68,22 @@ public  class AberrationLocationFilter
     long start = 1;
     long stop = (loc.getStart() + 1000) / 1000;
 
+    locationList.add( new Location(loc.getChromosome(), start, loc.getStart() + 1000) );
     addFilters(genomeName, loc, start, stop);
+    }
+
+  protected void getFinalLocationFilter(Location loc, HBaseGenome genome) throws IOException
+    {
+    if (loc.getEnd() < genome.getChromosome(loc.getChromosome()).getChromosome().getLength())
+      {
+      long start = (loc.getEnd() + 1000) / 1000;
+      long stop = (genome.getChromosome(loc.getChromosome()).getChromosome().getLength() + 1000) / 1000;
+
+      locationList.add( new Location(loc.getChromosome(), loc.getEnd() + 1000, genome.getChromosome(loc.getChromosome()).getChromosome().getLength()) );
+
+      addFilters(genome.getGenome().getName(), loc, start, stop);
+      }
+
     }
 
 

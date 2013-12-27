@@ -15,6 +15,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.mapreduce.Reducer;
 
+import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.lcsb.lu.igcsa.genome.Location;
 
 import java.io.DataInput;
@@ -34,9 +35,14 @@ public class SequenceFragmentReducer extends Reducer<SequenceFragmentReducer.Seg
 
   private List<Location> locations = new ArrayList<Location>();
 
+  private MultipleOutputs mos;
+
+
   @Override
   protected void setup(Context context) throws IOException, InterruptedException
     {
+    mos = new MultipleOutputs(context);
+
     Pattern p = Pattern.compile("^.*<(\\d+|X|Y)\\s(\\d+)-(\\d+)>$");
     String[] locs = context.getConfiguration().getStrings(CFG_LOC);
     for (String loc: locs)

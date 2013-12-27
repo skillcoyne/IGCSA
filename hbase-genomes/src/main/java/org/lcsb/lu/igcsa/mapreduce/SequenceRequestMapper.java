@@ -70,7 +70,7 @@ public class SequenceRequestMapper extends TableMapper<SequenceFragmentReducer.S
     int sectionKey = -1;
     for (Location loc: locations)
       {
-      if (loc.getChromosome().equals(sr.getChr()) && loc.overlapsLocation( new Location((int)sr.getStart(), (int)sr.getEnd())) )
+      if (loc.getChromosome().equals(sr.getChr()) && loc.overlapsLocation( new Location(sr.getStart(), sr.getEnd())) )
         sectionKey = locations.indexOf(loc);
       }
     if (sectionKey < 0)

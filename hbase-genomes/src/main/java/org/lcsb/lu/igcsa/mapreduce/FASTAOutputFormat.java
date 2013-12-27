@@ -14,6 +14,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.lib.MultipleTextOutputFormat;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -32,6 +33,7 @@ public class FASTAOutputFormat extends FileOutputFormat<LongWritable, Text>
 
   private static int lineLength = 70;
 
+
   @Override
   public RecordWriter<LongWritable, Text> getRecordWriter(TaskAttemptContext context) throws IOException, InterruptedException
     {
@@ -42,7 +44,7 @@ public class FASTAOutputFormat extends FileOutputFormat<LongWritable, Text>
     FileSystem fs = file.getFileSystem(context.getConfiguration());
 
     DataOutputStream os = fs.create(file);
-    String header = context.getConfiguration().get(FASTA_HEADER) + FASTARecordWriter.LINE_FEED;
+    String header = context.getConfiguration().get(FASTA_HEADER) + FASTARecordWriter.CARRIAGE_RETURN;
     os.write( header.getBytes() );
     os.flush();
 
@@ -73,7 +75,7 @@ public class FASTAOutputFormat extends FileOutputFormat<LongWritable, Text>
     private void writeLine(String str, boolean withCR) throws IOException
       {
       if (withCR)
-        str = str + LINE_FEED;
+        str = str + CARRIAGE_RETURN;
 
       outStream.write( str.getBytes(), 0, str.getBytes().length );
       }
@@ -102,7 +104,7 @@ public class FASTAOutputFormat extends FileOutputFormat<LongWritable, Text>
     @Override
     public void close(TaskAttemptContext context) throws IOException, InterruptedException
       {
-      outStream.writeChar('\n');
+      outStream.writeChar(CARRIAGE_RETURN);
       outStream.close();
       }
 
