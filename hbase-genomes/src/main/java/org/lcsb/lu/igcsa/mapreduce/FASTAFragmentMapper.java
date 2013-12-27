@@ -20,6 +20,8 @@ import org.lcsb.lu.igcsa.hbase.rows.ChromosomeRow;
 import org.lcsb.lu.igcsa.hbase.tables.ChromosomeResult;
 
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class FASTAFragmentMapper  extends Mapper<LongWritable, FragmentWritable, LongWritable, FragmentWritable>
   {
@@ -29,7 +31,8 @@ public class FASTAFragmentMapper  extends Mapper<LongWritable, FragmentWritable,
   private String genomeName;
   private String chr;
 
-  @Override
+
+    @Override
   protected void setup(Context context) throws IOException, InterruptedException
     {
     super.setup(context);
@@ -40,11 +43,9 @@ public class FASTAFragmentMapper  extends Mapper<LongWritable, FragmentWritable,
 
     log.info("CREATING MAPPER FOR: " + filePath);
 
-    chr = org.lcsb.lu.igcsa.utils.FileUtils.getChromosomeFromFASTA(filePath);
-
     genomeName = context.getConfiguration().get("genome");
-    context.getConfiguration().set("chromosome", chr);
-    //chr = context.getConfiguration().get("chromosome");
+    chr = context.getConfiguration().get("chromosome");
+    log.info(chr);
 
     if (admin.getGenome(genomeName).getChromosome(chr) == null)
       admin.getGenome(genomeName).addChromosome(chr, 0, 0);

@@ -73,8 +73,6 @@ public class LoadFromFASTA extends Configured implements Tool
   @Override
   public int run(String[] args) throws Exception
     {
-    //Configuration config = HBaseConfiguration.create();
-
     config.set("genome", genomeName);
 
     Job job = new Job(config, "Reference Genome Fragmentation");
@@ -83,13 +81,14 @@ public class LoadFromFASTA extends Configured implements Tool
     job.setMapperClass(FASTAFragmentMapper.class);
 
     job.setMapOutputKeyClass(LongWritable.class);
-    //job.setMapOutputValueClass(ImmutableBytesWritable.class);
     job.setMapOutputValueClass(FragmentWritable.class);
 
     job.setInputFormatClass(FASTAInputFormat.class);
-
     for (Path path : paths)
+      {
+      log.info(path.toString());
       FileInputFormat.addInputPath(job, path);
+      }
 
     // because we aren't emitting anything from mapper
     job.setOutputFormatClass(NullOutputFormat.class);

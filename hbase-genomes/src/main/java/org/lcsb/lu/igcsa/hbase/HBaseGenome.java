@@ -89,6 +89,8 @@ public class HBaseGenome extends HBaseConnectedObjects
 
   public HBaseChromosome addChromosome(String chr, long length, long numSegments) throws IOException
     {
+    log.info("Adding chromosome " + chr);
+
     GenomeResult result = gT.queryTable(genome.getName());
 
     List<String> currentChrs = result.getChromosomes();

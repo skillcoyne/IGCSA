@@ -1,5 +1,7 @@
 package org.lcsb.lu.igcsa.utils;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.lcsb.lu.igcsa.FragmentInsilicoGenome;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
@@ -24,6 +26,8 @@ import java.util.regex.Pattern;
  */
 public class FileUtils
   {
+  private static final Log log = LogFactory.getLog(FileUtils.class);
+
   public static final FilenameFilter FASTA_FILE = new FilenameFilter()
   {
   @Override
@@ -71,7 +75,10 @@ public class FileUtils
     Matcher matcher = p.matcher(fileName);
 
     if (matcher.matches())
+      {
+      log.info("Chromosome from FASTA " + fileName + ": " + matcher.group(1));
       return matcher.group(1);
+      }
 
     return null;
 //    String fastaChr = fileName.replace("chr", "");

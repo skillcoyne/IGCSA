@@ -29,6 +29,8 @@ import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class FASTAInputFormat extends FileInputFormat<LongWritable, FragmentWritable>
   {
@@ -81,6 +83,22 @@ public class FASTAInputFormat extends FileInputFormat<LongWritable, FragmentWrit
 
     private long lastStart = 1;
 
+
+    private static String getChromosomeFromFASTA(String fileName) throws IOException
+      {
+      Pattern p = Pattern.compile("^.*chr(\\d+|X|Y)\\.fa.*$");
+      Matcher matcher = p.matcher(fileName);
+
+      if (matcher.matches())
+        {
+        log.info("Chromosome from FASTA " + fileName + ": " + matcher.group(1));
+        return matcher.group(1);
+        }
+      else
+        throw new IOException(fileName + " does not contain a chromosome.");
+      }
+
+
     public FASTAFragmentRecordReader(int window)
       {
       this.window = window;
@@ -89,15 +107,14 @@ public class FASTAInputFormat extends FileInputFormat<LongWritable, FragmentWrit
     @Override
     public void initialize(InputSplit inputSplit, TaskAttemptContext context) throws IOException, InterruptedException
       {
-      //splitChr = context.getConfiguration().get("chromosome");
-
       FileSplit split = (FileSplit) inputSplit;
       Path path = split.getPath();
 
       if (!org.lcsb.lu.igcsa.utils.FileUtils.FASTA_FILE.accept(null, path.toString()))
         throw new IOException(path.toString() + " is not a FASTA file.");
 
-      splitChr = org.lcsb.lu.igcsa.utils.FileUtils.getChromosomeFromFASTA(path.toString());
+      splitChr = getChromosomeFromFASTA(path.toString());
+      context.getConfiguration().set("chromosome", splitChr);
 
       splitStart = split.getStart();
       splitEnd = splitStart + split.getLength();
