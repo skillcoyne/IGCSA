@@ -15,7 +15,7 @@
         <!-- internal libraries -->
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>figg</artifactId>
+            <artifactId>utils</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -29,23 +29,17 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Hadoop & hbase libraries -->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
             <version>1.2.1</version>
         </dependency>
-
-
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase</artifactId>
-            <!--<version>0.94.7</version>--> <!-- Note, this has been compiled for hadoop 2.2 and installed directly on my machine as apache doesn't have a release version! -->
             <version>0.94.13</version>
             <exclusions>
-                <!--<exclusion>-->
-                    <!--<groupId>org.slf4j</groupId>-->
-                    <!--<artifactId>slf4j-log4j12</artifactId>-->
-                <!--</exclusion>-->
                 <exclusion>
                     <groupId>org.apache.hbase</groupId>
                     <artifactId>hbase-webapps</artifactId>

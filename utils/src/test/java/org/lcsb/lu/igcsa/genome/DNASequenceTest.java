@@ -1,10 +1,7 @@
 package org.lcsb.lu.igcsa.genome;
 
-import org.apache.commons.codec.binary.BinaryCodec;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.Arrays;
 
 import static org.junit.Assert.*;
 

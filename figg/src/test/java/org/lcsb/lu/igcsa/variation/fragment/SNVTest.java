@@ -7,8 +7,6 @@ import org.lcsb.lu.igcsa.database.normal.Fragment;
 import org.lcsb.lu.igcsa.database.normal.SNVProbabilityDAO;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.genome.DNASequence;
-import org.lcsb.lu.igcsa.utils.VariantUtils;
-import org.lcsb.lu.igcsa.variation.fragment.SNV;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;

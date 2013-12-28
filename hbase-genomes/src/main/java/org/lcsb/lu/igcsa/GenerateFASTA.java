@@ -21,6 +21,7 @@ import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
+import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
@@ -109,24 +110,21 @@ public class GenerateFASTA  extends Configured implements Tool
       TableMapReduceUtil.initTableMapperJob(admin.getSequenceTable().getTableName(), scan, SequenceRequestMapper.class, SequenceFragmentReducer.SegmentOrderComparator.class, FragmentWritable.class, job);
 
       job.setReducerClass(SequenceFragmentReducer.class);
+      job.setOutputFormatClass(NullOutputFormat.class);
       //job.setOutputFormatClass(FASTAOutputFormat.class);
-      //job.setOutputFormatClass(MultipleFASTASegmentOutputFormat.class);
+//      job.setOutputKeyClass(LongWritable.class);
+//      job.setOutputValueClass(Text.class);
 
       for(Location loc: alf.getFilterLocationList())
         MultipleOutputs.addNamedOutput(job, (loc.getChromosome() +  loc.getStart() +  loc.getEnd()), FASTAOutputFormat.class, LongWritable.class, Text.class);
 
       FileOutputFormat.setOutputPath(job, output);
 
-//      job.setOutputKeyClass(LongWritable.class);
-//      job.setOutputValueClass(Text.class);
-
       job.waitForCompletion(true);
-
       /*
       At this point each derivative chromosome is in a part-r-0000NNN file
        */
       //FileUtils.moveDirectory( new File(output.getName()), new File("/tmp", fastaName + ".fa"));
-
       break;
       }
 

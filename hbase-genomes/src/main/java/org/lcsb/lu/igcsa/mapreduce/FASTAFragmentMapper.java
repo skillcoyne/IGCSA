@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class FASTAFragmentMapper  extends Mapper<LongWritable, FragmentWritable, LongWritable, FragmentWritable>
+public class FASTAFragmentMapper extends Mapper<LongWritable, FragmentWritable, LongWritable, FragmentWritable>
   {
   private static final Log log = LogFactory.getLog(FASTAFragmentMapper.class);
 

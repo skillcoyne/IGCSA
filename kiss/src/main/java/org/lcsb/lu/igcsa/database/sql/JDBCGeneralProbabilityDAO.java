@@ -9,7 +9,6 @@
 package org.lcsb.lu.igcsa.database.sql;
 
 import org.apache.commons.lang.math.IntRange;
-import org.apache.commons.lang.math.Range;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.database.GeneralKarytoypeDAO;

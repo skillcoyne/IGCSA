@@ -2,11 +2,8 @@ package org.lcsb.lu.igcsa.utils;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.lcsb.lu.igcsa.FragmentInsilicoGenome;
-import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 
-import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
@@ -86,21 +83,6 @@ public class FileUtils
 //    return fastaChr;
     }
 
-  public static List<Chromosome> getChromosomesFromFASTA(File fastaDir) throws FileNotFoundException, ProbabilityException, InstantiationException, IllegalAccessException
-    {
-    if (!fastaDir.exists() || !fastaDir.canRead())
-      throw new FileNotFoundException("FASTA directory does not exist or is not readable " + fastaDir.getAbsolutePath());
-
-    ArrayList<Chromosome> chromosomes = new ArrayList<Chromosome>();
-    for (File file : listFASTAFiles(fastaDir, FASTA_FILE))
-      {
-      String name = getChromosomeFromFASTA(file.getName());
-      chromosomes.add(new Chromosome(name, file));
-      }
-
-    return chromosomes;
-    }
-
   public static Map<String, File> getFASTAFiles(File fastaDir) throws FileNotFoundException
     {
     if (!fastaDir.exists() || !fastaDir.canRead())
@@ -115,7 +97,7 @@ public class FileUtils
     return files;
     }
 
-  private static File[] listFASTAFiles(File fastaDir, FilenameFilter filter) throws FileNotFoundException
+  public static File[] listFASTAFiles(File fastaDir, FilenameFilter filter) throws FileNotFoundException
     {
     File[] fastaFiles = fastaDir.listFiles(filter);
     if (fastaFiles.length <= 0)

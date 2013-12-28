@@ -8,11 +8,8 @@
 
 package org.lcsb.lu.igcsa.database;
 
-import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
-
-import java.util.Map;
 
 public interface GeneralKarytoypeDAO
   {

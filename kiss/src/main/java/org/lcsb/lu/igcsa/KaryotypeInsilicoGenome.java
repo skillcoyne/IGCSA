@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
+import static org.lcsb.lu.igcsa.utils.GenomeUtils.*;
 
 /**
  * org.lcsb.lu.igcsa
@@ -137,7 +138,7 @@ public class KaryotypeInsilicoGenome
     */
     if (!earlierMutations.exists() || earlierMutations.listFiles().length <= 0)
       {
-      List<Chromosome> chrList = FileUtils.getChromosomesFromFASTA(fastaDir);
+      List<Chromosome> chrList = getChromosomesFromFASTA(fastaDir);
       log.info("Copying normal chromosome files.");
       for (Chromosome c : chrList)
         {
@@ -147,12 +148,11 @@ public class KaryotypeInsilicoGenome
       fastaDir = earlierMutations;
       }
 
-
       genome.setParentGenomePath(fastaDir);
 
       log.info("Genome directory to read from is: " + fastaDir.getAbsolutePath());
 
-      List<Chromosome> chrList = FileUtils.getChromosomesFromFASTA(fastaDir);
+      List<Chromosome> chrList = getChromosomesFromFASTA(fastaDir);
       genome.addChromosomes(chrList.toArray(new Chromosome[chrList.size()]));
       karyotypeGenerator = (KaryotypeGenerator) context.getBean("karyotypeGenerator");
 

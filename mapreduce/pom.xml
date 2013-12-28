@@ -11,141 +11,39 @@
 
     <artifactId>mapreduce</artifactId>
 
-    <profiles>
-        <profile>
-            <id>figg</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <properties>
-                <main.class>org.lcsb.lu.igcsa.ChromosomeFragmentMutator</main.class>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>kiss</id>
-            <properties>
-                <main.class>org.lcsb.lu.igcsa.KaryotypeMutator</main.class>
-            </properties>
-        </profile>
-
-        <!--<profile>-->
-            <!--<id>local</id>-->
-            <!--<properties>-->
-                <!--<props.dir>local</props.dir>-->
-                <!--<resources.to.dir>${basedir}/target</resources.to.dir>-->
-            <!--</properties>-->
-
-        <!--</profile>-->
-
-        <!--<profile>-->
-            <!--<id>aws</id>-->
-            <!--<properties>-->
-                <!--<props.dir>aws</props.dir>-->
-                <!--<resources.to.dir>${basedir}/target/classes</resources.to.dir>-->
-            <!--</properties>-->
-
-        <!--</profile>-->
-
-        <!--<profile>-->
-            <!--<id>test</id>-->
-            <!--<activation>-->
-                <!--<activeByDefault>true</activeByDefault>-->
-            <!--</activation>-->
-
-            <!--<properties>-->
-                <!--<props.dir>local</props.dir>-->
-                <!--<resources.to.dir>${basedir}/target/classes</resources.to.dir>-->
-            <!--</properties>-->
-        <!--</profile>-->
-
-    </profiles>
-
-    <build>
-        <finalName>HadoopFIGG</finalName>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.6</version>
-                <executions>
-                    <execution>
-                        <id>copy-resources</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${resources.to.dir}</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>../sim/dist-resources/${props.dir}</directory>
-                                    <filtering>true</filtering>
-                                    <includes>
-                                        <include>*.properties</include>
-                                    </includes>
-                                    <excludes>
-                                        <exclude>*.sh</exclude>
-                                    </excludes>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>create-executable-jar</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <configuration>
-                            <descriptorRefs>
-                                <descriptorRef>jar-with-dependencies</descriptorRef>
-                            </descriptorRefs>
-                            <finalName>${build.finalName}-${project.version}</finalName>
-                            <appendAssemblyId>false</appendAssemblyId>
-                            <archive>
-                                <manifest>
-                                    <mainClass>${main.class}</mainClass>
-                                </manifest>
-                            </archive>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-
-
     <dependencies>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>figg</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>kiss</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-
-        <!-- hadoop libraries -->
+        <!-- Hadoop & hbase libraries -->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-core</artifactId>
+            <artifactId>hadoop-client</artifactId>
             <version>1.2.1</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-common</artifactId>
-            <version>2.2.0</version>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase</artifactId>
+            <version>0.94.13</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.hbase</groupId>
+                    <artifactId>hbase-webapps</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk</artifactId>
+            <version>1.6.7</version>
+        </dependency>
+        <dependency>
+            <groupId>com.amazonaws.s3</groupId>
+            <artifactId>jets3t</artifactId>
+            <version>0.5.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <version>4.3</version>
         </dependency>
     </dependencies>
 

@@ -4,8 +4,6 @@ package org.lcsb.lu.igcsa.utils;
 import org.apache.log4j.Logger;
 import org.junit.runner.RunWith;
 import org.lcsb.lu.igcsa.genome.DNASequence;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 
 /**

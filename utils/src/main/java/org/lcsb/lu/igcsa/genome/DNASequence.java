@@ -22,9 +22,9 @@ public class DNASequence
   private String testNucleotides(String sequence) throws IllegalArgumentException
     {
     sequence = sequence.trim();
-    if (sequence.length() > 0 && !validCharacters().matcher(sequence).matches())
+    if (sequence.length() > 0 && !Nucleotides.validCharacters().matcher(sequence).matches())
       {
-      log.warn("The sequence contains incorrect nucleotides, expected " + validCharacters() + " provided: " + sequence);
+      log.warn("The sequence contains incorrect nucleotides, expected " + Nucleotides.validCharacters() + " provided: " + sequence);
       sequence = "";
       }
     return sequence;
@@ -49,15 +49,15 @@ public class DNASequence
 
   public int calculateGC()
     {
-    int guanine = StringUtils.countOccurrencesOf(this.sequence, G.toString());
-    int cytosine = StringUtils.countOccurrencesOf(this.sequence, C.toString());
+    int guanine = StringUtils.countOccurrencesOf(this.sequence, Nucleotides.G.toString());
+    int cytosine = StringUtils.countOccurrencesOf(this.sequence, Nucleotides.C.toString());
     return (guanine + cytosine);
     }
 
   public int calculateAT()
     {
-    int thymidine = StringUtils.countOccurrencesOf(this.sequence, T.toString());
-    int adenine = StringUtils.countOccurrencesOf(this.sequence, A.toString());
+    int thymidine = StringUtils.countOccurrencesOf(this.sequence, Nucleotides.T.toString());
+    int adenine = StringUtils.countOccurrencesOf(this.sequence, Nucleotides.A.toString());
     return (thymidine + adenine);
     }
 
@@ -101,8 +101,8 @@ public class DNASequence
   // Including gaps
   public int calculateUnknown()
     {
-    int unk = StringUtils.countOccurrencesOf(this.sequence, UNKNOWN.toString());
-    int gap = StringUtils.countOccurrencesOf(this.sequence, GAP.toString());
+    int unk = StringUtils.countOccurrencesOf(this.sequence, Nucleotides.UNKNOWN.toString());
+    int gap = StringUtils.countOccurrencesOf(this.sequence, Nucleotides.GAP.toString());
     return (unk + gap);
     }
 

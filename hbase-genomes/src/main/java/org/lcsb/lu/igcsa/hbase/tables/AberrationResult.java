@@ -9,7 +9,6 @@
 package org.lcsb.lu.igcsa.hbase.tables;
 
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.genome.Location;
 
 import java.util.ArrayList;

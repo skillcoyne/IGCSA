@@ -1,14 +1,8 @@
 package org.lcsb.lu.igcsa.genome;
 
-import junit.framework.TestCase;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.lcsb.lu.igcsa.database.normal.SizeDAO;
-import org.lcsb.lu.igcsa.database.normal.VariationDAO;
-import org.lcsb.lu.igcsa.fasta.FASTAReader;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 

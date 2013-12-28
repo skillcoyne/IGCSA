@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
+
 /**
  * org.lcsb.lu.igcsa.tables
  * Author: sarah.killcoyne

@@ -5,12 +5,10 @@ import org.apache.hadoop.hbase.filter.CompareFilter;
 import org.apache.hadoop.hbase.filter.FilterList;
 import org.apache.hadoop.hbase.filter.RowFilter;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.lcsb.lu.igcsa.generator.Aberration;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.hbase.HBaseGenome;
 import org.lcsb.lu.igcsa.hbase.rows.SequenceRow;
 import org.lcsb.lu.igcsa.hbase.tables.AberrationResult;
-import org.lcsb.lu.igcsa.hbase.tables.GenomeResult;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -83,9 +81,7 @@ public class AberrationLocationFilter
 
       addFilters(genome.getGenome().getName(), loc, start, stop);
       }
-
     }
-
 
   protected void addFilters(String genomeName, Location loc, long start, long stop)
     {

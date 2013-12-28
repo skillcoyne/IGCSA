@@ -1,6 +1,5 @@
 package org.lcsb.lu.igcsa.aberrations.single;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
 import org.junit.runner.RunWith;
 import org.lcsb.lu.igcsa.aberrations.SequenceAberration;

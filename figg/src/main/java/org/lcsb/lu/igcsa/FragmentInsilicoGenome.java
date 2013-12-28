@@ -14,9 +14,12 @@ import org.lcsb.lu.igcsa.utils.VariantUtils;
 import org.springframework.context.ApplicationContext;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
+
+import static org.lcsb.lu.igcsa.utils.GenomeUtils.*;
 
 
 /**
@@ -144,7 +147,7 @@ public class FragmentInsilicoGenome
         chromosomeList.add(new Chromosome(c, FileUtils.getFASTA(c, fastaDir)));
       }
     else
-      chromosomeList = FileUtils.getChromosomesFromFASTA(fastaDir);
+      chromosomeList = getChromosomesFromFASTA(fastaDir);
 
     for (Chromosome chr: chromosomeList)
       {

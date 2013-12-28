@@ -11,7 +11,6 @@ package org.lcsb.lu.igcsa.watchmaker.kt;
 import org.apache.commons.lang.math.IntRange;
 import org.apache.commons.math3.distribution.IntegerDistribution;
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.watchmaker.kt.KaryotypeCandidate;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.database.KaryotypeDAO;
 import org.lcsb.lu.igcsa.dist.RandomRange;
