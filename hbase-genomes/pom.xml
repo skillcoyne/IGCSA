@@ -29,6 +29,13 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- This has to be built locally, there's no maven repo for it -->
+        <dependency>
+            <groupId>com.m6d</groupId>
+            <artifactId>filecrush</artifactId>
+            <version>2.2.2-SNAPSHOT</version>
+        </dependency>
+
         <!-- Hadoop & hbase libraries -->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
@@ -112,11 +119,11 @@
                             <finalName>${project.build.finalName}-${project.version}</finalName>
                             <appendAssemblyId>false</appendAssemblyId>
                             <attach>false</attach>
-                            <archive>
-                                <manifest>
-                                    <mainClass>org.lcsb.lu.igcsa.LoadFromFASTA</mainClass>
-                                </manifest>
-                            </archive>
+                            <!--<archive>-->
+                                <!--<manifest>-->
+                                    <!--<mainClass>org.lcsb.lu.igcsa.LoadFromFASTA</mainClass>-->
+                                <!--</manifest>-->
+                            <!--</archive>-->
                         </configuration>
                     </execution>
                 </executions>

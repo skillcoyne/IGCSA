@@ -1,3 +1,7 @@
+normal_variation*
+karyotype_probabilities*
+
+logs/*
 *.log
 
 *.iml

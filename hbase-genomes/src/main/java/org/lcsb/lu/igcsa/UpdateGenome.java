@@ -71,7 +71,7 @@ public class UpdateGenome extends Configured implements Tool
 
     job.setNumReduceTasks(1);
 
-    job.waitForCompletion(true);
+    //job.waitForCompletion(true);
 
     return (job.waitForCompletion(true) ? 0 : 1);
     }

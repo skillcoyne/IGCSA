@@ -71,9 +71,11 @@ public class SequenceFragmentReducer extends Reducer<SequenceFragmentReducer.Seg
       FragmentWritable fw = fI.next();
       LongWritable segmentKey = new LongWritable(fw.getSegment());
       //log.info(fw.getChr() + " : " + fw.getSegment() + " " +  fw.getStart() + "-" + fw.getEnd());
-      context.write(segmentKey, new Text(fw.getSequence()) );
-      }
+      //context.write(segmentKey, new Text(fw.getSequence()) );
 
+      String namedOutput = Long.toString(key.getOrder());
+      mos.write(namedOutput, segmentKey, new Text(fw.getSequence()));
+      }
     }
 
   /*

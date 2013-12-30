@@ -14,15 +14,12 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.lib.MultipleTextOutputFormat;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.log4j.Logger;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
-
 
 public class FASTAOutputFormat extends FileOutputFormat<LongWritable, Text>
   {
@@ -30,6 +27,8 @@ public class FASTAOutputFormat extends FileOutputFormat<LongWritable, Text>
 
   public static final String FASTA_HEADER = "fasta.header";
   public static final String FASTA_LINE_LENGTH = "fasta.line.length";
+
+  private static boolean writeHeader = true;
 
   private static int lineLength = 70;
 
@@ -40,17 +39,22 @@ public class FASTAOutputFormat extends FileOutputFormat<LongWritable, Text>
     if (context.getConfiguration().get(FASTA_LINE_LENGTH) != null)
       lineLength = Integer.parseInt(context.getConfiguration().get(FASTA_LINE_LENGTH));
 
-    Path file = getDefaultWorkFile(context, "");
-    FileSystem fs = file.getFileSystem(context.getConfiguration());
+    //Path file = getDefaultWorkFile(context, "");
 
+    Path file = new Path( getOutputPath(context), getOutputName(context) );
+    FileSystem fs = file.getFileSystem(context.getConfiguration());
     DataOutputStream os = fs.create(file);
-    String header = context.getConfiguration().get(FASTA_HEADER) + FASTARecordWriter.CARRIAGE_RETURN;
-    os.write( header.getBytes() );
-    os.flush();
+
+    if (writeHeader)
+      {
+      String header = context.getConfiguration().get(FASTA_HEADER) + FASTARecordWriter.CARRIAGE_RETURN;
+      os.write( header.getBytes() );
+      os.flush();
+      writeHeader = false;
+      }
 
     return new FASTARecordWriter(os, lineLength);
     }
-
 
   protected static class FASTARecordWriter extends RecordWriter<LongWritable, Text>
     {

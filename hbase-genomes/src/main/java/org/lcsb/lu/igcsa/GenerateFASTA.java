@@ -8,10 +8,11 @@
 
 package org.lcsb.lu.igcsa;
 
+import com.m6d.filecrush.crush.Crush;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.filter.*;
@@ -23,6 +24,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.apache.hadoop.util.Tool;
+import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.genome.Location;
@@ -34,6 +36,8 @@ import org.lcsb.lu.igcsa.mapreduce.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.lcsb.lu.igcsa.mapreduce.FASTAUtil.*;
 
 public class GenerateFASTA  extends Configured implements Tool
   {
@@ -95,7 +99,7 @@ public class GenerateFASTA  extends Configured implements Tool
 
       Path output = new Path("/tmp/" + aberration.getGenome() + "/" + fastaName);
       // for now anyhow
-      org.apache.commons.io.FileUtils.deleteDirectory(new File(output.toString()));
+      //org.apache.commons.io.FileUtils.deleteDirectory(new File(output.toString()));
 
       config.set(FASTAOutputFormat.FASTA_LINE_LENGTH, "70");
       config.set(FASTAOutputFormat.FASTA_HEADER, new FASTAHeader(fastaName,
@@ -111,24 +115,45 @@ public class GenerateFASTA  extends Configured implements Tool
 
       job.setReducerClass(SequenceFragmentReducer.class);
       job.setOutputFormatClass(NullOutputFormat.class);
-      //job.setOutputFormatClass(FASTAOutputFormat.class);
-//      job.setOutputKeyClass(LongWritable.class);
-//      job.setOutputValueClass(Text.class);
 
-      for(Location loc: alf.getFilterLocationList())
-        MultipleOutputs.addNamedOutput(job, (loc.getChromosome() +  loc.getStart() +  loc.getEnd()), FASTAOutputFormat.class, LongWritable.class, Text.class);
+      for(int order=0;order<alf.getFilterLocationList().size(); order++)
+        MultipleOutputs.addNamedOutput(job, Integer.toString(order), FASTAOutputFormat.class, LongWritable.class, Text.class);
 
       FileOutputFormat.setOutputPath(job, output);
 
       job.waitForCompletion(true);
+
       /*
-      At this point each derivative chromosome is in a part-r-0000NNN file
-       */
-      //FileUtils.moveDirectory( new File(output.getName()), new File("/tmp", fastaName + ".fa"));
+      We now have output files.  In most cases the middle file(s) will be the aberration sequences.
+      In many cases they can just be concatenated as is. Exceptions:
+        - duplication: the middle file needs to be duplicated before concatenation
+        - iso: there should be only 1 file, it needs to be duplicated in reverse before concatenation
+        */
+      if (aberration.getAbrType().equals("dup"))
+        {
+        if (alf.getFilterLocationList().size() > 3)
+          throw new IOException("This should not happen: dup has more than 3 locations");
+
+        // CRC files mess up any attempt to directly read/write from an unchanged file which means copying/moving fails too. Easiest fix right now is to dump the file.
+        deleteChecksumFiles(output.getFileSystem(config), output);
+
+        // move subsequent files
+        for (int i=alf.getFilterLocationList().size()-1; i>1; i--)
+          moveFile(output, Integer.toString(i), Integer.toString(i+1));
+
+        //then copy the duplicated segment
+        copyFile( output.getFileSystem(config), new Path(output, Integer.toString(1)), new Path(output, Integer.toString(2)) );
+
+        // created merged FASTA
+        ToolRunner.run(new Crush(), new String[]{"--input-format=text", "--output-format=text", "--compress=none", output.toString(), output.toString()+".fa"});
+        }
+
       break;
       }
 
     }
+
+
 
 
   @Override

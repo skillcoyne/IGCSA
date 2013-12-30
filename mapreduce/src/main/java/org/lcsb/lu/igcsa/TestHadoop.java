@@ -1,6 +1,7 @@
 package org.lcsb.lu.igcsa;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
@@ -14,6 +15,8 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.apache.hadoop.util.Progressable;
+import org.apache.hadoop.util.Tool;
+import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 import org.apache.hadoop.mapreduce.Job;
 
@@ -27,11 +30,19 @@ import java.util.Iterator;
  * Copyright University of Luxembourg, Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class TestHadoop
+
+public class TestHadoop extends Configured implements Tool
+
   {
   static Logger log = Logger.getLogger(TestHadoop.class.getName());
 
   public static void main(String[] args) throws Exception
+    {
+    ToolRunner.run(new TestHadoop(), args);
+    }
+
+  @Override
+  public int run(String[] args) throws Exception
     {
     String InputFiles = args[0];
     String OutputDir = args[1];
@@ -54,7 +65,7 @@ public class TestHadoop
     FileInputFormat.setInputPaths(job, InputFiles);
     FileOutputFormat.setOutputPath(job, new Path(OutputDir));
 
-    //JobClient.runJob(job);
+    return (job.waitForCompletion(true) ? 0 : 1);
     }
 
 

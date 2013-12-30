@@ -74,10 +74,11 @@ public class AberrationLocationFilter
     {
     if (loc.getEnd() < genome.getChromosome(loc.getChromosome()).getChromosome().getLength())
       {
-      long start = (loc.getEnd() + 1000) / 1000;
+      //long start = (loc.getEnd() + 1000) / 1000;
+      long start = loc.getEnd()/1000;
       long stop = (genome.getChromosome(loc.getChromosome()).getChromosome().getLength() + 1000) / 1000;
 
-      locationList.add( new Location(loc.getChromosome(), loc.getEnd() + 1000, genome.getChromosome(loc.getChromosome()).getChromosome().getLength()) );
+      locationList.add( new Location(loc.getChromosome(), loc.getEnd(), genome.getChromosome(loc.getChromosome()).getChromosome().getLength()) );
 
       addFilters(genome.getGenome().getName(), loc, start, stop);
       }
