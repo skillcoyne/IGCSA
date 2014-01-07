@@ -137,8 +137,8 @@ public class FASTAInputFormat extends FileInputFormat<LongWritable, FragmentWrit
         {
         if (reader.read() == HEADER_IDENTIFIER)
           {
+          // not doing anything with this right now, not sure there is anything to be done
           String header = reader.readLine();
-          log.info(header);
           }
         else  // this actually shouldn't happen but...you're at the beginning of a file that lacks the header?
           {

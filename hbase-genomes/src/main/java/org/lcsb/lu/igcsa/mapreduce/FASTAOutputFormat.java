@@ -10,6 +10,7 @@ package org.lcsb.lu.igcsa.mapreduce;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
@@ -17,9 +18,12 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class FASTAOutputFormat extends FileOutputFormat<LongWritable, Text>
   {
@@ -27,33 +31,48 @@ public class FASTAOutputFormat extends FileOutputFormat<LongWritable, Text>
 
   public static final String FASTA_HEADER = "fasta.header";
   public static final String FASTA_LINE_LENGTH = "fasta.line.length";
-
-  private static boolean writeHeader = true;
+  public static final String WRITE_HEADER = "write.fasta.header";
 
   private static int lineLength = 70;
+  private static Map<Path, FASTAHeader> headerMap;
 
+  private boolean writeHeader = true;
+
+  public static void setLineLength(int length)
+    {
+    lineLength = length;
+    }
+
+  public static void addHeader(Path p, FASTAHeader h)
+    {
+    if (headerMap == null)
+      headerMap = new HashMap<Path, FASTAHeader>();
+
+    headerMap.put(p, h);
+    }
 
   @Override
   public RecordWriter<LongWritable, Text> getRecordWriter(TaskAttemptContext context) throws IOException, InterruptedException
     {
-    if (context.getConfiguration().get(FASTA_LINE_LENGTH) != null)
-      lineLength = Integer.parseInt(context.getConfiguration().get(FASTA_LINE_LENGTH));
-
-    //Path file = getDefaultWorkFile(context, "");
+    if (context.getConfiguration().getInt("write.fasta.header", -1) > 0)
+      writeHeader = false;
 
     Path file = new Path( getOutputPath(context), getOutputName(context) );
+
     FileSystem fs = file.getFileSystem(context.getConfiguration());
-    DataOutputStream os = fs.create(file);
+    FSDataOutputStream os = fs.create(file);
 
     if (writeHeader)
       {
-      String header = context.getConfiguration().get(FASTA_HEADER) + FASTARecordWriter.CARRIAGE_RETURN;
+      //config.get(FASTAOutputFormat.FASTA_HEADER + "." + chr.getChromosome().getChrName(),
+      String header = headerMap.get(file).getFormattedHeader() + FASTARecordWriter.CARRIAGE_RETURN;
+      //String header = context.getConfiguration().get(FASTA_HEADER) + FASTARecordWriter.CARRIAGE_RETURN;
+      log.debug(header);
       os.write( header.getBytes() );
       os.flush();
-      writeHeader = false;
       }
 
-    return new FASTARecordWriter(os, lineLength);
+    return new FASTARecordWriter(os, lineLength, file);
     }
 
   protected static class FASTARecordWriter extends RecordWriter<LongWritable, Text>
@@ -68,20 +87,22 @@ public class FASTAOutputFormat extends FileOutputFormat<LongWritable, Text>
     private DataOutputStream outStream;
     private int lineLength;
 
-    private static int counter = 0;
+    private int numLines = 0;
+    private int counter = 0;
+    private Path path;
 
-    public FASTARecordWriter(DataOutputStream outStream, int lineLength)
+    public FASTARecordWriter(DataOutputStream outStream, int lineLength, Path path)
       {
       this.outStream = outStream;
       this.lineLength = lineLength;
+      this.path = path;
       }
 
     private void writeLine(String str, boolean withCR) throws IOException
       {
-      if (withCR)
-        str = str + CARRIAGE_RETURN;
-
-      outStream.write( str.getBytes(), 0, str.getBytes().length );
+      if (withCR) str = str + CARRIAGE_RETURN;
+      outStream.writeBytes(str);
+      ++numLines;
       }
 
     @Override
@@ -108,9 +129,12 @@ public class FASTAOutputFormat extends FileOutputFormat<LongWritable, Text>
     @Override
     public void close(TaskAttemptContext context) throws IOException, InterruptedException
       {
-      outStream.writeChar(CARRIAGE_RETURN);
+      log.debug("***CLOSE*** " + this.hashCode() + "  Final counter: " + counter + " Lines output: " + numLines + " " + path.toString());
+      outStream.flush();
       outStream.close();
       }
+
+
 
     }
 
