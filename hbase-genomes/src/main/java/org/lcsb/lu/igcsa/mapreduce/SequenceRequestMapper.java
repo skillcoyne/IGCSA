@@ -14,67 +14,56 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.TableMapper;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.mapreduce.Job;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 import org.lcsb.lu.igcsa.hbase.tables.SequenceResult;
 
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
 
 
-public class SequenceRequestMapper extends TableMapper<SegmentOrderComparator, FragmentWritable>
+//public class SequenceRequestMapper extends TableMapper<SegmentOrderComparator, FragmentWritable>
+public class SequenceRequestMapper extends TableMapper<IntWritable, FragmentWritable>
   {
   private static final Log log = LogFactory.getLog(SequenceRequestMapper.class);
 
   public final static String REVERSE = "reverse.segments";
-  public final static String CFG_LOC = "location";
+  public final static String CFG_LOC = "chr.locations";
 
-  private static List<Location> locations;// = new ArrayList<Location>();
+  private List<Location> locations = new ArrayList<Location>();
+  private Map<Location, Boolean> isReversible = new HashMap<Location, Boolean>();
 
-  private static LinkedHashMap<Location, Integer> linkedLocations;
-
-  public static void setLocations(List<Location> locList)
+  @Override
+  protected void setup(Context context) throws IOException, InterruptedException
     {
-    linkedLocations = new LinkedHashMap<Location, Integer>();
+    Pattern p = Pattern.compile("^.*<(\\d+|X|Y)\\s(\\d+)-(\\d+)>$");
+    String[] locs = context.getConfiguration().getStrings(CFG_LOC);
+    Set<String> reverseLocs = new HashSet<String>(context.getConfiguration().getStringCollection(REVERSE));
 
-    locations = locList;
+    for (String loc: locs)
+      {
+      Matcher matcher = p.matcher(loc);
+      matcher.matches();
+      String chr = matcher.group(1);
+      int start = Integer.parseInt(matcher.group(2));
+      int end = Integer.parseInt(matcher.group(3));
 
-    for(Location l:locations)
-      linkedLocations.put(l, 0);
+      Location locObj = new Location(chr, start, end);
+      locations.add(locObj);
+
+      isReversible.put(locObj, false);
+      if (reverseLocs.contains(loc))
+        isReversible.put(locObj, true);
+      }
+    log.info(locations);
     }
-
-  public static void setLocationsToReverse(Location... locs)
-    {
-    for (Location l: locs)
-      linkedLocations.put(l, 1);
-    }
-
-//  @Override
-//  protected void setup(Context context) throws IOException, InterruptedException
-//    {
-//    Pattern p = Pattern.compile("^.*<(\\d+|X|Y)\\s(\\d+)-(\\d+)>$");
-//    String[] locs = context.getConfiguration().getStrings(CFG_LOC);
-//    for (String loc: locs)
-//      {
-//      Matcher matcher = p.matcher(loc);
-//      matcher.matches();
-//      String chr = matcher.group(1);
-//      int start = Integer.parseInt(matcher.group(2));
-//      int end = Integer.parseInt(matcher.group(3));
-//
-//      locations.add(new Location(chr, start, end));
-//      }
-//    log.info(locations);
-//
-//    super.setup(context);
-//    }
 
   @Override
   protected void map(ImmutableBytesWritable key, Result value, Context context) throws IOException, InterruptedException
@@ -93,7 +82,7 @@ public class SequenceRequestMapper extends TableMapper<SegmentOrderComparator, F
       if (loc.getChromosome().equals(sr.getChr()) && loc.overlapsLocation( new Location(sr.getStart(), sr.getEnd())) )
         {
         sectionKey = locations.indexOf(loc);
-        reverse = (linkedLocations.get(loc) > 0);
+        reverse = isReversible.get(loc);
         }
       }
     if (sectionKey < 0)
@@ -102,13 +91,35 @@ public class SequenceRequestMapper extends TableMapper<SegmentOrderComparator, F
     // if reverse the text sequence needs to be reversed and it needs to somehow be indicated with the key I think
     String sequence = sr.getSequence();
     SegmentOrderComparator soc = new SegmentOrderComparator(sectionKey, sr.getSegmentNum());
+    FragmentWritable fw = new FragmentWritable(sr.getChr(), sr.getStart(), sr.getEnd(), sr.getSegmentNum(), sequence);
     if (reverse)
       {
       sequence = new StringBuffer(sequence).reverse().toString();
-      soc = new SegmentOrderComparator(sectionKey, (-1*sr.getSegmentNum()));
+      fw = new FragmentWritable(sr.getChr(), sr.getStart(), sr.getEnd(), (-1*sr.getSegmentNum()), sequence);
+      //soc = new SegmentOrderComparator(sectionKey, (-1*sr.getSegmentNum()));
       }
 
-    FragmentWritable fw = new FragmentWritable(sr.getChr(), sr.getStart(), sr.getEnd(), sr.getSegmentNum(), sequence);
-    context.write(soc, fw);
+    //FragmentWritable fw = new FragmentWritable(sr.getChr(), sr.getStart(), sr.getEnd(), sr.getSegmentNum(), sequence);
+    //context.write(soc, fw);
+    context.write(new IntWritable(sectionKey), fw);
+    }
+
+
+  public static void setLocations(Job job, List<Location> locList)
+    {
+    List<String> locations = new ArrayList<String>();
+    for (Location loc: locList)
+      locations.add(loc.toString());
+
+    job.getConfiguration().setStrings(CFG_LOC, locations.toArray(new String[locations.size()]));
+    }
+
+  public static void setLocationsToReverse(Job job, Location... locs)
+    {
+    List<String> locations = new ArrayList<String>();
+    for (Location loc: locs)
+      locations.add(loc.toString());
+
+    job.getConfiguration().setStrings(REVERSE, locations.toArray(new String[locations.size()]));
     }
   }

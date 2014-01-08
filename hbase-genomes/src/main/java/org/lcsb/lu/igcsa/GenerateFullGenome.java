@@ -12,6 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Result;
@@ -22,7 +23,6 @@ import org.apache.hadoop.hbase.mapreduce.TableMapper;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
@@ -60,8 +60,6 @@ public class GenerateFullGenome extends Configured implements Tool
 
   public static void main(String[] args) throws Exception
     {
-    args = new String[]{"GRCh37"};
-
     if (args.length < 1)
       {
       System.err.println("Usage: GenerateFullGenome <genome name>");
@@ -77,34 +75,39 @@ public class GenerateFullGenome extends Configured implements Tool
     for (HBaseChromosome chr : admin.getGenome(genomeName).getChromosomes())
       chrs.add(chr.getChromosome().getChrName());
 
-    config.setStrings("chromosomes", chrs.toArray(new String[chrs.size()]));
-
-    Scan scan = admin.getSequenceTable().getScanFor(new Column("info", "genome", genomeName), new Column("loc", "chr", "10"));
-    scan.setCaching(20);
+    Scan scan = admin.getSequenceTable().getScanFor(new Column("info", "genome", genomeName));
+    scan.setCaching(200);
 
     Path output = new Path("/tmp/" + genomeName);
     ToolRunner.run(new GenerateFullGenome(config, scan, output, genome), chrs.toArray(new String[chrs.size()]));
+
+    // remove extraneous files and rename to .fa
+    FASTAUtil.deleteChecksumFiles(output.getFileSystem(config), output);
+    for (String c: chrs)
+      output.getFileSystem(config).rename(new Path(output, c), new Path(output, c + ".fa"));
     }
 
   @Override
   public int run(String[] chrs) throws Exception
     {
-    Job job = new Job(conf, "Generate derivative FASTA files");
+
+    Job job = new Job(conf, "Generate normal FASTA files");
     job.setJarByClass(GenerateDerivativeChromosomes.class);
 
     job.setMapperClass(ChromosomeSequenceMapper.class);
+    ChromosomeSequenceMapper.setChromosomes(job, chrs);
     TableMapReduceUtil.initTableMapperJob(HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().getTableName(), scan, ChromosomeSequenceMapper.class, SegmentOrderComparator.class, FragmentWritable.class, job);
 
     job.setReducerClass(ChromosomeSequenceReducer.class);
-    //job.setNumReduceTasks(chrs.length); // one reducer for each segment
+    job.setNumReduceTasks(chrs.length); // one reducer for each segment
     job.setOutputFormatClass(NullOutputFormat.class);
 
     FileOutputFormat.setOutputPath(job, output);
-    FASTAOutputFormat.setLineLength(80);
+    FASTAOutputFormat.setLineLength(job, 80);
     for (String chr : chrs)
       {
       MultipleOutputs.addNamedOutput(job, chr, FASTAOutputFormat.class, LongWritable.class, Text.class);
-      FASTAOutputFormat.addHeader(new Path(output, chr), new FASTAHeader("chr" + chr, genome.getGenome().getName(),
+      FASTAOutputFormat.addHeader(job, new Path(output, chr), new FASTAHeader("chr" + chr, genome.getGenome().getName(),
           "parent=" + genome.getGenome().getParent(), "hbase-generation"));
       }
 
@@ -117,11 +120,15 @@ public class GenerateFullGenome extends Configured implements Tool
 
     private List<String> chrs;
 
+    protected static void setChromosomes(Job job, String... chrs)
+      {
+      job.getConfiguration().setStrings("chromosomes", chrs);
+      }
+
     @Override
     protected void setup(Context context) throws IOException, InterruptedException
       {
       chrs = new ArrayList<String>(context.getConfiguration().getStringCollection("chromosomes"));
-      log.info(chrs);
       }
 
     @Override
@@ -133,7 +140,7 @@ public class GenerateFullGenome extends Configured implements Tool
 
       FragmentWritable fw = new FragmentWritable(sr.getChr(), sr.getStart(), sr.getEnd(), sr.getSegmentNum(), sequence);
 
-      log.info(sr.getChr() + " " + sr.getSegmentNum());
+      log.debug(sr.getChr() + " " + sr.getSegmentNum());
 
       context.write(soc, fw);
       }
@@ -163,9 +170,6 @@ public class GenerateFullGenome extends Configured implements Tool
     protected void reduce(SegmentOrderComparator key, Iterable<FragmentWritable> values, Context context) throws IOException, InterruptedException
       {
       log.debug("Order " + key.getOrder() + ":" + key.getSegment());
-
-      // This ensures that the RecordWriter knows which file should have the header written
-      //context.getConfiguration().set("write.fasta.header", "" + key.getOrder());
 
       Iterator<FragmentWritable> fI = values.iterator();
       while (fI.hasNext())

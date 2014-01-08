@@ -34,7 +34,7 @@ public class MainApp
       {
       pgd.addClass("LoadFASTA", LoadFromFASTA.class, "Loads the HBase database from the provided FASTA files.");
       pgd.addClass("CreateKaryotypes", CreateKaryotypes.class, "Generates karyotypes for the given genome.");
-      pgd.addClass("GenerateFASTA", GenerateFASTA.class, "Generate FASTA files for a karyotype.");
+      pgd.addClass("GenerateFASTA", GenerateDerivativeChromosomes.class, "Generate FASTA files for a karyotype.");
       }
     catch (Throwable throwable)
       {

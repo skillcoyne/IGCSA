@@ -48,7 +48,7 @@ public class AberrationLocationFilter
       addFilters(genomeName, loc, start, stop);
       }
 
-    // get the rest of the chromosome
+    // get the rest of the chromosome -- NOTE it's unclear that this is really necessary in translocaions.
     getFinalLocationFilter(locations.get(locations.size() - 1), genome);
 
     return filterList;

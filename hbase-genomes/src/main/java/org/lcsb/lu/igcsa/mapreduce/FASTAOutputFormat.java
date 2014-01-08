@@ -15,6 +15,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -33,28 +35,27 @@ public class FASTAOutputFormat extends FileOutputFormat<LongWritable, Text>
   public static final String FASTA_LINE_LENGTH = "fasta.line.length";
   public static final String WRITE_HEADER = "write.fasta.header";
 
-  private static int lineLength = 70;
-  private static Map<Path, FASTAHeader> headerMap;
+  private static final int lineLength = 70;
 
   private boolean writeHeader = true;
 
-  public static void setLineLength(int length)
+  public static void setLineLength(Job job, int length)
     {
-    lineLength = length;
+    job.getConfiguration().setInt(FASTA_LINE_LENGTH, length);
     }
 
-  public static void addHeader(Path p, FASTAHeader h)
+  public static void addHeader(Job job, Path p, FASTAHeader h)
     {
-    if (headerMap == null)
-      headerMap = new HashMap<Path, FASTAHeader>();
+    String path = p.toString().replaceAll("/", ".");
+    job.getConfiguration().set(path, h.getFormattedHeader());
 
-    headerMap.put(p, h);
+    log.info("Adding header " + p + ": " + h);
     }
 
   @Override
   public RecordWriter<LongWritable, Text> getRecordWriter(TaskAttemptContext context) throws IOException, InterruptedException
     {
-    if (context.getConfiguration().getInt("write.fasta.header", -1) > 0)
+    if (context.getConfiguration().getInt(WRITE_HEADER, -1) > 0)
       writeHeader = false;
 
     Path file = new Path( getOutputPath(context), getOutputName(context) );
@@ -62,17 +63,19 @@ public class FASTAOutputFormat extends FileOutputFormat<LongWritable, Text>
     FileSystem fs = file.getFileSystem(context.getConfiguration());
     FSDataOutputStream os = fs.create(file);
 
+    log.info(file);
+
     if (writeHeader)
       {
-      //config.get(FASTAOutputFormat.FASTA_HEADER + "." + chr.getChromosome().getChrName(),
-      String header = headerMap.get(file).getFormattedHeader() + FASTARecordWriter.CARRIAGE_RETURN;
+      String header = context.getConfiguration().get( file.toString().replaceAll("/", ".") ) + FASTARecordWriter.CARRIAGE_RETURN;
+      //String header =  + FASTARecordWriter.CARRIAGE_RETURN;
       //String header = context.getConfiguration().get(FASTA_HEADER) + FASTARecordWriter.CARRIAGE_RETURN;
       log.debug(header);
       os.write( header.getBytes() );
       os.flush();
       }
 
-    return new FASTARecordWriter(os, lineLength, file);
+    return new FASTARecordWriter(os, context.getConfiguration().getInt(FASTA_LINE_LENGTH, lineLength), file);
     }
 
   protected static class FASTARecordWriter extends RecordWriter<LongWritable, Text>
@@ -85,7 +88,7 @@ public class FASTAOutputFormat extends FileOutputFormat<LongWritable, Text>
     public static final char LINE_FEED = 0x000D;
 
     private DataOutputStream outStream;
-    private int lineLength;
+    private int lineLength = 70;
 
     private int numLines = 0;
     private int counter = 0;
@@ -108,28 +111,34 @@ public class FASTAOutputFormat extends FileOutputFormat<LongWritable, Text>
     @Override
     public synchronized void write(LongWritable key, Text value) throws IOException
       {
-      if (key == null || value == null)
-        return;
-
-      StringBuffer buffer = new StringBuffer();
-      for (char c: value.toString().toCharArray())
-        {
-        buffer.append(c);
-        ++counter;
-        if (buffer.length() >= lineLength || counter >= lineLength)
-          {
-          writeLine(buffer.toString(), true);
-          buffer = new StringBuffer();
-          counter = 0;
-          }
-        }
-      writeLine(buffer.toString(), false);
+      writeLine( key.toString() + "\t" + value.toString(), true);
       }
+
+//    @Override
+//    public synchronized void write(LongWritable key, Text value) throws IOException
+//      {
+//      if (key == null || value == null)
+//        return;
+//
+//      StringBuffer buffer = new StringBuffer();
+//      for (char c: value.toString().toCharArray())
+//        {
+//        buffer.append(c);
+//        ++counter;
+//        if (buffer.length() >= lineLength || counter >= lineLength)
+//          {
+//          writeLine(buffer.toString(), true);
+//          buffer = new StringBuffer();
+//          counter = 0;
+//          }
+//        }
+//      writeLine(buffer.toString(), false);
+//      }
 
     @Override
     public void close(TaskAttemptContext context) throws IOException, InterruptedException
       {
-      log.debug("***CLOSE*** " + this.hashCode() + "  Final counter: " + counter + " Lines output: " + numLines + " " + path.toString());
+      log.info("***CLOSE*** " + this.hashCode() + "  Final counter: " + counter + " Lines output: " + numLines + " " + path.toString());
       outStream.flush();
       outStream.close();
       }

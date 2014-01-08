@@ -47,14 +47,18 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
   private Scan scan;
   private Path output;
   private List<Location> filterLocations;
+  private String aberrationType;
+  private FASTAHeader header;
 
-  public GenerateDerivativeChromosomes(Configuration conf, Scan scan, Path output, List<Location> filterLocations)
+  public GenerateDerivativeChromosomes(Configuration conf, Scan scan, Path output, List<Location> filterLocations, FASTAHeader header, String abrType)
     {
     super(conf);
     this.conf = conf;
     this.scan = scan;
     this.output = output;
     this.filterLocations = filterLocations;
+    this.aberrationType = abrType;
+    this.header = header;
     }
 
   @Override
@@ -63,13 +67,29 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
     Job job = new Job(conf, "Generate derivative FASTA files");
     job.setJarByClass(GenerateDerivativeChromosomes.class);
 
+    // M/R setup
     job.setMapperClass(SequenceRequestMapper.class);
-    TableMapReduceUtil.initTableMapperJob(HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().getTableName(), scan, SequenceRequestMapper.class, SegmentOrderComparator.class, FragmentWritable.class, job);
+    SequenceRequestMapper.setLocations(job, filterLocations);
+    if (aberrationType.equals("inv"))
+      SequenceRequestMapper.setLocationsToReverse(job, filterLocations.get(1));
+
+//    TableMapReduceUtil.initTableMapperJob(HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().getTableName(), scan, SequenceRequestMapper.class, SegmentOrderComparator.class, FragmentWritable.class, job);
+    TableMapReduceUtil.initTableMapperJob(
+        HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().getTableName(),
+        scan,
+        SequenceRequestMapper.class,
+        IntWritable.class,
+        FragmentWritable.class,
+        job);
+
     job.setReducerClass(SequenceFragmentReducer.class);
     job.setNumReduceTasks(filterLocations.size()); // one reducer for each segment
+
+    // Output format setup
     job.setOutputFormatClass(NullOutputFormat.class);
     FileOutputFormat.setOutputPath(job, output);
-
+    FASTAOutputFormat.setLineLength(job, 80);
+    FASTAOutputFormat.addHeader(job, new Path(output, "0"), header);
     for (int order = 0; order < filterLocations.size(); order++)
       MultipleOutputs.addNamedOutput(job, Integer.toString(order), FASTAOutputFormat.class, LongWritable.class, Text.class);
 
@@ -83,8 +103,8 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
     What this script actually should do is grab <all> karyotypes for a given parent and spin off jobs to generate each.
      */
 
-    //args = new String[]{"kiss135"};
-    args = new String[]{"kiss35"};
+    args = new String[]{"kiss135"};
+    //args = new String[]{"kiss35"};
 
     if (args.length < 1)
       {
@@ -98,7 +118,12 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(config);
 
     HBaseKaryotype karyotype = admin.getKaryotype(karyotypeName);
-    HBaseGenome genome = admin.getGenome(karyotype.getKaryotype().getParentGenome());
+    HBaseGenome parentGenome = admin.getGenome(karyotype.getKaryotype().getParentGenome());
+
+    Path karyotypePath = new Path("/tmp/" + karyotype.getKaryotype().getParentGenome());
+    if (karyotypePath.getFileSystem(config).exists(karyotypePath))
+      karyotypePath.getFileSystem(config).delete(karyotypePath, true);
+
 
     for (AberrationResult aberration : karyotype.getAberrations())
       {
@@ -109,25 +134,12 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
         }
 
       String fastaName = "der" + aberration.getAberrationDefinitions().get(0).getChromosome();
-
       log.info("Writing new derivative: " + fastaName);
       log.info(aberration.getAbrType() + " " + aberration.getAberrationDefinitions());
 
       // this FilterList will contain nested filter lists that putt all of the necessary locations
       AberrationLocationFilter alf = new AberrationLocationFilter();
-      FilterList filterList = alf.getFilter(aberration, genome);
-
-      // add to config so that the mapper/reducer have access to the order in which segments should be written
-
-      SequenceRequestMapper.setLocations(alf.getFilterLocationList());
-//      List<String> locations = new ArrayList<String>();
-//      for (Location loc : alf.getFilterLocationList())
-//        locations.add(loc.toString());
-      //config.setStrings(SequenceRequestMapper.CFG_LOC, locations.toArray(new String[locations.size()]));
-
-      if (aberration.getAbrType().equals("inv"))
-        SequenceRequestMapper.setLocationsToReverse(alf.getFilterLocationList().get(1));
-        //config.setInt(SequenceRequestMapper.REVERSE, 1); // it will always be the middle of the three locations
+      FilterList filterList = alf.getFilter(aberration, parentGenome);
 
       // to create an appropriate FASTA header
       List<String> abrs = new ArrayList<String>();
@@ -138,20 +150,19 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
       Scan scan = new Scan();
       scan.setFilter(filterList);
 
-      Path output = new Path("/tmp/" + aberration.getGenome() + "/" + fastaName);
-      FASTAOutputFormat.setLineLength(80);
-      FASTAOutputFormat.addHeader(new Path(output, "0"), new FASTAHeader(fastaName, aberration.getGenome(), "parent=" + genome.getGenome().getName(), abrDefinitions));
+      Path baseOutput = new Path("/tmp/" + aberration.getGenome() + "/" + fastaName);
 
       // Generate the segments for the new FASTA file
-      GenerateDerivativeChromosomes gdc = new GenerateDerivativeChromosomes(config, scan, output, alf.getFilterLocationList());
+      GenerateDerivativeChromosomes gdc = new GenerateDerivativeChromosomes(config, scan, baseOutput, alf.getFilterLocationList(), new FASTAHeader(fastaName, aberration.getGenome(), "parent=" + parentGenome.getGenome().getName(), abrDefinitions), aberration.getAbrType());
       ToolRunner.run(gdc, null);
-      gdc.fixOutputFiles(aberration);
+//      gdc.fixOutputFiles(aberration);
+//
+//      // create merged FASTA
+//      ToolRunner.run(new Crush(), new String[]{"--input-format=text", "--output-format=text", "--compress=none", baseOutput.toString(), baseOutput.toString() + ".fa"});
+//      log.info(baseOutput.toString());
 
-      // created merged FASTA
-      ToolRunner.run(new Crush(), new String[]{"--input-format=text", "--output-format=text", "--compress=none", output.toString(), output.toString() + ".fa"});
-      log.info(output.toString());
-
-      org.apache.commons.io.FileUtils.deleteDirectory(new File(output.toString()));
+      break;
+      //baseOutput.getFileSystem(config).delete(baseOutput, true);
       }
 
     }
@@ -169,6 +180,7 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
     - duplication: the middle file needs to be duplicated before concatenation
     - iso: there should be only 1 file, it needs to be duplicated in reverse before concatenation
     */
+    FileSystem fs = output.getFileSystem(conf);
     if (aberration.getAbrType().equals("dup"))
       {
       log.info("DUP aberration");
@@ -177,10 +189,14 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
 
       // move subsequent files
       for (int i = this.filterLocations.size() - 1; i > 1; i--)
-        moveFile(output, Integer.toString(i), Integer.toString(i + 1));
+        {
+        fs.copyToLocalFile( new Path(output, Integer.toString(i)), new Path(output, Integer.toString(i+1)) );
+        fs.delete(new Path(output, Integer.toString(i)), false);
+        }
 
       //then copy the duplicated segment
-      copyFile(output.getFileSystem(conf), new Path(output, Integer.toString(1)), new Path(output, Integer.toString(2)));
+      fs.copyToLocalFile( new Path(output, Integer.toString(1)), new Path(output, Integer.toString(2)) );
+      //copyFile(output.getFileSystem(conf), new Path(output, Integer.toString(1)), new Path(output, Integer.toString(2)));
       }
     // TODO Iso is different from inv in that I take the same segment and copy it in reverse.  But right now all I do is write out one segment.  Not sure quite how to handle that.
     if (aberration.getAbrType().equals("iso"))

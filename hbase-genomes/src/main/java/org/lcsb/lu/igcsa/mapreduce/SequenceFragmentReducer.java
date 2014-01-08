@@ -10,6 +10,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 
@@ -26,7 +27,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class SequenceFragmentReducer extends Reducer<SegmentOrderComparator, FragmentWritable, LongWritable, Text>
+//public class SequenceFragmentReducer extends Reducer<SegmentOrderComparator, FragmentWritable, LongWritable, Text>
+public class SequenceFragmentReducer extends Reducer<IntWritable, FragmentWritable, LongWritable, Text>
   {
   private static final Log log = LogFactory.getLog(SequenceFragmentReducer.class);
 
@@ -43,15 +45,17 @@ public class SequenceFragmentReducer extends Reducer<SegmentOrderComparator, Fra
   protected void setup(Context context) throws IOException, InterruptedException
     {
     mos = new MultipleOutputs(context);
+    log.info(mos);
     }
 
+
   @Override
-  protected void reduce(SegmentOrderComparator key, Iterable<FragmentWritable> values, Context context) throws IOException, InterruptedException
+  protected void reduce(IntWritable key, Iterable<FragmentWritable> values, Context context) throws IOException, InterruptedException
     {
-    log.debug("Order " + key.getOrder() + ":" + key.getSegment());
+    log.info("Order " + key.toString() );
 
     // This ensures that the RecordWriter knows which file should have the header written
-    context.getConfiguration().set(FASTAOutputFormat.WRITE_HEADER, ""+key.getOrder());
+    context.getConfiguration().set(FASTAOutputFormat.WRITE_HEADER, ""+key.toString());
 
     Iterator<FragmentWritable> fI = values.iterator();
     while (fI.hasNext())
@@ -59,9 +63,33 @@ public class SequenceFragmentReducer extends Reducer<SegmentOrderComparator, Fra
       FragmentWritable fw = fI.next();
       LongWritable segmentKey = new LongWritable(fw.getSegment());
 
-      String namedOutput = Long.toString(key.getOrder());
+      log.info(fw.getSegment());
+      if (fw.getSegment() == 1)
+        log.info("FOUND IT");
+
+      String namedOutput = key.toString();
       mos.write(namedOutput, segmentKey, new Text(fw.getSequence()));
       }
     }
+
+
+  //  @Override
+//  protected void reduce(SegmentOrderComparator key, Iterable<FragmentWritable> values, Context context) throws IOException, InterruptedException
+//    {
+//    log.info("Order " + key.getOrder() + ":" + key.getSegment());
+//
+//    // This ensures that the RecordWriter knows which file should have the header written
+//    context.getConfiguration().set(FASTAOutputFormat.WRITE_HEADER, ""+key.getOrder());
+//
+//    Iterator<FragmentWritable> fI = values.iterator();
+//    while (fI.hasNext())
+//      {
+//      FragmentWritable fw = fI.next();
+//      LongWritable segmentKey = new LongWritable(fw.getSegment());
+//
+//      String namedOutput = Long.toString(key.getOrder());
+//      mos.write(namedOutput, segmentKey, new Text(fw.getSequence()));
+//      }
+//    }
 
   }
