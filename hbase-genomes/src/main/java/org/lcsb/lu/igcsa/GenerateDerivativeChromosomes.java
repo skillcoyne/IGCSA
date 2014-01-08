@@ -85,6 +85,8 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
     job.setReducerClass(SequenceFragmentReducer.class);
     job.setNumReduceTasks(filterLocations.size()); // one reducer for each segment
 
+    job.setPartitionerClass(FragmentPartitioner.class);
+
     // Output format setup
     job.setOutputFormatClass(NullOutputFormat.class);
     FileOutputFormat.setOutputPath(job, output);
