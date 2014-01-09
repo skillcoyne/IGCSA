@@ -13,6 +13,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Result;
@@ -49,6 +50,7 @@ public class GenerateFullGenome extends Configured implements Tool
   private Scan scan;
   private Path output;
   private HBaseGenome genome;
+  private FileSystem jobFS;
 
   public GenerateFullGenome(Configuration conf, Scan scan, Path output, HBaseGenome genome)
     {
@@ -78,19 +80,24 @@ public class GenerateFullGenome extends Configured implements Tool
     Scan scan = admin.getSequenceTable().getScanFor(new Column("info", "genome", genomeName));
     scan.setCaching(200);
 
-    Path output = new Path("/tmp/" + genomeName);
-    ToolRunner.run(new GenerateFullGenome(config, scan, output, genome), chrs.toArray(new String[chrs.size()]));
+    GenerateFullGenome gfg = new GenerateFullGenome(config, scan, new Path("/tmp/" + genomeName), genome);
+    ToolRunner.run(gfg, chrs.toArray(new String[chrs.size()]));
 
     // remove extraneous files and rename to .fa
-    FASTAUtil.deleteChecksumFiles(output.getFileSystem(config), output);
-    for (String c: chrs)
-      output.getFileSystem(config).rename(new Path(output, c), new Path(output, c + ".fa"));
+    gfg.cleanUpFiles(chrs);
     }
+
+  protected void cleanUpFiles(List<String> chrs) throws IOException
+    {
+    FASTAUtil.deleteChecksumFiles(jobFS, output);
+    for (String c: chrs)
+      FileUtil.copy(jobFS, new Path(output, c), jobFS, new Path(output, c+".fa"), true, false, jobFS.getConf());
+    }
+
 
   @Override
   public int run(String[] chrs) throws Exception
     {
-
     Job job = new Job(conf, "Generate normal FASTA files");
     job.setJarByClass(GenerateDerivativeChromosomes.class);
 
@@ -110,6 +117,8 @@ public class GenerateFullGenome extends Configured implements Tool
       FASTAOutputFormat.addHeader(job, new Path(output, chr), new FASTAHeader("chr" + chr, genome.getGenome().getName(),
           "parent=" + genome.getGenome().getParent(), "hbase-generation"));
       }
+
+    this.jobFS = output.getFileSystem(conf);
 
     return (job.waitForCompletion(true) ? 0 : 1);
     }

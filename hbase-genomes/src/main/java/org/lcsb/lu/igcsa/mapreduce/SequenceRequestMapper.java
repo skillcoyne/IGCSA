@@ -29,8 +29,7 @@ import java.util.regex.Pattern;
 
 
 
-//public class SequenceRequestMapper extends TableMapper<SegmentOrderComparator, FragmentWritable>
-public class SequenceRequestMapper extends TableMapper<IntWritable, FragmentWritable>
+public class SequenceRequestMapper extends TableMapper<SegmentOrderComparator, FragmentWritable>
   {
   private static final Log log = LogFactory.getLog(SequenceRequestMapper.class);
 
@@ -91,17 +90,14 @@ public class SequenceRequestMapper extends TableMapper<IntWritable, FragmentWrit
     // if reverse the text sequence needs to be reversed and it needs to somehow be indicated with the key I think
     String sequence = sr.getSequence();
     SegmentOrderComparator soc = new SegmentOrderComparator(sectionKey, sr.getSegmentNum());
-    FragmentWritable fw = new FragmentWritable(sr.getChr(), sr.getStart(), sr.getEnd(), sr.getSegmentNum(), sequence);
     if (reverse)
       {
       sequence = new StringBuffer(sequence).reverse().toString();
-      fw = new FragmentWritable(sr.getChr(), sr.getStart(), sr.getEnd(), (-1*sr.getSegmentNum()), sequence);
-      //soc = new SegmentOrderComparator(sectionKey, (-1*sr.getSegmentNum()));
+      soc = new SegmentOrderComparator(sectionKey, (-1*sr.getSegmentNum()));
       }
+    FragmentWritable fw = new FragmentWritable(sr.getChr(), sr.getStart(), sr.getEnd(), sr.getSegmentNum(), sequence);
 
-    //FragmentWritable fw = new FragmentWritable(sr.getChr(), sr.getStart(), sr.getEnd(), sr.getSegmentNum(), sequence);
-    //context.write(soc, fw);
-    context.write(new IntWritable(sectionKey), fw);
+    context.write(soc, fw);
     }
 
 

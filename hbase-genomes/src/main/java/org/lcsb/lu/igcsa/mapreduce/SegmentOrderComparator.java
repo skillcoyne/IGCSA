@@ -78,4 +78,10 @@ public class SegmentOrderComparator implements WritableComparable<SegmentOrderCo
     order = dataInput.readInt();
     segment = dataInput.readLong();
     }
+
+  @Override
+  public String toString()
+    {
+    return super.toString() + " " + this.getOrder() + ": " + this.getSegment();
+    }
   }

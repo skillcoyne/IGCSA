@@ -25,13 +25,19 @@ public class FASTAUtil
     {
     for (FileStatus status : fs.listStatus(dir))
       {
-      log.info(status);
+      log.info(status.getPath());
       Path crcFile = new Path(dir, "." + status.getPath().getName() + ".crc");
       if (fs.exists(crcFile))
-        fs.delete(crcFile, false);
+        {
+        log.info("deleting " + crcFile.toString());
+        //fs.delete(crcFile, false);
+        }
 
       if (status.getPath().getName().equals("_SUCCESS"))
-        fs.delete(status.getPath(), false);
+        {
+        log.info("deleting " + status.getPath().toString());
+        //fs.delete(status.getPath(), false);
+        }
       }
     }
 
