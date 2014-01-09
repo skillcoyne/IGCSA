@@ -23,6 +23,7 @@ public class FASTAUtil
 
   public static void deleteChecksumFiles(FileSystem fs, Path dir) throws IOException
     {
+    log.debug("Deleting CRC files");
     for (FileStatus status : fs.listStatus(dir))
       {
       log.info(status.getPath());
@@ -30,13 +31,13 @@ public class FASTAUtil
       if (fs.exists(crcFile))
         {
         log.info("deleting " + crcFile.toString());
-        //fs.delete(crcFile, false);
+        fs.delete(crcFile, false);
         }
 
       if (status.getPath().getName().equals("_SUCCESS"))
         {
         log.info("deleting " + status.getPath().toString());
-        //fs.delete(status.getPath(), false);
+        fs.delete(status.getPath(), false);
         }
       }
     }

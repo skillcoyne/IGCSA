@@ -165,7 +165,6 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
   protected void fixOutputFiles(AberrationResult aberration) throws Exception
     {
     // CRC files mess up any attempt to directly read/write from an unchanged file which means copying/moving fails too. Easiest fix right now is to dump the file.
-    log.info("Deleting CRC files");
     deleteChecksumFiles(jobFS, output);
     /*
   We now have output files.  In most cases the middle file(s) will be the aberration sequences.
@@ -199,7 +198,7 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
 
     // create merged FASTA
     ToolRunner.run(new Crush(), new String[]{"--input-format=text", "--output-format=text", "--compress=none", output.toString(), output.toString() + ".fa"});
-    jobFS.delete(output, true);
+    //jobFS.delete(output, true);
     }
 
   }
