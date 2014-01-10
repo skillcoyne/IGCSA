@@ -32,9 +32,11 @@ public class MainApp
     ProgramDriver pgd = new ProgramDriver();
     try
       {
-      pgd.addClass("LoadFASTA", LoadFromFASTA.class, "Loads the HBase database from the provided FASTA files.");
-      pgd.addClass("CreateKaryotypes", CreateKaryotypes.class, "Generates karyotypes for the given genome.");
-      pgd.addClass("GenerateFASTA", GenerateDerivativeChromosomes.class, "Generate FASTA files for a karyotype.");
+      pgd.addClass(LoadFromFASTA.class.getSimpleName(), LoadFromFASTA.class, "Loads the HBase database from the provided FASTA files.");
+      pgd.addClass(CreateKaryotypes.class.getSimpleName(), CreateKaryotypes.class, "Generates karyotypes for the given genome.");
+      pgd.addClass(GenerateDerivativeChromosomes.class.getSimpleName(), GenerateDerivativeChromosomes.class, "Generate FASTA files for a karyotype.");
+      pgd.addClass(GenerateFullGenome.class.getSimpleName(), GenerateFullGenome.class, "Generate FASTA files for a normal genome.");
+      pgd.addClass(MutateFragments.class.getSimpleName(), MutateFragments.class, "Generate genome with small-scale mutations.");
       }
     catch (Throwable throwable)
       {

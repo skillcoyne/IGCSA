@@ -196,9 +196,9 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
         throw new RuntimeException("This should not happen: iso has more than 2 locations");
       }
 
-    // create merged FASTA
-    ToolRunner.run(new Crush(), new String[]{"--input-format=text", "--output-format=text", "--compress=none", output.toString(), output.toString() + ".fa"});
-    //jobFS.delete(output, true);
+    // create merged FASTA at chromosome level -- there is an issue here that it just concatenates the files which means at the merge points there are strings of different lengths.  This is an issue in samtools.
+    ToolRunner.run(new Crush(), new String[]{"--input-format=text", "--output-format=text", "--compress=none", output.toString(), output.toString() + ".tmp"});
+    jobFS.delete(output, true);
     }
 
   }

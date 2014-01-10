@@ -121,20 +121,24 @@
                             <attach>false</attach>
                             <!--<archive>-->
                             <!--<manifest>-->
-                            <!--<mainClass>org.lcsb.lu.igcsa.LoadFromFASTA</mainClass>-->
+                            <!--<mainClass>org.lcsb.lu.igcsa.MainApp</mainClass>-->
                             <!--</manifest>-->
                             <!--</archive>-->
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+
             <!--
             Exception in thread "main" java.io.IOException: Mkdirs failed to create /Users/skillcoyne/Tools/hd/hadoopdata/hadoop-unjar6550527998235391805/META-INF/license
              Have to remove this file:  MAC ONLY
              zip -d HBase-Genomes-1.1.jar META-INF/LICENSE
-
             -->
+
+
         </plugins>
+
+
     </build>
 
     <repositories>
