@@ -14,6 +14,8 @@ import org.apache.hadoop.fs.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class FASTAUtil
@@ -89,4 +91,17 @@ public class FASTAUtil
     FileUtil.replaceFile(new File(srcDir.toString(), src), new File(srcDir.toString(), dest));
     }
 
+  public static String getChromosomeFromFASTA(String fileName) throws IOException
+    {
+    Pattern p = Pattern.compile("^.*chr(\\d+|X|Y)\\.fa.*$");
+    Matcher matcher = p.matcher(fileName);
+
+    if (matcher.matches())
+      {
+      FASTAFragmentInputFormat.FASTAFragmentRecordReader.log.info("Chromosome from FASTA " + fileName + ": " + matcher.group(1));
+      return matcher.group(1);
+      }
+    else
+      throw new IOException(fileName + " does not contain a chromosome.");
+    }
   }

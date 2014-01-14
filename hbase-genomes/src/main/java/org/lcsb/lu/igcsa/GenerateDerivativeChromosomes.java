@@ -159,6 +159,8 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
       //break;
       }
 
+    // TODO Create BWA index with ONLY the derivative chromosomes
+
     }
 
   // just to clean up the main method a bit

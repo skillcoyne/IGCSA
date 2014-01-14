@@ -13,9 +13,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
 
-import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.CompressionCodecFactory;
 import org.apache.hadoop.io.compress.CompressionInputStream;
@@ -27,14 +25,11 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-public class FASTAInputFormat extends FileInputFormat<LongWritable, FragmentWritable>
+public class FASTAFragmentInputFormat extends FileInputFormat<LongWritable, FragmentWritable>
   {
-  private static final Log log = LogFactory.getLog(FASTAInputFormat.class);
+  private static final Log log = LogFactory.getLog(FASTAFragmentInputFormat.class);
 
   @Override
   protected boolean isSplitable(JobContext context, Path filename)
@@ -84,21 +79,6 @@ public class FASTAInputFormat extends FileInputFormat<LongWritable, FragmentWrit
     private long lastStart = 1;
 
 
-    private static String getChromosomeFromFASTA(String fileName) throws IOException
-      {
-      Pattern p = Pattern.compile("^.*chr(\\d+|X|Y)\\.fa.*$");
-      Matcher matcher = p.matcher(fileName);
-
-      if (matcher.matches())
-        {
-        log.info("Chromosome from FASTA " + fileName + ": " + matcher.group(1));
-        return matcher.group(1);
-        }
-      else
-        throw new IOException(fileName + " does not contain a chromosome.");
-      }
-
-
     public FASTAFragmentRecordReader(int window)
       {
       this.window = window;
@@ -113,7 +93,7 @@ public class FASTAInputFormat extends FileInputFormat<LongWritable, FragmentWrit
       if (!org.lcsb.lu.igcsa.utils.FileUtils.FASTA_FILE.accept(null, path.toString()))
         throw new IOException(path.toString() + " is not a FASTA file.");
 
-      splitChr = getChromosomeFromFASTA(path.toString());
+      splitChr = FASTAUtil.getChromosomeFromFASTA(path.toString());
       context.getConfiguration().set("chromosome", splitChr);
 
       splitStart = split.getStart();

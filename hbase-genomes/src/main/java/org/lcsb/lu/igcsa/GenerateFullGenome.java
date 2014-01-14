@@ -85,6 +85,9 @@ public class GenerateFullGenome extends Configured implements Tool
 
     // remove extraneous files and rename to .fa
     gfg.cleanUpFiles(chrs);
+
+    // TODO create BWA index
+
     }
 
   protected void cleanUpFiles(List<String> chrs) throws IOException

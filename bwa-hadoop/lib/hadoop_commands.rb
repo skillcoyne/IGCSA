@@ -13,7 +13,7 @@ class HadoopCommands
 
     basename = File.basename("#{localpath}")
     file_exists = list(:path => "#{copy_path}/#{basename}")
-    puts "#{copy_path}/#{basename} exists: #{file_exists}"
+
     if opts[:overwrite]
       puts "overwriting #{file_exists}"
       remove_from_hdfs(basename, opts) if file_exists
@@ -22,6 +22,7 @@ class HadoopCommands
     end
 
     cmd = "#{@hadoop_path}/#{@@hadoop_dfs} -copyFromLocal #{localpath} #{copy_path}/#{basename}"
+    puts cmd
     `#{cmd}`
     unless $?.success?
       $stderr.puts "Command failed: #{cmd}: #{$?}"
@@ -40,9 +41,25 @@ class HadoopCommands
     return `#{cmd}`
   end
 
+
+  def move_from_hdfs(file, localpath, opts = {})
+    unless Dir.exists? localpath
+      Dir.mkdir(localpath)
+    end
+
+    path = get_path(opts)
+    cmd = "#{@hadoop_path}/#{@@hadoop_dfs} -moveToLocal #{path}/#{file} #{localpath}/#{file}"
+    puts cmd
+    `#{cmd}`
+    return "#{localpath}/#{file}"
+  end
+
   def remove_from_hdfs(file, opts = {})
     path = get_path(opts)
-    cmd = "#{@hadoop_path}/#{@@hadoop_dfs} -rmr #{path}/#{file}"
+
+    file = "#{path}/#{file}" unless file.start_with? "/"
+
+    cmd = "#{@hadoop_path}/#{@@hadoop_dfs} -rmr #{file}"
     puts cmd
     output = `#{cmd}`
     unless $?.success?
@@ -63,11 +80,13 @@ class HadoopCommands
     end
 
     files = output.split("\n")
-    files = files[1..files.length]
-    files.map! { |e|
-      es = e.split("\s")
-      es[es.length-1]
-    }
+    if files.length > 0
+      files = files[1..files.length]
+      files.map! { |e|
+        es = e.split("\s")
+        es[es.length-1]
+      }
+    end
     return files
   end
 

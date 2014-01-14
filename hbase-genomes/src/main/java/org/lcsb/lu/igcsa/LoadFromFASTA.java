@@ -1,6 +1,5 @@
 package org.lcsb.lu.igcsa;
 
-import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -23,15 +22,14 @@ import org.lcsb.lu.igcsa.aws.AWSProperties;
 import org.lcsb.lu.igcsa.aws.AWSUtils;
 import org.lcsb.lu.igcsa.hbase.HBaseGenome;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
+import org.lcsb.lu.igcsa.mapreduce.FASTAFragmentInputFormat;
 import org.lcsb.lu.igcsa.mapreduce.FASTAFragmentMapper;
-import org.lcsb.lu.igcsa.mapreduce.FASTAInputFormat;
 import org.lcsb.lu.igcsa.mapreduce.FragmentWritable;
 import org.lcsb.lu.igcsa.utils.FileUtils;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -82,7 +80,7 @@ public class LoadFromFASTA extends Configured implements Tool
     job.setMapOutputKeyClass(LongWritable.class);
     job.setMapOutputValueClass(FragmentWritable.class);
 
-    job.setInputFormatClass(FASTAInputFormat.class);
+    job.setInputFormatClass(FASTAFragmentInputFormat.class);
     for (Path path : paths)
       {
       log.info(path.toString());

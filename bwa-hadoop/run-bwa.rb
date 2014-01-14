@@ -1,7 +1,9 @@
 require 'yaml'
 require 'getoptlong'
+require 'fileutils'
 require_relative 'lib/fastq_to_tsv'
 require_relative 'lib/hadoop_commands'
+
 
 def print_usage()
   puts "Wrong"
@@ -35,24 +37,24 @@ opts.each do |opt, arg|
       print_usage
     when '--bwa-path'
       bwa_path = arg
-      print_usage unless File.exists?bwa_path
+      print_usage unless File.exists? bwa_path
     when '--hadoop-path'
       hadoop = arg
-      print_usage unless File.exists?hadoop
+      print_usage unless File.exists? hadoop
     when '--read-pair-dir'
-      if arg =~ /^hdfs:\/\//  # hdfs
+      if arg =~ /^hdfs:\/\// # hdfs
         read_pair = arg ## TODO
       else
         dir = arg
-        print print_usage unless (File.exists?dir and File.directory?dir)
+        print print_usage unless (File.exists? dir and File.directory? dir)
         read_pair = Dir.glob("#{dir}/*.fastq")
       end
     when
-      '--run_index'
+    '--run_index'
       run_index = true
     when '--reference'
       reference = arg
-      index =  Dir.glob("#{reference}*")
+      index = Dir.glob("#{reference}*")
   end
 end
 
@@ -60,12 +62,24 @@ unless bwa_path and reference and hadoop and read_pair
   print_usage
 end
 
-puts bwa_path
-puts read_pair
-puts reference
-puts hadoop
-puts index
+#puts bwa_path
+#puts read_pair
+#puts reference
+#puts hadoop
+#puts index
 
+FileUtils.copy(bwa_path, "/tmp/fastq_tsv/bwa")
+tarfile = "/tmp/fastq_tsv/igcsa.tgz"
+
+unless File.exists? tarfile
+  tar = "tar -czvf #{tarfile} #{index.join(' ')} /tmp/fastq_tsv/bwa "
+  output = `#{tar}`
+  unless $?.success?
+    $stderr.puts "Failed to create tar file: #{output}.  #{tar}"
+    exit(-1)
+  end
+  puts tar
+end
 
 ftt = FastqToTSV.new(read_pair[0], read_pair[1])
 tsv_file = ftt.write_tsv
@@ -82,18 +96,22 @@ unless hcmd.list(:path => hadoop_output).nil?
 end
 
 tsv_hdfs_path = hcmd.copy_to_hdfs(tsv_file, :path => "reads", :overwrite => true)
+ref_path = hcmd.copy_to_hdfs(tarfile)
 
-hdfs_index_files = []
-index.each do |f|
-  hdfs_index_files << hcmd.copy_to_hdfs(f, :path => "ref")
-end
+
+
+#hdfs_index_files = []
+#index.each do |f|
+#  hdfs_index_files << hcmd.copy_to_hdfs(f, :path => "ref")
+#end
 
 puts tsv_hdfs_path
-puts hdfs_index_files
+#puts hdfs_index_files
 
-
+#-archives 'hdfs:///distmap_input/execarch.tgz#execarch,/tmp/distmap/refarch.tgz#refarch' \
 stream_cmd = <<CMD
 #{hadoop}/bin/hadoop jar #{hadoop}/contrib/streaming/hadoop-streaming-1.2.1.jar \
+-archives 'hdfs:///#{hdfs_input}/igcsa.tgz#tmp/fastq_tsv' \
 -D dfs.block.size=16777216 \
 -D mapred.job.priority=NORMAL \
 -D mapred.job.queue.name=default \
@@ -105,12 +123,22 @@ stream_cmd = <<CMD
 -D mapred.text.key.comparator.options=-k1,4 \
 -partitioner org.apache.hadoop.mapred.lib.KeyFieldBasedPartitioner \
 -input #{tsv_hdfs_path} \
--output #{hadoop_output} \
--mapper "/Users/sarah.killcoyne/workspace/IGCSA/bwa-hadoop/mapper.rb"
-
+-output #{hadoop_output}/sam \
+-mapper "ruby mapper.rb refarch/ref/reference.fa execarch/bin/bwa" \
+-file "/Users/sarah.killcoyne/workspace/IGCSA/bwa-hadoop/mapper.rb"
 CMD
 
-#print stream_cmd
-
+print stream_cmd
 `#{stream_cmd}`
+
+### Merge sam files
+#sam_files = []
+#hcmd.list(:path => "#{hadoop_output}/sam").each do |f|
+#  sam_files << "I=" + hcmd.move_from_hdfs(f, "/tmp/testmerge")
+#end
+#
+#merge = "java -jar ~/Tools/picard-tools-1.90/picard-tools-1.90/MergeSamFiles.jar #{sam_files.join(' ')} O=#{File.basename(tsv_file)}.sam"
+#puts `#{merge}`
+
+
 

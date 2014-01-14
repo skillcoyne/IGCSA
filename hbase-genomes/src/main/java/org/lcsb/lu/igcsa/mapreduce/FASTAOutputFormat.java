@@ -108,32 +108,32 @@ public class FASTAOutputFormat extends FileOutputFormat<LongWritable, Text>
       ++numLines;
       }
 
-    @Override
-    public synchronized void write(LongWritable key, Text value) throws IOException
-      {
-      writeLine( key.toString() + "\t" + value.toString(), true);
-      }
-
 //    @Override
 //    public synchronized void write(LongWritable key, Text value) throws IOException
 //      {
-//      if (key == null || value == null)
-//        return;
-//
-//      StringBuffer buffer = new StringBuffer();
-//      for (char c: value.toString().toCharArray())
-//        {
-//        buffer.append(c);
-//        ++counter;
-//        if (buffer.length() >= lineLength || counter >= lineLength)
-//          {
-//          writeLine(buffer.toString(), true);
-//          buffer = new StringBuffer();
-//          counter = 0;
-//          }
-//        }
-//      writeLine(buffer.toString(), false);
+//      writeLine( key.toString() + "\t" + value.toString(), true);
 //      }
+
+    @Override
+    public synchronized void write(LongWritable key, Text value) throws IOException
+      {
+      if (key == null || value == null)
+        return;
+
+      StringBuffer buffer = new StringBuffer();
+      for (char c: value.toString().toCharArray())
+        {
+        buffer.append(c);
+        ++counter;
+        if (buffer.length() >= lineLength || counter >= lineLength)
+          {
+          writeLine(buffer.toString(), true);
+          buffer = new StringBuffer();
+          counter = 0;
+          }
+        }
+      writeLine(buffer.toString(), false);
+      }
 
     @Override
     public void close(TaskAttemptContext context) throws IOException, InterruptedException
