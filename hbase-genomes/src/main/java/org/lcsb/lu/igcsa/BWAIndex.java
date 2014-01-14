@@ -31,10 +31,6 @@ public class BWAIndex extends Configured implements Tool
   private Configuration conf;
   private Path fasta;
 
-  public BWAIndex()
-    {
-    this.conf = getConf();
-    }
 
   public static void main(String[] args) throws Exception
     {
@@ -44,6 +40,7 @@ public class BWAIndex extends Configured implements Tool
   public int run(String[] args) throws Exception
     {
     this.fasta = new Path(args[0]);
+    this.conf = new Configuration();
 
     Job job = new Job(conf, "Generate normal FASTA files");
     job.setJarByClass(GenerateDerivativeChromosomes.class);
@@ -56,7 +53,7 @@ public class BWAIndex extends Configured implements Tool
 
     job.setOutputFormatClass(NullOutputFormat.class);
 
-    return 0;
+    return (job.waitForCompletion(true) ? 0 : 1);
     }
 
   static class FASTAMapper extends Mapper<Text, Text, Text, Text>

@@ -97,10 +97,7 @@ public class FASTAUtil
     Matcher matcher = p.matcher(fileName);
 
     if (matcher.matches())
-      {
-      FASTAFragmentInputFormat.FASTAFragmentRecordReader.log.info("Chromosome from FASTA " + fileName + ": " + matcher.group(1));
       return matcher.group(1);
-      }
     else
       throw new IOException(fileName + " does not contain a chromosome.");
     }
