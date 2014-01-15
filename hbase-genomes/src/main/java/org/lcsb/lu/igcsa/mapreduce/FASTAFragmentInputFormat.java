@@ -25,6 +25,7 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
+
 import java.io.IOException;
 
 public class FASTAFragmentInputFormat extends FileInputFormat<LongWritable, FragmentWritable>
@@ -53,19 +54,6 @@ public class FASTAFragmentInputFormat extends FileInputFormat<LongWritable, Frag
 
     private LongWritable key = new LongWritable();
     private FragmentWritable value = new FragmentWritable();
-
-    // The standard gamut of line terminators, plus EOF
-    private static final char CARRIAGE_RETURN = 0x000A;
-    // ASCII carriage return (CR), as char
-    private static final char LINE_FEED = 0x000D;
-    // ASCII line feed (LF), as char
-    private static final char RECORD_SEPARATOR = 0x001E;
-    // ASCII record separator (RS), as char
-    private static final char EOF = 0xffff;
-
-    // Reserved characters within the (ASCII) stream
-    private final char COMMENT_IDENTIFIER = ';';
-    private final char HEADER_IDENTIFIER = '>';
 
     private CharacterReader reader;
     private FSDataInputStream inputStream;
@@ -115,7 +103,7 @@ public class FASTAFragmentInputFormat extends FileInputFormat<LongWritable, Frag
       // read the header
       if (splitStart == 0)
         {
-        if (reader.read() == HEADER_IDENTIFIER)
+        if (reader.read() == FASTAUtil.HEADER_IDENTIFIER)
           {
           // not doing anything with this right now, not sure there is anything to be done
           String header = reader.readLine();

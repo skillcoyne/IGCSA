@@ -8,9 +8,11 @@
 
 package org.lcsb.lu.igcsa.mapreduce;
 
+import com.m6d.filecrush.crush.Crush;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.*;
+import org.apache.hadoop.util.ToolRunner;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,6 +24,18 @@ public class FASTAUtil
   {
   private static final Log log = LogFactory.getLog(FASTAUtil.class);
 
+  // The standard gamut of line terminators, plus EOF
+  public static final char CARRIAGE_RETURN = 0x000A;
+  // ASCII carriage return (CR), as char
+  public static final char LINE_FEED = 0x000D;
+  // ASCII line feed (LF), as char
+  public static final char RECORD_SEPARATOR = 0x001E;
+  // ASCII record separator (RS), as char
+  public static final char EOF = 0xffff;
+
+  // Reserved characters within the (ASCII) stream
+  public static final char COMMENT_IDENTIFIER = ';';
+  public static final char HEADER_IDENTIFIER = '>';
 
   public static void deleteChecksumFiles(FileSystem fs, Path dir) throws IOException
     {
@@ -44,56 +58,9 @@ public class FASTAUtil
       }
     }
 
-  public static void mergeFASTASegments(FileSystem fs, Path dir, String destFile) throws IOException
-    {
-    FSDataOutputStream os = fs.create(new Path(dir, destFile));
-
-    for (FileStatus status : fs.listStatus(dir))
-      {
-      if (status.getPath().getName().startsWith("_") || status.getPath().getName().startsWith("."))
-        continue;
-
-      writeContents(fs.open(status.getPath()), os);
-
-      os.flush();
-      log.info(status);
-      }
-
-    os.flush();
-    os.close();
-    }
-
-  public static void copyFile(FileSystem fs, Path srcFile, Path destFile) throws IOException
-    {
-    FSDataOutputStream os = fs.create(destFile);
-    writeContents(fs.open(srcFile), os);
-
-    os.flush();
-    os.close();
-    }
-
-  private static void writeContents(FSDataInputStream is, FSDataOutputStream os) throws IOException
-    {
-    int c;
-    while ((c = is.read()) != -1)
-      os.write(c);
-    is.close();
-    }
-
-
-  public static void deleteCRCFile(FileSystem fs, Path dir, String fileName) throws IOException
-    {
-    fs.delete(new Path(dir, "." + fileName + ".crc"), false);
-    }
-
-  public static void moveFile(Path srcDir, String src, String dest) throws IOException
-    {
-    FileUtil.replaceFile(new File(srcDir.toString(), src), new File(srcDir.toString(), dest));
-    }
-
   public static String getChromosomeFromFASTA(String fileName) throws IOException
     {
-    Pattern p = Pattern.compile("^.*chr(\\d+|X|Y)\\.fa.*$");
+    Pattern p = Pattern.compile("^.*(\\d+|X|Y)\\.fa.*$");
     Matcher matcher = p.matcher(fileName);
 
     if (matcher.matches())
@@ -101,4 +68,12 @@ public class FASTAUtil
     else
       throw new IOException(fileName + " does not contain a chromosome.");
     }
+
+  // Create a single merged FASTA file from files in the src directory.
+  public static void mergeFASTAFiles(FileSystem fs, String src, String dest) throws Exception
+    {
+    ToolRunner.run(new Crush(), new String[]{"--input-format=text", "--output-format=text", "--compress=none", src, dest});
+    }
+
+
   }

@@ -12,6 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.CompressionCodecFactory;
@@ -40,7 +41,7 @@ public class FASTAInputFormat extends FileInputFormat<Text, Text>
 
   public RecordReader<Text, Text> createRecordReader(InputSplit inputSplit, TaskAttemptContext context) throws IOException, InterruptedException
     {
-    return null;
+    return new FASTARecordReader();
     }
 
 
@@ -95,7 +96,12 @@ public class FASTAInputFormat extends FileInputFormat<Text, Text>
       value = new Text();
       String line;
       while ( (line = reader.readLine()) != null)
-        value.append( line.getBytes(), 0, line.length() );
+        {
+        if (line.startsWith( String.valueOf(FASTAUtil.HEADER_IDENTIFIER)) )
+          value.append( (line+FASTAUtil.CARRIAGE_RETURN).getBytes(), 0, line.length()+1 );
+        else
+          value.append( line.getBytes(), 0, line.length() );
+        }
 
       return true;
       }

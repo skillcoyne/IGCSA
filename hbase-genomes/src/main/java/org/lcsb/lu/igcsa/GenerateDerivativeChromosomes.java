@@ -102,7 +102,7 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
     What this script actually should do is grab <all> karyotypes for a given parent and spin off jobs to generate each.
      */
     //args = new String[]{"kiss135"};
-    //args = new String[]{"kiss35"};
+    args = new String[]{"kiss35"};
     if (args.length < 1)
       {
       System.err.println("Usage: GenerateFASTA <karyotype name>");
@@ -117,10 +117,10 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
     HBaseKaryotype karyotype = admin.getKaryotype(karyotypeName);
     HBaseGenome parentGenome = admin.getGenome(karyotype.getKaryotype().getParentGenome());
 
-    Path karyotypePath = new Path("/tmp/" + karyotype.getKaryotype().getParentGenome());
+    Path basePath = new Path("/tmp"); // TODO this should probably be an arg
+    Path karyotypePath = new Path(basePath, karyotype.getKaryotype().getParentGenome());
     if (karyotypePath.getFileSystem(config).exists(karyotypePath))
       karyotypePath.getFileSystem(config).delete(karyotypePath, true);
-
 
     for (AberrationResult aberration : karyotype.getAberrations())
       {
@@ -156,11 +156,12 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
 
       ToolRunner.run(gdc, null);
       gdc.fixOutputFiles(aberration);
-      //break;
       }
 
     // TODO Create BWA index with ONLY the derivative chromosomes
-
+    // Create a single merged FASTA file for use in the indexing step
+    FASTAUtil.mergeFASTAFiles(basePath.getFileSystem(config), new Path(basePath, karyotypeName).toString(),
+        new Path(new Path(basePath, karyotypeName), karyotypeName + ".fa").toString() );
     }
 
   // just to clean up the main method a bit
@@ -199,7 +200,7 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
       }
 
     // create merged FASTA at chromosome level -- there is an issue here that it just concatenates the files which means at the merge points there are strings of different lengths.  This is an issue in samtools.
-    ToolRunner.run(new Crush(), new String[]{"--input-format=text", "--output-format=text", "--compress=none", output.toString(), output.toString() + ".tmp"});
+    FASTAUtil.mergeFASTAFiles(jobFS, output.toString(), output.toString() + ".fa");
     jobFS.delete(output, true);
     }
 

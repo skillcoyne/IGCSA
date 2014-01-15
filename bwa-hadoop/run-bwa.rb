@@ -111,7 +111,7 @@ puts tsv_hdfs_path
 #-archives 'hdfs:///distmap_input/execarch.tgz#execarch,/tmp/distmap/refarch.tgz#refarch' \
 stream_cmd = <<CMD
 #{hadoop}/bin/hadoop jar #{hadoop}/contrib/streaming/hadoop-streaming-1.2.1.jar \
--archives 'hdfs:///#{hdfs_input}/igcsa.tgz#tmp/fastq_tsv' \
+-archives 'hdfs://#{hdfs_input}/igcsa.tgz#tmp/fastq_tsv' \
 -D dfs.block.size=16777216 \
 -D mapred.job.priority=NORMAL \
 -D mapred.job.queue.name=default \
