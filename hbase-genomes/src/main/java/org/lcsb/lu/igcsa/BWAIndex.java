@@ -27,8 +27,7 @@ import org.lcsb.lu.igcsa.mapreduce.FASTAInputFormat;
 import org.lcsb.lu.igcsa.mapreduce.FASTAUtil;
 import org.lcsb.lu.igcsa.mapreduce.NullReducer;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 
 
 public class BWAIndex extends Configured implements Tool
@@ -48,56 +47,74 @@ public class BWAIndex extends Configured implements Tool
 
   public int run(String[] args) throws Exception
     {
-    this.fasta = new Path(args[0]);
-    String bwa = args[1];
-    this.conf = new Configuration();
+    //    this.fasta = new Path(args[0]);
+    //    String bwa = args[1];
+    //    this.conf = new Configuration();
+    //
+    //    Path fasta = new Path(args[0]);
+    //    Configuration conf = new Configuration();
+    //
+    //    log.info(fasta.getParent());
+    //
+    //    log.info(fasta.getName());
 
-    Path fasta = new Path(args[0]);
-    Configuration conf = new Configuration();
-
-    log.info(fasta.getParent());
-
-    log.info(fasta.getName());
-
-    FileSystem fs = fasta.getFileSystem(conf);
-    Path fullFasta = null;
-    for(FileStatus status: fs.listStatus( new Path(fasta, fasta.getName()+".fa")))
-      {
-      fullFasta = status.getPath();
-      log.info( status.getPath() );
-      }
-
-    if (fullFasta == null)
-      throw new Exception(new Path(fasta, fasta.getName()+".fa").toString() + " doesn't exist. Exiting.");
-
-    log.info(fs.getCanonicalServiceName());
+    //    FileSystem fs = fasta.getFileSystem(conf);
+    //    Path fullFasta = null;
+    //    for(FileStatus status: fs.listStatus( new Path(fasta, fasta.getName()+".fa")))
+    //      {
+    //      fullFasta = status.getPath();
+    //      log.info( status.getPath() );
+    //      }
+    //
+    //    if (fullFasta == null)
+    //      throw new Exception(new Path(fasta, fasta.getName()+".fa").toString() + " doesn't exist. Exiting.");
+    //
+    //    log.info(fs.getCanonicalServiceName());
 
     // stick bwa in hdfs
-//    fs.mkdirs(new Path("/tmp/bwa-tools"));
-//    FileUtil.copy(new File(bwa), fs, new Path("/tmp/bwa-tools/bwa"), false, conf);
+    //    fs.mkdirs(new Path("/tmp/bwa-tools"));
+    //    FileUtil.copy(new File(bwa), fs, new Path("/tmp/bwa-tools/bwa"), false, conf);
 
-    String bwaCmd = "tmp/bwa-tools/bwa index " + fullFasta.toString();
-    log.info(bwaCmd);
-    Process p = Runtime.getRuntime().exec( bwaCmd );
+    //String bwaCmd = "tmp/bwa-tools/bwa index " + fullFasta.toString();
+    Runtime rt = Runtime.getRuntime();
+    StreamWrapper error, output;
 
-return 0;
+    String bwaCmd = "/Users/skillcoyne/Tools/bwa-0.7.4/bwa index";
+    //log.info(bwaCmd);
+    Process p = Runtime.getRuntime().exec(bwaCmd);
 
-//    Job job = new Job(conf, "Index FASTA files");
-//    job.setJarByClass(BWAIndex.class);
-//
-//    job.setMapperClass(FASTAMapper.class);
-//
-//    job.setOutputKeyClass(Text.class);
-//    job.setOutputValueClass(Text.class);
-//
-//    job.setReducerClass(NullReducer.class);
-//
-//    job.setInputFormatClass(FASTAInputFormat.class);
-//    FileInputFormat.addInputPath(job, fasta);
-//
-//    job.setOutputFormatClass(NullOutputFormat.class);
-//
-//    return (job.waitForCompletion(true) ? 0 : 1);
+
+    //Process p = rt.exec("ping localhost");
+    error = getStreamWrapper(p.getErrorStream(), "ERROR");
+    output = getStreamWrapper(p.getInputStream(), "OUTPUT");
+    int exitVal = 0;
+
+    error.start();
+    output.start();
+    error.join(3000);
+    output.join(3000);
+    exitVal = p.waitFor();
+    System.out.println("Output: " + output.message + "\nError: " + error.message + "\n" + exitVal);
+
+
+    return 0;
+
+    //    Job job = new Job(conf, "Index FASTA files");
+    //    job.setJarByClass(BWAIndex.class);
+    //
+    //    job.setMapperClass(FASTAMapper.class);
+    //
+    //    job.setOutputKeyClass(Text.class);
+    //    job.setOutputValueClass(Text.class);
+    //
+    //    job.setReducerClass(NullReducer.class);
+    //
+    //    job.setInputFormatClass(FASTAInputFormat.class);
+    //    FileInputFormat.addInputPath(job, fasta);
+    //
+    //    job.setOutputFormatClass(NullOutputFormat.class);
+    //
+    //    return (job.waitForCompletion(true) ? 0 : 1);
     }
 
   static class FASTAMapper extends Mapper<Text, Text, Text, Text>
@@ -117,5 +134,47 @@ return 0;
       }
     }
 
+
+  public StreamWrapper getStreamWrapper(InputStream is, String type)
+    {
+    return new StreamWrapper(is, type);
+    }
+
+  private class StreamWrapper extends Thread
+    {
+    InputStream is = null;
+    String type = null;
+    String message = null;
+
+    public String getMessage()
+      {
+      return message;
+      }
+
+    StreamWrapper(InputStream is, String type)
+      {
+      this.is = is;
+      this.type = type;
+      }
+
+    public void run()
+      {
+      try
+        {
+        BufferedReader br = new BufferedReader(new InputStreamReader(is));
+        StringBuffer buffer = new StringBuffer();
+        String line = null;
+        while ((line = br.readLine()) != null)
+          {
+          buffer.append(line);//.append("\n");
+          }
+        message = buffer.toString();
+        }
+      catch (IOException ioe)
+        {
+        ioe.printStackTrace();
+        }
+      }
+    }
 
   }
