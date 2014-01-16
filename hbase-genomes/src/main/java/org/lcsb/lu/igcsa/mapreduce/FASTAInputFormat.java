@@ -41,8 +41,47 @@ public class FASTAInputFormat extends FileInputFormat<Text, Text>
 
   public RecordReader<Text, Text> createRecordReader(InputSplit inputSplit, TaskAttemptContext context) throws IOException, InterruptedException
     {
-    return new FASTARecordReader();
+    return new FASTAFileNameRecordReader();
     }
+
+  public static class FASTAFileNameRecordReader extends RecordReader<Text, Text>
+    {
+    private Text key;
+    private Text value;
+    public void initialize(InputSplit inputSplit, TaskAttemptContext context) throws IOException, InterruptedException
+      {
+      FileSplit split = (FileSplit) inputSplit;
+      Path path = split.getPath();
+      key = new Text(FASTAUtil.getChromosomeFromFASTA(path.toString()));
+      value = new Text(path.toString());
+      }
+
+    public boolean nextKeyValue() throws IOException, InterruptedException
+      {
+      return true;
+      }
+
+    public Text getCurrentKey() throws IOException, InterruptedException
+      {
+      return key;
+      }
+
+    public Text getCurrentValue() throws IOException, InterruptedException
+      {
+      return value;
+      }
+
+    public float getProgress() throws IOException, InterruptedException
+      {
+      return 0;
+      }
+
+    public void close() throws IOException
+      {
+      }
+    }
+
+
 
 
   public static class FASTARecordReader extends RecordReader<Text, Text>

@@ -102,7 +102,7 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
     What this script actually should do is grab <all> karyotypes for a given parent and spin off jobs to generate each.
      */
     //args = new String[]{"kiss135"};
-    args = new String[]{"kiss35"};
+    //args = new String[]{"kiss35"};
     if (args.length < 1)
       {
       System.err.println("Usage: GenerateFASTA <karyotype name>");
@@ -162,6 +162,9 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
     // Create a single merged FASTA file for use in the indexing step
     FASTAUtil.mergeFASTAFiles(basePath.getFileSystem(config), new Path(basePath, karyotypeName).toString(),
         new Path(new Path(basePath, karyotypeName), karyotypeName + ".fa").toString() );
+
+    // Run BWA
+    BWAIndex.main(new String[]{new Path(new Path(basePath, karyotypeName), karyotypeName + ".fa").toString()});
     }
 
   // just to clean up the main method a bit

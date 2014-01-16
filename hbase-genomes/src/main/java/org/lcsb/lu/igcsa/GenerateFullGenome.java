@@ -86,8 +86,14 @@ public class GenerateFullGenome extends Configured implements Tool
     // remove extraneous files and rename to .fa
     gfg.cleanUpFiles(chrs);
 
-    // TODO create BWA index
 
+    // TODO create BWA index
+    // Create a single merged FASTA file for use in the indexing step
+//    FASTAUtil.mergeFASTAFiles(basePath.getFileSystem(config), new Path(basePath, karyotypeName).toString(),
+//        new Path(new Path(basePath, karyotypeName), karyotypeName + ".fa").toString() );
+
+    // Run BWA
+    //BWAIndex.main(new String[]{new Path(new Path(basePath, karyotypeName), karyotypeName + ".fa").toString()});
     }
 
   protected void cleanUpFiles(List<String> chrs) throws IOException

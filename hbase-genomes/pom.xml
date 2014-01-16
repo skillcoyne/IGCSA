@@ -93,6 +93,7 @@
                                     <filtering>true</filtering>
                                     <includes>
                                         <include>*.properties</include>
+                                        <include>bwa</include>
                                     </includes>
                                     <excludes>
                                         <exclude>*.sh</exclude>
