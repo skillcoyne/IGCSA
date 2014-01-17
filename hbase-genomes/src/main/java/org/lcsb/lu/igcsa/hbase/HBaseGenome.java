@@ -90,6 +90,8 @@ public class HBaseGenome extends HBaseConnectedObjects
   public HBaseChromosome addChromosome(String chr, long length, long numSegments) throws IOException
     {
     log.info("Adding chromosome " + chr);
+    if (chr.equals("0"))
+      throw new IOException("Chromosome names cannot be '0'");
 
     GenomeResult result = gT.queryTable(genome.getName());
 

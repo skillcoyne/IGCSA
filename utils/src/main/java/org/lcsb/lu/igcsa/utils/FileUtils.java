@@ -1,5 +1,8 @@
 package org.lcsb.lu.igcsa.utils;
 
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
@@ -11,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -98,37 +102,40 @@ public class FileUtils
     }
 
 
-  public static void ZipDirectory(File srcDir, String zipFile) throws IOException
+  public static void compressFiles(File[] files, String zipFile, String dir) throws IOException
     {
+    if (files.length <= 0)
+      throw new IOException("No files to compress.");
+
+    log.info("Creating zip " + zipFile);
     FileOutputStream fos = new FileOutputStream(zipFile);
-    ZipOutputStream zos = new ZipOutputStream(fos);
-    addDirToArchive(zos, srcDir);
-    zos.close();
+    TarArchiveOutputStream taos = new TarArchiveOutputStream(new GZIPOutputStream(fos));
+    taos.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_STAR);
+    taos.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU);
+
+    for (File file: files)
+      addToCompressedFile(taos, file, dir);
+
+    taos.close();
+    fos.close();
     }
 
-  private static void addDirToArchive(ZipOutputStream zos, File srcFile) throws IOException
+  private static void addToCompressedFile(TarArchiveOutputStream taos, File file, String dir) throws IOException
     {
-    File[] files = srcFile.listFiles();
-
-    for (int i = 0; i < files.length; i++)
+    log.info("Adding file " + file.getAbsolutePath() + " to " + dir);
+    taos.putArchiveEntry(new TarArchiveEntry(file, dir + File.separator + file.getName()));
+    if (file.isFile())
       {
-      // if the file is directory, use recursion
-      if (files[i].isDirectory())
-        {
-        addDirToArchive(zos, files[i]);
-        continue;
-        }
-
-      // create byte buffer
-      byte[] buffer = new byte[1024];
-      FileInputStream fis = new FileInputStream(files[i]);
-      zos.putNextEntry(new ZipEntry(files[i].getName()));
-
-      int length;
-      while ((length = fis.read(buffer)) > 0) zos.write(buffer, 0, length);
-
-      zos.closeEntry();
-      fis.close();
+      BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+      IOUtils.copy(bis, taos);
+      taos.closeArchiveEntry();
+      bis.close();
+      }
+    else if (file.isDirectory())
+      {
+      taos.closeArchiveEntry();
+      for (File child: file.listFiles())
+        addToCompressedFile(taos, child, file.getName());
       }
     }
 

@@ -159,12 +159,17 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
       }
 
     // TODO Create BWA index with ONLY the derivative chromosomes
+    Path mergedFASTA = new Path(new Path(basePath, karyotypeName), "reference.fa");
+    //Path mergedFASTA = new Path(new Path(basePath, karyotypeName), karyotypeName + ".fa");
     // Create a single merged FASTA file for use in the indexing step
-    FASTAUtil.mergeFASTAFiles(basePath.getFileSystem(config), new Path(basePath, karyotypeName).toString(),
-        new Path(new Path(basePath, karyotypeName), karyotypeName + ".fa").toString() );
+    FASTAUtil.mergeFASTAFiles(basePath.getFileSystem(config),
+                              new Path(basePath, karyotypeName).toString(),
+                              mergedFASTA.toString() );
 
     // Run BWA
-    BWAIndex.main(new String[]{new Path(new Path(basePath, karyotypeName), karyotypeName + ".fa").toString()});
+    BWAIndex.main(new String[]{mergedFASTA.toString()});
+
+    //mergedFASTA.getFileSystem(config).deleteOnExit(mergedFASTA);
     }
 
   // just to clean up the main method a bit

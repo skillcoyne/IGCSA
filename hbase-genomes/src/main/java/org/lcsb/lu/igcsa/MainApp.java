@@ -18,6 +18,20 @@ public class MainApp
   {
   private static final Log log = LogFactory.getLog(MainApp.class);
 
+
+  /*
+  Pipeline:
+
+  1. LoadFromFASTA.  Only needs to run once per set of FASTA files so this is a standalone process.
+  2. MutateFragments (possibly)
+  3. CreateKaryotypes
+  4. Generate chromosomes (GenerateFullGenome & GenerateDerivativeChromosomes)
+  5. Run streaming job to align
+  6. Assess alignment
+  7. Repeat 3-6
+
+   */
+
   public static void main(String[] args) throws Exception
     {
     if (args.length < 1)
@@ -45,6 +59,9 @@ public class MainApp
 
 
     }
+
+
+
 
 
   }

@@ -9,6 +9,7 @@
 package org.lcsb.lu.igcsa;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -35,21 +36,21 @@ public class BWAIndex extends Configured implements Tool
   public int run(String[] args) throws Exception
     {
     this.fasta = new Path(args[0]);
-
     this.conf = new Configuration();
 
-    FileSystem fs = fasta.getFileSystem(conf);
+    log.info("FASTA: " + fasta.toString());
 
+    FileSystem fs = fasta.getFileSystem(conf);
     File localFasta = new File(new File("/tmp/" + fasta.getParent().getName()), fasta.getName());
-    if (localFasta.getParentFile().exists())
-      FileUtils.cleanDirectory(localFasta.getParentFile());
-    else
-      localFasta.getParentFile().mkdir();
+
+    if (localFasta.getParentFile().exists()) FileUtils.cleanDirectory(localFasta.getParentFile());
+    else localFasta.getParentFile().mkdir();
 
     log.info(fs.getFileStatus(fasta).getPath() + " " + fs.getFileStatus(fasta).getLen());
 
-    // Set up dir for bwa
+    //Set up dir for bwa
     FileUtil.copy(fs, fasta, localFasta, false, conf);
+    log.info("Copy to local fasta: " + localFasta);
 
     String bwaCmd = "bwa index -a bwtsw " + localFasta.getAbsolutePath();
     Runtime rt = Runtime.getRuntime();
@@ -69,21 +70,23 @@ public class BWAIndex extends Configured implements Tool
 
     log.info("BWA Output: " + output.message);
 
-    if (exitVal > 0)
-      throw new Exception("Failed to run bwa: " + error.message);
+    if (exitVal > 0) throw new Exception("Failed to run bwa: " + error.message);
 
     File[] indexFiles = localFasta.getParentFile().listFiles(new FilenameFilter()
     {
     public boolean accept(File file, String name)
       {
-      return (name.startsWith(fasta.getParent().getName()) && !name.endsWith(".fa"));
+      return (name.startsWith(FilenameUtils.getBaseName(fasta.getName())));
       }
     });
 
-    for (File file: indexFiles)
-      FileUtil.copy(file, fs, new Path(new Path(fasta.getParent(), "index"), file.getName()), true, conf);
+    File zip = new File(localFasta.getParentFile(), "index.tgz");
+    org.lcsb.lu.igcsa.utils.FileUtils.compressFiles(indexFiles, zip.getAbsolutePath(), "ref");
 
-    localFasta.deleteOnExit();
+    FileUtil.copy(zip, fs, new Path(fasta.getParent(), zip.getName()), true, conf);
+    fs.deleteOnExit(this.fasta); // this file is in the tgz, no reason to keep it duplicated
+
+    FileUtils.deleteDirectory(localFasta.getParentFile()); // clean up local directory
 
     return 0;
     }

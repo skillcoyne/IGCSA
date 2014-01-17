@@ -8,6 +8,7 @@
 
 package org.lcsb.lu.igcsa;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 import org.lcsb.lu.igcsa.hbase.HBaseKaryotype;
@@ -40,7 +41,8 @@ public class CreateKaryotypes
 
     List<MinimalKaryotype> pop = new PopulationGenerator().run(1000);
 
-    admin.getGenome(parentGenome).createKaryotypes(args[1], parentGenome, pop);
+    String karyotypePrefix = StringUtils.join(args, '-');
+    admin.getGenome(parentGenome).createKaryotypes(karyotypePrefix, parentGenome, pop);
     }
 
 
