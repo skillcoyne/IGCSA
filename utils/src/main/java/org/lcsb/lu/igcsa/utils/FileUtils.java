@@ -4,16 +4,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * org.lcsb.lu.igcsa.utils
@@ -31,8 +30,7 @@ public class FileUtils
   public boolean accept(File dir, String name)
     {
     for (String suffix : new String[]{".fa", ".fasta", ".fa.gz", ".fasta.gz"})
-      if (name.endsWith(suffix))
-        return true;
+      if (name.endsWith(suffix)) return true;
     return false;
     }
   };
@@ -46,15 +44,13 @@ public class FileUtils
     public boolean accept(File dir, String name)
       {
       for (String suffix : new String[]{".fa", ".fasta", ".fa.gz", ".fasta.gz"})
-        if (name.equalsIgnoreCase(chr + suffix))
-          return true;
+        if (name.equalsIgnoreCase(chr + suffix)) return true;
       return false;
       }
     };
 
     File[] files = listFASTAFiles(fastaDir, fastaFilter);
-    if (files.length > 1)
-      throw new IOException("Multiple FASTA files identified for chromosome " + chromosome);
+    if (files.length > 1) throw new IOException("Multiple FASTA files identified for chromosome " + chromosome);
     if (files.length <= 0)
       throw new IOException("No FASTA file found for chromosome " + chromosome + " in directory " + fastaDir.getAbsolutePath());
 
@@ -68,7 +64,7 @@ public class FileUtils
    */
   public static String getChromosomeFromFASTA(String fileName)
     {
-    Pattern p = Pattern.compile("^.*chr(\\d+|X|Y)\\.fa.*$");
+    Pattern p = Pattern.compile("(\\d{1,2}|X|Y)\\.fa.*$");
     Matcher matcher = p.matcher(fileName);
 
     if (matcher.matches())
@@ -76,11 +72,7 @@ public class FileUtils
       log.info("Chromosome from FASTA " + fileName + ": " + matcher.group(1));
       return matcher.group(1);
       }
-
     return null;
-//    String fastaChr = fileName.replace("chr", "");
-//    fastaChr = fastaChr.replaceAll(fastaChr.substring(fastaChr.indexOf("."), fastaChr.length()), "");
-//    return fastaChr;
     }
 
   public static Map<String, File> getFASTAFiles(File fastaDir) throws FileNotFoundException
@@ -103,6 +95,41 @@ public class FileUtils
     if (fastaFiles.length <= 0)
       throw new FileNotFoundException("No FASTA files found in directory (.fa, .fasta, .fa.gz, .fasta.gz) " + fastaDir);
     return fastaFiles;
+    }
+
+
+  public static void ZipDirectory(File srcDir, String zipFile) throws IOException
+    {
+    FileOutputStream fos = new FileOutputStream(zipFile);
+    ZipOutputStream zos = new ZipOutputStream(fos);
+    addDirToArchive(zos, srcDir);
+    zos.close();
+    }
+
+  private static void addDirToArchive(ZipOutputStream zos, File srcFile) throws IOException
+    {
+    File[] files = srcFile.listFiles();
+
+    for (int i = 0; i < files.length; i++)
+      {
+      // if the file is directory, use recursion
+      if (files[i].isDirectory())
+        {
+        addDirToArchive(zos, files[i]);
+        continue;
+        }
+
+      // create byte buffer
+      byte[] buffer = new byte[1024];
+      FileInputStream fis = new FileInputStream(files[i]);
+      zos.putNextEntry(new ZipEntry(files[i].getName()));
+
+      int length;
+      while ((length = fis.read(buffer)) > 0) zos.write(buffer, 0, length);
+
+      zos.closeEntry();
+      fis.close();
+      }
     }
 
 
