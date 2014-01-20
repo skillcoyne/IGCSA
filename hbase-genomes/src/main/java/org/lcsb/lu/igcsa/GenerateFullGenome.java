@@ -74,13 +74,26 @@ public class GenerateFullGenome extends Configured implements Tool
     HBaseGenome genome = admin.getGenome(genomeName);
 
     List<String> chrs = new ArrayList<String>();
-    for (HBaseChromosome chr : admin.getGenome(genomeName).getChromosomes())
-      chrs.add(chr.getChromosome().getChrName());
-
     Scan scan = admin.getSequenceTable().getScanFor(new Column("info", "genome", genomeName));
     scan.setCaching(200);
 
-    GenerateFullGenome gfg = new GenerateFullGenome(config, scan, new Path("/tmp/" + genomeName), genome);
+    if (genomeName.toLowerCase().equals("test"))
+      {
+      chrs.add("19");
+      scan = admin.getSequenceTable().getScanFor(new Column("info", "genome", "GRCh37"), new Column("loc", "chr", chrs.get(0)));
+      genome = admin.getGenome("GRCh37");
+      }
+    else
+      {
+      for (HBaseChromosome chr : admin.getGenome(genomeName).getChromosomes())
+        chrs.add(chr.getChromosome().getChrName());
+      }
+
+    Path outputPath = new Path("/tmp/" + genomeName);
+    if (outputPath.getFileSystem(config).exists(outputPath))
+      outputPath.getFileSystem(config).delete(outputPath, true);
+
+    GenerateFullGenome gfg = new GenerateFullGenome(config, scan, outputPath, genome);
     ToolRunner.run(gfg, chrs.toArray(new String[chrs.size()]));
 
     // remove extraneous files and rename to .fa
@@ -89,18 +102,18 @@ public class GenerateFullGenome extends Configured implements Tool
 
     // TODO create BWA index
     // Create a single merged FASTA file for use in the indexing step
-//    FASTAUtil.mergeFASTAFiles(basePath.getFileSystem(config), new Path(basePath, karyotypeName).toString(),
-//        new Path(new Path(basePath, karyotypeName), karyotypeName + ".fa").toString() );
+    Path mergedFasta = new Path(outputPath, "reference.fa");
+        FASTAUtil.mergeFASTAFiles(outputPath.getFileSystem(config), outputPath.toString(), mergedFasta.toString() );
 
     // Run BWA
-    //BWAIndex.main(new String[]{new Path(new Path(basePath, karyotypeName), karyotypeName + ".fa").toString()});
+    BWAIndex.main(new String[]{mergedFasta.toString()});
     }
 
   protected void cleanUpFiles(List<String> chrs) throws IOException
     {
     FASTAUtil.deleteChecksumFiles(jobFS, output);
-    for (String c: chrs)
-      FileUtil.copy(jobFS, new Path(output, c), jobFS, new Path(output, c+".fa"), true, false, jobFS.getConf());
+    for (String c : chrs)
+      FileUtil.copy(jobFS, new Path(output, c), jobFS, new Path(output, c + ".fa"), true, false, jobFS.getConf());
     }
 
 
@@ -123,8 +136,7 @@ public class GenerateFullGenome extends Configured implements Tool
     for (String chr : chrs)
       {
       MultipleOutputs.addNamedOutput(job, chr, FASTAOutputFormat.class, LongWritable.class, Text.class);
-      FASTAOutputFormat.addHeader(job, new Path(output, chr), new FASTAHeader("chr" + chr, genome.getGenome().getName(),
-          "parent=" + genome.getGenome().getParent(), "hbase-generation"));
+      FASTAOutputFormat.addHeader(job, new Path(output, chr), new FASTAHeader("chr" + chr, genome.getGenome().getName(), "parent=" + genome.getGenome().getParent(), "hbase-generation"));
       }
 
     this.jobFS = output.getFileSystem(conf);

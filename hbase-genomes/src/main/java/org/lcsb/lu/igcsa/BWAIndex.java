@@ -43,8 +43,13 @@ public class BWAIndex extends Configured implements Tool
     FileSystem fs = fasta.getFileSystem(conf);
     File localFasta = new File(new File("/tmp/" + fasta.getParent().getName()), fasta.getName());
 
-    if (localFasta.getParentFile().exists()) FileUtils.cleanDirectory(localFasta.getParentFile());
-    else localFasta.getParentFile().mkdir();
+    // need a local directory to copy things to if it doesn't already exist
+    if (fs.getUri().toASCIIString().equals("hdfs:///"))
+      {
+      if (localFasta.getParentFile().exists())
+        FileUtils.cleanDirectory(localFasta.getParentFile());
+      else localFasta.getParentFile().mkdir();
+      }
 
     log.info(fs.getFileStatus(fasta).getPath() + " " + fs.getFileStatus(fasta).getLen());
 
