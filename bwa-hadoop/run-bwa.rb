@@ -21,16 +21,15 @@ end
 opts = GetoptLong.new(
     ['--hadoop-path', '-h', GetoptLong::REQUIRED_ARGUMENT],
     ['--bwa-path', '-b', GetoptLong::REQUIRED_ARGUMENT],
+    ['--picard-path', '-s', GetoptLong::REQUIRED_ARGUMENT],
     ['--reference', '-r', GetoptLong::REQUIRED_ARGUMENT],
-    ['--run_index', '-i', GetoptLong::OPTIONAL_ARGUMENT],
     ['--read-pair-dir', '-p', GetoptLong::OPTIONAL_ARGUMENT],
     ['--help', GetoptLong::NO_ARGUMENT]
 )
 
 
-bwa_path, reference, index, hadoop = nil
+bwa_path, picard_path, picard_sort, picard_merge, reference, hadoop = nil
 read_pair = []
-run_index = false
 opts.each do |opt, arg|
   case opt
     when '--help'
@@ -38,6 +37,11 @@ opts.each do |opt, arg|
     when '--bwa-path'
       bwa_path = arg
       print_usage unless File.exists? bwa_path
+    when '--picard-path'
+      picard_path = arg
+      picard_merge = "#{picard_path}/MergeSamFiles.jar"
+      picard_sort = "#{picard_path}/SortSam.jar"
+      print usage unless File.exists? picard_path and File.directory? picard_path and File.exists? picard_sort and File.exists? picard_merge
     when '--hadoop-path'
       hadoop = arg
       print_usage unless File.exists? hadoop
@@ -49,24 +53,25 @@ opts.each do |opt, arg|
         print print_usage unless (File.exists? dir and File.directory? dir)
         read_pair = Dir.glob("#{dir}/*.fastq")
       end
-    when
-    '--run_index'
-      run_index = true
     when '--reference'
       reference = arg
-      index = Dir.glob("#{reference}*")
   end
 end
 
-unless bwa_path and reference and hadoop and read_pair
+unless bwa_path and picard_path and reference and hadoop and read_pair
   print_usage
 end
 
-#puts bwa_path
-#puts read_pair
-#puts reference
-#puts hadoop
-#puts index
+reference = "/tmp/test"
+
+puts "BWA: #{bwa_path}"
+puts "Picard: #{picard_path}"
+puts "Read pair: #{read_pair}"
+puts "Indexed reference path: #{reference}"
+puts "Hadoop path #{hadoop}"
+
+reference += "/index.tgz"
+
 
 #FileUtils.copy(bwa_path, "/tmp/fastq_tsv/bwa")
 #tarfile = "/tmp/fastq_tsv/igcsa.tgz"
@@ -85,20 +90,47 @@ end
 #tsv_file = ftt.write_tsv
 #
 hdfs_input = "/tmp/igcsa"
-#hadoop_reads = "#{hdfs_input}/reads"
-#hadoop_output = "#{hdfs_input}/rubystream"
+input_path = "#{hdfs_input}/reads"
+output_path = "#{hdfs_input}/rubystream"
 #
-### copy input files to hdfs
+### copy read file to hdfs
 hcmd = HadoopCommands.new(hadoop, hdfs_input)
+
+## Set up bwa tool
+tmp_path = "#{hdfs_input}/tools"
+bwa_path += "/bwa" if File.basename(bwa_path) != "bwa"
+
+FileUtils.rm_r(tmp_path) if File.exists? tmp_path
+FileUtils.mkpath(tmp_path)
+FileUtils.cp(bwa_path, tmp_path)
+FileUtils.cp(picard_merge, tmp_path)
+FileUtils.cp(picard_sort, tmp_path)
+
+FileUtils.chdir(tmp_path) do
+  output = `tar -czvf bwa.tgz *`
+  unless $?.success?
+    $stderr.puts "Failed to tar bwa/picard executables: #{output}: #{$?}"
+  end
+end
+
+hcmd.copy_to_hdfs("#{tmp_path}/bwa.tgz", :path => "/bwa-tools", :overwrite => true)
+
+exit
+
 #
 #unless hcmd.list(:path => hadoop_output).nil?
 #  hcmd.remove_from_hdfs(hadoop_output)
 #end
 #
 #tsv_hdfs_path = hcmd.copy_to_hdfs(tsv_file, :path => "reads", :overwrite => true)
+
+
+unless YAML::dump hcmd.list(:path => reference)
+  $stderr.puts "Reference tgz (index.tgz) does not exist."
+  exit -1
+end
+
 #ref_path = hcmd.copy_to_hdfs(tarfile)
-
-
 
 #hdfs_index_files = []
 #index.each do |f|
@@ -106,67 +138,46 @@ hcmd = HadoopCommands.new(hadoop, hdfs_input)
 #end
 
 #puts tsv_hdfs_path
-#puts hdfs_index_files
-
-input_path = "/tmp/kiss35/kiss35.fa"
-output_path = "/tmp/kiss35/index"
 
 if (hcmd.list(:path => output_path))
   hcmd.remove_from_hdfs(output_path)
 end
 
-
-lib_jar = "/Users/sarah.killcoyne/workspace/IGCSA/hbase-genomes/target/HBase-Genomes-1.1.jar"
-$stderr.puts "#{lib_jar} doesn't exist" unless File.exists?lib_jar
-
-#-archives 'hdfs:///distmap_input/execarch.tgz#execarch,/tmp/distmap/refarch.tgz#refarch' \
 stream_cmd = <<CMD
 #{hadoop}/bin/hadoop jar #{hadoop}/contrib/streaming/hadoop-streaming-1.2.1.jar \
--archives 'hdfs:///bwa-tools/bwa.tgz#tools' \
--libjars '#{lib_jar}' \
+-archives 'hdfs:///bwa-tools/bwa.tgz#tools,hdfs://#{reference}#reference' \
 -D dfs.block.size=16777216 \
+-D mapred.job.priority=NORMAL \
+-D mapred.job.queue.name=default \
 -D mapred.reduce.tasks=0 \
 -D mapred.job.name="test job" \
+-D mapred.output.key.comparator.class=org.apache.hadoop.mapred.lib.KeyFieldBasedComparator \
+-D stream.num.map.output.key.fields=4 \
+-D mapred.text.key.partitioner.options=-k1,4 \
+-D mapred.text.key.comparator.options=-k1,4 \
+-partitioner org.apache.hadoop.mapred.lib.KeyFieldBasedPartitioner \
 -input #{input_path} \
 -output #{output_path} \
+-mapper "ruby mapper.rb reference/ref/reference.fa tools/fastq_tsv/bwa" \
 -mapper "ruby index.rb tools/fastq_tsv/bwa #{output_path}" \
--file "/Users/sarah.killcoyne/workspace/IGCSA/bwa-hadoop/index.rb" \
--file "#{lib_jar}"
-
+-file "/Users/sarah.killcoyne/workspace/IGCSA/bwa-hadoop/mapper.rb"
 CMD
-
-
-##-archives 'hdfs:///distmap_input/execarch.tgz#execarch,/tmp/distmap/refarch.tgz#refarch' \
-#stream_cmd = <<CMD
-##{hadoop}/bin/hadoop jar #{hadoop}/contrib/streaming/hadoop-streaming-1.2.1.jar \
-#-archives 'hdfs://#{hdfs_input}/igcsa.tgz#tmp/fastq_tsv' \
-#-D dfs.block.size=16777216 \
-#-D mapred.job.priority=NORMAL \
-#-D mapred.job.queue.name=default \
-#-D mapred.reduce.tasks=0 \
-#-D mapred.job.name="test job" \
-#-D mapred.output.key.comparator.class=org.apache.hadoop.mapred.lib.KeyFieldBasedComparator \
-#-D stream.num.map.output.key.fields=4 \
-#-D mapred.text.key.partitioner.options=-k1,4 \
-#-D mapred.text.key.comparator.options=-k1,4 \
-#-partitioner org.apache.hadoop.mapred.lib.KeyFieldBasedPartitioner \
-#-input #{input_path} \
-#-output #{output_path} \
-#-mapper "ruby mapper.rb refarch/ref/reference.fa execarch/bin/bwa" \
-#-file "/Users/sarah.killcoyne/workspace/IGCSA/bwa-hadoop/mapper.rb"
-#CMD
 
 print stream_cmd
 `#{stream_cmd}`
 
 ### Merge sam files
-#sam_files = []
-#hcmd.list(:path => "#{hadoop_output}/sam").each do |f|
-#  sam_files << "I=" + hcmd.move_from_hdfs(f, "/tmp/testmerge")
-#end
-#
-#merge = "java -jar ~/Tools/picard-tools-1.90/picard-tools-1.90/MergeSamFiles.jar #{sam_files.join(' ')} O=#{File.basename(tsv_file)}.sam"
-#puts `#{merge}`
+sam_files = []
+hcmd.list(:path => "#{output_path}").each do |f|
+  hcmd.copy_from_hdfs(f, "/tmp/testmerge")
+  sam_files << "I=/tmp/testmerge/#{File.basename(f)}"
+end
+puts sam_files
+
+merge = "java -Xmx512m -jar ~/Tools/picard-tools-1.90/picard-tools-1.90/MergeSamFiles.jar #{sam_files.join(' ')} O=/tmp/testmerge/#{File.basename(tsv_file)}.sam"
+puts "Run merge: #{merge}"
+output = `#{merge}`
+puts "#{output}: #{$?}"
 
 
 
