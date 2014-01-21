@@ -3,7 +3,8 @@ require 'rubygems'
 class BWAAlignment
 
   def self.fastq_read(name, seq, qual)
-    return "#{name}\n#{seq}\n+\n#{qual}\n"
+    str = "#{name}\n#{seq}\n+\n#{qual}\n"
+    return str
   end
 
   def initialize(reference, bwa)
@@ -28,7 +29,6 @@ class BWAAlignment
 
     aln()
     sampe()
-    return @sam
   end
 
   :private
@@ -39,11 +39,16 @@ class BWAAlignment
       sai_file = "#{@random}_read#{i+1}.sai"
       cmd = "#{@bwa_path} aln #{@ref} #{fastq} > #{sai_file}"
       $stderr.puts "Running #{cmd}"
-      `#{cmd}`
-      unless $?.success?
-        $stderr.puts "Failed to run alignment, error #{$?}.  #{cmd}"
-        exit(-1)
+      pid = fork do
+        output = `#{cmd}`
+        $stderr.puts "aln: #{output} #{$?}"
       end
+      Process.waitpid(pid)
+
+      #unless $?.success?
+      #  $stderr.puts "Failed to run alignment, error #{$?}.  #{cmd}"
+      #  exit(-1)
+      #end
       @sai << sai_file
     end
   end
@@ -56,16 +61,29 @@ class BWAAlignment
       exit(-1)
     end
 
-    cmd = "#{@bwa_path} sampe #{@ref} #{@sai.join(' ')} #{@fastq.join(' ')}"
+    cmd = "#{@bwa_path} sampe #{@ref} #{@sai.join(' ')} #{@fastq.join(' ')} > #{@sam}"
     $stderr.puts "Running #{cmd}"
-    `#{cmd}`
-    unless $?.success?
-      $stderr.puts "Failed to run sampe, error #{$?}.  #{cmd}"
-      exit(-1)
+    pid = fork do
+      output = `#{cmd}`
+      $stderr.puts "sampe: #{output}: #{$?}"
+    end
+    Process.waitpid(pid)
+    #unless $?.success?
+    #  $stderr.puts "Failed to run sampe, error #{$?}.  #{cmd}"
+    #  exit(-1)
+    #end
+    #$stderr.puts "sampe: #{output}: #{$?}"
+    $stderr.puts "#{@sam} written. #{File.size(@sam)}"
+
+    # force it to write to hdfs output
+    File.open(@sam, 'r').each_line do |line|
+      puts line
     end
 
-    #@sai.each { |f| File.delete(f) }
-    #@fastq.each { |f| File.delete(f) }
+    # is this necessary or does hadoop clean up after itself?
+    @sai.each { |f| File.delete(f) }
+    @fastq.each { |f| File.delete(f) }
+    File.delete(@sam)
   end
 
 end
@@ -85,12 +103,18 @@ bwa_path = ARGV[1]
 bwaalign = BWAAlignment.new(reference, bwa_path)
 
 random = bwaalign.get_unique_filename
+
 $stderr.puts "Random #{random}"
 
 fastq_filename_1 = "#{random}_read1.fastq";
 fastq_filename_2 = "#{random}_read2.fastq"
 
-$stderr.puts "fastq temp files: #{fastq_filename_1}, #{fastq_filename_2}"
+
+$stderr.puts <<IN
+bwa: #{bwa_path}
+reference: #{reference}
+fastq files: #{fastq_filename_1}, #{fastq_filename_2}
+IN
 
 fh1 = File.open(fastq_filename_1, 'w')
 fh2 = File.open(fastq_filename_2, 'w')
@@ -98,7 +122,6 @@ fh2 = File.open(fastq_filename_2, 'w')
 count = 0
 $stdin.each do |line|
   line.chomp!
-  #$stderr.puts line
 
   (name, seq1, qual1, seq2, qual2) = line.split("\t")
 
@@ -107,14 +130,14 @@ $stdin.each do |line|
   fh2.write BWAAlignment.fastq_read("#{name}/2", seq2, qual2)
   count += 1
 end
-
-$stderr.puts "#{count} lines output to fastq files."
-
 fh1.close
 fh2.close
 
-samfile = bwaalign.run_alignment([fastq_filename_1, fastq_filename_2])
+$stderr.puts "#{count} lines output to fastq files."
+$stderr.puts "File sizes: #{File.size(fastq_filename_1)} #{File.size(fastq_filename_2)}"
 
-$stderr.puts "#{samfile} written."
+bwaalign.run_alignment([fastq_filename_1, fastq_filename_2])
+
+
 
 

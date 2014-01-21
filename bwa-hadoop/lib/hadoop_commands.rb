@@ -36,23 +36,11 @@ class HadoopCommands
 
   def copy_from_hdfs(file, localpath, opts = {})
     path = get_path(opts)
-    cmd = "#{@hadoop_path}/#{@@hadoop_dfs} --copyToLocal #{path}/#{file} #{localpath}/#{file}"
+    cmd = "#{@hadoop_path}/#{@@hadoop_dfs} -copyToLocal -ignoreCrc #{file} #{localpath}/#{File.basename(file)}"
     puts cmd
     return `#{cmd}`
   end
 
-
-  def move_from_hdfs(file, localpath, opts = {})
-    unless Dir.exists? localpath
-      Dir.mkdir(localpath)
-    end
-
-    path = get_path(opts)
-    cmd = "#{@hadoop_path}/#{@@hadoop_dfs} -moveToLocal #{path}/#{file} #{localpath}/#{file}"
-    puts cmd
-    `#{cmd}`
-    return "#{localpath}/#{file}"
-  end
 
   def remove_from_hdfs(file, opts = {})
     path = get_path(opts)
@@ -86,6 +74,7 @@ class HadoopCommands
         es = e.split("\s")
         es[es.length-1]
       }
+      files.delete_if {|e| File.basename(e).start_with?"_"}
     end
     return files
   end
