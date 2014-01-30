@@ -60,7 +60,7 @@ class HadoopCommands
 
   def list(opts = {})
     path = get_path(opts)
-
+    $stderr.puts "Listing #{path}"
     cmd = "#{@hadoop_path}/#{@@hadoop_dfs} -ls #{path}"
     output = `#{cmd}`
     unless $?.success?

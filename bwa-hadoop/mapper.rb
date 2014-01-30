@@ -1,4 +1,5 @@
 require 'rubygems'
+require 'fileutils'
 
 class BWAAlignment
 
@@ -39,16 +40,16 @@ class BWAAlignment
       sai_file = "#{@random}_read#{i+1}.sai"
       cmd = "#{@bwa_path} aln #{@ref} #{fastq} > #{sai_file}"
       $stderr.puts "Running #{cmd}"
-      pid = fork do
+      #pid = fork do
         output = `#{cmd}`
         $stderr.puts "aln: #{output} #{$?}"
-      end
-      Process.waitpid(pid)
-
-      #unless $?.success?
-      #  $stderr.puts "Failed to run alignment, error #{$?}.  #{cmd}"
-      #  exit(-1)
       #end
+      #Process.waitpid(pid)
+
+      unless $?.success?
+        $stderr.puts "Failed to run alignment, error #{$?}.  #{cmd}"
+        exit(-1)
+      end
       @sai << sai_file
     end
   end
@@ -63,15 +64,15 @@ class BWAAlignment
 
     cmd = "#{@bwa_path} sampe #{@ref} #{@sai.join(' ')} #{@fastq.join(' ')} > #{@sam}"
     $stderr.puts "Running #{cmd}"
-    pid = fork do
+    #pid = fork do
       output = `#{cmd}`
       $stderr.puts "sampe: #{output}: #{$?}"
-    end
-    Process.waitpid(pid)
-    #unless $?.success?
-    #  $stderr.puts "Failed to run sampe, error #{$?}.  #{cmd}"
-    #  exit(-1)
     #end
+    #Process.waitpid(pid)
+    unless $?.success?
+      $stderr.puts "Failed to run sampe, error #{$?}.  #{cmd}"
+      exit(-1)
+    end
     #$stderr.puts "sampe: #{output}: #{$?}"
     $stderr.puts "#{@sam} written. #{File.size(@sam)}"
 
@@ -81,9 +82,9 @@ class BWAAlignment
     end
 
     # is this necessary or does hadoop clean up after itself?
-    @sai.each { |f| File.delete(f) }
-    @fastq.each { |f| File.delete(f) }
-    File.delete(@sam)
+    @sai.each { |f| FileUtils.rm_f(f) }
+    @fastq.each { |f| FileUtils.rm_f(f) }
+    FileUtils.rm_f(@sam)
   end
 
 end
@@ -138,6 +139,9 @@ $stderr.puts "File sizes: #{File.size(fastq_filename_1)} #{File.size(fastq_filen
 
 bwaalign.run_alignment([fastq_filename_1, fastq_filename_2])
 
+
+FileUtils.rm_f(fastq_filename_1)
+FileUtils.rm_f(fastq_filename_2)
 
 
 
