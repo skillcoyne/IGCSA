@@ -71,12 +71,14 @@ public class FileUtils
     Pattern p = Pattern.compile("(\\d{1,2}|X|Y)\\.fa.*$");
     Matcher matcher = p.matcher(fileName);
 
-    if (matcher.matches())
+    if (matcher.find())
       {
       log.info("Chromosome from FASTA " + fileName + ": " + matcher.group(1));
       return matcher.group(1);
       }
-    return null;
+    else
+      throw new RuntimeException("Chromosome could not be determined from file: " + fileName);
+
     }
 
   public static Map<String, File> getFASTAFiles(File fastaDir) throws FileNotFoundException
