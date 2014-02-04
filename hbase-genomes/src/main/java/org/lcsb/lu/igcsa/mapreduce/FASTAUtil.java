@@ -14,8 +14,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.util.ToolRunner;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -63,7 +62,7 @@ public class FASTAUtil
     Pattern p = Pattern.compile("^.*(\\d+|X|Y)\\.fa.*$");
     Matcher matcher = p.matcher(fileName);
 
-    if (matcher.matches())
+    if (matcher.find())
       return matcher.group(1);
     else
       throw new IOException(fileName + " does not contain a chromosome.");
@@ -73,6 +72,25 @@ public class FASTAUtil
   public static void mergeFASTAFiles(FileSystem fs, String src, String dest) throws Exception
     {
     ToolRunner.run(new Crush(), new String[]{"--input-format=text", "--output-format=text", "--compress=none", src, dest});
+    }
+
+  public static String fastaFileList(FileSystem fs, PathFilter filter, Path path, String name) throws IOException
+    {
+    Path outputFile = new Path(path.getParent(), name);
+    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(fs.create(outputFile, true)));
+
+    int i = 1;
+    for (FileStatus status: fs.listStatus(path, filter))
+      {
+      String writePath = status.getPath().toUri().toASCIIString().replace(fs.getUri().toASCIIString(), "");
+      if (!writePath.startsWith("/"))
+        writePath = "/" + writePath;
+      writer.write( i + "\t" + writePath + "\n" );
+      ++i;
+      }
+    writer.close();
+
+    return outputFile.toString();
     }
 
 

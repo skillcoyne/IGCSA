@@ -47,7 +47,7 @@ public class FASTAFragmentMapper extends Mapper<LongWritable, FragmentWritable, 
     genomeName = context.getConfiguration().get("genome");
     chr = FileUtils.getChromosomeFromFASTA(filePath);
 
-    log.info(chr);
+    log.info("CHROMOSOME: " + chr);
 
     if (admin.getGenome(genomeName).getChromosome(chr) == null)
       admin.getGenome(genomeName).addChromosome(chr, 0, 0);

@@ -35,6 +35,17 @@
             <artifactId>filecrush</artifactId>
             <version>2.2.2-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>sam.picard</groupId>
+            <artifactId>mergesam</artifactId>
+            <version>1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>fi.tkk.ics</groupId>
+            <artifactId>hadoop-bam</artifactId>
+            <version>6.0</version>
+        </dependency>
+
 
         <!-- Hadoop & hbase libraries -->
         <dependency>

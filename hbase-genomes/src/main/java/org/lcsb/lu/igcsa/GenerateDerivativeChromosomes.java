@@ -159,7 +159,7 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
       }
 
     // TODO Create BWA index with ONLY the derivative chromosomes
-    Path mergedFASTA = new Path(new Path(basePath, karyotypeName), "reference.fa");
+    final Path mergedFASTA = new Path(new Path(basePath, karyotypeName), "reference.fa");
     //Path mergedFASTA = new Path(new Path(basePath, karyotypeName), karyotypeName + ".fa");
     // Create a single merged FASTA file for use in the indexing step
     FASTAUtil.mergeFASTAFiles(basePath.getFileSystem(config),
@@ -169,7 +169,18 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
     // Run BWA
     BWAIndex.main(new String[]{mergedFASTA.toString()});
 
-    //mergedFASTA.getFileSystem(config).deleteOnExit(mergedFASTA);
+    /*
+    This was an attempt to make it run entirely within the cluster, doesn't work
+     */
+//    String bwaInputFile = FASTAUtil.fastaFileList(basePath.getFileSystem(config), new PathFilter()
+//        {
+//        @Override
+//        public boolean accept(Path path)
+//          {
+//          return path.getName().contains( mergedFASTA.getName() );
+//          }
+//        }, mergedFASTA, "merged.txt");
+//    ToolRunner.run(new BWAIndex(), new String[]{bwaInputFile});
     }
 
   // just to clean up the main method a bit

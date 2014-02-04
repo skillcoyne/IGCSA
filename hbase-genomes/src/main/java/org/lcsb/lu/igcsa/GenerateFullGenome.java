@@ -77,7 +77,7 @@ public class GenerateFullGenome extends Configured implements Tool
     Scan scan = admin.getSequenceTable().getScanFor(new Column("info", "genome", genomeName));
     scan.setCaching(200);
 
-    if (genomeName.toLowerCase().equals("test"))
+    if (genomeName.equals("test"))
       {
       chrs.add("19");
       scan = admin.getSequenceTable().getScanFor(new Column("info", "genome", "GRCh37"), new Column("loc", "chr", chrs.get(0)));
@@ -153,6 +153,7 @@ public class GenerateFullGenome extends Configured implements Tool
     protected static void setChromosomes(Job job, String... chrs)
       {
       job.getConfiguration().setStrings("chromosomes", chrs);
+      log.info("Setting chromosomes in config: " + chrs);
       }
 
     @Override
@@ -165,6 +166,7 @@ public class GenerateFullGenome extends Configured implements Tool
     protected void map(ImmutableBytesWritable key, Result value, Context context) throws IOException, InterruptedException
       {
       SequenceResult sr = HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().createResult(value);
+
       String sequence = sr.getSequence();
       SegmentOrderComparator soc = new SegmentOrderComparator(chrs.indexOf(sr.getChr()), sr.getSegmentNum());
 
@@ -184,22 +186,19 @@ public class GenerateFullGenome extends Configured implements Tool
     private List<String> chrs;
 
     @Override
-    protected void cleanup(Context context) throws IOException, InterruptedException
-      {
-      mos.close();
-      }
-
-    @Override
     protected void setup(Context context) throws IOException, InterruptedException
       {
       mos = new MultipleOutputs(context);
       chrs = new ArrayList<String>(context.getConfiguration().getStringCollection("chromosomes"));
+      if (chrs == null || chrs.size() <= 0)
+        throw new IOException("Chromosomes not defined in configuration.");
+      log.info("CHROMOSOMES: " + chrs);
       }
 
     @Override
     protected void reduce(SegmentOrderComparator key, Iterable<FragmentWritable> values, Context context) throws IOException, InterruptedException
       {
-      log.debug("Order " + key.getOrder() + ":" + key.getSegment());
+      log.debug("ORDER " + key.getOrder() + ":" + key.getSegment());
 
       Iterator<FragmentWritable> fI = values.iterator();
       while (fI.hasNext())
@@ -210,6 +209,12 @@ public class GenerateFullGenome extends Configured implements Tool
         String namedOutput = chrs.get((int) key.getOrder());
         mos.write(namedOutput, segmentKey, new Text(fw.getSequence()));
         }
+      }
+
+    @Override
+    protected void cleanup(Context context) throws IOException, InterruptedException
+      {
+      mos.close();
       }
 
     }

@@ -61,7 +61,8 @@ public class CharacterReader
   public String readLine() throws IOException
     {
     String line = bufferedReader.readLine();
-    filePos += line.length() + 1;
+    if (line != null)
+      filePos += line.length() + 1;
     return line;
     }
 
