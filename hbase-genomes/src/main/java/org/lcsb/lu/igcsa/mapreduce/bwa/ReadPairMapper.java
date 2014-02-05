@@ -25,7 +25,6 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
   private Context context;
   private String bwa, reference;
 
-
   @Override
   protected void setup(Context context) throws IOException, InterruptedException
     {
@@ -52,63 +51,60 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
   @Override
   protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
     {
-    if (value.getLength() > 1) // this is a hack to overcome what may be an issue running in single-node mode
+    File[] readA = new File[]{new File(baseFileName(key) + ".1.fastq"), new File(baseFileName(key) + ".1.sai")};
+    File[] readB = new File[]{new File(baseFileName(key) + ".2.fastq"), new File(baseFileName(key) + ".2.sai")};
+    File sam = new File(baseFileName(key) + ".sam");
+
+    File fastqA = readA[0];
+    File fastqB = readB[0];
+
+    BufferedOutputStream tmpWriter1 = new BufferedOutputStream(new FileOutputStream(fastqA));
+    BufferedOutputStream tmpWriter2 = new BufferedOutputStream(new FileOutputStream(fastqB));
+
+    int counter = 0;
+    for (String line : value.toString().split("\n"))
       {
+      if (line.equals("")) log.info("foo");
+      ReadPairWritable read = new ReadPairWritable(line.split("\t"));
 
-      File[] readA = new File[]{new File(baseFileName(key) + ".1.fastq"), new File(baseFileName(key) + ".1.sai")};
-      File[] readB = new File[]{new File(baseFileName(key) + ".2.fastq"), new File(baseFileName(key) + ".2.sai")};
-      File sam = new File(baseFileName(key) + ".sam");
+      String read1 = read.createRead(1);
+      String read2 = read.createRead(2);
 
+      tmpWriter1.write(read1.getBytes());
+      tmpWriter2.write(read2.getBytes());
 
-      File fastqA = readA[0];
-      File fastqB = readB[0];
-
-      BufferedOutputStream tmpWriter1 = new BufferedOutputStream(new FileOutputStream(fastqA));
-      BufferedOutputStream tmpWriter2 = new BufferedOutputStream(new FileOutputStream(fastqB));
-
-      int counter = 0;
-      for (String line : value.toString().split("\n"))
-        {
-        if (line.equals("")) log.info("foo");
-        ReadPairWritable read = new ReadPairWritable(line.split("\t"));
-
-        String read1 = read.createRead(1);
-        String read2 = read.createRead(2);
-
-        tmpWriter1.write(read1.getBytes());
-        tmpWriter2.write(read2.getBytes());
-
-        ++counter;
-        }
-
-      tmpWriter1.close();
-      tmpWriter2.close();
-
-      log.info(counter + " reads output to " + fastqA + ", " + fastqB);
-
-      //FileUtils.copyFile(fastqA, new File("/tmp", fastqA.getName()));
-
-      if (runAlignment(readA) && runAlignment(readB))
-        {
-        pairedEnd(readA, readB, sam);
-        log.info("TEMP SAM FILE: " + sam.getAbsolutePath());
-
-        Text headerKey = new Text(); // sam header
-        Text samValue = new Text();
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(sam)));
-        String line;
-        while ((line = bufferedReader.readLine()) != null)
-          {
-          System.err.println(line);
-          if (line.startsWith("@")) headerKey.append((line + "\n").getBytes(), 0, line.length() + 1);
-          else samValue.append((line + "\n").getBytes(), 0, line.length() + 1);
-          }
-
-        //log.info("REDUCE key:" + headerKey + " VALUE: " + samValue);
-        context.write(headerKey, samValue);
-        }
-      else log.error("ALIGN FAILED");
+      ++counter;
       }
+
+    tmpWriter1.close(); tmpWriter2.close();
+    log.info(counter + " reads output to " + fastqA + ", " + fastqB);
+
+    if (runAlignment(readA) && runAlignment(readB))
+      {
+      pairedEnd(readA, readB, sam);
+
+      log.info("TEMP SAM FILE: " + sam.getAbsolutePath());
+      Text[] samData = readSam(sam);
+
+      context.write(samData[0], samData[1]);
+      }
+    else log.error("ALIGN FAILED");
+    }
+
+  private Text[] readSam(File sam) throws IOException
+    {
+    Text headerKey = new Text(); // sam header
+    Text samValue = new Text();
+    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(sam)));
+    String line;
+    while ((line = bufferedReader.readLine()) != null)
+      {
+      if (line.startsWith("@")) headerKey.append((line + "\n").getBytes(), 0, line.length() + 1);
+      else samValue.append((line + "\n").getBytes(), 0, line.length() + 1);
+      }
+    bufferedReader.close();
+
+    return new Text[]{headerKey, samValue};
     }
 
 
@@ -116,8 +112,6 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
     {
     File fastq = files[0];
     File sai = files[1];
-
-    //log.info("FILES: " + fastq.getAbsolutePath() + "\n" + sai.getAbsolutePath());
 
     String bwaAln = String.format("%s aln %s %s %s", bwa, "-q 15", reference, fastq);
 
@@ -143,15 +137,13 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
     error.start();
     error.join();
 
-    //System.err.println(baos.toString());
+    log.info(baos.toString());
 
     int exitVal = p.waitFor();
     fout.close();
     baos.close();
 
     log.info("SAI FILE SIZE: " + sai.length());
-
-    //FileUtils.copyFile(sai, new File("/tmp", sai.getName()));
 
     if (exitVal > 0) throw new IOException("Alignment failed: " + baos.toString());
     return (sai.length() > 64);
@@ -183,15 +175,13 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
     error.start();
     error.join();
 
-    //System.err.println(baos.toString());
+    log.info(baos.toString());
 
     int exitVal = p.waitFor();
     fout.close();
     baos.close();
 
     log.info("SAM SIZE: " + sam.length());
-
-    //FileUtils.copyFile(sam, new File("/tmp", sam.getName()));
 
     if (exitVal > 0) throw new RuntimeException("BWA sampe failed: " + baos.toString());
     }
