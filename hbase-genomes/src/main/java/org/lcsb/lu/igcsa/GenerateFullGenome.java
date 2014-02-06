@@ -37,6 +37,8 @@ import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 import org.lcsb.lu.igcsa.hbase.tables.Column;
 import org.lcsb.lu.igcsa.hbase.tables.SequenceResult;
 import org.lcsb.lu.igcsa.mapreduce.*;
+import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAOutputFormat;
+import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil;
 
 import java.io.IOException;
 import java.util.*;
@@ -103,7 +105,7 @@ public class GenerateFullGenome extends Configured implements Tool
     // TODO create BWA index
     // Create a single merged FASTA file for use in the indexing step
     Path mergedFasta = new Path(outputPath, "reference.fa");
-        FASTAUtil.mergeFASTAFiles(outputPath.getFileSystem(config), outputPath.toString(), mergedFasta.toString() );
+        FASTAUtil.mergeFASTAFiles(outputPath.getFileSystem(config), outputPath.toString(), mergedFasta.toString());
 
     // Run BWA
     BWAIndex.main(new String[]{mergedFasta.toString()});

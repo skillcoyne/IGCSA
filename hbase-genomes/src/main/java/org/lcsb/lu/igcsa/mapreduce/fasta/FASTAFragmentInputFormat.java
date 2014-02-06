@@ -6,7 +6,7 @@
  */
 
 
-package org.lcsb.lu.igcsa.mapreduce;
+package org.lcsb.lu.igcsa.mapreduce.fasta;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -24,6 +24,7 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.lcsb.lu.igcsa.mapreduce.FragmentWritable;
 
 
 import java.io.IOException;

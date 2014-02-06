@@ -32,12 +32,14 @@ import org.lcsb.lu.igcsa.hbase.*;
 import org.lcsb.lu.igcsa.hbase.filters.AberrationLocationFilter;
 import org.lcsb.lu.igcsa.hbase.tables.AberrationResult;
 import org.lcsb.lu.igcsa.mapreduce.*;
+import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAOutputFormat;
+import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.lcsb.lu.igcsa.mapreduce.FASTAUtil.*;
+import static org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil.*;
 
 public class GenerateDerivativeChromosomes extends Configured implements Tool
   {
@@ -162,9 +164,7 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
     final Path mergedFASTA = new Path(new Path(basePath, karyotypeName), "reference.fa");
     //Path mergedFASTA = new Path(new Path(basePath, karyotypeName), karyotypeName + ".fa");
     // Create a single merged FASTA file for use in the indexing step
-    FASTAUtil.mergeFASTAFiles(basePath.getFileSystem(config),
-                              new Path(basePath, karyotypeName).toString(),
-                              mergedFASTA.toString() );
+    FASTAUtil.mergeFASTAFiles(basePath.getFileSystem(config), new Path(basePath, karyotypeName).toString(), mergedFASTA.toString());
 
     // Run BWA
     BWAIndex.main(new String[]{mergedFASTA.toString()});

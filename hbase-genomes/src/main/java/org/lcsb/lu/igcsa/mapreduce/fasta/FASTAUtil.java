@@ -6,7 +6,7 @@
  */
 
 
-package org.lcsb.lu.igcsa.mapreduce;
+package org.lcsb.lu.igcsa.mapreduce.fasta;
 
 import com.m6d.filecrush.crush.Crush;
 import org.apache.commons.logging.Log;

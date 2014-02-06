@@ -1,8 +1,10 @@
 package org.lcsb.lu.igcsa.mapreduce.bwa;
 
+import net.sf.samtools.*;
 import org.apache.commons.io.FileUtils;
 
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
@@ -10,6 +12,10 @@ import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.ThreadedStreamConnector;
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -76,7 +82,8 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
       ++counter;
       }
 
-    tmpWriter1.close(); tmpWriter2.close();
+    tmpWriter1.close();
+    tmpWriter2.close();
     log.info(counter + " reads output to " + fastqA + ", " + fastqB);
 
     if (runAlignment(readA) && runAlignment(readB))
@@ -84,106 +91,112 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
       pairedEnd(readA, readB, sam);
 
       log.info("TEMP SAM FILE: " + sam.getAbsolutePath());
-      Text[] samData = readSam(sam);
-
-      context.write(samData[0], samData[1]);
+      readSam(sam, context);
       }
     else log.error("ALIGN FAILED");
     }
 
-  private Text[] readSam(File sam) throws IOException
+  private void readSam(File sam, Context context) throws IOException, InterruptedException
     {
-    Text headerKey = new Text(); // sam header
-    Text samValue = new Text();
+
+
+    SAMFileHeader header = new SAMFileReader(sam).getFileHeader();
+
+    for (SAMSequenceRecord seq: header.getSequenceDictionary().getSequences())
+      {
+      seq.getAssembly();
+      seq.getSequenceName();
+      }
+    context.write(new Text(header.getTextHeader()), new Text());
+
     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(sam)));
     String line;
     while ((line = bufferedReader.readLine()) != null)
       {
-      if (line.startsWith("@")) headerKey.append((line + "\n").getBytes(), 0, line.length() + 1);
-      else samValue.append((line + "\n").getBytes(), 0, line.length() + 1);
+      if (line.startsWith("@")) continue;
+
+      SAMCoordinateWritable samWritable = new SAMCoordinateWritable(line);
+      context.write( new Text(samWritable.getRFName()), new Text(line + "\n"));
       }
     bufferedReader.close();
-
-    return new Text[]{headerKey, samValue};
     }
 
+private boolean runAlignment(File[] files) throws IOException, InterruptedException
+  {
+  File fastq = files[0];
+  File sai = files[1];
 
-  private boolean runAlignment(File[] files) throws IOException, InterruptedException
+  String bwaAln = String.format("%s aln %s %s %s", bwa, "-q 15", reference, fastq);
+
+  log.info("BWA ALN: " + bwaAln);
+
+  Thread error, out;
+  Process p = Runtime.getRuntime().exec(bwaAln);
+  // Reattach stderr and write System.stdout to tmp file
+  //error = new Thread(new ThreadedStreamConnector(p.getErrorStream(), System.err)
+  ByteArrayOutputStream baos = new ByteArrayOutputStream();
+  error = new Thread(new ThreadedStreamConnector(p.getErrorStream(), baos)
+  {
+  @Override
+  public void progress()
     {
-    File fastq = files[0];
-    File sai = files[1];
-
-    String bwaAln = String.format("%s aln %s %s %s", bwa, "-q 15", reference, fastq);
-
-    log.info("BWA ALN: " + bwaAln);
-
-    Thread error, out;
-    Process p = Runtime.getRuntime().exec(bwaAln);
-    // Reattach stderr and write System.stdout to tmp file
-    //error = new Thread(new ThreadedStreamConnector(p.getErrorStream(), System.err)
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    error = new Thread(new ThreadedStreamConnector(p.getErrorStream(), baos)
-    {
-    @Override
-    public void progress()
-      {
-      context.progress();
-      }
-    });
-    FileOutputStream fout = new FileOutputStream(sai);
-    out = new Thread(new ThreadedStreamConnector(p.getInputStream(), fout));
-    out.start();
-    out.join();
-    error.start();
-    error.join();
-
-    log.info(baos.toString());
-
-    int exitVal = p.waitFor();
-    fout.close();
-    baos.close();
-
-    log.info("SAI FILE SIZE: " + sai.length());
-
-    if (exitVal > 0) throw new IOException("Alignment failed: " + baos.toString());
-    return (sai.length() > 64);
+    context.progress();
     }
+  });
+  FileOutputStream fout = new FileOutputStream(sai);
+  out = new Thread(new ThreadedStreamConnector(p.getInputStream(), fout));
+  out.start();
+  out.join();
+  error.start();
+  error.join();
 
-  private void pairedEnd(File[] read1, File[] read2, File sam) throws IOException, InterruptedException
-    {
-    String bwaSampe = String.format("%s sampe %s %s %s %s %s %s", bwa, "", reference, read1[1], read2[1], read1[0], read2[0]);
+  log.info(baos.toString());
 
-    log.info("BWA SAMPE: " + bwaSampe);
+  int exitVal = p.waitFor();
+  fout.close();
+  baos.close();
 
-    Thread error, out;
-    Process p = Runtime.getRuntime().exec(bwaSampe);
+  log.info("SAI FILE SIZE: " + sai.length());
 
-    // Reattach stderr and write System.stdout to tmp file
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    error = new Thread(new ThreadedStreamConnector(p.getErrorStream(), baos)
-    {
-    @Override
-    public void progress()
-      {
-      context.progress();
-      }
-    });
-    FileOutputStream fout = new FileOutputStream(sam);
-    out = new Thread(new ThreadedStreamConnector(p.getInputStream(), fout));
-    out.start();
-    out.join();
-    error.start();
-    error.join();
-
-    log.info(baos.toString());
-
-    int exitVal = p.waitFor();
-    fout.close();
-    baos.close();
-
-    log.info("SAM SIZE: " + sam.length());
-
-    if (exitVal > 0) throw new RuntimeException("BWA sampe failed: " + baos.toString());
-    }
-
+  if (exitVal > 0) throw new IOException("Alignment failed: " + baos.toString());
+  return (sai.length() > 64);
   }
+
+private void pairedEnd(File[] read1, File[] read2, File sam) throws IOException, InterruptedException
+  {
+  String bwaSampe = String.format("%s sampe %s %s %s %s %s %s", bwa, "", reference, read1[1], read2[1], read1[0], read2[0]);
+
+  log.info("BWA SAMPE: " + bwaSampe);
+
+  Thread error, out;
+  Process p = Runtime.getRuntime().exec(bwaSampe);
+
+  // Reattach stderr and write System.stdout to tmp file
+  ByteArrayOutputStream baos = new ByteArrayOutputStream();
+  error = new Thread(new ThreadedStreamConnector(p.getErrorStream(), baos)
+  {
+  @Override
+  public void progress()
+    {
+    context.progress();
+    }
+  });
+  FileOutputStream fout = new FileOutputStream(sam);
+  out = new Thread(new ThreadedStreamConnector(p.getInputStream(), fout));
+  out.start();
+  out.join();
+  error.start();
+  error.join();
+
+  log.info(baos.toString());
+
+  int exitVal = p.waitFor();
+  fout.close();
+  baos.close();
+
+  log.info("SAM SIZE: " + sam.length());
+
+  if (exitVal > 0) throw new RuntimeException("BWA sampe failed: " + baos.toString());
+  }
+
+}

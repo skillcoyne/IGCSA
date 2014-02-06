@@ -36,15 +36,15 @@
             <version>2.2.2-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>sam.picard</groupId>
-            <artifactId>mergesam</artifactId>
-            <version>1.1</version>
+            <groupId>net.sf</groupId>
+            <artifactId>samtools</artifactId>
+            <version>1.107</version>
         </dependency>
-        <dependency>
-            <groupId>fi.tkk.ics</groupId>
-            <artifactId>hadoop-bam</artifactId>
-            <version>6.0</version>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>fi.tkk.ics</groupId>-->
+            <!--<artifactId>hadoop-bam</artifactId>-->
+            <!--<version>6.0</version>-->
+        <!--</dependency>-->
 
 
         <!-- Hadoop & hbase libraries -->

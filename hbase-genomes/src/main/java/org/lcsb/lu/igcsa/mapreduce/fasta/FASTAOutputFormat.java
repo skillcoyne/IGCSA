@@ -6,7 +6,7 @@
  */
 
 
-package org.lcsb.lu.igcsa.mapreduce;
+package org.lcsb.lu.igcsa.mapreduce.fasta;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -15,7 +15,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
@@ -24,8 +23,6 @@ import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 public class FASTAOutputFormat extends FileOutputFormat<LongWritable, Text>
   {

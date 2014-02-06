@@ -6,7 +6,7 @@
  */
 
 
-package org.lcsb.lu.igcsa.mapreduce;
+package org.lcsb.lu.igcsa.mapreduce.fasta;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

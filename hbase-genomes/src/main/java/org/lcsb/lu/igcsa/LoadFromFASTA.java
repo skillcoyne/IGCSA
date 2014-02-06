@@ -22,8 +22,8 @@ import org.lcsb.lu.igcsa.aws.AWSProperties;
 import org.lcsb.lu.igcsa.aws.AWSUtils;
 import org.lcsb.lu.igcsa.hbase.HBaseGenome;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
-import org.lcsb.lu.igcsa.mapreduce.FASTAFragmentInputFormat;
-import org.lcsb.lu.igcsa.mapreduce.FASTAFragmentMapper;
+import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAFragmentInputFormat;
+import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAFragmentMapper;
 import org.lcsb.lu.igcsa.mapreduce.FragmentWritable;
 import org.lcsb.lu.igcsa.utils.FileUtils;
 

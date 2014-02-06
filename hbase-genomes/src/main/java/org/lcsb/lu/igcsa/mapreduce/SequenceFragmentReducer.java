@@ -18,6 +18,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 
 import org.lcsb.lu.igcsa.genome.Location;
+import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAOutputFormat;
 
 import java.io.DataInput;
 import java.io.DataOutput;
