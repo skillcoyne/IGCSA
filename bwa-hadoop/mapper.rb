@@ -134,7 +134,7 @@ end
 fh1.close
 fh2.close
 
-$stderr.puts "#{count} lines output to fastq files."
+$stderr.puts "LINES: #{count} lines output to fastq files."
 $stderr.puts "File sizes: #{File.size(fastq_filename_1)} #{File.size(fastq_filename_2)}"
 
 bwaalign.run_alignment([fastq_filename_1, fastq_filename_2])

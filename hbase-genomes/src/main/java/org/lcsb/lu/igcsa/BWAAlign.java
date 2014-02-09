@@ -104,6 +104,7 @@ public class BWAAlign extends Configured implements Tool
     {
     return jobFS;
     }
+  // HEADER IS STILL OUTPUTTING MULTIPLE TIMES....
 
   public static void main(String[] args) throws Exception
     {

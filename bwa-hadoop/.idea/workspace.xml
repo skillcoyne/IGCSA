@@ -14,7 +14,7 @@
   <component name="CoverageDataManager">
     <SUITE FILE_PATH="coverage/bwa-hadoop@merge_sam.coverage" NAME="merge-sam Coverage Results" MODIFIED="1390828439479" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="bwa-hadoop" />
     <SUITE FILE_PATH="coverage/bwa-hadoop@mapper.coverage" NAME="mapper Coverage Results" MODIFIED="1389692582174" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="bwa-hadoop" />
-    <SUITE FILE_PATH="coverage/bwa-hadoop@run_bwa.coverage" NAME="run-bwa Coverage Results" MODIFIED="1391087720283" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="bwa-hadoop" />
+    <SUITE FILE_PATH="coverage/bwa-hadoop@run_bwa.coverage" NAME="run-bwa Coverage Results" MODIFIED="1391429011643" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="bwa-hadoop" />
   </component>
   <component name="CreatePatchCommitExecutor">
     <option name="PATCH_PATH" value="" />
@@ -31,7 +31,16 @@
       <file leaf-file-name="run-bwa.rb" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/run-bwa.rb">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="9" column="107" selection-start="389" selection-end="389" vertical-scroll-proportion="0.28701594" vertical-offset="0" max-vertical-offset="2660">
+            <state line="175" column="61" selection-start="5983" selection-end="5983" vertical-scroll-proportion="0.61277175" vertical-offset="2174" max-vertical-offset="2910">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="fastq_to_tsv.rb" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/lib/fastq_to_tsv.rb">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="66" column="29" selection-start="1505" selection-end="1505" vertical-scroll-proportion="0.0" vertical-offset="990" max-vertical-offset="1245">
               <folding />
             </state>
           </provider>
@@ -49,7 +58,7 @@
       <file leaf-file-name="mapper.rb" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/mapper.rb">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="130" column="38" selection-start="3071" selection-end="3071" vertical-scroll-proportion="0.0" vertical-offset="1515" max-vertical-offset="2295">
+            <state line="56" column="38" selection-start="1100" selection-end="1100" vertical-scroll-proportion="0.0" vertical-offset="1432" max-vertical-offset="2295">
               <folding />
             </state>
           </provider>
@@ -73,8 +82,10 @@
         <option value="$PROJECT_DIR$/merge-mapper.rb" />
         <option value="$PROJECT_DIR$/merge-sam.rb" />
         <option value="$PROJECT_DIR$/lib/hadoop_commands.rb" />
-        <option value="$PROJECT_DIR$/mapper.rb" />
         <option value="$PROJECT_DIR$/simple_mapper.rb" />
+        <option value="$PROJECT_DIR$/run-index.rb" />
+        <option value="$PROJECT_DIR$/index-mapper.rb" />
+        <option value="$PROJECT_DIR$/mapper.rb" />
         <option value="$PROJECT_DIR$/run-bwa.rb" />
       </list>
     </option>
@@ -110,6 +121,7 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -144,7 +156,6 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -319,7 +330,7 @@
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3990025" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.33790523" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33790523" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -349,6 +360,62 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/run-bwa.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="147" column="49" selection-start="4883" selection-end="4883" vertical-scroll-proportion="0.0" vertical-offset="1946" max-vertical-offset="2910">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/fastq_to_tsv.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="66" column="29" selection-start="1505" selection-end="1505" vertical-scroll-proportion="0.0" vertical-offset="990" max-vertical-offset="1245">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/hadoop_commands.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="76" column="74" selection-start="1797" selection-end="1797" vertical-scroll-proportion="0.0" vertical-offset="1140" max-vertical-offset="1500">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mapper.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="56" column="38" selection-start="1100" selection-end="1100" vertical-scroll-proportion="0.0" vertical-offset="1432" max-vertical-offset="2295">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/run-bwa.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="150" column="0" selection-start="4977" selection-end="4977" vertical-scroll-proportion="0.0" vertical-offset="2250" max-vertical-offset="2850">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/fastq_to_tsv.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="66" column="29" selection-start="1505" selection-end="1505" vertical-scroll-proportion="0.0" vertical-offset="990" max-vertical-offset="1245">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/hadoop_commands.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="76" column="74" selection-start="1797" selection-end="1797" vertical-scroll-proportion="0.0" vertical-offset="1140" max-vertical-offset="1500">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mapper.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="52" column="52" selection-start="1073" selection-end="1073" vertical-scroll-proportion="0.0" vertical-offset="1717" max-vertical-offset="2295">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/run-bwa.rb">
       <provider selected="true" editor-type-id="text-editor">
         <state line="118" column="67" selection-start="3420" selection-end="3420" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="3300">
@@ -419,13 +486,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib/fastq_to_tsv.rb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="46" column="40" selection-start="1004" selection-end="1004" vertical-scroll-proportion="0.40085593" vertical-offset="409" max-vertical-offset="1245">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/lib/hadoop_commands.rb">
       <provider selected="true" editor-type-id="text-editor">
         <state line="76" column="74" selection-start="1797" selection-end="1797" vertical-scroll-proportion="0.0" vertical-offset="726" max-vertical-offset="1500">
@@ -433,16 +493,23 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/lib/fastq_to_tsv.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="66" column="29" selection-start="1505" selection-end="1505" vertical-scroll-proportion="0.0" vertical-offset="225" max-vertical-offset="1245">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/mapper.rb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="130" column="38" selection-start="3071" selection-end="3071" vertical-scroll-proportion="0.0" vertical-offset="1515" max-vertical-offset="2295">
+        <state line="56" column="38" selection-start="1100" selection-end="1100" vertical-scroll-proportion="0.0" vertical-offset="1432" max-vertical-offset="2295">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/run-bwa.rb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="9" column="107" selection-start="389" selection-end="389" vertical-scroll-proportion="0.28701594" vertical-offset="0" max-vertical-offset="2660">
+        <state line="175" column="61" selection-start="5983" selection-end="5983" vertical-scroll-proportion="0.61277175" vertical-offset="2174" max-vertical-offset="2910">
           <folding />
         </state>
       </provider>

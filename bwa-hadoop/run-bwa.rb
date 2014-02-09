@@ -146,20 +146,24 @@ stream_cmd = <<CMD
 -D mapred.job.name="test job" \
 -D mapred.output.key.comparator.class=org.apache.hadoop.mapred.lib.KeyFieldBasedComparator \
 -D stream.num.map.output.key.fields=4 \
--D mapred.text.key.partitioner.options=-k1,4 \
 -D mapred.text.key.comparator.options=-k1,4 \
--partitioner org.apache.hadoop.mapred.lib.KeyFieldBasedPartitioner \
 -input #{reads_dir} \
 -output #{output_path} \
 -mapper "ruby mapper.rb reference/ref/reference.fa tools/bwa" \
 -file "mapper.rb"
 CMD
 
+#-D mapred.text.key.partitioner.options=-k1,4 \
+#-partitioner org.apache.hadoop.mapred.lib.KeyFieldBasedPartitioner \
+
+
 output = `#{stream_cmd}`
 unless $?.success?
   $stderr.puts "#{stream_cmd}\nStreaming command failed: #{output}"
   exit $?
 end
+
+exit
 
 
 ## TODO In reality all I would need to do in order to merge the resulting files is read them all in, grab the headers and treat them as keys
