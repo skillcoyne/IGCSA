@@ -20,6 +20,7 @@ import org.lcsb.lu.igcsa.mapreduce.bwa.*;
 
 import java.io.*;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 
 /**
@@ -33,47 +34,76 @@ public class BWAAlign extends Configured implements Tool
   static Logger log = Logger.getLogger(BWAAlign.class.getName());
 
   private File[] fastqPair;
-  private FileSystem jobFS;
+  private Configuration conf;
+  private String readPairName;
+  private Path refGenome;
+  private Path outputPath;
+
+  private static Path alignOutput = new Path("/bwaalignment");
 
 
-  public BWAAlign(File[] fastqFiles) throws Exception
+  public BWAAlign(File[] fastqFiles, String genome) throws Exception
     {
     fastqPair = fastqFiles;
+    readPairName = fastqPair[0].getParentFile().getName();
+    refGenome = new Path(genome);
+    }
+
+  public Path getOutputPath()
+    {
+    return outputPath;
+    }
+
+  public FileSystem getFileSystem() throws IOException
+    {
+    return FileSystem.get(conf);
+    }
+
+  private void setup() throws URISyntaxException, IOException
+    {
+    conf = new Configuration();
+    conf.setBoolean(SAMOutputFormat.HEADER_OUTPUT, false);
+    conf.set("fs.default.name","hdfs://localhost:9000");
+
+    // WARNING: DistributedCache is not accessible on local runner (IDE) mode.  Has to run as a hadoop job to test
+    URI uri = new URI("hdfs://localhost:9000/bwa-tools/bwa.tgz#tools");
+    DistributedCache.addCacheArchive(uri, conf);
+    log.info("Added " + uri.toString());
+    DistributedCache.createSymlink(conf);
+
+    FileSystem fs = FileSystem.get(conf);
+    if (!fs.exists(alignOutput))
+      fs.mkdirs(alignOutput);
+
+    Path reference = new Path(refGenome, "index.tgz");
+    if (!fs.exists(reference))
+      throw new IOException("Indexed reference genome does not exist: " + reference.toUri());
+    reference = reference.makeQualified(fs);
+
+    outputPath = new Path(new Path(alignOutput, readPairName), refGenome.getName());
+    if (fs.exists(outputPath))
+      fs.delete(outputPath, true);
+
+    // reference
+    uri = new URI(reference.toUri().toASCIIString() + "#reference");
+    DistributedCache.addCacheArchive(uri, conf);
+    log.info("Added " + uri.toString());
+
+    DistributedCache.createSymlink(conf);
     }
 
   @Override
   public int run(String[] args) throws Exception
     {
-    args = new String[]{"/tmp/igcsa/reads", "hdfs://localhost:9000/tmp/test6"};
+    setup();
 
-    Path output = new Path(args[0]);
-    Path reference = new Path(args[1], "index.tgz");
-
-    Configuration conf = new Configuration();
-
-    conf.set("dfs.block.size", "16777216");
-    conf.set("mapred.text.key.partitioner.options", "-k1,4");
-    conf.set("mapred.text.key.comparator.options", "-k1,4");
-    conf.set("mapred.output.key.comparator.class", "org.apache.hadoop.mapreduce.lib.partition.KeyFieldBasedComparator");
-
-    URI uri = new URI("hdfs://localhost:9000/bwa-tools/bwa.tgz#tools");
-
-    // WARNING: DistributedCache is not accessible on local runner (IDE) mode.  Has to run as a hadoop job to test
-    // bwa tools
-    DistributedCache.addCacheArchive(uri, conf);
-    DistributedCache.createSymlink(conf);
-
-    // reference
-    if (!reference.getFileSystem(conf).exists(reference))
-      throw new RuntimeException("Reference index " + reference.toString() + " does not exist");
-    uri = new URI(reference.toUri().toASCIIString() + "#reference");
-    DistributedCache.addCacheArchive(uri, conf);
-    DistributedCache.createSymlink(conf);
+    Path readsOutput = new Path(alignOutput, "reads");
+    // TODO: this is fine on a local system but will not work for ec2
+    Path tsvInput = new FastqToTSV(fastqPair[0], fastqPair[1]).toTSV(readsOutput.getFileSystem(conf), readsOutput);
 
     // set up the job
     Job job = new Job(conf, "Align read pairs.");
 
-    Path tsvInput = new FastqToTSV(fastqPair[0], fastqPair[1]).toTSV(output.getFileSystem(conf), output);
     job.setJarByClass(BWAAlign.class);
     job.setMapperClass(ReadPairMapper.class);
 
@@ -82,42 +112,30 @@ public class BWAAlign extends Configured implements Tool
     job.setMapOutputKeyClass(Text.class);
     job.setMapOutputValueClass(Text.class);
 
-    // it's possible this might work on an actual cluster however, in testing on a single node functionally this hangs the job
-    // since what's really needed is to just cat the files together a separate job run after this one can function
     job.setReducerClass(SAMReducer.class);
 
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(Text.class);
     job.setOutputFormatClass(SAMOutputFormat.class);
 
-    Path outputPath = new Path("/tmp/igcsa/sam");
-    if (outputPath.getFileSystem(conf).exists(outputPath)) outputPath.getFileSystem(conf).delete(outputPath, true);
-
     FileOutputFormat.setOutputPath(job, outputPath);
-
-    this.jobFS = outputPath.getFileSystem(conf);
 
     return (job.waitForCompletion(true) ? 0 : 1);
     }
 
-  public FileSystem getJobFS()
-    {
-    return jobFS;
-    }
-  // HEADER IS STILL OUTPUTTING MULTIPLE TIMES....
-
   public static void main(String[] args) throws Exception
     {
-    args = new String[]{"/Users/skillcoyne/Data/1000Genomes/Reads/ERX000272/unzipped"};
-    if (args.length < 1)
+    args = new String[]{"/Users/sarah.killcoyne/Data/1000Genomes/Reads/ERX000272/unzipped", "/tmp/test6"};
+    if (args.length < 2)
       {
-      System.err.println("Missing argument for local path of read pair fastq files.");
+      System.err.println("Missing required arguments. Usage <read-pair directory> <ref genome path>");
       System.exit(-1);
       }
 
     String readPairDir = args[0];
     File dir = new File(readPairDir);
-    if (!dir.isDirectory() || !dir.canRead()) throw new IOException(readPairDir + " is not a directory or is unreadable.");
+    if (!dir.isDirectory() || !dir.canRead())
+      throw new IOException(readPairDir + " is not a directory or is unreadable.");
 
     File[] fastqFiles = dir.listFiles(new FilenameFilter()
     {
@@ -128,22 +146,25 @@ public class BWAAlign extends Configured implements Tool
       }
     });
 
-    if (fastqFiles.length > 2)
-      throw new IOException(dir + " contains more than 2 fastq files. Please ensure directory contains only read-pair files.");
+    if (fastqFiles.length != 2)
+      throw new IOException(dir + " contains " + fastqFiles.length + " fastq files. Please ensure directory contains a single set of read-pair files.");
 
-
-    BWAAlign align = new BWAAlign(fastqFiles);
+    BWAAlign align = new BWAAlign(fastqFiles, args[1]);
     ToolRunner.run(align, null);
 
-    for (FileStatus status: align.getJobFS().listStatus(new Path("/tmp/igcsa/sam")))
+    for (FileStatus status : align.getFileSystem().listStatus(align.getOutputPath()) )
       {
       if (status.getLen() <= 0)
-        align.getJobFS().delete(status.getPath(), true);
+        align.getFileSystem().delete(status.getPath(), true);
       }
 
     // Merge the files into a single SAM
-    ToolRunner.run(new Crush(), new String[]{"--input-format=text", "--output-format=text", "--compress=none", "/tmp/igcsa/sam",
-        "/tmp/igcsa/test.sam"});
+    ToolRunner.run(new Crush(), new String[]{"--input-format=text", "--output-format=text", "--compress=none",
+        align.getOutputPath().toString(),
+        align.getOutputPath().toString() + ".sam" });
+    // drop the unmerged data
+    align.getFileSystem().deleteOnExit(align.getOutputPath());
+
 
     }
 

@@ -26,6 +26,8 @@ public class SAMOutputFormat extends FileOutputFormat<Text, SAMCoordinateWritabl
   {
   static Logger log = Logger.getLogger(SAMOutputFormat.class.getName());
 
+  public static final String HEADER_OUTPUT = "sam.header.key.output";
+
   protected FileOutputCommitter committer;
   /**
    * Flag to track whether anything was output

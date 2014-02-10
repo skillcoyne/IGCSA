@@ -43,7 +43,9 @@ public class ReadPairTSVInputFormat extends FileInputFormat<LongWritable, Text>
       int count = 0;
       value = new Text();
 
-      while (super.nextKeyValue() && count < 5000)
+      int max = 10000;
+
+      while (super.nextKeyValue() && count < max)
         {
         Text currVal = super.getCurrentValue();
         value.append(currVal.getBytes(), 0, currVal.getLength());

@@ -167,7 +167,7 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
     FASTAUtil.mergeFASTAFiles(basePath.getFileSystem(config), new Path(basePath, karyotypeName).toString(), mergedFASTA.toString());
 
     // Run BWA
-    BWAIndex.main(new String[]{mergedFASTA.toString()});
+    //BWAIndex.main(new String[]{mergedFASTA.toString()});
 
     /*
     This was an attempt to make it run entirely within the cluster, doesn't work

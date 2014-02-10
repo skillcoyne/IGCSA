@@ -1,10 +1,8 @@
 package org.lcsb.lu.igcsa.mapreduce.bwa;
 
 import net.sf.samtools.*;
-import org.apache.commons.io.FileUtils;
 
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
@@ -12,10 +10,6 @@ import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.ThreadedStreamConnector;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 
 /**
@@ -98,8 +92,6 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
 
   private void readSam(File sam, Context context) throws IOException, InterruptedException
     {
-
-
     SAMFileHeader header = new SAMFileReader(sam).getFileHeader();
 
     for (SAMSequenceRecord seq: header.getSequenceDictionary().getSequences())

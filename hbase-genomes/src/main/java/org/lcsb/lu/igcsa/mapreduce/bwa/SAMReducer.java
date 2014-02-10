@@ -29,7 +29,7 @@ public class SAMReducer extends Reducer<Text, Text, Text, Text>
 
   protected String generateFileName(Text key)
     {
-    return (key.toString().equals("*"))? "ZZZ": key.toString().replace("|", "") ;
+    return (key.toString().equals("*"))? "zzz": key.toString().replace("|", "") ;
     }
 
   @Override
@@ -40,7 +40,15 @@ public class SAMReducer extends Reducer<Text, Text, Text, Text>
       {
       Text scw = sI.next();
       if (scw.getLength() <= 0)
-        mos.write(key, key, "AAA");
+        {
+        // I'm sure there's a smarter way to do this, but the header was being output once for ever section of the read file that had been processed.
+        // But the header is always identical so this was an issue
+        if (!context.getConfiguration().getBoolean(SAMOutputFormat.HEADER_OUTPUT, false))
+          {
+          context.getConfiguration().setBoolean(SAMOutputFormat.HEADER_OUTPUT, true);
+          mos.write(key, key, "AAA");
+          }
+        }
       else
         mos.write(key, scw, generateFileName(key));
       }
