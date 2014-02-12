@@ -8,10 +8,8 @@
 
 package org.lcsb.lu.igcsa;
 
-import com.m6d.filecrush.crush.Crush;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Scan;
@@ -23,7 +21,6 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
-import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
@@ -35,28 +32,24 @@ import org.lcsb.lu.igcsa.mapreduce.*;
 import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAOutputFormat;
 import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil;
 
-import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil.*;
 
-public class GenerateDerivativeChromosomes extends Configured implements Tool
+public class GenerateDerivativeChromosomes extends JobIGCSA
   {
   static Logger log = Logger.getLogger(GenerateDerivativeChromosomes.class.getName());
 
-  private Configuration conf;
   private Scan scan;
   private Path output;
   private List<Location> filterLocations;
   private String aberrationType;
   private FASTAHeader header;
-  private FileSystem jobFS;
 
   public GenerateDerivativeChromosomes(Configuration conf, Scan scan, Path output, List<Location> filterLocations, FASTAHeader header, String abrType)
     {
     super(conf);
-    this.conf = conf;
     this.scan = scan;
     this.output = output;
     this.filterLocations = filterLocations;
@@ -67,7 +60,7 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
   @Override
   public int run(String[] strings) throws Exception
     {
-    Job job = new Job(conf, "Generate derivative FASTA files");
+    Job job = new Job(getConf(), "Generate derivative FASTA files");
     job.setJarByClass(GenerateDerivativeChromosomes.class);
 
     // M/R setup
@@ -91,8 +84,6 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
     FASTAOutputFormat.addHeader(job, new Path(output, "0"), header);
     for (int order = 0; order < filterLocations.size(); order++)
       MultipleOutputs.addNamedOutput(job, Integer.toString(order), FASTAOutputFormat.class, LongWritable.class, Text.class);
-
-    this.jobFS = output.getFileSystem(conf);
 
     return (job.waitForCompletion(true) ? 0 : 1);
     }
@@ -160,40 +151,30 @@ public class GenerateDerivativeChromosomes extends Configured implements Tool
       gdc.fixOutputFiles(aberration);
       }
 
-    // TODO Create BWA index with ONLY the derivative chromosomes
+    //Create BWA index with ONLY the derivative chromosomes
     final Path mergedFASTA = new Path(new Path(basePath, karyotypeName), "reference.fa");
-    //Path mergedFASTA = new Path(new Path(basePath, karyotypeName), karyotypeName + ".fa");
     // Create a single merged FASTA file for use in the indexing step
     FASTAUtil.mergeFASTAFiles(basePath.getFileSystem(config), new Path(basePath, karyotypeName).toString(), mergedFASTA.toString());
 
     // Run BWA
-    //BWAIndex.main(new String[]{mergedFASTA.toString()});
-
-    /*
-    This was an attempt to make it run entirely within the cluster, doesn't work
-     */
-//    String bwaInputFile = FASTAUtil.fastaFileList(basePath.getFileSystem(config), new PathFilter()
-//        {
-//        @Override
-//        public boolean accept(Path path)
-//          {
-//          return path.getName().contains( mergedFASTA.getName() );
-//          }
-//        }, mergedFASTA, "merged.txt");
-//    ToolRunner.run(new BWAIndex(), new String[]{bwaInputFile});
+    Path tmp = BWAIndex.writeReferencePointerFile(mergedFASTA, FileSystem.get(config));
+    ToolRunner.run(new BWAIndex(), new String[]{tmp.toString()});
+    FileSystem.get(config).delete(tmp, false);
     }
 
   // just to clean up the main method a bit
   protected void fixOutputFiles(AberrationResult aberration) throws Exception
     {
     // CRC files mess up any attempt to directly read/write from an unchanged file which means copying/moving fails too. Easiest fix right now is to dump the file.
-    deleteChecksumFiles(jobFS, output);
+    deleteChecksumFiles(this.getJobFileSystem(), output);
     /*
   We now have output files.  In most cases the middle file(s) will be the aberration sequences.
   In many cases they can just be concatenated as is. Exceptions:
     - duplication: the middle file needs to be duplicated before concatenation
     - iso: there should be only 1 file, it needs to be duplicated in reverse before concatenation
     */
+    FileSystem jobFS = this.getJobFileSystem();
+
     log.info(jobFS.getWorkingDirectory());
     if (aberration.getAbrType().equals("dup"))
       {

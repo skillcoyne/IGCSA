@@ -10,8 +10,6 @@ package org.lcsb.lu.igcsa;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Scan;
@@ -24,7 +22,6 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
-import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
 import org.lcsb.lu.igcsa.database.normal.Bin;
@@ -51,7 +48,11 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import java.io.IOException;
 import java.util.*;
 
-public class MutateFragments extends Configured implements Tool
+/*
+NOTE:
+This isn't currently being used for anything so it could be that this doesn't work.  It's not been properly tested.
+ */
+public class MutateFragments extends JobIGCSA
   {
   private static final Log log = LogFactory.getLog(MutateFragments.class);
 
@@ -59,6 +60,7 @@ public class MutateFragments extends Configured implements Tool
 
   public MutateFragments()
     {
+    super(HBaseConfiguration.create());
     springContext = new ClassPathXmlApplicationContext(new String[]{"classpath*:spring-config.xml", "classpath*:/conf/genome.xml"});
     if (springContext == null)
       throw new RuntimeException("Failed to load Spring application context");
@@ -70,19 +72,18 @@ public class MutateFragments extends Configured implements Tool
     String genome = args[0];
     String parent = args[1];
 
-    Configuration config = HBaseConfiguration.create();
-    HBaseGenomeAdmin genomeAdmin = HBaseGenomeAdmin.getHBaseGenomeAdmin(config);
+    HBaseGenomeAdmin genomeAdmin = HBaseGenomeAdmin.getHBaseGenomeAdmin(getConf());
 
     // don't think I need these
-    config.set("genome", genome);
-    config.set("parent", parent);
+    getConf().set("genome", genome);
+    getConf().set("parent", parent);
 
     genomeAdmin.deleteGenome(genome);
 
     // make sure the new genome is created before we start
     new HBaseGenome(genome, parent);
 
-    Job job = new Job(config, "Reference Genome Fragmentation");
+    Job job = new Job(getConf(), "Reference Genome Fragmentation");
     job.setJarByClass(MutateFragments.class);
 
     // this scan will get all sequences for the given genome (so 300 million)
@@ -200,16 +201,13 @@ public class MutateFragments extends Configured implements Tool
     }
 
 
-  public static void main(String[] args) throws Exception
-    {
-    String genome = "igcsa2", parent = "GRCh37";
-    long start = System.currentTimeMillis();
-    ToolRunner.run(new MutateFragments(), new String[]{genome, parent});
-    long end = System.currentTimeMillis() - start;
-
-    // after the job is complete we run another one to update each chromosome based on the sequence information
-    ToolRunner.run(new UpdateGenome(), new String[]{genome});
-
-    log.info("Finished mutations for " + genome + ": " + (end/1000) );
-    }
+//  public static void main(String[] args) throws Exception
+//    {
+//    String genome = "igcsa2", parent = "GRCh37";
+//    long start = System.currentTimeMillis();
+//    ToolRunner.run(new MutateFragments(), new String[]{genome, parent});
+//    long end = System.currentTimeMillis() - start;
+//
+//    log.info("Finished mutations for " + genome + ": " + (end/1000) );
+//    }
   }

@@ -11,8 +11,6 @@ package org.lcsb.lu.igcsa;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.Configured;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -28,7 +26,6 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
-import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.hbase.HBaseChromosome;
@@ -44,7 +41,7 @@ import java.io.IOException;
 import java.util.*;
 
 
-public class GenerateFullGenome extends Configured implements Tool
+public class GenerateFullGenome extends JobIGCSA
   {
   private static final Log log = LogFactory.getLog(GenerateFullGenome.class);
 
@@ -52,11 +49,11 @@ public class GenerateFullGenome extends Configured implements Tool
   private Scan scan;
   private Path output;
   private HBaseGenome genome;
-  private FileSystem jobFS;
 
   public GenerateFullGenome(Configuration conf, Scan scan, Path output, HBaseGenome genome)
     {
-    this.conf = conf;
+    super(conf);
+    this.conf = getConf();
     this.scan = scan;
     this.output = output;
     this.genome = genome;
@@ -101,21 +98,22 @@ public class GenerateFullGenome extends Configured implements Tool
     // remove extraneous files and rename to .fa
     gfg.cleanUpFiles(chrs);
 
-
-    // TODO create BWA index
     // Create a single merged FASTA file for use in the indexing step
     Path mergedFasta = new Path(outputPath, "reference.fa");
         FASTAUtil.mergeFASTAFiles(outputPath.getFileSystem(config), outputPath.toString(), mergedFasta.toString());
 
     // Run BWA
-    BWAIndex.main(new String[]{mergedFasta.toString()});
+    Path tmp = BWAIndex.writeReferencePointerFile(mergedFasta, gfg.getJobFileSystem());
+    ToolRunner.run(new BWAIndex(), new String[]{tmp.toString()});
+
+    gfg.getJobFileSystem().delete(tmp, true);
     }
 
   protected void cleanUpFiles(List<String> chrs) throws IOException
     {
-    FASTAUtil.deleteChecksumFiles(jobFS, output);
+    FASTAUtil.deleteChecksumFiles(getJobFileSystem(), output);
     for (String c : chrs)
-      FileUtil.copy(jobFS, new Path(output, c), jobFS, new Path(output, c + ".fa"), true, false, jobFS.getConf());
+      FileUtil.copy(getJobFileSystem(), new Path(output, c), getJobFileSystem(), new Path(output, c + ".fa"), true, false, conf);
     }
 
 
@@ -140,8 +138,6 @@ public class GenerateFullGenome extends Configured implements Tool
       MultipleOutputs.addNamedOutput(job, chr, FASTAOutputFormat.class, LongWritable.class, Text.class);
       FASTAOutputFormat.addHeader(job, new Path(output, chr), new FASTAHeader("chr" + chr, genome.getGenome().getName(), "parent=" + genome.getGenome().getParent(), "hbase-generation"));
       }
-
-    this.jobFS = output.getFileSystem(conf);
 
     return (job.waitForCompletion(true) ? 0 : 1);
     }

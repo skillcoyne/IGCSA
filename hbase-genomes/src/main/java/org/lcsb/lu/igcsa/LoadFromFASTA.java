@@ -2,7 +2,6 @@ package org.lcsb.lu.igcsa;
 
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -14,7 +13,6 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
-import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 
@@ -41,11 +39,10 @@ import java.util.regex.Pattern;
  * Copyright University of Luxembourg, Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class LoadFromFASTA extends Configured implements Tool
+public class LoadFromFASTA extends JobIGCSA
   {
   static Logger log = Logger.getLogger(LoadFromFASTA.class.getName());
 
-  private static Configuration config;
   private String genomeName;
 
   private Collection<Path> paths;
@@ -54,15 +51,16 @@ public class LoadFromFASTA extends Configured implements Tool
 
   public LoadFromFASTA(String genomeName, Collection<Path> paths)
     {
-    config = HBaseConfiguration.create();
+    super(HBaseConfiguration.create());
+
     this.genomeName = genomeName;
     this.paths = paths;
 
     if (paths.iterator().next().toString().contains("s3"))
       {
       AWSProperties props = AWSProperties.getProperties();
-      config.set("fs.s3n.awsAccessKeyId", props.getAccessKey());
-      config.set("fs.s3n.awsSecretAccessKey", props.getSecretKey());
+      getConf().set("fs.s3n.awsAccessKeyId", props.getAccessKey());
+      getConf().set("fs.s3n.awsSecretAccessKey", props.getSecretKey());
       }
     }
 
@@ -70,9 +68,9 @@ public class LoadFromFASTA extends Configured implements Tool
   @Override
   public int run(String[] args) throws Exception
     {
-    config.set("genome", genomeName);
+    getConf().set("genome", genomeName);
 
-    Job job = new Job(config, "Reference Genome Fragmentation");
+    Job job = new Job(getConf(), "Reference Genome Fragmentation");
 
     job.setJarByClass(LoadFromFASTA.class);
     job.setMapperClass(FASTAFragmentMapper.class);
@@ -103,7 +101,7 @@ public class LoadFromFASTA extends Configured implements Tool
       }
 
     Configuration conf = HBaseConfiguration.create();
-    HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(conf);
+    HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(HBaseConfiguration.create());
     //admin.createTables();
 
     String genomeName = args[0];
@@ -129,7 +127,7 @@ public class LoadFromFASTA extends Configured implements Tool
       }
     else if (fastaDir.startsWith("hdfs"))
       {
-      FileSystem fs = new Path(fastaDir).getFileSystem(conf);
+      FileSystem fs = FileSystem.get(conf);
       FileStatus[] statuses = fs.listStatus(new Path(fastaDir), new PathFilter()
       {
       @Override

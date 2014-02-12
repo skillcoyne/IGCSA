@@ -21,7 +21,6 @@ public class CreateKaryotypes
 
   public static void main(String[] args) throws Exception
     {
-    //args = new String[]{"GRCh37", "kiss"};
     if (args.length < 2)
       {
       System.err.println("Usage: CreateKaryotypes <parent genome name> <karyotype name>");

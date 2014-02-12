@@ -1,4 +1,4 @@
-package org.lcsb.lu.igcsa;
+package org.lcsb.lu.igcsa.mapreduce.bwa;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;

@@ -7,7 +7,6 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.ThreadedStreamConnector;
 
 import java.io.*;
 
@@ -122,35 +121,12 @@ private boolean runAlignment(File[] files) throws IOException, InterruptedExcept
 
   log.info("BWA ALN: " + bwaAln);
 
-  Thread error, out;
-  Process p = Runtime.getRuntime().exec(bwaAln);
-  // Reattach stderr and write System.stdout to tmp file
-  //error = new Thread(new ThreadedStreamConnector(p.getErrorStream(), System.err)
-  ByteArrayOutputStream baos = new ByteArrayOutputStream();
-  error = new Thread(new ThreadedStreamConnector(p.getErrorStream(), baos)
-  {
-  @Override
-  public void progress()
-    {
-    context.progress();
-    }
-  });
-  FileOutputStream fout = new FileOutputStream(sai);
-  out = new Thread(new ThreadedStreamConnector(p.getInputStream(), fout));
-  out.start();
-  out.join();
-  error.start();
-  error.join();
-
-  log.info(baos.toString());
-
-  int exitVal = p.waitFor();
-  fout.close();
-  baos.close();
+  ByteArrayOutputStream errorOS = new ByteArrayOutputStream();
+  int exitVal = new CommandExecution(context, errorOS, new FileOutputStream(sai)).execute(bwaAln);
 
   log.info("SAI FILE SIZE: " + sai.length());
 
-  if (exitVal > 0) throw new IOException("Alignment failed: " + baos.toString());
+  if (exitVal > 0) throw new IOException("Alignment failed: " + errorOS.toString());
   return (sai.length() > 64);
   }
 
@@ -160,35 +136,12 @@ private void pairedEnd(File[] read1, File[] read2, File sam) throws IOException,
 
   log.info("BWA SAMPE: " + bwaSampe);
 
-  Thread error, out;
-  Process p = Runtime.getRuntime().exec(bwaSampe);
-
-  // Reattach stderr and write System.stdout to tmp file
-  ByteArrayOutputStream baos = new ByteArrayOutputStream();
-  error = new Thread(new ThreadedStreamConnector(p.getErrorStream(), baos)
-  {
-  @Override
-  public void progress()
-    {
-    context.progress();
-    }
-  });
-  FileOutputStream fout = new FileOutputStream(sam);
-  out = new Thread(new ThreadedStreamConnector(p.getInputStream(), fout));
-  out.start();
-  out.join();
-  error.start();
-  error.join();
-
-  log.info(baos.toString());
-
-  int exitVal = p.waitFor();
-  fout.close();
-  baos.close();
+  ByteArrayOutputStream errorOS = new ByteArrayOutputStream();
+  int exitVal = new CommandExecution(context, errorOS, new FileOutputStream(sam)).execute(bwaSampe);
 
   log.info("SAM SIZE: " + sam.length());
 
-  if (exitVal > 0) throw new RuntimeException("BWA sampe failed: " + baos.toString());
+  if (exitVal > 0) throw new RuntimeException("BWA sampe failed: " + errorOS.toString());
   }
 
 }

@@ -5,27 +5,12 @@
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
 
-package org.lcsb.lu.igcsa;
+package org.lcsb.lu.igcsa.hbase;
 
-import org.apache.hadoop.hbase.client.Delete;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
-import org.apache.hadoop.hbase.mapreduce.TableMapper;
-import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.Text;
 import org.apache.log4j.Logger;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
-
-import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
-import org.lcsb.lu.igcsa.hbase.tables.Column;
-import org.lcsb.lu.igcsa.hbase.tables.SequenceResult;
-
-import java.io.IOException;
-import java.util.Iterator;
 
 public class DeleteGenome
   {
