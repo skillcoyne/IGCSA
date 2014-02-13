@@ -13,6 +13,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
+import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 
@@ -44,10 +45,7 @@ public class LoadFromFASTA extends JobIGCSA
   static Logger log = Logger.getLogger(LoadFromFASTA.class.getName());
 
   private String genomeName;
-
   private Collection<Path> paths;
-
-  private Path path;
 
   public LoadFromFASTA(String genomeName, Collection<Path> paths)
     {
@@ -63,7 +61,6 @@ public class LoadFromFASTA extends JobIGCSA
       getConf().set("fs.s3n.awsSecretAccessKey", props.getSecretKey());
       }
     }
-
 
   @Override
   public int run(String[] args) throws Exception
@@ -93,6 +90,9 @@ public class LoadFromFASTA extends JobIGCSA
 
   public static void main(String[] args) throws Exception
     {
+    GenericOptionsParser parser = new GenericOptionsParser(args);
+
+    args = parser.getRemainingArgs();
     //args = new String[]{"test", "hdfs://FASTA"};
     if (args.length < 2)
       {
@@ -100,9 +100,8 @@ public class LoadFromFASTA extends JobIGCSA
       System.exit(-1);
       }
 
-    Configuration conf = HBaseConfiguration.create();
+    Configuration conf = parser.getConfiguration();//HBaseConfiguration.create();
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(HBaseConfiguration.create());
-    //admin.createTables();
 
     String genomeName = args[0];
     String fastaDir = args[1];
@@ -110,8 +109,7 @@ public class LoadFromFASTA extends JobIGCSA
     admin.deleteGenome(genomeName);
 
     HBaseGenome genome = admin.getGenome(genomeName);
-    if (genome == null)
-      genome = new HBaseGenome(genomeName, null);
+    if (genome == null) genome = new HBaseGenome(genomeName, null);
 
     Collection<Path> filePaths = new ArrayList<Path>();
     if (fastaDir.startsWith("s3"))
@@ -142,8 +140,8 @@ public class LoadFromFASTA extends JobIGCSA
     else // local files
       {
       Map<String, File> files = org.lcsb.lu.igcsa.utils.FileUtils.getFASTAFiles(new File(fastaDir));
-      for (File file: files.values())
-        filePaths.add( new Path(file.getPath()) );
+      for (File file : files.values())
+        filePaths.add(new Path(file.getPath()));
       }
 
     final long startTime = System.currentTimeMillis();

@@ -45,6 +45,9 @@ import java.io.IOException;
 import java.util.*;
 
 
+  // TODO  I am failing to pull them all out in Generate...
+
+
 public class GenerateFullGenome extends BWAJob
   {
   private static final Log log = LogFactory.getLog(GenerateFullGenome.class);

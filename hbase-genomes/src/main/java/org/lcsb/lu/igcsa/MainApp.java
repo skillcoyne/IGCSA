@@ -29,33 +29,14 @@ public class MainApp
   5. Run streaming job to align
   6. Assess alignment
   7. Repeat 3-6
-
    */
 
   public static void main(String[] args) throws Exception
     {
-    if (args.length < 1)
-      {
-      System.err.println("One of the following is required: LoadFromFASTA, MutateFragments, CreateKaryotypes, GenerateFASTA");
-      System.exit(-1);
-      }
+    // Required... parent genome name, bwa, read pair
 
-    String appName = args[0];
-    String[] remainingArgs = (String[]) ArrayUtils.subarray(args, 1, args.length);
 
-    ProgramDriver pgd = new ProgramDriver();
-    try
-      {
-      pgd.addClass(LoadFromFASTA.class.getSimpleName(), LoadFromFASTA.class, "Loads the HBase database from the provided FASTA files.");
-      pgd.addClass(CreateKaryotypes.class.getSimpleName(), CreateKaryotypes.class, "Generates karyotypes for the given genome.");
-      pgd.addClass(GenerateDerivativeChromosomes.class.getSimpleName(), GenerateDerivativeChromosomes.class, "Generate FASTA files for a karyotype.");
-      pgd.addClass(GenerateFullGenome.class.getSimpleName(), GenerateFullGenome.class, "Generate FASTA files for a normal genome.");
-      pgd.addClass(MutateFragments.class.getSimpleName(), MutateFragments.class, "Generate genome with small-scale mutations.");
-      }
-    catch (Throwable throwable)
-      {
-      throwable.printStackTrace();
-      }
+
 
 
     }
@@ -65,3 +46,16 @@ public class MainApp
 
 
   }
+   //    ProgramDriver pgd = new ProgramDriver();
+   //    try
+   //      {
+   //      pgd.addClass(LoadFromFASTA.class.getSimpleName(), LoadFromFASTA.class, "Loads the HBase database from the provided FASTA files.");
+   //      pgd.addClass(CreateKaryotypes.class.getSimpleName(), CreateKaryotypes.class, "Generates karyotypes for the given genome.");
+   //      pgd.addClass(GenerateDerivativeChromosomes.class.getSimpleName(), GenerateDerivativeChromosomes.class, "Generate FASTA files for a karyotype.");
+   //      pgd.addClass(GenerateFullGenome.class.getSimpleName(), GenerateFullGenome.class, "Generate FASTA files for a normal genome.");
+   //      pgd.addClass(MutateFragments.class.getSimpleName(), MutateFragments.class, "Generate genome with small-scale mutations.");
+   //      }
+   //    catch (Throwable throwable)
+   //      {
+   //      throwable.printStackTrace();
+   //      }
