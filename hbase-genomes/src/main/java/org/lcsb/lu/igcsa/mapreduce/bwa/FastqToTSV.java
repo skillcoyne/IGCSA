@@ -38,12 +38,11 @@ public class FastqToTSV
     fastqName = readFile1.getName().substring(0, readFile1.getName().indexOf("_"));
     }
 
-  public Path toTSV(FileSystem fs, Path outputPath) throws IOException
+  public void toTSV(OutputStream os) throws IOException
     {
-    Path tsvFile = new Path(outputPath, fastqName + ".tsv");
-
     openReaders();
-    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(fs.create(tsvFile, true)));
+
+    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os));
 
     String line1, line2;
     while ( (line1 = reader1.readLine()) != null && (line2 = reader2.readLine()) != null )
@@ -62,6 +61,15 @@ public class FastqToTSV
       writer.write(readName + sep + getRead(reader1) + sep + getRead(reader2) + "\n");
       }
     writer.close();
+    }
+
+
+  public Path toTSV(FileSystem fs, Path outputPath) throws IOException
+    {
+    Path tsvFile = new Path(outputPath, fastqName + ".tsv");
+
+    openReaders();
+    toTSV(fs.create(tsvFile, true));
 
     return tsvFile;
     }

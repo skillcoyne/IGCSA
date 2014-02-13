@@ -27,6 +27,7 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
   @Override
   protected void setup(Context context) throws IOException, InterruptedException
     {
+    // this allows me to shortcut the cache system when debugging in the IDE, these options should never be used otherwise
     bwa = context.getConfiguration().get("bwa.binary.path", "tools/bwa");
     reference = context.getConfiguration().get("reference.fasta.path", "reference/ref/reference.fa");
 
@@ -34,12 +35,7 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
 
     File bwaBinary = new File(bwa);
     if (!bwaBinary.exists())
-      {
-      bwa = "/usr/local/bin/bwa"; // to run in the IDE?
-      reference = "/tmp/test6/ref/reference.fa";
-      //throw new RuntimeException("bwa binary does not exist in the cache.");
-      }
-    log.info("BWA BINARY FOUND: " + bwaBinary);
+      throw new RuntimeException("bwa binary does not exist in the cache.");
     }
 
   private String baseFileName(LongWritable key)

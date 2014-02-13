@@ -1,15 +1,14 @@
 package org.lcsb.lu.igcsa;
 
 import com.m6d.filecrush.crush.Crush;
+import org.apache.commons.cli.*;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.Configured;
-import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.input.*;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.util.Tool;
+import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.mapreduce.bwa.*;
@@ -25,24 +24,28 @@ import java.net.URISyntaxException;
  * Copyright University of Luxembourg, Luxembourg Centre for Systems Biomedicine 2014
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class BWAAlign extends Configured implements Tool
+public class BWAAlign extends BWAJob
   {
   static Logger log = Logger.getLogger(BWAAlign.class.getName());
 
-  private File[] fastqPair;
-  private Configuration conf;
-  private String readPairName;
   private Path refGenome;
   private Path outputPath;
 
+  private Path readPairTSV;
+
   private static Path alignOutput = new Path("/bwaalignment");
 
-
-  public BWAAlign(File[] fastqFiles, String genome) throws Exception
+  public BWAAlign()
     {
-    fastqPair = fastqFiles;
-    readPairName = fastqPair[0].getParentFile().getName();
-    refGenome = new Path(genome);
+    super(new Configuration());
+
+    Option genome = new Option("g", "reference", true, "Reference genome name.  Defaults to GRCh37.");
+    genome.setRequired(true);
+    this.addOptions( genome );
+
+    Option reads = new Option("r", "reads", true, "Path to tsv file of read-pairs.");
+    reads.setRequired(true);
+    this.addOptions( reads );
     }
 
   public Path getOutputPath()
@@ -50,61 +53,52 @@ public class BWAAlign extends Configured implements Tool
     return outputPath;
     }
 
-  public FileSystem getFileSystem() throws IOException
-    {
-    return FileSystem.get(conf);
-    }
-
   private void setup() throws URISyntaxException, IOException
     {
-    conf = new Configuration();
-    conf.setBoolean(SAMOutputFormat.HEADER_OUTPUT, false);
-    conf.set("fs.default.name","hdfs://localhost:9000");
+    getConf().setBoolean(SAMOutputFormat.HEADER_OUTPUT, false);
 
-    // WARNING: DistributedCache is not accessible on local runner (IDE) mode.  Has to run as a hadoop job to test
-    URI uri = new URI("hdfs://localhost:9000/bwa-tools/bwa.tgz#tools");
-    DistributedCache.addCacheArchive(uri, conf);
-    log.info("Added " + uri.toString());
-    DistributedCache.createSymlink(conf);
-
-    FileSystem fs = FileSystem.get(conf);
+    FileSystem fs = FileSystem.get(getConf());
     if (!fs.exists(alignOutput))
       fs.mkdirs(alignOutput);
 
-    Path reference = new Path(refGenome, "index.tgz");
-    if (!fs.exists(reference))
-      throw new IOException("Indexed reference genome does not exist: " + reference.toUri());
-    reference = reference.makeQualified(fs);
+    if (!fs.exists(readPairTSV))
+      throw new IOException("Read pair TSV file does not exist: " + readPairTSV.toUri());
 
+    String readPairName = readPairTSV.getName().replace(".tsv", "");
     outputPath = new Path(new Path(alignOutput, readPairName), refGenome.getName());
     if (fs.exists(outputPath))
       fs.delete(outputPath, true);
 
     // reference
-    uri = new URI(reference.toUri().toASCIIString() + "#reference");
-    DistributedCache.addCacheArchive(uri, conf);
-    log.info("Added " + uri.toString());
+    Path reference = new Path(refGenome, "index.tgz");
+    if (!fs.exists(reference))
+      throw new IOException("Indexed reference genome does not exist: " + reference.toUri());
+    reference = reference.makeQualified(fs);
 
-    DistributedCache.createSymlink(conf);
+    URI uri = new URI(reference.toUri().toASCIIString() + "#reference");
+    addArchive(uri);
+
     }
 
   @Override
   public int run(String[] args) throws Exception
     {
+    GenericOptionsParser gop = this.parseHadoopOpts(args);
+    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs());
+    refGenome = new Path( cl.getOptionValue('g', "GRCh37") );
+    readPairTSV = new Path(cl.getOptionValue('r'));
+
+    setupBWA(cl.getOptionValue('b'));
     setup();
 
-    Path readsOutput = new Path(alignOutput, "reads");
-    // TODO: this is fine on a local system but will not work for ec2
-    Path tsvInput = new FastqToTSV(fastqPair[0], fastqPair[1]).toTSV(readsOutput.getFileSystem(conf), readsOutput);
-
     // set up the job
-    Job job = new Job(conf, "Align read pairs.");
+    Job job = new Job(getConf(), "Align read pairs " + readPairTSV.getName() + " with " + refGenome.getParent().getName());
 
     job.setJarByClass(BWAAlign.class);
     job.setMapperClass(ReadPairMapper.class);
 
     job.setInputFormatClass(ReadPairTSVInputFormat.class);
-    TextInputFormat.addInputPath(job, tsvInput);
+    TextInputFormat.addInputPath(job, readPairTSV);
     job.setMapOutputKeyClass(Text.class);
     job.setMapOutputValueClass(Text.class);
 
@@ -121,37 +115,13 @@ public class BWAAlign extends Configured implements Tool
 
   public static void main(String[] args) throws Exception
     {
-    args = new String[]{"/Users/sarah.killcoyne/Data/1000Genomes/Reads/ERX000272/unzipped", "/tmp/test6"};
-    if (args.length < 2)
-      {
-      System.err.println("Missing required arguments. Usage <read-pair directory> <ref genome path>");
-      System.exit(-1);
-      }
+    BWAAlign align = new BWAAlign();
+    ToolRunner.run(align, args);
 
-    String readPairDir = args[0];
-    File dir = new File(readPairDir);
-    if (!dir.isDirectory() || !dir.canRead())
-      throw new IOException(readPairDir + " is not a directory or is unreadable.");
-
-    File[] fastqFiles = dir.listFiles(new FilenameFilter()
-    {
-    @Override
-    public boolean accept(File file, String name)
-      {
-      return (name.endsWith(".fastq") || name.endsWith(".fastq.gz"));
-      }
-    });
-
-    if (fastqFiles.length != 2)
-      throw new IOException(dir + " contains " + fastqFiles.length + " fastq files. Please ensure directory contains a single set of read-pair files.");
-
-    BWAAlign align = new BWAAlign(fastqFiles, args[1]);
-    ToolRunner.run(align, null);
-
-    for (FileStatus status : align.getFileSystem().listStatus(align.getOutputPath()) )
+    for (FileStatus status : align.getJobFileSystem().listStatus(align.getOutputPath()) )
       {
       if (status.getLen() <= 0)
-        align.getFileSystem().delete(status.getPath(), true);
+        align.getJobFileSystem().delete(status.getPath(), true);
       }
 
     // Merge the files into a single SAM
@@ -159,9 +129,9 @@ public class BWAAlign extends Configured implements Tool
         align.getOutputPath().toString(),
         align.getOutputPath().toString() + ".sam" });
     // drop the unmerged data
-    align.getFileSystem().deleteOnExit(align.getOutputPath());
+    align.getJobFileSystem().deleteOnExit(align.getOutputPath());
 
-
+    System.out.println( align.getOutputPath().toString() + ".sam" + " written.");
     }
 
 

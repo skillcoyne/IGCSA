@@ -124,8 +124,11 @@ public class FileUtils
 
   private static void addToCompressedFile(TarArchiveOutputStream taos, File file, String dir) throws IOException
     {
-    log.info("Adding file " + file.getAbsolutePath() + " to " + dir);
-    taos.putArchiveEntry(new TarArchiveEntry(file, dir + File.separator + file.getName()));
+    String entryName = file.getName();
+    if (dir != null && !dir.isEmpty())
+      entryName = dir + File.separator + file.getName();
+
+    taos.putArchiveEntry(new TarArchiveEntry(file, entryName));
     if (file.isFile())
       {
       BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
