@@ -89,6 +89,7 @@ public class FASTAOutputFormat extends FileOutputFormat<LongWritable, Text>
 
     private int numLines = 0;
     private int counter = 0;
+    private int chars = 0;
     private Path path;
 
     public FASTARecordWriter(DataOutputStream outStream, int lineLength, Path path)
@@ -100,9 +101,14 @@ public class FASTAOutputFormat extends FileOutputFormat<LongWritable, Text>
 
     private void writeLine(String str, boolean withCR) throws IOException
       {
-      if (withCR) str = str + CARRIAGE_RETURN;
+      if (withCR)
+        {
+        str = str + CARRIAGE_RETURN;
+        ++chars;
+        }
       outStream.writeBytes(str);
       ++numLines;
+
       }
 
 //    @Override
@@ -120,6 +126,7 @@ public class FASTAOutputFormat extends FileOutputFormat<LongWritable, Text>
       StringBuffer buffer = new StringBuffer();
       for (char c: value.toString().toCharArray())
         {
+        ++chars;
         buffer.append(c);
         ++counter;
         if (buffer.length() >= lineLength || counter >= lineLength)
@@ -135,7 +142,7 @@ public class FASTAOutputFormat extends FileOutputFormat<LongWritable, Text>
     @Override
     public void close(TaskAttemptContext context) throws IOException, InterruptedException
       {
-      log.info("***CLOSE*** " + this.hashCode() + "  Final counter: " + counter + " Lines output: " + numLines + " " + path.toString());
+      log.info("***CLOSE*** " + path.toString() + "  Final chars: " + chars + " Lines output: " + numLines);
       outStream.flush();
       outStream.close();
       }

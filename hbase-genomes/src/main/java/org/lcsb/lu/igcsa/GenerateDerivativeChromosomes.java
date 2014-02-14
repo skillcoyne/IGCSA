@@ -80,7 +80,7 @@ public class GenerateDerivativeChromosomes extends JobIGCSA
     // Output format setup
     job.setOutputFormatClass(NullOutputFormat.class);
     FileOutputFormat.setOutputPath(job, output);
-    FASTAOutputFormat.setLineLength(job, 80);
+    FASTAOutputFormat.setLineLength(job, 70);
     FASTAOutputFormat.addHeader(job, new Path(output, "0"), header);
     for (int order = 0; order < filterLocations.size(); order++)
       MultipleOutputs.addNamedOutput(job, Integer.toString(order), FASTAOutputFormat.class, LongWritable.class, Text.class);

@@ -25,6 +25,7 @@ import org.apache.hadoop.hbase.mapreduce.TableMapper;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
@@ -45,25 +46,34 @@ import java.io.IOException;
 import java.util.*;
 
 
-  // TODO  I am failing to pull them all out in Generate...
-
-
 public class GenerateFullGenome extends BWAJob
   {
+  public static void main(String[] args) throws Exception
+    {
+    GenerateFullGenome gfg = new GenerateFullGenome();
+    ToolRunner.run(gfg, args);
+
+    // remove extraneous files and rename to .fa
+    gfg.cleanUpFiles();
+    // Create a single merged FASTA file for use in the indexing step
+    Path mergedFasta = new Path(gfg.getOutputPath(), "reference.fa");
+    FASTAUtil.mergeFASTAFiles(gfg.getJobFileSystem(), gfg.getOutputPath().toString(), mergedFasta.toString());
+
+    // Run BWA index
+    Path tmp = BWAIndex.writeReferencePointerFile(mergedFasta, gfg.getJobFileSystem());
+
+    ToolRunner.run(new BWAIndex(), (String[]) ArrayUtils.addAll(args, new String[]{"-f", tmp.toString()}));
+
+    gfg.getJobFileSystem().delete(tmp, true);
+    }
+
+
   private static final Log log = LogFactory.getLog(GenerateFullGenome.class);
 
   private Path output;
   private HBaseGenome genome;
   private String genomeName;
   private List<String> chromosomes;
-
-//  public GenerateFullGenome(Configuration conf, Scan scan, Path output, HBaseGenome genome)
-//    {
-//    super(conf);
-//    this.scan = scan;
-//    this.output = output;
-//    this.genome = genome;
-//    }
 
   public GenerateFullGenome()
     {
@@ -84,24 +94,6 @@ public class GenerateFullGenome extends BWAJob
     return output;
     }
 
-  public static void main(String[] args) throws Exception
-    {
-    GenerateFullGenome gfg = new GenerateFullGenome();
-    ToolRunner.run(gfg, args);
-
-    // remove extraneous files and rename to .fa
-    gfg.cleanUpFiles();
-    // Create a single merged FASTA file for use in the indexing step
-    Path mergedFasta = new Path(gfg.getOutputPath(), "reference.fa");
-        FASTAUtil.mergeFASTAFiles(gfg.getJobFileSystem(), gfg.getOutputPath().toString(), mergedFasta.toString());
-
-    // Run BWA index
-    Path tmp = BWAIndex.writeReferencePointerFile(mergedFasta, gfg.getJobFileSystem());
-
-    ToolRunner.run(new BWAIndex(), (String[]) ArrayUtils.addAll(args, new String[]{"-f", tmp.toString()}));
-
-    gfg.getJobFileSystem().delete(tmp, true);
-    }
 
   protected void cleanUpFiles() throws IOException
     {
@@ -122,6 +114,7 @@ public class GenerateFullGenome extends BWAJob
 
     if (genomeName.equals("test"))
       {
+      // should be 59129 rows
       chromosomes.add("19");
       scan = admin.getSequenceTable().getScanFor(new Column("info", "genome", "GRCh37"), new Column("loc", "chr", chromosomes.get(0)));
       genome = admin.getGenome("GRCh37");
@@ -146,27 +139,33 @@ public class GenerateFullGenome extends BWAJob
   public int run(String[] args) throws Exception
     {
     GenericOptionsParser gop = this.parseHadoopOpts(args);
-    CommandLine cl = this.parser.parseOptions(args);
-    //CommandLine cl = parseOptions(args);
+    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs());
+
     genomeName = cl.getOptionValue("g");
     Scan scan = setup();
 
+    log.info(scan);
+
     Job job = new Job(getConf(), "Generate FASTA files for " + genomeName);
-    job.setJarByClass(GenerateDerivativeChromosomes.class);
+    job.setJarByClass(GenerateFullGenome.class);
 
     job.setMapperClass(ChromosomeSequenceMapper.class);
     ChromosomeSequenceMapper.setChromosomes(job, chromosomes.toArray(new String[chromosomes.size()]));
 
     TableMapReduceUtil.initTableMapperJob(HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().getTableName(), scan, ChromosomeSequenceMapper.class, SegmentOrderComparator.class, FragmentWritable.class, job);
 
+    // partitioner is required to make sure all fragments from a given chromosome go to the same reducers
+    job.setPartitionerClass(FragmentPartitioner.class);
+
     job.setReducerClass(ChromosomeSequenceReducer.class);
     job.setNumReduceTasks(chromosomes.size()); // one reducer for each segment
     job.setOutputFormatClass(NullOutputFormat.class);
 
     FileOutputFormat.setOutputPath(job, output);
-    FASTAOutputFormat.setLineLength(job, 80);
+    FASTAOutputFormat.setLineLength(job, 70);
     for (String chr : chromosomes)
       {
+      //getConf().setInt();
       MultipleOutputs.addNamedOutput(job, chr, FASTAOutputFormat.class, LongWritable.class, Text.class);
       FASTAOutputFormat.addHeader(job, new Path(output, chr), new FASTAHeader("chr" + chr, genome.getGenome().getName(), "parent=" + genome.getGenome().getParent(), "hbase-generation"));
       }
@@ -182,6 +181,7 @@ public class GenerateFullGenome extends BWAJob
     private static final Log log = LogFactory.getLog(ChromosomeSequenceMapper.class);
 
     private List<String> chrs;
+
 
     protected static void setChromosomes(Job job, String... chrs)
       {
@@ -201,6 +201,9 @@ public class GenerateFullGenome extends BWAJob
       SequenceResult sr = HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().createResult(value);
       String sequence = sr.getSequence();
       SegmentOrderComparator soc = new SegmentOrderComparator(chrs.indexOf(sr.getChr()), sr.getSegmentNum());
+      if (soc.getOrder() < 0)
+        throw new IOException("Failed to load all chromosomes, missing " + sr.getChr());
+
       FragmentWritable fw = new FragmentWritable(sr.getChr(), sr.getStart(), sr.getEnd(), sr.getSegmentNum(), sequence);
 
       context.write(soc, fw);
@@ -238,6 +241,7 @@ public class GenerateFullGenome extends BWAJob
         String namedOutput = chrs.get((int) key.getOrder());
         mos.write(namedOutput, segmentKey, new Text(fw.getSequence()));
         }
+
       }
 
     @Override

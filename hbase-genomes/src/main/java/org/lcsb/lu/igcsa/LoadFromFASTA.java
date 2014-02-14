@@ -90,7 +90,7 @@ public class LoadFromFASTA extends JobIGCSA
 
   public static void main(String[] args) throws Exception
     {
-    GenericOptionsParser parser = new GenericOptionsParser(args);
+    GenericOptionsParser parser = new GenericOptionsParser(new Configuration(), args);
 
     args = parser.getRemainingArgs();
     //args = new String[]{"test", "hdfs://FASTA"};
@@ -123,7 +123,7 @@ public class LoadFromFASTA extends JobIGCSA
       for (S3ObjectSummary s3Object : chromosomes.values())
         filePaths.add(new Path("s3n://" + s3Object.getBucketName() + "/" + s3Object.getKey()));
       }
-    else if (fastaDir.startsWith("hdfs"))
+    else //if (fastaDir.startsWith("hdfs"))
       {
       FileSystem fs = FileSystem.get(conf);
       FileStatus[] statuses = fs.listStatus(new Path(fastaDir), new PathFilter()
@@ -137,12 +137,12 @@ public class LoadFromFASTA extends JobIGCSA
       for (FileStatus status : statuses)
         filePaths.add(status.getPath());
       }
-    else // local files
-      {
-      Map<String, File> files = org.lcsb.lu.igcsa.utils.FileUtils.getFASTAFiles(new File(fastaDir));
-      for (File file : files.values())
-        filePaths.add(new Path(file.getPath()));
-      }
+//    else // local files
+//      {
+//      Map<String, File> files = org.lcsb.lu.igcsa.utils.FileUtils.getFASTAFiles(new File(fastaDir));
+//      for (File file : files.values())
+//        filePaths.add(new Path(file.getPath()));
+//      }
 
     final long startTime = System.currentTimeMillis();
     ToolRunner.run(new LoadFromFASTA(genomeName, filePaths), null);

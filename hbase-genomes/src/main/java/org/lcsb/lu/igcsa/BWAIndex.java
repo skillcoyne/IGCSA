@@ -29,7 +29,6 @@ public class BWAIndex extends BWAJob
   private static final Log log = LogFactory.getLog(BWAIndex.class);
 
   private Path fastaTxt;
-  private String bwaArchive;
 
   public static void main(String[] args) throws Exception
     {

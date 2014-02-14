@@ -65,5 +65,8 @@ public class IGCSACommandLineParser extends BasicParser
     return cl;
     }
 
-
+  public Options getOptions()
+    {
+    return options;
+    }
   }

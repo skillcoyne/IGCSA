@@ -47,17 +47,17 @@ public abstract class BWAJob extends JobIGCSA
 
   protected GenericOptionsParser parseHadoopOpts(String[] args) throws ParseException
     {
-    GenericOptionsParser parser = null;
+    GenericOptionsParser gop = null;
     try
       {
-      parser = new GenericOptionsParser(getConf(), args);
+      gop = new GenericOptionsParser(getConf(), args);
       }
     catch (IOException e)
       {
       log.error(e);
       }
 
-    return parser;
+    return gop;
     }
 
 
