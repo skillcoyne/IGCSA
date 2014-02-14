@@ -62,7 +62,11 @@ public class IndexMapper extends Mapper<LongWritable, Text, Text, Text>
       ByteArrayOutputStream errorOS = new ByteArrayOutputStream();
       ByteArrayOutputStream outputOS = new ByteArrayOutputStream();
 
+      // TODO need to report status periodically to keep hadoop from killing to job.
+
       int exitVal = new CommandExecution(context, errorOS, outputOS).execute(indexCmd);
+
+
 
       log.info(errorOS.toString());
       log.info(outputOS.toString());

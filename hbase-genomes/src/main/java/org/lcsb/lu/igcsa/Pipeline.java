@@ -19,8 +19,20 @@ public class Pipeline
     }
 
 
+  /*
+  Inputs: read pair fastq files, parent genome
+  Process:
+    1. align against parent
+    2. generate karyotypes
+    3. create -all- derivatives
+    4. align against -all- karyotype genomes
+    5. evaluate...??
+   */
+
   public void Pipeline()
     {
+
+
 
     }
 

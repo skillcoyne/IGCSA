@@ -8,6 +8,9 @@
 
 package org.lcsb.lu.igcsa;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
@@ -21,6 +24,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
+import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
@@ -32,12 +36,13 @@ import org.lcsb.lu.igcsa.mapreduce.*;
 import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAOutputFormat;
 import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil.*;
 
-public class GenerateDerivativeChromosomes extends JobIGCSA
+public class GenerateDerivativeChromosomes extends BWAJob
   {
   static Logger log = Logger.getLogger(GenerateDerivativeChromosomes.class.getName());
 
@@ -47,15 +52,23 @@ public class GenerateDerivativeChromosomes extends JobIGCSA
   private String aberrationType;
   private FASTAHeader header;
 
-  public GenerateDerivativeChromosomes(Configuration conf, Scan scan, Path output, List<Location> filterLocations, FASTAHeader header, String abrType)
+  public GenerateDerivativeChromosomes()
     {
-    super(conf);
-    this.scan = scan;
-    this.output = output;
-    this.filterLocations = filterLocations;
-    this.aberrationType = abrType;
-    this.header = header;
+    super(new Configuration());
+    Option kt = new Option("k", "karyotype", true, "Karyotype name.");
+    kt.setRequired(true);
+    this.addOptions( kt );
     }
+
+//  public GenerateDerivativeChromosomes(Configuration conf, Scan scan, Path output, List<Location> filterLocations, FASTAHeader header, String abrType)
+//    {
+//    super(conf);
+//    this.scan = scan;
+//    this.output = output;
+//    this.filterLocations = filterLocations;
+//    this.aberrationType = abrType;
+//    this.header = header;
+//    }
 
   @Override
   public int run(String[] strings) throws Exception
@@ -88,32 +101,31 @@ public class GenerateDerivativeChromosomes extends JobIGCSA
     return (job.waitForCompletion(true) ? 0 : 1);
     }
 
-
-  public static void main(String[] args) throws Exception
+  /*
+ What this script actually should do is grab <all> karyotypes for a given parent and spin off jobs to generate each.
+ Maybe...
+  */
+  public void generationKaryotypeGenome(String[] args) throws IOException, ParseException
     {
-    /*
-    What this script actually should do is grab <all> karyotypes for a given parent and spin off jobs to generate each.
-     */
-    //args = new String[]{"kiss135"};
-    //args = new String[]{"kiss35"};
+    GenericOptionsParser gop = this.parseHadoopOpts(args);
+    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs());
     if (args.length < 1)
       {
-      System.err.println("Usage: GenerateFASTA <karyotype name>");
+      System.err.println("Usage: " + GenerateDerivativeChromosomes.class.getSimpleName() + " <karyotype name>");
       System.exit(-1);
       }
+    String karyotypeName = cl.getOptionValue("k");
 
-    String karyotypeName = args[0];
-
-    Configuration config = HBaseConfiguration.create();
-    HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(config);
+    HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(getConf());
 
     HBaseKaryotype karyotype = admin.getKaryotype(karyotypeName);
     HBaseGenome parentGenome = admin.getGenome(karyotype.getKaryotype().getParentGenome());
 
-    Path basePath = new Path("/tmp"); // TODO this should probably be an arg
+
+    Path basePath = new Path(Paths.GENOMES.getPath()); // TODO this should probably be an arg
     Path karyotypePath = new Path(basePath, karyotype.getKaryotype().getParentGenome());
-    if (karyotypePath.getFileSystem(config).exists(karyotypePath))
-      karyotypePath.getFileSystem(config).delete(karyotypePath, true);
+    if (karyotypePath.getFileSystem(getConf()).exists(karyotypePath))
+      karyotypePath.getFileSystem(getConf()).delete(karyotypePath, true);
 
     for (AberrationResult aberration : karyotype.getAberrations())
       {
@@ -142,10 +154,10 @@ public class GenerateDerivativeChromosomes extends JobIGCSA
       Scan scan = new Scan();
       scan.setFilter(filterList);
 
-      Path baseOutput = new Path("/tmp/" + aberration.getGenome() + "/" + fastaName);
+      Path baseOutput = new Path(Paths.GENOMES.getPath() + "/" + aberration.getGenome() + "/" + fastaName);
 
       // Generate the segments for the new FASTA file
-      GenerateDerivativeChromosomes gdc = new GenerateDerivativeChromosomes(config, scan, baseOutput, alf.getFilterLocationList(), new FASTAHeader(fastaName, aberration.getGenome(), "parent=" + parentGenome.getGenome().getName(), abrDefinitions), aberration.getAbrType());
+      //GenerateDerivativeChromosomes gdc = new GenerateDerivativeChromosomes(getConf(), scan, baseOutput, alf.getFilterLocationList(), new FASTAHeader(fastaName, aberration.getGenome(), "parent=" + parentGenome.getGenome().getName(), abrDefinitions), aberration.getAbrType());
 
       ToolRunner.run(gdc, null);
       gdc.fixOutputFiles(aberration);
@@ -154,12 +166,19 @@ public class GenerateDerivativeChromosomes extends JobIGCSA
     //Create BWA index with ONLY the derivative chromosomes
     final Path mergedFASTA = new Path(new Path(basePath, karyotypeName), "reference.fa");
     // Create a single merged FASTA file for use in the indexing step
-    FASTAUtil.mergeFASTAFiles(basePath.getFileSystem(config), new Path(basePath, karyotypeName).toString(), mergedFASTA.toString());
+    FASTAUtil.mergeFASTAFiles(basePath.getFileSystem(getConf()), new Path(basePath, karyotypeName).toString(), mergedFASTA.toString());
 
     // Run BWA
-    Path tmp = BWAIndex.writeReferencePointerFile(mergedFASTA, FileSystem.get(config));
+    Path tmp = BWAIndex.writeReferencePointerFile(mergedFASTA, FileSystem.get(getConf()));
     ToolRunner.run(new BWAIndex(), new String[]{tmp.toString()});
-    FileSystem.get(config).delete(tmp, false);
+    FileSystem.get(getConf()).delete(tmp, false);
+
+    }
+
+  public static void main(String[] args) throws Exception
+    {
+    new GenerateDerivativeChromosomes();
+
     }
 
   // just to clean up the main method a bit

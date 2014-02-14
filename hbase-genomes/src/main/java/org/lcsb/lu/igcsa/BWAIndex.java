@@ -24,6 +24,11 @@ import org.lcsb.lu.igcsa.mapreduce.bwa.IndexMapper;
 import java.io.*;
 
 
+/*
+Inputs:
+-f reference genome text file (format, each line provides the path to a reference.fa file)
+-b bwa tgz archive in hdfs
+ */
 public class BWAIndex extends BWAJob
   {
   private static final Log log = LogFactory.getLog(BWAIndex.class);

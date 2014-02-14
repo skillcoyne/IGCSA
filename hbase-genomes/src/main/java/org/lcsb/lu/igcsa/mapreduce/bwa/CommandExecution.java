@@ -42,14 +42,22 @@ public class CommandExecution
       context.progress();
       }
     });
-    out = new Thread(new ThreadedStreamConnector(p.getInputStream(), outputOS));
+    out = new Thread(new ThreadedStreamConnector(p.getInputStream(), outputOS)
+    {
+    @Override
+    public void progress()
+      {
+      context.progress();
+      }
+    });
     out.start();
     out.join();
     error.start();
     error.join();
 
     int exitVal = p.waitFor();
-    errorOS.close(); outputOS.close();
+    errorOS.close();
+    outputOS.close();
     return exitVal;
     }
 
