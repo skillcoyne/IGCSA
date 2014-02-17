@@ -11,6 +11,7 @@ package org.lcsb.lu.igcsa;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
@@ -46,66 +47,25 @@ public class GenerateDerivativeChromosomes extends BWAJob
   {
   static Logger log = Logger.getLogger(GenerateDerivativeChromosomes.class.getName());
 
-  private Scan scan;
-  private Path output;
-  private List<Location> filterLocations;
-  private String aberrationType;
-  private FASTAHeader header;
-
   public GenerateDerivativeChromosomes()
     {
     super(new Configuration());
     Option kt = new Option("k", "karyotype", true, "Karyotype name.");
     kt.setRequired(true);
-    this.addOptions( kt );
+    this.addOptions(kt);
     }
-
-//  public GenerateDerivativeChromosomes(Configuration conf, Scan scan, Path output, List<Location> filterLocations, FASTAHeader header, String abrType)
-//    {
-//    super(conf);
-//    this.scan = scan;
-//    this.output = output;
-//    this.filterLocations = filterLocations;
-//    this.aberrationType = abrType;
-//    this.header = header;
-//    }
 
   @Override
   public int run(String[] strings) throws Exception
     {
-    Job job = new Job(getConf(), "Generate derivative FASTA files");
-    job.setJarByClass(GenerateDerivativeChromosomes.class);
-
-    // M/R setup
-    job.setMapperClass(SequenceRequestMapper.class);
-    SequenceRequestMapper.setLocations(job, filterLocations);
-    if (aberrationType.equals("inv"))
-      SequenceRequestMapper.setLocationsToReverse(job, filterLocations.get(1));
-
-    TableMapReduceUtil.initTableMapperJob(HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().getTableName(), scan, SequenceRequestMapper.class, SegmentOrderComparator.class, FragmentWritable.class, job);
-
-    // custom partitioner to make sure the segments go to the correct reducer sorted
-    job.setPartitionerClass(FragmentPartitioner.class);
-
-    job.setReducerClass(SequenceFragmentReducer.class);
-    job.setNumReduceTasks(filterLocations.size()); // one reducer for each segment
-
-    // Output format setup
-    job.setOutputFormatClass(NullOutputFormat.class);
-    FileOutputFormat.setOutputPath(job, output);
-    FASTAOutputFormat.setLineLength(job, 70);
-    FASTAOutputFormat.addHeader(job, new Path(output, "0"), header);
-    for (int order = 0; order < filterLocations.size(); order++)
-      MultipleOutputs.addNamedOutput(job, Integer.toString(order), FASTAOutputFormat.class, LongWritable.class, Text.class);
-
-    return (job.waitForCompletion(true) ? 0 : 1);
+    return 0;
     }
 
   /*
  What this script actually should do is grab <all> karyotypes for a given parent and spin off jobs to generate each.
  Maybe...
   */
-  public void generationKaryotypeGenome(String[] args) throws IOException, ParseException
+  public void generationKaryotypeGenome(String[] args) throws Exception, ParseException
     {
     GenericOptionsParser gop = this.parseHadoopOpts(args);
     CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs());
@@ -121,9 +81,11 @@ public class GenerateDerivativeChromosomes extends BWAJob
     HBaseKaryotype karyotype = admin.getKaryotype(karyotypeName);
     HBaseGenome parentGenome = admin.getGenome(karyotype.getKaryotype().getParentGenome());
 
-
     Path basePath = new Path(Paths.GENOMES.getPath()); // TODO this should probably be an arg
-    Path karyotypePath = new Path(basePath, karyotype.getKaryotype().getParentGenome());
+    if (!getJobFileSystem().getUri().toASCIIString().startsWith("hdfs"))
+      basePath = new Path("/tmp/" + basePath.toString());
+
+    Path karyotypePath = new Path(basePath, karyotypeName);
     if (karyotypePath.getFileSystem(getConf()).exists(karyotypePath))
       karyotypePath.getFileSystem(getConf()).delete(karyotypePath, true);
 
@@ -154,13 +116,13 @@ public class GenerateDerivativeChromosomes extends BWAJob
       Scan scan = new Scan();
       scan.setFilter(filterList);
 
-      Path baseOutput = new Path(Paths.GENOMES.getPath() + "/" + aberration.getGenome() + "/" + fastaName);
+      Path baseOutput = new Path(karyotypePath, fastaName);
 
       // Generate the segments for the new FASTA file
-      //GenerateDerivativeChromosomes gdc = new GenerateDerivativeChromosomes(getConf(), scan, baseOutput, alf.getFilterLocationList(), new FASTAHeader(fastaName, aberration.getGenome(), "parent=" + parentGenome.getGenome().getName(), abrDefinitions), aberration.getAbrType());
+      DerivativeChromosomeJob gdc = new DerivativeChromosomeJob(getConf(), scan, baseOutput, alf.getFilterLocationList(), aberration.getAbrType(), new FASTAHeader(fastaName, aberration.getGenome(), "parent=" + parentGenome.getGenome().getName(), abrDefinitions));
 
       ToolRunner.run(gdc, null);
-      gdc.fixOutputFiles(aberration);
+      fixOutputFiles(aberration, baseOutput, alf.getFilterLocationList().size());
       }
 
     //Create BWA index with ONLY the derivative chromosomes
@@ -170,19 +132,17 @@ public class GenerateDerivativeChromosomes extends BWAJob
 
     // Run BWA
     Path tmp = BWAIndex.writeReferencePointerFile(mergedFASTA, FileSystem.get(getConf()));
-    ToolRunner.run(new BWAIndex(), new String[]{tmp.toString()});
+    ToolRunner.run(new BWAIndex(), (String[]) ArrayUtils.addAll(args, new String[]{"-f", tmp.toString()}));
     FileSystem.get(getConf()).delete(tmp, false);
-
     }
 
   public static void main(String[] args) throws Exception
     {
-    new GenerateDerivativeChromosomes();
-
+    new GenerateDerivativeChromosomes().generationKaryotypeGenome(args);
     }
 
   // just to clean up the main method a bit
-  protected void fixOutputFiles(AberrationResult aberration) throws Exception
+  protected void fixOutputFiles(AberrationResult aberration, Path output, int numLocs) throws Exception
     {
     // CRC files mess up any attempt to directly read/write from an unchanged file which means copying/moving fails too. Easiest fix right now is to dump the file.
     deleteChecksumFiles(this.getJobFileSystem(), output);
@@ -198,11 +158,11 @@ public class GenerateDerivativeChromosomes extends BWAJob
     if (aberration.getAbrType().equals("dup"))
       {
       log.info("DUP aberration");
-      if (this.filterLocations.size() > 3)
+      if (numLocs > 3)
         throw new RuntimeException("This should not happen: dup has more than 3 locations");
 
       // move subsequent files
-      for (int i = this.filterLocations.size() - 1; i > 1; i--)
+      for (int i = numLocs - 1; i > 1; i--)
         {
         // move files
         FileUtil.copy(jobFS, new Path(output, Integer.toString(i)), jobFS, new Path(output, Integer.toString(i + 1)), true, false, jobFS.getConf());
@@ -214,7 +174,7 @@ public class GenerateDerivativeChromosomes extends BWAJob
     if (aberration.getAbrType().equals("iso"))
       {
       log.info("ISO aberration");
-      if (this.filterLocations.size() > 2)
+      if (numLocs > 2)
         throw new RuntimeException("This should not happen: iso has more than 2 locations");
       }
 

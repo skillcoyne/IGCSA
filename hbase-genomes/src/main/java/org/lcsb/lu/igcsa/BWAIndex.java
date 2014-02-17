@@ -74,6 +74,8 @@ public class BWAIndex extends BWAJob
     CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs());
     fastaTxt = new Path(cl.getOptionValue('f'));
 
+    log.info("Running BWAIndex on " + fastaTxt.getParent().toString());
+
     setupBWA(cl.getOptionValue('b'));
 
     Job job = new Job(getConf(), "BWA Index for " + fastaTxt.getParent().toString());

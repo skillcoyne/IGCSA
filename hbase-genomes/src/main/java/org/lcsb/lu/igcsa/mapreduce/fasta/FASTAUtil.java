@@ -71,6 +71,7 @@ public class FASTAUtil
   // Create a single merged FASTA file from files in the src directory.
   public static void mergeFASTAFiles(FileSystem fs, String src, String dest) throws Exception
     {
+    log.info("Merging files in " + src);
     ToolRunner.run(new Crush(), new String[]{"--input-format=text", "--output-format=text", "--compress=none", src, dest});
     }
 
