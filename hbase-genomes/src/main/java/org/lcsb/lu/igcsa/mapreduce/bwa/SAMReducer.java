@@ -29,7 +29,7 @@ public class SAMReducer extends Reducer<Text, Text, Text, Text>
 
   protected String generateFileName(Text key)
     {
-    return (key.toString().equals("*"))? "zzz": key.toString().replace("|", "") ;
+    return (key.toString().equals("*"))? "zzz": key.toString().replaceAll("\\W", "");
     }
 
   @Override

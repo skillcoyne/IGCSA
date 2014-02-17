@@ -25,10 +25,7 @@ public abstract class BWAJob extends JobIGCSA
   {
   static Logger log = Logger.getLogger(BWAJob.class.getName());
 
-  private String bwaPath;
-
   public IGCSACommandLineParser parser = IGCSACommandLineParser.getParser();
-
 
   public BWAJob(Configuration conf)
     {
@@ -71,8 +68,6 @@ public abstract class BWAJob extends JobIGCSA
     */
     URI uri = new URI(new Path(bwaPath).toUri().toASCIIString() + "#tools");
     addArchive(uri);
-//    DistributedCache.addCacheArchive(uri, getConf());
-//    DistributedCache.createSymlink(getConf());
     }
 
 

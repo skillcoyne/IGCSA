@@ -1,5 +1,6 @@
 package org.lcsb.lu.igcsa;
 
+import org.apache.commons.cli.Options;
 import org.apache.log4j.Logger;
 
 
@@ -16,6 +17,13 @@ public class Pipeline
   public static void main(String[] args) throws Exception
     {
 
+    }
+
+  private static void parseCommandLine(String[] args)
+    {
+    Options options = new Options();
+    options.addOption("r", "read-pair", true, "Read pair TSV file");
+    //options.addOption()
     }
 
 

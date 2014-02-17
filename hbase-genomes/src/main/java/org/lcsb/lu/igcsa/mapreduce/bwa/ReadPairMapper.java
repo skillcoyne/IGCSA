@@ -122,6 +122,7 @@ private boolean runAlignment(File[] files) throws IOException, InterruptedExcept
 
   log.info("SAI FILE SIZE: " + sai.length());
 
+  // this isn't necessarily wrong, esp when trying to align against derivatives
   if (exitVal > 0) throw new IOException("Alignment failed: " + errorOS.toString());
   return (sai.length() > 64);
   }

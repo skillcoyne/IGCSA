@@ -33,7 +33,7 @@ public class BWAAlign extends BWAJob
 
   private Path readPairTSV;
 
-  private static Path alignOutput = new Path("/bwaalignment");
+  //private static Path alignOutput = new Path("/bwaalignment");
 
   public BWAAlign()
     {
@@ -58,6 +58,11 @@ public class BWAAlign extends BWAJob
     getConf().setBoolean(SAMOutputFormat.HEADER_OUTPUT, false);
 
     FileSystem fs = FileSystem.get(getConf());
+
+    Path alignOutput = new Path(Paths.ALIGN.getPath());
+    if (!getJobFileSystem().getUri().toASCIIString().startsWith("hdfs"))
+      alignOutput = new Path("/tmp/" + alignOutput.toString());
+
     if (!fs.exists(alignOutput))
       fs.mkdirs(alignOutput);
 
@@ -70,14 +75,16 @@ public class BWAAlign extends BWAJob
       fs.delete(outputPath, true);
 
     // reference
-    Path reference = new Path(refGenome, "index.tgz");
+    Path reference = new Path(Paths.GENOMES.getPath() + "/" + refGenome, "index.tgz");
+    if (!getJobFileSystem().getUri().toASCIIString().startsWith("hdfs"))
+      reference = new Path("/tmp/" + reference.toString());
+
     if (!fs.exists(reference))
       throw new IOException("Indexed reference genome does not exist: " + reference.toUri());
     reference = reference.makeQualified(fs);
 
     URI uri = new URI(reference.toUri().toASCIIString() + "#reference");
     addArchive(uri);
-
     }
 
   @Override
@@ -129,10 +136,10 @@ public class BWAAlign extends BWAJob
         align.getOutputPath().toString(),
         align.getOutputPath().toString() + ".sam" });
     // drop the unmerged data
-    align.getJobFileSystem().deleteOnExit(align.getOutputPath());
+    //align.getJobFileSystem().deleteOnExit(align.getOutputPath());
 
     System.out.println( align.getOutputPath().toString() + ".sam" + " written.");
     }
-
+  // MAJOR PROBLEM ---> TODO comparison of the sam file that results shows it to be 1/8 the size that it should be.
 
   }

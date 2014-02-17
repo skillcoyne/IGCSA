@@ -58,7 +58,8 @@ public class GenerateDerivativeChromosomes extends BWAJob
   @Override
   public int run(String[] strings) throws Exception
     {
-    return 0;
+    log.info("No job to run for " + this.getClass().getSimpleName());
+    return 1;
     }
 
   /*
