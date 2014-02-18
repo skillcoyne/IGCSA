@@ -18,12 +18,14 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 
+
 /**
  * org.lcsb.lu.igcsa
  * Author: Sarah Killcoyne
  * Copyright University of Luxembourg, Luxembourg Centre for Systems Biomedicine 2014
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
+ // NOTE: Potential problem, some runs of this have resulted in sam files that were too small, but this isn't consistent
 public class BWAAlign extends BWAJob
   {
   static Logger log = Logger.getLogger(BWAAlign.class.getName());
@@ -32,8 +34,6 @@ public class BWAAlign extends BWAJob
   private Path outputPath;
 
   private Path readPairTSV;
-
-  //private static Path alignOutput = new Path("/bwaalignment");
 
   public BWAAlign()
     {
@@ -140,6 +140,6 @@ public class BWAAlign extends BWAJob
 
     System.out.println( align.getOutputPath().toString() + ".sam" + " written.");
     }
-  // MAJOR PROBLEM ---> TODO comparison of the sam file that results shows it to be 1/8 the size that it should be.
+
 
   }

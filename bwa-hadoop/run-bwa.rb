@@ -16,8 +16,8 @@ def print_usage(msg = "")
 All options are required.
 Usage: $0
     --hadoop-path [Hadoop directory],
-    --bwa-path [Directory to compiled bwa]
-    --hadoop-bam-path [Directory that contains hadoop-bam jar and associated jars]
+    --bwa-path [Directory to compiled bwa - default hdfs://bwa-tools/bwa.tgz]
+    --hadoop-bam-path [Directory that contains hadoop-bam jar and associated jars OPTIONAL]
     --reference [HDFS directory that contains the reference genome with index]
     --read-pair-dir [Directory that contains read files]
     --hdfs-path [HDFS directory for outputs]
@@ -46,8 +46,8 @@ end
 
 opts = GetoptLong.new(
     ['--hadoop-path', GetoptLong::REQUIRED_ARGUMENT],
-    ['--bwa-path', GetoptLong::REQUIRED_ARGUMENT],
-    ['--hadoop-bam-path', GetoptLong::REQUIRED_ARGUMENT],
+    ['--bwa-path', GetoptLong::OPTIONAL_ARGUMENT],
+    ['--hadoop-bam-path', GetoptLong::OPTIONAL_ARGUMENT],
     ['--reference', GetoptLong::REQUIRED_ARGUMENT],
     ['--read-pair-dir', GetoptLong::REQUIRED_ARGUMENT],
     ['--hdfs-path', GetoptLong::REQUIRED_ARGUMENT],
@@ -63,9 +63,9 @@ opts.each do |opt, arg|
       print_usage
     when '--hdfs-path'
       hdfs_input = arg
-    when '--bwa-path'
-      bwa_path = arg
-      print_usage("BWA: #{bwa_path} does not exist.") unless File.exists? bwa_path
+    #when '--bwa-path'
+    #  bwa_path = arg
+    #  print_usage("BWA: #{bwa_path} does not exist.") unless File.exists? bwa_path
     when '--hadoop-bam-path'
       path = arg
       print_usage("#{path} does not exist or is not a directory.") unless File.exists? path and File.directory? path
@@ -89,15 +89,19 @@ opts.each do |opt, arg|
   end
 end
 
-unless bwa_path and picard_path and reference and hadoop and read_pair and hdfs_input
+unless hadoop and read_pair
   print_usage
 end
 
-puts "BWA: #{bwa_path}"
-puts "Picard: #{picard_path}"
-puts "Read pair: #{read_pair}"
-puts "Indexed reference path: #{reference}"
-puts "Hadoop path #{hadoop}"
+#unless bwa_path and picard_path and reference and hadoop and read_pair and hdfs_input
+#  print_usage
+#end
+
+#puts "BWA: #{bwa_path}"
+#puts "Picard: #{picard_path}"
+#puts "Read pair: #{read_pair}"
+#puts "Indexed reference path: #{reference}"
+#puts "Hadoop path #{hadoop}"
 
 
 reads_dir = "/tmp/igcsa/reads"
@@ -114,10 +118,10 @@ reference += "/index.tgz"
 ## reference check end ##
 
 ## Set up tool archive (currently just bwa)
-tmp_local_path = "/tmp/igcsa/tools"
-bwa_path += "/bwa" if File.basename(bwa_path) != "bwa"
-create_tool_archive([bwa_path], tmp_local_path)
-hcmd.copy_to_hdfs("#{tmp_local_path}/bwa.tgz", :path => "/bwa-tools", :overwrite => true)
+#tmp_local_path = "/tmp/igcsa/tools"
+#bwa_path += "/bwa" if File.basename(bwa_path) != "bwa"
+#create_tool_archive([bwa_path], tmp_local_path)
+#hcmd.copy_to_hdfs("#{tmp_local_path}/bwa.tgz", :path => "/bwa-tools", :overwrite => true)
 
 ## Set up read files
 unless hcmd.list(:path => output_path).nil?
@@ -162,9 +166,6 @@ unless $?.success?
   $stderr.puts "#{stream_cmd}\nStreaming command failed: #{output}"
   exit $?
 end
-
-exit
-
 
 ## TODO In reality all I would need to do in order to merge the resulting files is read them all in, grab the headers and treat them as keys
 ## to the rest of the file.  Then write out the header and all values to a single sam file.  But this works for the moment so I'll just use it...

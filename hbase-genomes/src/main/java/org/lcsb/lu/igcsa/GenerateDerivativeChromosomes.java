@@ -80,6 +80,8 @@ public class GenerateDerivativeChromosomes extends BWAJob
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(getConf());
 
     HBaseKaryotype karyotype = admin.getKaryotype(karyotypeName);
+    if (karyotype == null)
+      throw new Exception("No karyotype found for " + karyotypeName);
     HBaseGenome parentGenome = admin.getGenome(karyotype.getKaryotype().getParentGenome());
 
     Path basePath = new Path(Paths.GENOMES.getPath()); // TODO this should probably be an arg

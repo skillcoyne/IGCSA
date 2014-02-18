@@ -53,6 +53,11 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
     File fastqA = readA[0];
     File fastqB = readB[0];
 
+    // this should never happen but just to check.
+    if (fastqA.exists() || fastqB.exists() || sam.exists())
+      throw new IOException("Cannot overwrite existing file: " + fastqA + ", " + fastqB + ", " + sam);
+
+
     BufferedOutputStream tmpWriter1 = new BufferedOutputStream(new FileOutputStream(fastqA));
     BufferedOutputStream tmpWriter2 = new BufferedOutputStream(new FileOutputStream(fastqB));
 
