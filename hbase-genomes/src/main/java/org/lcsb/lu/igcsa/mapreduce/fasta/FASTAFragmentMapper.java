@@ -31,7 +31,7 @@ public class FASTAFragmentMapper extends Mapper<LongWritable, FragmentWritable, 
 
   private HBaseGenomeAdmin admin;
   private String genomeName;
-  private String chr;
+  //private String chr;
 
 
     @Override
@@ -46,27 +46,31 @@ public class FASTAFragmentMapper extends Mapper<LongWritable, FragmentWritable, 
     log.info("CREATING MAPPER FOR: " + filePath);
 
     genomeName = context.getConfiguration().get("genome");
-    chr = FileUtils.getChromosomeFromFASTA(filePath);
+//    chr = FileUtils.getChromosomeFromFASTA(filePath);
+//
+//    log.info("CHROMOSOME: " + chr);
 
-    log.info("CHROMOSOME: " + chr);
-
-    if (admin.getGenome(genomeName).getChromosome(chr) == null)
-      admin.getGenome(genomeName).addChromosome(chr, 0, 0);
+//    if (admin.getGenome(genomeName).getChromosome(chr) == null)
+//      admin.getGenome(genomeName).addChromosome(chr, 0, 0);
     }
 
   @Override
-  protected void map(LongWritable key, FragmentWritable value, Context context) throws IOException, InterruptedException
+  protected void map(LongWritable key, FragmentWritable fragment, Context context) throws IOException, InterruptedException
     {
+    if (admin.getGenome(genomeName).getChromosome(fragment.getChr()) == null)
+      admin.getGenome(genomeName).addChromosome(fragment.getChr(), 0, 0);
+
+
     // pretty much just chopping the file up and spitting it back out into the HBase tables
-    FragmentWritable fragment = value;// FragmentWritable.read(value.get());
-    this.admin.getGenome(genomeName).getChromosome(chr).addSequence(
+    //FragmentWritable fragment = value;// FragmentWritable.read(value.get());
+    this.admin.getGenome(genomeName).getChromosome(fragment.getChr()).addSequence(
         fragment.getStart(),
         fragment.getEnd(),
         fragment.getSequence(),
         fragment.getSegment());
 
-    ChromosomeResult incremented = this.admin.getChromosomeTable().incrementSize(ChromosomeRow.createRowId(genomeName, chr), 1, (fragment.getEnd() - fragment.getStart()));
+    ChromosomeResult incremented = this.admin.getChromosomeTable().incrementSize(ChromosomeRow.createRowId(genomeName, fragment.getChr()), 1, (fragment.getEnd() - fragment.getStart()));
 
-    log.info("Key:" + key + " " + value.toString() + "seg/length: " + incremented.getSegmentNumber() + "," + incremented.getLength());
+    log.info("Key:" + key + " " + fragment.toString() + "seg/length: " + incremented.getSegmentNumber() + "," + incremented.getLength());
     }
   }

@@ -106,7 +106,13 @@ public class LoadFromFASTA extends JobIGCSA
     String genomeName = args[0];
     String fastaDir = args[1];
 
-    admin.deleteGenome(genomeName);
+
+    if (admin.getGenome(genomeName) != null)
+      {
+      System.out.println("Genome '" + genomeName + "' already exists, overwrites are not allowed. Deleting genome.");
+      //System.exit(-1);
+      admin.deleteGenome(genomeName);
+      }
 
     HBaseGenome genome = admin.getGenome(genomeName);
     if (genome == null) genome = new HBaseGenome(genomeName, null);

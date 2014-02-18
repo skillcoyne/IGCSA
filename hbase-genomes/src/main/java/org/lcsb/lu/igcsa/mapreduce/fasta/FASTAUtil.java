@@ -57,17 +57,6 @@ public class FASTAUtil
       }
     }
 
-  public static String getChromosomeFromFASTA(String fileName) throws IOException
-    {
-    Pattern p = Pattern.compile("^.*(\\d+|X|Y)\\.fa.*$");
-    Matcher matcher = p.matcher(fileName);
-
-    if (matcher.find())
-      return matcher.group(1);
-    else
-      throw new IOException(fileName + " does not contain a chromosome.");
-    }
-
   // Create a single merged FASTA file from files in the src directory.
   public static void mergeFASTAFiles(FileSystem fs, String src, String dest) throws Exception
     {

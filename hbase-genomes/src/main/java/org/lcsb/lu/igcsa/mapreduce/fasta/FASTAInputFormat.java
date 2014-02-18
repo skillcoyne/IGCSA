@@ -23,6 +23,7 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.lcsb.lu.igcsa.utils.FileUtils;
 
 import java.io.IOException;
 
@@ -52,7 +53,7 @@ public class FASTAInputFormat extends FileInputFormat<Text, Text>
       {
       FileSplit split = (FileSplit) inputSplit;
       Path path = split.getPath();
-      key = new Text(FASTAUtil.getChromosomeFromFASTA(path.toString()));
+      key = new Text(FileUtils.getChromosomeFromFASTA(path.toString()));
       value = new Text(path.toString());
       }
 
@@ -106,7 +107,7 @@ public class FASTAInputFormat extends FileInputFormat<Text, Text>
       if (!org.lcsb.lu.igcsa.utils.FileUtils.FASTA_FILE.accept(null, path.toString()))
         throw new IOException(path.toString() + " is not a FASTA file.");
 
-      splitChr = FASTAUtil.getChromosomeFromFASTA(path.toString());
+      splitChr = FileUtils.getChromosomeFromFASTA(path.toString());
       context.getConfiguration().set("chromosome", splitChr);
 
       splitStart = split.getStart();
