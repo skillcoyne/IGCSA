@@ -15,6 +15,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 
 
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.lcsb.lu.igcsa.hbase.HBaseGenome;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 import org.lcsb.lu.igcsa.hbase.rows.ChromosomeRow;
 import org.lcsb.lu.igcsa.hbase.tables.ChromosomeResult;
@@ -32,9 +33,9 @@ public class FASTAFragmentMapper extends Mapper<LongWritable, FragmentWritable, 
   private HBaseGenomeAdmin admin;
   private String genomeName;
   //private String chr;
+  private HBaseGenome genome;
 
-
-    @Override
+  @Override
   protected void setup(Context context) throws IOException, InterruptedException
     {
     super.setup(context);
@@ -46,12 +47,13 @@ public class FASTAFragmentMapper extends Mapper<LongWritable, FragmentWritable, 
     log.info("CREATING MAPPER FOR: " + filePath);
 
     genomeName = context.getConfiguration().get("genome");
-//    chr = FileUtils.getChromosomeFromFASTA(filePath);
-//
-//    log.info("CHROMOSOME: " + chr);
+    genome = this.admin.getGenome(genomeName);
+    //    chr = FileUtils.getChromosomeFromFASTA(filePath);
+    //
+    //    log.info("CHROMOSOME: " + chr);
 
-//    if (admin.getGenome(genomeName).getChromosome(chr) == null)
-//      admin.getGenome(genomeName).addChromosome(chr, 0, 0);
+    //    if (admin.getGenome(genomeName).getChromosome(chr) == null)
+    //      admin.getGenome(genomeName).addChromosome(chr, 0, 0);
     }
 
   @Override
@@ -61,16 +63,20 @@ public class FASTAFragmentMapper extends Mapper<LongWritable, FragmentWritable, 
       admin.getGenome(genomeName).addChromosome(fragment.getChr(), 0, 0);
 
 
-    // pretty much just chopping the file up and spitting it back out into the HBase tables
-    //FragmentWritable fragment = value;// FragmentWritable.read(value.get());
-    this.admin.getGenome(genomeName).getChromosome(fragment.getChr()).addSequence(
-        fragment.getStart(),
-        fragment.getEnd(),
-        fragment.getSequence(),
-        fragment.getSegment());
+    if (genome.getChromosome(fragment.getChr()).getSequence(fragment.getSegment()) == null)
+      {
+      // pretty much just chopping the file up and spitting it back out into the HBase tables
+      //FragmentWritable fragment = value;// FragmentWritable.read(value.get());
+      this.admin.getGenome(genomeName).getChromosome(fragment.getChr()).addSequence(fragment.getStart(), fragment.getEnd(),
+                                                                                    fragment.getSequence(), fragment.getSegment());
 
-    ChromosomeResult incremented = this.admin.getChromosomeTable().incrementSize(ChromosomeRow.createRowId(genomeName, fragment.getChr()), 1, (fragment.getEnd() - fragment.getStart()));
+      ChromosomeResult incremented = this.admin.getChromosomeTable().incrementSize(ChromosomeRow.createRowId(genomeName,
+                                                                                                             fragment.getChr()), 1, (fragment.getEnd() - fragment.getStart()));
+      log.info("Key:" + key + " " + fragment.toString() + "seg/length: " + incremented.getSegmentNumber() + "," + incremented.getLength());
+      }
+    else
+      System.err.println(fragment.toString() + " already existed, skipping.");
 
-    log.info("Key:" + key + " " + fragment.toString() + "seg/length: " + incremented.getSegmentNumber() + "," + incremented.getLength());
+
     }
   }
