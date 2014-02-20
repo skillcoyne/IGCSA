@@ -52,17 +52,20 @@ public class OutputGenome
     //  SequenceResult sr =     admin.getSequenceTable().queryTable("GRCh37-11:00043501");
     //    log.info(sr);
 
-    HBaseGenome genome = admin.getGenome("Test");
+    HBaseGenome genome = admin.getGenome("GRCh37");
 
     for (HBaseChromosome chr : genome.getChromosomes())
       {
-      log.info(chr.getChromosome().getChrName() + " " + chr.getChromosome().getSegmentNumber() + " " + chr.getChromosome().getLength());
+      String c = chr.getChromosome().getChrName();
+      log.info(c + " " + chr.getChromosome().getSegmentNumber() + " " + chr.getChromosome().getLength());
 
-      int count = 0;
-      Iterator i = chr.getSequences();
-      while (i.hasNext())
-        ++count;
-      log.info(count);
+      long segments = genome.getChromosome(c).getChromosome().getSegmentNumber();
+      for (int i = 1; i <= segments; i++)
+        {
+        HBaseSequence seq = genome.getChromosome(c).getSequence(i);
+        log.info( seq.getSequence().getStart() + ", " + seq.getSequence().getEnd() );
+        }
+
 
       }
     //

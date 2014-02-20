@@ -36,6 +36,7 @@ public class CharacterReader
 
   // in characters NOT bytes
   private static long filePos = 0L;
+  private static long numChars = 0L;
 
   private BufferedReader bufferedReader;
 
@@ -46,6 +47,7 @@ public class CharacterReader
 
   public CharacterReader(InputStream in, long startChar)
     {
+    log.info("*** NEW READER ***");
     this.bufferedReader = new BufferedReader(new InputStreamReader(in));
     this.in = in;
     filePos += startChar;
@@ -62,7 +64,10 @@ public class CharacterReader
     {
     String line = bufferedReader.readLine();
     if (line != null)
+      {
+      numChars += line.length();
       filePos += line.length() + 1;
+      }
     return line;
     }
 
@@ -90,21 +95,27 @@ public class CharacterReader
     return str;
     }
 
+  public long getNumChars()
+    {
+    return numChars;
+    }
+
   public long getPos()
     {
     return filePos;
     }
 
-  public void skip(int nChar) throws IOException
-    {
-    bufferedReader.skip(nChar);
-    filePos += nChar;
-    }
+//  public void skip(int nChar) throws IOException
+//    {
+//    bufferedReader.skip(nChar);
+//    filePos += nChar;
+//    }
 
   public void reset() throws IOException
     {
     bufferedReader.reset();
     filePos = 0L;
+    numChars = 0L;
     }
 
   public void close() throws IOException
@@ -117,6 +128,8 @@ public class CharacterReader
     {
     char c = (char) bufferedReader.read();
     ++filePos;
+    if (c != CR && c != LF)
+      ++numChars;
     return c;
     }
 

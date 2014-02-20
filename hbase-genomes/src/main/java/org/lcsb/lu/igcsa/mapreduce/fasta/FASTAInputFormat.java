@@ -82,9 +82,6 @@ public class FASTAInputFormat extends FileInputFormat<Text, Text>
       }
     }
 
-
-
-
   public static class FASTARecordReader extends RecordReader<Text, Text>
     {
     private static final Log log = LogFactory.getLog(FASTARecordReader.class);

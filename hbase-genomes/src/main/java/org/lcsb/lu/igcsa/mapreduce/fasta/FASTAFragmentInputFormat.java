@@ -24,6 +24,7 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.apache.hadoop.util.LineReader;
 import org.lcsb.lu.igcsa.mapreduce.FragmentWritable;
 import org.lcsb.lu.igcsa.utils.FileUtils;
 
@@ -37,7 +38,7 @@ public class FASTAFragmentInputFormat extends FileInputFormat<LongWritable, Frag
   @Override
   protected boolean isSplitable(JobContext context, Path filename)
     {
-    // force the entire file to be read in a single split. Basically this is the only way I can think of currently to ensure that the segments are numbered consecutively.  This is important!  If splitting is permitted segments cannot be kept consecutive.
+    // force the entire file to be read in a single split. This is mostly just convinience.  Otherwise the last record in the split is going to consume some bytes from the next split, and figuring out how many bytes were consumed and seeking to the right spot is just not something I feel like doing right now...
     return false;
     }
 
@@ -60,11 +61,10 @@ public class FASTAFragmentInputFormat extends FileInputFormat<LongWritable, Frag
     private CharacterReader reader;
     private FSDataInputStream inputStream;
 
-    private long splitStart;
-    private long splitEnd;
+    private static String header;
     private String splitChr;
 
-    private long segment = 0;
+    private long splitStart, splitEnd, headerLength;
 
     private long lastStart = 1;
 
@@ -108,7 +108,8 @@ public class FASTAFragmentInputFormat extends FileInputFormat<LongWritable, Frag
         if (reader.read() == FASTAUtil.HEADER_IDENTIFIER)
           {
           // not doing anything with this right now, not sure there is anything to be done
-          String header = reader.readLine();
+          header = reader.readLine();
+          headerLength = reader.getNumChars();
           }
         else  // this actually shouldn't happen but...you're at the beginning of a file that lacks the header?
           {
@@ -124,22 +125,24 @@ public class FASTAFragmentInputFormat extends FileInputFormat<LongWritable, Frag
       if (splitEnd < inputStream.getPos())
         return false;
 
-      ++segment;
-      long adjustedStart = lastStart;
+      // legacy...most of the code (I think) already is 1-based instead of 0-based so...
+      long adjustedStart = (reader.getNumChars()-headerLength)+1;
+
       String fragment = reader.readCharacters(window);
 
+      //log.info(splitChr + " " + adjustedStart);
       // no more data
       if (fragment == null)
-        {
-        log.info(splitEnd + ", " + inputStream.getPos());
         return false;
-        }
 
-      long adjustedEnd = adjustedStart + fragment.length();
-      lastStart = adjustedEnd;
+      long adjustedEnd = (adjustedStart) + fragment.length();
 
-      key = new LongWritable(segment);
-      value = new FragmentWritable(splitChr, adjustedStart, adjustedEnd, segment, fragment);
+      long segment = (reader.getNumChars()-header.length())/window;
+      if (fragment.length() < window)
+        ++segment;
+
+      key = new LongWritable( segment );
+      value = new FragmentWritable(splitChr, adjustedStart, adjustedEnd, key.get(), fragment);
 
       return true;
       }
@@ -159,13 +162,19 @@ public class FASTAFragmentInputFormat extends FileInputFormat<LongWritable, Frag
     @Override
     public float getProgress() throws IOException, InterruptedException
       {
-      return inputStream.getPos(); // for what??
+      float progress = 0.0f;
+      if (inputStream.getPos() > 0)
+        {
+        progress = Math.min(1.0f, (float)reader.getPos()/splitEnd);
+        }
+      return progress;
       }
 
     @Override
     public void close() throws IOException
       {
       reader.close();
+      inputStream.close();
       }
 
     }

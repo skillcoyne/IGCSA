@@ -26,7 +26,6 @@ import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAFragmentMapper;
 import org.lcsb.lu.igcsa.mapreduce.FragmentWritable;
 import org.lcsb.lu.igcsa.utils.FileUtils;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
@@ -44,29 +43,37 @@ public class LoadFromFASTA extends JobIGCSA
   {
   static Logger log = Logger.getLogger(LoadFromFASTA.class.getName());
 
-  private String genomeName;
   private Collection<Path> paths;
 
   public LoadFromFASTA(String genomeName, Collection<Path> paths)
     {
     super(HBaseConfiguration.create());
 
-    this.genomeName = genomeName;
     this.paths = paths;
+    getConf().set("genome", genomeName);
 
     if (paths.iterator().next().toString().contains("s3"))
-      {
-      AWSProperties props = AWSProperties.getProperties();
-      getConf().set("fs.s3n.awsAccessKeyId", props.getAccessKey());
-      getConf().set("fs.s3n.awsSecretAccessKey", props.getSecretKey());
-      }
+      setAWSProps();
+    }
+
+  private void setAWSProps()
+    {
+    AWSProperties props = AWSProperties.getProperties();
+    getConf().set("fs.s3n.awsAccessKeyId", props.getAccessKey());
+    getConf().set("fs.s3n.awsSecretAccessKey", props.getSecretKey());
+
+    // might help with a strange problem in AWS
+    log.info("Region handlers: " + getConf().get("hbase.regionserver.handler.count") + " increasing to 100");
+
+    getConf().setInt("hbase.regionserver.handler.count", 100);
+    getConf().setInt("hbase.rpc.timeout", 360000);
+
+    log.info("hbase timeout set to: " + getConf().get("hbase.rpc.timeout"));
     }
 
   @Override
   public int run(String[] args) throws Exception
     {
-    getConf().set("genome", genomeName);
-
     Job job = new Job(getConf(), "Reference Genome Fragmentation");
 
     job.setJarByClass(LoadFromFASTA.class);
@@ -76,6 +83,7 @@ public class LoadFromFASTA extends JobIGCSA
     job.setMapOutputValueClass(FragmentWritable.class);
 
     job.setInputFormatClass(FASTAFragmentInputFormat.class);
+
     for (Path path : paths)
       {
       log.info(path.toString());
@@ -83,6 +91,7 @@ public class LoadFromFASTA extends JobIGCSA
       }
 
     // because we aren't emitting anything from mapper
+    job.setNumReduceTasks(0);
     job.setOutputFormatClass(NullOutputFormat.class);
 
     return (job.waitForCompletion(true) ? 0 : 1);
@@ -93,7 +102,6 @@ public class LoadFromFASTA extends JobIGCSA
     GenericOptionsParser parser = new GenericOptionsParser(new Configuration(), args);
 
     args = parser.getRemainingArgs();
-    //args = new String[]{"test", "hdfs://FASTA"};
     if (args.length < 2)
       {
       System.err.println("Usage: LoadFromFASTA <genome name> <fasta directory>");
@@ -106,7 +114,6 @@ public class LoadFromFASTA extends JobIGCSA
     String genomeName = args[0];
     String fastaDir = args[1];
 
-
     if (admin.getGenome(genomeName) != null)
       {
       System.out.println("Genome '" + genomeName + "' already exists, overwrites are not allowed. Deleting genome.");
@@ -115,14 +122,16 @@ public class LoadFromFASTA extends JobIGCSA
       }
 
     HBaseGenome genome = admin.getGenome(genomeName);
-    if (genome == null) genome = new HBaseGenome(genomeName, null);
+    if (genome == null)
+      genome = new HBaseGenome(genomeName, null);
 
     Collection<Path> filePaths = new ArrayList<Path>();
     if (fastaDir.startsWith("s3"))
       {
       Pattern s3pattern = Pattern.compile("^s3n?:\\/\\/(\\w+[-\\w+]*).*");
       Matcher s3file = s3pattern.matcher(fastaDir);
-      if (!s3file.matches()) throw new Exception("A S3 bucket name could not be determined from " + fastaDir);
+      if (!s3file.matches())
+        throw new Exception("A S3 bucket name could not be determined from " + fastaDir);
 
       String bucket = s3file.group(1);
       Map<String, S3ObjectSummary> chromosomes = AWSUtils.listFASTAFiles(bucket);
@@ -143,17 +152,8 @@ public class LoadFromFASTA extends JobIGCSA
       for (FileStatus status : statuses)
         filePaths.add(status.getPath());
       }
-//    else // local files
-//      {
-//      Map<String, File> files = org.lcsb.lu.igcsa.utils.FileUtils.getFASTAFiles(new File(fastaDir));
-//      for (File file : files.values())
-//        filePaths.add(new Path(file.getPath()));
-//      }
 
-    final long startTime = System.currentTimeMillis();
     ToolRunner.run(new LoadFromFASTA(genomeName, filePaths), null);
-    final long elapsedTime = System.currentTimeMillis() - startTime;
-    log.info("Finished job " + elapsedTime / 1000 + " seconds");
     }
 
   }

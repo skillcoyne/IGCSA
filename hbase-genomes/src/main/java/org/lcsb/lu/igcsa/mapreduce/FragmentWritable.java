@@ -66,10 +66,6 @@ public class FragmentWritable implements WritableComparable<FragmentWritable>
   @Override
   public int compareTo(FragmentWritable fragment)
     {
-    log.info("foo");
-    if (this.segment == 1 || fragment.getSegment() == 1)
-      log.info("foo");
-
     if (fragment.equals(this))
       return 0;
     else if (this.getChr().compareTo(fragment.getChr()) != 0)

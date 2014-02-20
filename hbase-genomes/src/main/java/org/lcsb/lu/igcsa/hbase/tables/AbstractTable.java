@@ -237,14 +237,11 @@ public abstract class AbstractTable
     return put;
     }
 
-
-
-
   public void delete(String rowId) throws IOException
     {
     if (queryTable(rowId) != null)
       {
-      log.info("Deleting " + rowId);
+      log.debug("Deleting " + getTableName() + "row: " + rowId);
       Delete del = new Delete(Bytes.toBytes(rowId));
       hTable.delete(del);
       }
@@ -258,8 +255,6 @@ public abstract class AbstractTable
 
     return results;
     }
-
-
 
   protected abstract List<? extends AbstractResult> createResults(List<Result> results);
 

@@ -77,7 +77,7 @@ public class HBaseChromosome extends HBaseConnectedObjects
 
     String sequenceId = SequenceRow.createRowId(this.chromosome.getGenomeName(), this.chromosome.getChrName(), segmentNum);
     if (sT.queryTable(sequenceId) != null)
-      log.warn("Sequence "+ sequenceId + " already exists. Not overwriting.");
+      throw new IOException("Sequence "+ sequenceId + " already exists. Not overwriting.");
     else
       {
       SequenceRow row = new SequenceRow( sequenceId );
