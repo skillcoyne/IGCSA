@@ -8,8 +8,10 @@
 
 package org.lcsb.lu.igcsa.hbase.rows;
 
-import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.dist.RandomRange;
 import org.lcsb.lu.igcsa.hbase.tables.Column;
+
+import java.util.Random;
 
 public class SequenceRow extends Row
   {
@@ -17,14 +19,36 @@ public class SequenceRow extends Row
   private String chr;
   private long segmentNum;
 
+
+  // This means that I can never deterministically guess what the row id is for any given sequence.  All queries will have to be run on a column based search
+  private static String generateRandom(String chr)
+    {
+    StringBuffer rstr = new StringBuffer();
+
+    // Initial letter will be the same within each chromosome
+    if (chr.matches("X|Y"))
+      rstr.append( chr.charAt(0) );
+    else
+      {
+      int cc = Integer.parseInt(chr) + 64;
+      rstr.append( (char)cc );
+      }
+
+    RandomRange rand = new RandomRange(65, 90);
+    for (int i=0; i<2; i++)
+      rstr.append((char) rand.nextInt());
+
+    return rstr.toString();
+    }
+
   public static String createRowId(String genome, String chr, long segmentNum)
     {
     //1000000000
     if (segmentNum > 99999999)
       throw new RuntimeException("Overran formatted size, 8d is not enough.");
 
-    String formattedSeg = String.format("%08d", segmentNum);
-    return ChromosomeRow.createRowId(genome, chr) + ":" + formattedSeg;
+    String formattedSeq = String.format("%08d", segmentNum);
+    return generateRandom(chr) + formattedSeq + ":" + ChromosomeRow.createRowId(genome, chr);
     }
 
   public SequenceRow(String rowId)
@@ -59,7 +83,9 @@ public class SequenceRow extends Row
     {
     if (chr == null || segmentNum <= 0 || genome == null )
       return false;
-    return this.getRowIdAsString().equals(createRowId(genome, chr, segmentNum));
+
+    String testRow = createRowId(genome, chr, segmentNum);
+    return (this.getRowIdAsString().substring(3, this.getRowIdAsString().length()).equals(testRow.substring(3, testRow.length())) );
     }
 
   }

@@ -59,7 +59,7 @@ public class FASTAFragmentMapper extends Mapper<LongWritable, FragmentWritable, 
       ChromosomeResult incremented = this.admin.getChromosomeTable().incrementSize(ChromosomeRow.createRowId(genomeName,
                                                                                                              fragment.getChr()), 1, (fragment.getEnd() - fragment.getStart()));
 
-      log.debug("Key:" + key + " " + fragment.toString() + "seg/length: " + incremented.getSegmentNumber() + "," + incremented.getLength());
+      log.info("Key:" + key + " " + fragment.toString() + "seg/length: " + incremented.getSegmentNumber() + "," + incremented.getLength());
       }
     else
       System.err.println(fragment.toString() + " already existed, skipping.");

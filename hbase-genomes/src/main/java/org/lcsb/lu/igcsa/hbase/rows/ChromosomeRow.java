@@ -19,7 +19,7 @@ public class ChromosomeRow extends Row
 
   public static String createRowId(String genome, String chr)
     {
-    return genome + "-" + chr;
+    return chr + "-" + genome;
     }
 
   public ChromosomeRow(String rowId)
