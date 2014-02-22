@@ -10,23 +10,16 @@ package org.lcsb.lu.igcsa.hbase;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.ResultScanner;
-import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.filter.CompareFilter;
 import org.apache.hadoop.hbase.filter.FilterList;
 import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.hbase.rows.SequenceRow;
 import org.lcsb.lu.igcsa.hbase.tables.*;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class HBaseChromosome extends HBaseConnectedObjects
   {
@@ -49,45 +42,37 @@ public class HBaseChromosome extends HBaseConnectedObjects
     this.chromosome = cT.queryTable(rowId);
     }
 
-
-  public Put add(long start, long end, String sequence, long segmentNum) throws IOException
-    {
-    if (end <= start || sequence.length() <= 0)
-      throw new IllegalArgumentException("End location must be greater than start, segment must be between 1-" + this.chromosome
-          .getSegmentNumber() + ", and the sequence must have a minimum length of 1");
-
-    String sequenceId = SequenceRow.createRowId(this.chromosome.getGenomeName(), this.chromosome.getChrName(), start);
-    if (sT.queryTable(sequenceId) != null) log.warn("Sequence " + sequenceId + " already exists. Not overwriting.");
-    else
-      {
-      SequenceRow row = new SequenceRow(sequenceId);
-      row.addBasePairs(sequence);
-      row.addLocation(this.chromosome.getChrName(), start, end, segmentNum);
-      row.addGenome(this.chromosome.getGenomeName());
-
-      return sT.getPut(row);
-      }
-    return null;
-    }
-
-  public HBaseSequence addSequence(long start, long end, String sequence, long segmentNum) throws IOException
+  public boolean addSequence(long start, long end, String sequence, long segmentNum, boolean check) throws IOException
     {
     if (!(end >= start || sequence.length() >= 0))
       throw new IllegalArgumentException("End location must be greater than start, segment must be > 0, " +
                                          "and the sequence must have a minimum length of 1 (" + start + "," + end + "," +
                                          "" + sequence.length() + ")");
-//    if (this.getSequence(segmentNum) != null)
-//      throw new IOException("Sequence for " + chromosome.getGenomeName() + " " +
-//                            chromosome.getChrName() + " " + segmentNum + " already exists. Not overwriting.");
+    // this is VERY slow
+    if (check)
+      {
+      if (this.getSequence(segmentNum) != null)
+        throw new IOException("Sequence for " + chromosome.getGenomeName() + " " +
+                                                                      chromosome.getChrName() + " " + segmentNum + " already exists. Not " +
+                                                                      "overwriting.");
+      }
 
     SequenceRow row = new SequenceRow(SequenceRow.createRowId(this.chromosome.getGenomeName(), this.chromosome.getChrName(), segmentNum));
     row.addBasePairs(sequence);
     row.addLocation(this.chromosome.getChrName(), start, end, segmentNum);
     row.addGenome(this.chromosome.getGenomeName());
 
-    sT.addRow(row);
+    try
+      {
+      sT.addRow(row);
+      log.info("");
+      }
+    catch (IOException e)
+      {
+      return false;
+      }
 
-    return new HBaseSequence(sT.queryTable(row.getRowIdAsString()));
+    return true;
     }
 
   public HBaseSequence getSequence(long segmentNumber) throws IOException
@@ -136,6 +121,9 @@ public class HBaseChromosome extends HBaseConnectedObjects
     List<String> rowIds = new LinkedList<String>();
     Iterator<Result> rI = this.getSequences(startLoc, endLoc);
     while (rI.hasNext()) rowIds.add(Bytes.toString(rI.next().getRow()));
+
+    Collections.sort(rowIds, new SequenceRowIdComparator());
+
     return rowIds;
     }
 
@@ -156,31 +144,11 @@ public class HBaseChromosome extends HBaseConnectedObjects
     return this.sT.getScanner(filters);
     }
 
-  public Iterator<Result> getSequences() throws IOException
-    {
-    FilterList filters = new FilterList(FilterList.Operator.MUST_PASS_ALL);
-    filters.addFilter(new SingleColumnValueFilter(Bytes.toBytes("info"), Bytes.toBytes("genome"), CompareFilter.CompareOp.EQUAL,
-                                                  Bytes.toBytes(chromosome.getGenomeName())));
-    filters.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("chr"), CompareFilter.CompareOp.EQUAL,
-                                                  Bytes.toBytes(chromosome.getChrName())));
-
-    return this.sT.getScanner(filters);
-    }
-
-//  public int sequenceCount() throws IOException
-//    {
-//    FilterList filters = new FilterList(FilterList.Operator.MUST_PASS_ALL);
-//    filters.addFilter(new SingleColumnValueFilter(Bytes.toBytes("info"), Bytes.toBytes("genome"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(chromosome.getGenomeName())));
-//    filters.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("chr"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(chromosome.getChrName())));
-//
-//    return 0;
-//    }
 
   public ChromosomeResult getChromosome()
     {
     return this.chromosome;
     }
-
 
   @Override
   protected void getTables() throws IOException
@@ -188,4 +156,21 @@ public class HBaseChromosome extends HBaseConnectedObjects
     this.cT = HBaseGenomeAdmin.getHBaseGenomeAdmin().getChromosomeTable();
     this.sT = HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable();
     }
+
+  private class SequenceRowIdComparator implements Comparator<String>
+    {
+    private int parse(String rowId)
+      {
+      rowId = rowId.substring(2, rowId.indexOf(":"));
+      return Integer.parseInt(rowId);
+      }
+
+    @Override
+    public int compare(String s1, String s2)
+      {
+      if (s1.equals(s2)) return 0;
+      return (parse(s1) > parse(s2)) ? 1 : -1;
+      }
+    }
+
   }

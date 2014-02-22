@@ -35,7 +35,7 @@ public class SequenceRow extends Row
       }
 
     RandomRange rand = new RandomRange(65, 90);
-    for (int i=0; i<2; i++)
+    for (int i=0; i<1; i++)
       rstr.append((char) rand.nextInt());
 
     return rstr.toString();
@@ -48,7 +48,7 @@ public class SequenceRow extends Row
       throw new RuntimeException("Overran formatted size, 8d is not enough.");
 
     String formattedSeq = String.format("%08d", segmentNum);
-    return generateRandom(chr) + formattedSeq + ":" + ChromosomeRow.createRowId(genome, chr);
+    return  generateRandom(chr) + formattedSeq + ":" + ChromosomeRow.createRowId(genome, chr);
     }
 
   public SequenceRow(String rowId)
@@ -85,7 +85,8 @@ public class SequenceRow extends Row
       return false;
 
     String testRow = createRowId(genome, chr, segmentNum);
-    return (this.getRowIdAsString().substring(3, this.getRowIdAsString().length()).equals(testRow.substring(3, testRow.length())) );
+    //return this.getRowIdAsString().equals(testRow);
+    return (this.getRowIdAsString().substring(2, this.getRowIdAsString().length()).equals(testRow.substring(2, testRow.length())) );
     }
 
   }

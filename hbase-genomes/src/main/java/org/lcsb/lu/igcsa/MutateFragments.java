@@ -161,10 +161,17 @@ public class MutateFragments extends JobIGCSA
         NOTE: I could cut down on the size of the HBase (and actually use derby or something similar) by keeping only the actual segments from the original reference
         all subsequent mutations could be applied at runtime when I generate a FASTA file.
          */
-        HBaseSequence hBaseSequence = chromosome.addSequence(seq.getStart(),
+        boolean added =  chromosome.addSequence(seq.getStart(),
             seq.getStart() + mutatedSequence.getLength(),
             mutatedSequence.getSequence(),
-            seq.getSegmentNum());
+            seq.getSegmentNum(), false);
+
+        HBaseSequence hBaseSequence;
+        if (added)
+          hBaseSequence = chromosome.getSequence(seq.getSegmentNum());
+        else
+          throw new IOException("Failed to add sequence.");
+
 
         for (Variation v : mutations.keySet())
           {
@@ -174,7 +181,7 @@ public class MutateFragments extends JobIGCSA
           }
         }
       else
-        chromosome.addSequence(seq.getStart(), seq.getEnd(), seq.getSequence(), seq.getSegmentNum());
+        chromosome.addSequence(seq.getStart(), seq.getEnd(), seq.getSequence(), seq.getSegmentNum(), false);
       }
 
     private List<Variation> getVariants(String chr)

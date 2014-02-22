@@ -12,6 +12,7 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.NLineInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.ToolRunner;
@@ -52,8 +53,7 @@ public class LoadFromFASTA extends JobIGCSA
     this.paths = paths;
     getConf().set("genome", genomeName);
 
-    if (paths.iterator().next().toString().contains("s3"))
-      setAWSProps();
+    if (paths.iterator().next().toString().contains("s3")) setAWSProps();
     }
 
   private void setAWSProps()
@@ -74,6 +74,7 @@ public class LoadFromFASTA extends JobIGCSA
   @Override
   public int run(String[] args) throws Exception
     {
+
     Job job = new Job(getConf(), "Reference Genome Fragmentation");
 
     job.setJarByClass(LoadFromFASTA.class);
@@ -82,10 +83,14 @@ public class LoadFromFASTA extends JobIGCSA
     job.setMapOutputKeyClass(LongWritable.class);
     job.setMapOutputValueClass(FragmentWritable.class);
 
-    job.setInputFormatClass(FASTAFragmentInputFormat.class);
+        job.setInputFormatClass(FASTAFragmentInputFormat.class);
+//    job.setInputFormatClass(NLineInputFormat.class);
+//    NLineInputFormat.setNumLinesPerSplit(job, 150);
 
     for (Path path : paths)
       {
+      long len = path.getFileSystem(getConf()).getContentSummary(path).getLength();
+
       log.info(path.toString());
       FileInputFormat.addInputPath(job, path);
       }
@@ -122,16 +127,14 @@ public class LoadFromFASTA extends JobIGCSA
       }
 
     HBaseGenome genome = admin.getGenome(genomeName);
-    if (genome == null)
-      genome = new HBaseGenome(genomeName, null);
+    if (genome == null) genome = new HBaseGenome(genomeName, null);
 
     Collection<Path> filePaths = new ArrayList<Path>();
     if (fastaDir.startsWith("s3"))
       {
       Pattern s3pattern = Pattern.compile("^s3n?:\\/\\/(\\w+[-\\w+]*).*");
       Matcher s3file = s3pattern.matcher(fastaDir);
-      if (!s3file.matches())
-        throw new Exception("A S3 bucket name could not be determined from " + fastaDir);
+      if (!s3file.matches()) throw new Exception("A S3 bucket name could not be determined from " + fastaDir);
 
       String bucket = s3file.group(1);
       Map<String, S3ObjectSummary> chromosomes = AWSUtils.listFASTAFiles(bucket);
@@ -153,7 +156,10 @@ public class LoadFromFASTA extends JobIGCSA
         filePaths.add(status.getPath());
       }
 
+    long start = System.currentTimeMillis();
     ToolRunner.run(new LoadFromFASTA(genomeName, filePaths), null);
+    long end = System.currentTimeMillis() - start;
+    log.info("Took " + end/1000 + " seconds to complete.");
     }
 
   }

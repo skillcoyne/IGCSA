@@ -165,7 +165,7 @@ public class FASTAFragmentInputFormat extends FileInputFormat<LongWritable, Frag
       float progress = 0.0f;
       if (inputStream.getPos() > 0)
         {
-        progress = Math.min(1.0f, (float)reader.getPos()/splitEnd);
+        progress = Math.min(1.0f, (float)inputStream.getPos()/splitEnd);
         }
       return progress;
       }
