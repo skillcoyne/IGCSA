@@ -1,9 +1,6 @@
 package org.lcsb.lu.igcsa.hbase.filters;
 
-import org.apache.hadoop.hbase.filter.BinaryComparator;
-import org.apache.hadoop.hbase.filter.CompareFilter;
-import org.apache.hadoop.hbase.filter.FilterList;
-import org.apache.hadoop.hbase.filter.RowFilter;
+import org.apache.hadoop.hbase.filter.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.hbase.HBaseGenome;
@@ -20,8 +17,6 @@ import java.util.List;
  * Copyright University of Luxembourg and Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-
-
 public class AberrationLocationFilter
   {
   // this FilterList will contain nested filter lists that putt all of the necessary locations
@@ -40,14 +35,9 @@ public class AberrationLocationFilter
     // get subsequent locations
     for (Location loc : locations)
       {
-      long start = (loc.getStart() + 1000) / 1000;
-      long stop = (loc.getEnd() + 1000) / 1000;
-
       locationList.add(loc);
-
-      addFilters(genomeName, loc, start, stop);
+      addFilters(genomeName, loc, loc.getStart(), loc.getEnd());
       }
-
     // get the rest of the chromosome -- NOTE it's unclear that this is really necessary in translocaions.
     getFinalLocationFilter(locations.get(locations.size() - 1), genome);
 
@@ -64,9 +54,9 @@ public class AberrationLocationFilter
     {
     // get first location
     long start = 1;
-    long stop = (loc.getStart() + 1000) / 1000;
+    long stop = loc.getStart();
 
-    locationList.add( new Location(loc.getChromosome(), start, loc.getStart() + 1000) );
+    locationList.add(new Location(loc.getChromosome(), start, stop));
     addFilters(genomeName, loc, start, stop);
     }
 
@@ -74,11 +64,10 @@ public class AberrationLocationFilter
     {
     if (loc.getEnd() < genome.getChromosome(loc.getChromosome()).getChromosome().getLength())
       {
-      //long start = (loc.getEnd() + 1000) / 1000;
-      long start = loc.getEnd()/1000;
-      long stop = (genome.getChromosome(loc.getChromosome()).getChromosome().getLength() + 1000) / 1000;
+      long start = loc.getEnd();
+      long stop = genome.getChromosome(loc.getChromosome()).getChromosome().getLength();
 
-      locationList.add( new Location(loc.getChromosome(), loc.getEnd(), genome.getChromosome(loc.getChromosome()).getChromosome().getLength()) );
+      locationList.add(new Location(loc.getChromosome(), start, stop));
 
       addFilters(genome.getGenome().getName(), loc, start, stop);
       }
@@ -87,12 +76,16 @@ public class AberrationLocationFilter
   protected void addFilters(String genomeName, Location loc, long start, long stop)
     {
     FilterList filter = new FilterList(FilterList.Operator.MUST_PASS_ALL);
+    filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("info"), Bytes.toBytes("genome"), CompareFilter.CompareOp.EQUAL,
+                                                 Bytes.toBytes(genomeName)));
+    filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("chr"), CompareFilter.CompareOp.EQUAL,
+                                                 Bytes.toBytes(loc.getChromosome())));
 
-    RowFilter range1 = new RowFilter(CompareFilter.CompareOp.GREATER_OR_EQUAL, new BinaryComparator(Bytes.toBytes(SequenceRow.createRowId(genomeName, loc.getChromosome(), start))));
-    RowFilter range2 = new RowFilter(CompareFilter.CompareOp.LESS, new BinaryComparator(Bytes.toBytes(SequenceRow.createRowId(genomeName, loc.getChromosome(), stop))));
+    filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("start"), CompareFilter.CompareOp.GREATER_OR_EQUAL,
+                                                 Bytes.toBytes(start)));
 
-    filter.addFilter(range1);
-    filter.addFilter(range2);
+    filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("end"), CompareFilter.CompareOp.LESS_OR_EQUAL,
+                                                 Bytes.toBytes(stop)));
 
     filterList.addFilter(filter);
     }
