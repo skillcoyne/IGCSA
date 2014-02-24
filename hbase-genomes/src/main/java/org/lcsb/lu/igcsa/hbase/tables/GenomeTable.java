@@ -15,6 +15,7 @@ import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.hbase.rows.GenomeRow;
 
 import java.io.IOException;
 import java.util.*;
@@ -26,6 +27,34 @@ public class GenomeTable extends AbstractTable
     {
     super(conf, tableName);
     }
+
+  public String addGenome(String genomeName, String parentName) throws IOException
+    {
+    if (parentName != null && this.queryTable(parentName) == null) throw new IOException("No genome matching parent: " + parentName);
+
+    String rowId;
+    GenomeResult result = this.queryTable(genomeName);
+    if (result == null)
+      {
+      GenomeRow row = new GenomeRow(genomeName);
+      row.addParentColumn(parentName);
+
+      try
+        {
+        this.addRow(row);
+        }
+      catch (IOException ioe)
+        {
+        return null;
+        }
+      rowId = row.getRowIdAsString();
+      }
+    else
+      rowId = result.getRowId();
+
+    return rowId;
+    }
+
 
   @Override
   public List<GenomeResult> getRows() throws IOException
@@ -80,13 +109,10 @@ public class GenomeTable extends AbstractTable
 
         if (family.equals("info"))
           {
-          if (qualifier.equals("name"))
-            genomeResult.setName(value);
-          if (qualifier.equals("parent"))
-            genomeResult.setParent(value);
+          if (qualifier.equals("name")) genomeResult.setName(value);
+          if (qualifier.equals("parent")) genomeResult.setParent(value);
           }
-        else if (family.equals("chr") && qualifier.equals("list"))
-          genomeResult.setChromosomes(value);
+        else if (family.equals("chr") && qualifier.equals("list")) genomeResult.setChromosomes(value);
         }
 
       return genomeResult;

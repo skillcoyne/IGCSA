@@ -16,24 +16,45 @@ import org.apache.hadoop.hbase.client.Increment;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.hbase.rows.ChromosomeRow;
 
 import java.io.IOException;
 import java.util.*;
 
 public class ChromosomeTable extends AbstractTable
   {
-  private static final Map<String, Set<String>> reqFields;
-  static
-    {
-    reqFields = new HashMap<String, Set<String>>();
-    reqFields.put("info", new HashSet<String>(Arrays.asList("genome")));
-    reqFields.put("chr", new HashSet<String>(Arrays.asList("length", "segments", "name")));
-    }
-
-
   public ChromosomeTable(Configuration conf, String tableName) throws IOException
     {
     super(conf, tableName);
+    }
+
+  public String addChromosome(String genome, String chr, long length, long numSegments) throws IOException
+    {
+    ChromosomeRow row = new ChromosomeRow(ChromosomeRow.createRowId(genome, chr));
+    row.addGenome(genome);
+    row.addChromosomeInfo(chr, length, numSegments);
+
+    try
+      {
+      this.addRow(row);
+      }
+    catch (IOException ioe)
+      {
+      return null;
+      }
+    return row.getRowIdAsString();
+    }
+
+  public void increment(String rowId, long segment, long length) throws IOException
+    {
+    Increment inc = new Increment(Bytes.toBytes(rowId));
+
+    if (segment <= 0) throw new IOException("Cannot increment segment/length of 0 (" + segment + ", " + length + ")");
+
+    inc.addColumn(Bytes.toBytes("chr"), Bytes.toBytes("segments"), segment);
+    inc.addColumn(Bytes.toBytes("chr"), Bytes.toBytes("length"), length);
+
+    super.increment(inc);
     }
 
   @Override
@@ -82,10 +103,10 @@ public class ChromosomeTable extends AbstractTable
 
       byte[] chrFam = Bytes.toBytes("chr");
 
-      chrResult.setLength( result.getValue( chrFam, Bytes.toBytes("length")) );
-      chrResult.setSegmentNumber( result.getValue( chrFam, Bytes.toBytes("segments")) );
-      chrResult.setChrName( result.getValue(chrFam, Bytes.toBytes("name")) );
-      chrResult.setGenomeName( result.getValue(Bytes.toBytes("info"), Bytes.toBytes("genome")) );
+      chrResult.setLength(result.getValue(chrFam, Bytes.toBytes("length")));
+      chrResult.setSegmentNumber(result.getValue(chrFam, Bytes.toBytes("segments")));
+      chrResult.setChrName(result.getValue(chrFam, Bytes.toBytes("name")));
+      chrResult.setGenomeName(result.getValue(Bytes.toBytes("info"), Bytes.toBytes("genome")));
 
       return chrResult;
       }

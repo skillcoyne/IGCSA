@@ -15,7 +15,15 @@ import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.MinimalKaryotype;
+import org.lcsb.lu.igcsa.aberrations.AberrationTypes;
+import org.lcsb.lu.igcsa.database.Band;
+import org.lcsb.lu.igcsa.generator.Aberration;
 import org.lcsb.lu.igcsa.generator.Aneuploidy;
+import org.lcsb.lu.igcsa.genome.Location;
+import org.lcsb.lu.igcsa.hbase.HBaseKaryotype;
+import org.lcsb.lu.igcsa.hbase.rows.AberrationRow;
+import org.lcsb.lu.igcsa.hbase.rows.KaryotypeIndexRow;
 
 import java.io.IOException;
 import java.util.*;
@@ -27,6 +35,25 @@ public class KaryotypeIndexTable extends AbstractTable
     {
     super(conf, tableName);
     }
+
+  public String addKaryotype(String karyotypeName, String parentGenome, MinimalKaryotype karyotype) throws IOException
+    {
+    KaryotypeIndexRow row = new KaryotypeIndexRow(karyotypeName, parentGenome);
+    row.addAberrations(karyotype.getAberrations());
+    row.addAneuploidies(karyotype.getAneuploidies());
+
+    String rowId = row.getRowIdAsString();
+    try
+      {
+      this.addRow(row);
+      }
+    catch (IOException ioe)
+      {
+      return null;
+      }
+    return rowId;
+    }
+
 
   @Override
   public KaryotypeIndexResult queryTable(String rowId, Column column) throws IOException
@@ -75,12 +102,9 @@ public class KaryotypeIndexTable extends AbstractTable
         String qualifier = Bytes.toString(kv.getQualifier());
         byte[] value = kv.getValue();
 
-        if (family.equals("abr"))
-          indexResult.addAberration(value);
-        else if (family.equals("gain"))
-          indexResult.addAneuploidy(value, true);
-        else if (family.equals("loss"))
-          indexResult.addAneuploidy(value, false);
+        if (family.equals("abr")) indexResult.addAberration(value);
+        else if (family.equals("gain")) indexResult.addAneuploidy(value, true);
+        else if (family.equals("loss")) indexResult.addAneuploidy(value, false);
         }
 
       return indexResult;
@@ -89,20 +113,20 @@ public class KaryotypeIndexTable extends AbstractTable
     }
 
 
-
-
   public class KaryotypeIndexResult extends AbstractResult
     {
     private String karyotype;
     private String parentGenome;
-    private List<String> abrs;
+    //private List<String> abrs;
+    private List<Aberration> abrs;
     private List<Aneuploidy> aps;
 
     protected KaryotypeIndexResult(byte[] rowId)
       {
       super(rowId);
       this.karyotype = Bytes.toString(rowId);
-      abrs = new ArrayList<String>();
+      //abrs = new ArrayList<String>();
+      abrs = new ArrayList<Aberration>();
       aps = new ArrayList<Aneuploidy>();
       }
 
@@ -121,15 +145,36 @@ public class KaryotypeIndexTable extends AbstractTable
       this.parentGenome = Bytes.toString(parentGenome);
       }
 
-    public List<String> getAberrations()
+    public List<Aberration> getAberrations()
       {
       return abrs;
       }
+    //    public List<String> getAberrations()
+    //      {
+    //      return abrs;
+    //      }
 
     public void addAberration(byte[] aberration)
       {
       String abr = Bytes.toString(aberration);
-      this.abrs.add(abr);
+      String cyto = abr.substring(0, abr.indexOf("("));
+
+      AberrationTypes type = AberrationTypes.valueOf(cyto);
+      abr = abr.replaceFirst(cyto, "");
+
+      List<Band> bands = new ArrayList<Band>();
+
+      for (String bd : abr.split(","))
+        {
+        bands.add(new Band(bd.substring(0, bd.indexOf(":")), "", new Location(Long.parseLong(bd.substring(bd.indexOf(":") + 1,
+                                                                                                          bd.indexOf("-"))),
+                                                                              Long.parseLong(bd.substring(bd.indexOf("-") + 1,
+                                                                                                          bd.length())))));
+        }
+
+      Aberration abrObj = new Aberration(bands, type);
+
+      this.abrs.add(abrObj);
       }
 
     public List<Aneuploidy> getAneuploidy()
@@ -140,17 +185,14 @@ public class KaryotypeIndexTable extends AbstractTable
     public void addAneuploidy(byte[] aneuploidy, boolean gain)
       {
       String value = Bytes.toString(aneuploidy);
-      Aneuploidy ap = new Aneuploidy( value.substring(0, value.indexOf("(")) );
+      Aneuploidy ap = new Aneuploidy(value.substring(0, value.indexOf("(")));
 
-      int count = Integer.valueOf(value.substring(value.indexOf("(")+1, value.length()-1));
-      if (gain)
-        ap.gain(count);
-      else
-        ap.lose(count);
+      int count = Integer.valueOf(value.substring(value.indexOf("(") + 1, value.length() - 1));
+      if (gain) ap.gain(count);
+      else ap.lose(count);
 
       aps.add(ap);
       }
-
 
 
     }

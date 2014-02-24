@@ -228,7 +228,6 @@ public abstract class AbstractTable extends HTable
   public void addRow(org.lcsb.lu.igcsa.hbase.rows.Row row) throws IOException
     {
     this.put(getPut(row));
-    //this.flushCommits();
     }
 
 

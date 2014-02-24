@@ -16,6 +16,7 @@ import org.apache.hadoop.hbase.filter.CompareFilter;
 import org.apache.hadoop.hbase.filter.FilterList;
 import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.lcsb.lu.igcsa.hbase.rows.SequenceRow;
 
 import java.io.IOException;
 import java.util.*;
@@ -26,6 +27,31 @@ public class SequenceTable extends AbstractTable
   public SequenceTable(Configuration configuration, String tableName) throws IOException
     {
     super(configuration, tableName);
+    }
+
+
+  public String addSequence(String genome, String chr, long start, long end, String sequence, long segmentNum) throws IOException
+    {
+    if (!(end >= start || sequence.length() >= 0))
+      throw new IllegalArgumentException("End location must be greater than start, segment must be > 0, " +
+                                         "and the sequence must have a minimum length of 1 (" + start + "," + end + "," +
+                                         "" + sequence.length() + ")");
+
+    SequenceRow row = new SequenceRow(SequenceRow.createRowId(genome, chr, segmentNum));
+    row.addBasePairs(sequence);
+    row.addLocation(chr, start, end, segmentNum);
+    row.addGenome(genome);
+
+    try
+      {
+      this.addRow(row);
+      }
+    catch (IOException e)
+      {
+      return null;
+      }
+
+    return row.getRowIdAsString();
     }
 
   @Override
@@ -75,22 +101,16 @@ public class SequenceTable extends AbstractTable
         String qualifier = Bytes.toString(kv.getQualifier());
         byte[] value = kv.getValue();
 
-        if (family.equals("info") && qualifier.equals("genome"))
-          seqResult.setGenome(value);
+        if (family.equals("info") && qualifier.equals("genome")) seqResult.setGenome(value);
 
-        if (family.equals("bp") && qualifier.equals("seq"))
-          seqResult.setSequence(value);
+        if (family.equals("bp") && qualifier.equals("seq")) seqResult.setSequence(value);
 
         if (family.equals("loc"))
           {
-          if (qualifier.equals("start"))
-            seqResult.setStart(value);
-          else if (qualifier.equals("end"))
-            seqResult.setEnd(value);
-          else if (qualifier.equals("chr"))
-            seqResult.setChr(value);
-          else if (qualifier.equals("segment"))
-            seqResult.setSegmentNum(value);
+          if (qualifier.equals("start")) seqResult.setStart(value);
+          else if (qualifier.equals("end")) seqResult.setEnd(value);
+          else if (qualifier.equals("chr")) seqResult.setChr(value);
+          else if (qualifier.equals("segment")) seqResult.setSegmentNum(value);
           }
         }
 
@@ -104,10 +124,14 @@ public class SequenceTable extends AbstractTable
     {
     FilterList filters = new FilterList(FilterList.Operator.MUST_PASS_ALL);
 
-    filters.addFilter( new SingleColumnValueFilter( Bytes.toBytes("info"), Bytes.toBytes("genome"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(genome)));
-    filters.addFilter( new SingleColumnValueFilter( Bytes.toBytes("loc"), Bytes.toBytes("chr"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(chr)) );
-    filters.addFilter( new SingleColumnValueFilter( Bytes.toBytes("loc"), Bytes.toBytes("start"), CompareFilter.CompareOp.GREATER_OR_EQUAL, Bytes.toBytes(fromLoc)));
-    filters.addFilter( new SingleColumnValueFilter( Bytes.toBytes("loc"), Bytes.toBytes("end"), CompareFilter.CompareOp.LESS_OR_EQUAL, Bytes.toBytes(toLoc)));
+    filters.addFilter(new SingleColumnValueFilter(Bytes.toBytes("info"), Bytes.toBytes("genome"), CompareFilter.CompareOp.EQUAL,
+                                                  Bytes.toBytes(genome)));
+    filters.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("chr"), CompareFilter.CompareOp.EQUAL,
+                                                  Bytes.toBytes(chr)));
+    filters.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("start"), CompareFilter.CompareOp.GREATER_OR_EQUAL,
+                                                  Bytes.toBytes(fromLoc)));
+    filters.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("end"), CompareFilter.CompareOp.LESS_OR_EQUAL,
+                                                  Bytes.toBytes(toLoc)));
 
     Scan scan = new Scan();
     scan.setFilter(filters);

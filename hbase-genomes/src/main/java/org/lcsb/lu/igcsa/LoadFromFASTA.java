@@ -127,8 +127,9 @@ public class LoadFromFASTA extends JobIGCSA
       admin.deleteGenome(genomeName);
       }
 
-    HBaseGenome genome = admin.getGenome(genomeName);
-    if (genome == null) genome = new HBaseGenome(genomeName, null);
+    // create genome if it doesn't exist
+    if (admin.getGenome(genomeName) == null)
+      admin.getGenomeTable().addGenome(genomeName, null);
 
     Collection<Path> filePaths = new ArrayList<Path>();
     if (fastaDir.startsWith("s3"))

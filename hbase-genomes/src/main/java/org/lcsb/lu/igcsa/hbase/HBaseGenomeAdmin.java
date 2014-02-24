@@ -163,7 +163,6 @@ public class HBaseGenomeAdmin
     List<HBaseGenome> genomes = new ArrayList<HBaseGenome>();
     for (GenomeResult r : gT.getRows())
       genomes.add(new HBaseGenome(r));
-    gT.close();
     return genomes;
     }
 
@@ -171,7 +170,6 @@ public class HBaseGenomeAdmin
     {
     GenomeTable gT = this.getGenomeTable();
     GenomeResult result = gT.queryTable(genomeName);
-    gT.close();
     return (result != null) ? new HBaseGenome(result) : null;
     }
 
@@ -179,7 +177,6 @@ public class HBaseGenomeAdmin
     {
     KaryotypeIndexTable kiT = this.getKaryotypeIndexTable();
     KaryotypeIndexTable.KaryotypeIndexResult result = kiT.queryTable(karyotypeName);
-    kiT.close();
     return (result != null) ? new HBaseKaryotype(result) : null;
     }
 
@@ -188,7 +185,6 @@ public class HBaseGenomeAdmin
     {
     GenomeTable gT = this.getGenomeTable();
     HBaseGenome genome = new HBaseGenome((GenomeResult) gT.queryTable(new Column("info", "parent", "reference")));
-    gT.close();
     return genome;
     }
 
@@ -203,7 +199,6 @@ public class HBaseGenomeAdmin
     {
     KaryotypeAberrationTable kT = this.getKaryotypeTable();
     List<AberrationResult> list =  kT.getRows();
-    kT.close();
     return list;
     }
 
@@ -229,8 +224,8 @@ public class HBaseGenomeAdmin
 
     gT.delete(genomeName);
 
-    for (AbstractTable t: new AbstractTable[]{cT, sT, smT, gT})
-      t.close();
+//    for (AbstractTable t: new AbstractTable[]{cT, sT, smT, gT})
+//      t.close();
     }
 
   public void deleteKaryotypes(String genomeName) throws IOException
@@ -250,7 +245,7 @@ public class HBaseGenomeAdmin
 
       kiT.delete(Bytes.toString(result.getRow()));
       }
-    kiT.close(); kT.close();
+    //kiT.close(); kT.close();
     }
 
   public void closeConections() throws IOException

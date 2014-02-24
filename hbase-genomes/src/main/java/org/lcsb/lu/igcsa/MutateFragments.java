@@ -69,6 +69,10 @@ public class MutateFragments extends JobIGCSA
   @Override
   public int run(String[] args) throws Exception
     {
+    /**
+     * TODO if this is to be used I have to fix all of the calls to admin
+     */
+
     String genome = args[0];
     String parent = args[1];
 
@@ -81,7 +85,7 @@ public class MutateFragments extends JobIGCSA
     genomeAdmin.deleteGenome(genome);
 
     // make sure the new genome is created before we start
-    new HBaseGenome(genome, parent);
+    //new HBaseGenome(genome, parent);
 
     Job job = new Job(getConf(), "Reference Genome Fragmentation");
     job.setJarByClass(MutateFragments.class);

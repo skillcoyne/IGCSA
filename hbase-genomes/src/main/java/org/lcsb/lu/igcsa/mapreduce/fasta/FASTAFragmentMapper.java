@@ -16,10 +16,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
-import org.lcsb.lu.igcsa.hbase.HBaseChromosome;
-import org.lcsb.lu.igcsa.hbase.HBaseGenome;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
-import org.lcsb.lu.igcsa.hbase.HBaseSequence;
 import org.lcsb.lu.igcsa.hbase.rows.ChromosomeRow;
 import org.lcsb.lu.igcsa.hbase.tables.ChromosomeResult;
 import org.lcsb.lu.igcsa.mapreduce.FragmentWritable;
@@ -36,6 +33,8 @@ public class FASTAFragmentMapper extends Mapper<LongWritable, FragmentWritable, 
   //private String chr;
   //private HBaseGenome genome;
   //private HBaseChromosome chromosome;
+  private String chromosomeRowId;
+
 
   @Override
   protected void setup(Context context) throws IOException, InterruptedException
@@ -45,31 +44,31 @@ public class FASTAFragmentMapper extends Mapper<LongWritable, FragmentWritable, 
 
     FileSplit fileSplit = (FileSplit) context.getInputSplit();
     Path filePath = fileSplit.getPath();
+    String chr = FileUtils.getChromosomeFromFASTA(filePath.getName());
 
     genomeName = context.getConfiguration().get("genome");
 
-    //String chr = FileUtils.getChromosomeFromFASTA(filePath.getName());
+    ChromosomeResult chromosomeResult = admin.getChromosomeTable().queryTable( ChromosomeRow.createRowId(genomeName, chr));
+    if (chromosomeResult == null)
+      chromosomeRowId = admin.getChromosomeTable().addChromosome(genomeName, chr, 0, 0);
+    else
+      chromosomeRowId = chromosomeResult.getRowId();
+
     }
 
+      // pretty much just chopping the file up and spitting it back out into the HBase tables
   @Override
   protected void map(LongWritable key, FragmentWritable fragment, Context context) throws IOException, InterruptedException
     {
     long ts = System.currentTimeMillis();
 
-    HBaseGenome genome = this.admin.getGenome(genomeName);
+    String seqRowId = admin.getSequenceTable().addSequence(genomeName, fragment.getChr(), fragment.getStart(), fragment.getEnd(), fragment.getSequence(), fragment.getSegment());
 
-    HBaseChromosome chromosome = genome.getChromosome(fragment.getChr());
-    if (chromosome == null) chromosome = genome.addChromosome(fragment.getChr(), 0, 0);
-
-
-    // pretty much just chopping the file up and spitting it back out into the HBase tables
-    String seqRowId = chromosome.addSequence(fragment.getStart(), fragment.getEnd(), fragment.getSequence(), fragment.getSegment(), false);
-    if (seqRowId != null) chromosome.increment(1, (fragment.getEnd() - fragment.getStart()));
+    if (seqRowId != null)
+      admin.getChromosomeTable().increment(chromosomeRowId, 1, (fragment.getEnd() - fragment.getStart()));
     else log.warn("Failed to add sequence " + fragment.getChr() + ": " + fragment.getSegment());
 
-    long te = (System.currentTimeMillis() - ts) ;
-
-    //log.info(seqRowId + ": " + te);
+    log.info( (System.currentTimeMillis() - ts) + " s" );
     }
 
 

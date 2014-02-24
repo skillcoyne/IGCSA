@@ -15,8 +15,12 @@ import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.MinimalKaryotype;
 import org.lcsb.lu.igcsa.generator.Aberration;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
+import org.lcsb.lu.igcsa.hbase.HBaseKaryotype;
+import org.lcsb.lu.igcsa.hbase.rows.AberrationRow;
+import org.lcsb.lu.igcsa.hbase.rows.KaryotypeIndexRow;
 
 import java.io.IOException;
 import java.util.*;
@@ -36,7 +40,22 @@ public class KaryotypeAberrationTable extends AbstractTable
     super(conf, tableName);
     }
 
+  public List<String> addAberrations(String karyotypeName, List<Aberration> aberrations) throws IOException
+    {
+    List<String> rowIds = new ArrayList<String>();
+    for (Aberration abr: aberrations)
+      {
+      //TODO NEED TO CHECK THIS
+      AberrationRow krow = new AberrationRow( AberrationRow.createRowId(karyotypeName, abr.toString()) );
+      krow.addKaryotype(karyotypeName);
+      krow.addAberration(abr);
 
+      log.info(krow.getRowIdAsString());
+      this.addRow(krow);
+      rowIds.add(krow.getRowIdAsString());
+      }
+    return rowIds;
+    }
 
   @Override
   public AberrationResult queryTable(String rowId, Column column) throws IOException
