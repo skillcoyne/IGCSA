@@ -10,6 +10,7 @@ package org.lcsb.lu.igcsa.hbase;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.hbase.client.Increment;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.filter.CompareFilter;
 import org.apache.hadoop.hbase.filter.FilterList;
@@ -42,7 +43,14 @@ public class HBaseChromosome extends HBaseConnectedObjects
     this.chromosome = cT.queryTable(rowId);
     }
 
-  public boolean addSequence(long start, long end, String sequence, long segmentNum, boolean check) throws IOException
+  @Override
+  public void closeTables() throws IOException
+    {
+    for (AbstractTable t: new AbstractTable[]{sT, cT})
+      t.close();
+    }
+
+  public String addSequence(long start, long end, String sequence, long segmentNum, boolean check) throws IOException
     {
     if (!(end >= start || sequence.length() >= 0))
       throw new IllegalArgumentException("End location must be greater than start, segment must be > 0, " +
@@ -61,18 +69,18 @@ public class HBaseChromosome extends HBaseConnectedObjects
     row.addBasePairs(sequence);
     row.addLocation(this.chromosome.getChrName(), start, end, segmentNum);
     row.addGenome(this.chromosome.getGenomeName());
+    String newRowId = row.getRowIdAsString();
 
     try
       {
       sT.addRow(row);
-      log.info("");
       }
     catch (IOException e)
       {
-      return false;
+      return null;
       }
 
-    return true;
+    return newRowId;
     }
 
   public HBaseSequence getSequence(long segmentNumber) throws IOException
@@ -140,14 +148,27 @@ public class HBaseChromosome extends HBaseConnectedObjects
                                                   Bytes.toBytes(startLoc)));
     filters.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("end"), CompareFilter.CompareOp.LESS_OR_EQUAL,
                                                   Bytes.toBytes(endLoc)));
-
     return this.sT.getScanner(filters);
     }
+
 
 
   public ChromosomeResult getChromosome()
     {
     return this.chromosome;
+    }
+
+  public void increment(long segment, long length) throws IOException
+    {
+    Increment inc = new Increment( Bytes.toBytes(rowId) );
+
+    if (segment <= 0 )
+      throw new IOException("Cannot increment segment/length of 0 (" + segment + ", " + length + ")");
+
+    inc.addColumn(Bytes.toBytes("chr"), Bytes.toBytes("segments"), segment);
+    inc.addColumn(Bytes.toBytes("chr"), Bytes.toBytes("length"), length);
+
+    this.cT.increment(inc);
     }
 
   @Override

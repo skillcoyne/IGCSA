@@ -114,7 +114,8 @@ public class LoadFromFASTA extends JobIGCSA
       }
 
     Configuration conf = parser.getConfiguration();//HBaseConfiguration.create();
-    HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(HBaseConfiguration.create());
+    HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(conf);
+    admin.createTables();
 
     String genomeName = args[0];
     String fastaDir = args[1];
@@ -160,6 +161,8 @@ public class LoadFromFASTA extends JobIGCSA
     ToolRunner.run(new LoadFromFASTA(genomeName, filePaths), null);
     long end = System.currentTimeMillis() - start;
     log.info("Took " + end/1000 + " seconds to complete.");
+
+    admin.closeConections();
     }
 
   }

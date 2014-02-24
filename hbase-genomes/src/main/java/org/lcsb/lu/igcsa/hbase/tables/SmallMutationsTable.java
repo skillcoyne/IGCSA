@@ -11,6 +11,7 @@ package org.lcsb.lu.igcsa.hbase.tables;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.Result;
@@ -22,20 +23,14 @@ import java.util.*;
 
 public class SmallMutationsTable extends AbstractTable
   {
-  private static final Map<String, Set<String>> reqFields;
 
-  static
+
+  public SmallMutationsTable(Configuration configuration, String tableName) throws IOException
     {
-    reqFields = new HashMap<String, Set<String>>();
-    reqFields.put("info", new HashSet<String>(Arrays.asList("genome", "mutation")));
-    reqFields.put("loc", new HashSet<String>(Arrays.asList("segment", "chr", "start", "end")));
-    reqFields.put("bp", new HashSet<String>(Arrays.asList("seq")));
+    super(configuration, tableName);
     }
 
-  public SmallMutationsTable(Configuration configuration, HBaseAdmin admin, String tableName) throws IOException
-    {
-    super(configuration, admin, tableName, reqFields);
-    }
+
 
   @Override
   public SmallMutationsResult queryTable(String rowId, Column column) throws IOException

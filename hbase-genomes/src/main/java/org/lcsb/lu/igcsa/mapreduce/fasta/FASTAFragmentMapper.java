@@ -19,6 +19,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.lcsb.lu.igcsa.hbase.HBaseChromosome;
 import org.lcsb.lu.igcsa.hbase.HBaseGenome;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
+import org.lcsb.lu.igcsa.hbase.HBaseSequence;
 import org.lcsb.lu.igcsa.hbase.rows.ChromosomeRow;
 import org.lcsb.lu.igcsa.hbase.tables.ChromosomeResult;
 import org.lcsb.lu.igcsa.mapreduce.FragmentWritable;
@@ -33,8 +34,8 @@ public class FASTAFragmentMapper extends Mapper<LongWritable, FragmentWritable, 
   private HBaseGenomeAdmin admin;
   private String genomeName;
   //private String chr;
-  private HBaseGenome genome;
-  private HBaseChromosome chromosome;
+  //private HBaseGenome genome;
+  //private HBaseChromosome chromosome;
 
   @Override
   protected void setup(Context context) throws IOException, InterruptedException
@@ -46,26 +47,29 @@ public class FASTAFragmentMapper extends Mapper<LongWritable, FragmentWritable, 
     Path filePath = fileSplit.getPath();
 
     genomeName = context.getConfiguration().get("genome");
-    genome = this.admin.getGenome(genomeName);
 
-    String chr = FileUtils.getChromosomeFromFASTA(filePath.getName());
-    chromosome = genome.getChromosome(chr);
-    if (chromosome == null)
-      chromosome = genome.addChromosome(chr, 0, 0);
+    //String chr = FileUtils.getChromosomeFromFASTA(filePath.getName());
     }
 
-
-    @Override
+  @Override
   protected void map(LongWritable key, FragmentWritable fragment, Context context) throws IOException, InterruptedException
     {
+    long ts = System.currentTimeMillis();
+
+    HBaseGenome genome = this.admin.getGenome(genomeName);
+
+    HBaseChromosome chromosome = genome.getChromosome(fragment.getChr());
+    if (chromosome == null) chromosome = genome.addChromosome(fragment.getChr(), 0, 0);
+
+
     // pretty much just chopping the file up and spitting it back out into the HBase tables
-    boolean added = chromosome.addSequence(fragment.getStart(), fragment.getEnd(), fragment.getSequence(),
-                                                                        fragment.getSegment(), false);
-    if (added)
-      this.admin.getChromosomeTable().incrementSize(ChromosomeRow.createRowId(genomeName, fragment.getChr()), 1,
-                                                    (fragment.getEnd() - fragment.getStart()));
-    else
-      log.warn("Failed to add sequence " + fragment.getChr() + ": " + fragment.getSegment());
+    String seqRowId = chromosome.addSequence(fragment.getStart(), fragment.getEnd(), fragment.getSequence(), fragment.getSegment(), false);
+    if (seqRowId != null) chromosome.increment(1, (fragment.getEnd() - fragment.getStart()));
+    else log.warn("Failed to add sequence " + fragment.getChr() + ": " + fragment.getSegment());
+
+    long te = (System.currentTimeMillis() - ts) ;
+
+    //log.info(seqRowId + ": " + te);
     }
 
 

@@ -35,5 +35,7 @@ public abstract class HBaseConnectedObjects
     }
 
 
+
+  public abstract void closeTables() throws IOException;
   protected abstract void getTables() throws IOException;
   }

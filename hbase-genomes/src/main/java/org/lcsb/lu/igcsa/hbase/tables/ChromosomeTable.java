@@ -9,6 +9,7 @@
 package org.lcsb.lu.igcsa.hbase.tables;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.Increment;
@@ -22,7 +23,6 @@ import java.util.*;
 public class ChromosomeTable extends AbstractTable
   {
   private static final Map<String, Set<String>> reqFields;
-
   static
     {
     reqFields = new HashMap<String, Set<String>>();
@@ -30,9 +30,10 @@ public class ChromosomeTable extends AbstractTable
     reqFields.put("chr", new HashSet<String>(Arrays.asList("length", "segments", "name")));
     }
 
-  public ChromosomeTable(Configuration configuration, HBaseAdmin admin, String tableName) throws IOException
+
+  public ChromosomeTable(Configuration conf, String tableName) throws IOException
     {
-    super(configuration, admin, tableName, reqFields);
+    super(conf, tableName);
     }
 
   @Override
@@ -91,25 +92,5 @@ public class ChromosomeTable extends AbstractTable
 
     return null;
     }
-
-  public ChromosomeResult incrementSize(String rowId, long segment, long length) throws IOException
-    {
-    Increment inc = new Increment( Bytes.toBytes(rowId) );
-
-    if (segment <= 0 || length <= 0)
-      throw new IOException("Cannot increment segment/length of 0 (" + segment + "," + length + ")");
-
-    //if (segment > 0)
-      inc.addColumn(Bytes.toBytes("chr"), Bytes.toBytes("segments"), segment);
-
-    //if (length > 0)
-      inc.addColumn(Bytes.toBytes("chr"), Bytes.toBytes("length"), length);
-
-    Result r = this.hTable.increment(inc);
-
-    return this.createResult(r);
-    }
-
-
 
   }

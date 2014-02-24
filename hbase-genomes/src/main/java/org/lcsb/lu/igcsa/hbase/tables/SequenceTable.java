@@ -9,33 +9,23 @@
 package org.lcsb.lu.igcsa.hbase.tables;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.CompareFilter;
 import org.apache.hadoop.hbase.filter.FilterList;
 import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.hbase.rows.SequenceRow;
 
 import java.io.IOException;
 import java.util.*;
 
 public class SequenceTable extends AbstractTable
   {
-  private static final Map<String, Set<String>> reqFields;
 
-  static
+  public SequenceTable(Configuration configuration, String tableName) throws IOException
     {
-    reqFields = new HashMap<String, Set<String>>();
-    reqFields.put("info", new HashSet<String>(Arrays.asList("genome")));
-    reqFields.put("loc", new HashSet<String>(Arrays.asList("start", "end", "chr")));
-    reqFields.put("bp", new HashSet<String>(Arrays.asList("seq")));
-    }
-
-  public SequenceTable(Configuration configuration, HBaseAdmin admin, String tableName) throws IOException
-    {
-    super(configuration, admin, tableName, reqFields);
+    super(configuration, tableName);
     }
 
   @Override
@@ -122,7 +112,7 @@ public class SequenceTable extends AbstractTable
     Scan scan = new Scan();
     scan.setFilter(filters);
 
-    ResultScanner scanner = this.hTable.getScanner(scan);
+    ResultScanner scanner = this.getScanner(scan);
 
     return scanner.iterator();
     }

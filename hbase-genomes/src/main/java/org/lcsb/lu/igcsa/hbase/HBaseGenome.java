@@ -29,6 +29,8 @@ public class HBaseGenome extends HBaseConnectedObjects
   {
   private static final Log log = LogFactory.getLog(HBaseGenome.class);
 
+  private HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin();
+
   private GenomeResult genome;
 
   private GenomeTable gT;
@@ -46,6 +48,13 @@ public class HBaseGenome extends HBaseConnectedObjects
     {
     super(rowId);
     this.genome = this.gT.queryTable(rowId);
+    }
+
+  @Override
+  public void closeTables() throws IOException
+    {
+    for (AbstractTable t: new AbstractTable[]{gT, cT, kT, kiT})
+      t.close();
     }
 
   public HBaseGenome(String genomeName, String parentGenome) throws IOException

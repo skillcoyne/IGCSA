@@ -43,6 +43,12 @@ public class HBaseKaryotype extends HBaseConnectedObjects
     this.karyotype = this.kiT.queryTable(rowId);
     }
 
+  @Override
+  public void closeTables() throws IOException
+    {
+    kiT.close(); kT.close();
+    }
+
   public KaryotypeIndexTable.KaryotypeIndexResult getKaryotype()
     {
     return karyotype;

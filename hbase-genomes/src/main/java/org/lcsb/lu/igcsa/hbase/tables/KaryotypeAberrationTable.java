@@ -9,12 +9,14 @@
 package org.lcsb.lu.igcsa.hbase.tables;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.generator.Aberration;
+import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 
 import java.io.IOException;
 import java.util.*;
@@ -22,7 +24,6 @@ import java.util.*;
 public class KaryotypeAberrationTable extends AbstractTable
   {
   private static final Map<String, Set<String>> reqFields;
-
   static
     {
     reqFields = new HashMap<String, Set<String>>();
@@ -30,10 +31,12 @@ public class KaryotypeAberrationTable extends AbstractTable
     reqFields.put("abr", new HashSet<String>(Arrays.asList("type", "chr1", "loc1")));
     }
 
-  public KaryotypeAberrationTable(Configuration configuration, HBaseAdmin admin, String tableName) throws IOException
+  public KaryotypeAberrationTable(Configuration conf, String tableName) throws IOException
     {
-    super(configuration, admin, tableName, reqFields);
+    super(conf, tableName);
     }
+
+
 
   @Override
   public AberrationResult queryTable(String rowId, Column column) throws IOException

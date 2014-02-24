@@ -36,6 +36,11 @@ public class HBaseSmallMutation extends HBaseConnectedObjects
     this.mutation = this.smT.queryTable(rowId);
     }
 
+  @Override
+  public void closeTables() throws IOException
+    {
+    smT.close();
+    }
 
 
   @Override

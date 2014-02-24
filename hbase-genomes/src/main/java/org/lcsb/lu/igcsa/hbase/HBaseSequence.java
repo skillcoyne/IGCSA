@@ -41,6 +41,13 @@ public class HBaseSequence extends HBaseConnectedObjects
     this.sequence = sT.queryTable(rowId);
     }
 
+  @Override
+  public void closeTables() throws IOException
+    {
+    for (AbstractTable t: new AbstractTable[]{sT, smT})
+      t.close();
+    }
+
 
   public boolean addSmallMutation(Variation mutation, int start, int end, String mutationSequence) throws IOException
     {

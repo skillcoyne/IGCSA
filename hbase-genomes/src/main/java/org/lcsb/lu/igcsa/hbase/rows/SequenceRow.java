@@ -19,23 +19,15 @@ public class SequenceRow extends Row
   private String chr;
   private long segmentNum;
 
+  private static  final int numRandChars = 4;
 
   // This means that I can never deterministically guess what the row id is for any given sequence.  All queries will have to be run on a column based search
   private static String generateRandom(String chr)
     {
     StringBuffer rstr = new StringBuffer();
 
-    // Initial letter will be the same within each chromosome
-    if (chr.matches("X|Y"))
-      rstr.append( chr.charAt(0) );
-    else
-      {
-      int cc = Integer.parseInt(chr) + 64;
-      rstr.append( (char)cc );
-      }
-
     RandomRange rand = new RandomRange(65, 90);
-    for (int i=0; i<1; i++)
+    for (int i=0; i<numRandChars; i++)
       rstr.append((char) rand.nextInt());
 
     return rstr.toString();
@@ -85,8 +77,7 @@ public class SequenceRow extends Row
       return false;
 
     String testRow = createRowId(genome, chr, segmentNum);
-    //return this.getRowIdAsString().equals(testRow);
-    return (this.getRowIdAsString().substring(2, this.getRowIdAsString().length()).equals(testRow.substring(2, testRow.length())) );
+    return (this.getRowIdAsString().substring(numRandChars, this.getRowIdAsString().length()).equals(testRow.substring(numRandChars, testRow.length())) );
     }
 
   }

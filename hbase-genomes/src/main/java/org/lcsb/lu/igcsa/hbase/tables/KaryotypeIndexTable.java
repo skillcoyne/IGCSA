@@ -9,6 +9,7 @@
 package org.lcsb.lu.igcsa.hbase.tables;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.Result;
@@ -21,21 +22,10 @@ import java.util.*;
 
 public class KaryotypeIndexTable extends AbstractTable
   {
-  private static final Map<String, Set<String>> reqFields;
 
-  static
+  public KaryotypeIndexTable(Configuration conf, String tableName) throws IOException
     {
-    reqFields = new HashMap<String, Set<String>>();
-    reqFields.put("info", new HashSet<String>(Arrays.asList("genome")));
-    reqFields.put("abr", new HashSet<String>());
-    reqFields.put("gain", new HashSet<String>());
-    reqFields.put("loss", new HashSet<String>());
-    }
-
-
-  public KaryotypeIndexTable(Configuration configuration, HBaseAdmin admin, String tableName) throws IOException
-    {
-    super(configuration, admin, tableName, reqFields);
+    super(conf, tableName);
     }
 
   @Override
