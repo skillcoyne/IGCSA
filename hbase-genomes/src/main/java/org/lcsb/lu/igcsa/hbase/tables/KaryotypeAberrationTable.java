@@ -9,48 +9,32 @@
 package org.lcsb.lu.igcsa.hbase.tables;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.KeyValue;
-import org.apache.hadoop.hbase.client.HBaseAdmin;
+
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.MinimalKaryotype;
 import org.lcsb.lu.igcsa.generator.Aberration;
-import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
-import org.lcsb.lu.igcsa.hbase.HBaseKaryotype;
 import org.lcsb.lu.igcsa.hbase.rows.AberrationRow;
-import org.lcsb.lu.igcsa.hbase.rows.KaryotypeIndexRow;
 
 import java.io.IOException;
 import java.util.*;
 
 public class KaryotypeAberrationTable extends AbstractTable
   {
-  private static final Map<String, Set<String>> reqFields;
-  static
-    {
-    reqFields = new HashMap<String, Set<String>>();
-    reqFields.put("info", new HashSet<String>(Arrays.asList("karyotype")));
-    reqFields.put("abr", new HashSet<String>(Arrays.asList("type", "chr1", "loc1")));
-    }
-
   public KaryotypeAberrationTable(Configuration conf, String tableName) throws IOException
     {
     super(conf, tableName);
     }
 
-  public List<String> addAberrations(String karyotypeName, List<Aberration> aberrations) throws IOException
+  public List<String> addAberrations(String karyotypeRowId, List<Aberration> aberrations) throws IOException
     {
     List<String> rowIds = new ArrayList<String>();
     for (Aberration abr: aberrations)
       {
-      //TODO NEED TO CHECK THIS
-      AberrationRow krow = new AberrationRow( AberrationRow.createRowId(karyotypeName, abr.toString()) );
-      krow.addKaryotype(karyotypeName);
+      AberrationRow krow = new AberrationRow( AberrationRow.createRowId(karyotypeRowId, abr.getWithLocations()) );
+      krow.addKaryotype(karyotypeRowId);
       krow.addAberration(abr);
 
-      log.info(krow.getRowIdAsString());
       this.addRow(krow);
       rowIds.add(krow.getRowIdAsString());
       }

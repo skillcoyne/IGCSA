@@ -31,10 +31,10 @@ import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.ToolRunner;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
-import org.lcsb.lu.igcsa.hbase.HBaseChromosome;
-import org.lcsb.lu.igcsa.hbase.HBaseGenome;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
+import org.lcsb.lu.igcsa.hbase.tables.ChromosomeResult;
 import org.lcsb.lu.igcsa.hbase.tables.Column;
+import org.lcsb.lu.igcsa.hbase.tables.GenomeResult;
 import org.lcsb.lu.igcsa.hbase.tables.SequenceResult;
 import org.lcsb.lu.igcsa.mapreduce.*;
 import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAOutputFormat;
@@ -69,7 +69,7 @@ public class GenerateFullGenome extends BWAJob
   private static final Log log = LogFactory.getLog(GenerateFullGenome.class);
 
   private Path output;
-  private HBaseGenome genome;
+  private GenomeResult genome;
   private String genomeName;
   private List<String> chromosomes;
 
@@ -104,23 +104,24 @@ public class GenerateFullGenome extends BWAJob
   private Scan setup() throws IOException
     {
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(getConf());
-    genome = admin.getGenome(genomeName);
+    genome = admin.getGenomeTable().getGenome(genomeName);
 
     chromosomes = new ArrayList<String>();
     Scan scan = admin.getSequenceTable().getScanFor(new Column("info", "genome", genomeName));
     scan.setCaching(200);
 
-    if (genomeName.equals("test"))
+    // This matters only for testing...pay attn to the 'else' for full genomes
+    if (genomeName.equalsIgnoreCase("test"))
       {
       // should be 59129 rows
-      chromosomes.add("19");
+      chromosomes.add("Y");
       scan = admin.getSequenceTable().getScanFor(new Column("info", "genome", "GRCh37"), new Column("loc", "chr", chromosomes.get(0)));
-      genome = admin.getGenome("GRCh37");
+      genome = admin.getGenomeTable().getGenome("GRCh37");
       }
     else
       {
-      for (HBaseChromosome chr : admin.getGenome(genomeName).getChromosomes())
-        chromosomes.add(chr.getChromosome().getChrName());
+      for (ChromosomeResult chr: admin.getChromosomeTable().getChromosomesFor(genomeName))
+        chromosomes.add(chr.getChrName());
       }
 
     output = new Path(getPath(Paths.GENOMES), genomeName);
@@ -165,7 +166,7 @@ public class GenerateFullGenome extends BWAJob
       {
       //getConf().setInt();
       MultipleOutputs.addNamedOutput(job, chr, FASTAOutputFormat.class, LongWritable.class, Text.class);
-      FASTAOutputFormat.addHeader(job, new Path(output, chr), new FASTAHeader("chr" + chr, genome.getGenome().getName(), "parent=" + genome.getGenome().getParent(), "hbase-generation"));
+      FASTAOutputFormat.addHeader(job, new Path(output, chr), new FASTAHeader("chr" + chr, genome.getName(), "parent=" + genome.getParent(), "hbase-generation"));
       }
 
     return (job.waitForCompletion(true) ? 0 : 1);

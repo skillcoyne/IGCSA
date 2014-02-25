@@ -26,8 +26,17 @@ public class SequenceRow extends Row
     {
     StringBuffer rstr = new StringBuffer();
 
+    // Initial letter will be the same within each chromosome
+    if (chr.matches("X|Y"))
+      rstr.append( chr.charAt(0) );
+    else
+      {
+      int cc = Integer.parseInt(chr) + 64;
+      rstr.append( (char)cc );
+      }
+
     RandomRange rand = new RandomRange(65, 90);
-    for (int i=0; i<numRandChars; i++)
+    for (int i=0; rstr.length()<numRandChars; i++)
       rstr.append((char) rand.nextInt());
 
     return rstr.toString();

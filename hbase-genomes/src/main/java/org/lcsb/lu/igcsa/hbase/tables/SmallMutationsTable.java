@@ -17,6 +17,8 @@ import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.hbase.rows.SmallMutationRow;
+import org.lcsb.lu.igcsa.variation.fragment.Variation;
 
 import java.io.IOException;
 import java.util.*;
@@ -30,6 +32,34 @@ public class SmallMutationsTable extends AbstractTable
     super(configuration, tableName);
     }
 
+  public String addMutation(SequenceResult sequence, Variation mutation, int start, int end, String mutationSequence) throws IOException
+    {
+    if (end < start || mutation == null)
+      throw new IllegalArgumentException("The end must be >= start and mutation cannot be null");
+
+    String smRowId = SmallMutationRow.createRowId(sequence.getGenome(), sequence.getChr(), sequence.getSegmentNum(), start);
+    if (this.queryTable(smRowId) != null)
+      log.warn("Row " + smRowId + " exists in mutations table, not overwriting");
+    else
+      {
+      SmallMutationRow row = new SmallMutationRow(smRowId);
+      row.addGenomeInfo(sequence.getGenome(), mutation);
+      row.addLocation(sequence.getChr(), sequence.getStart(), start, end);
+      row.addSequence(mutationSequence);
+
+      smRowId = row.getRowIdAsString();
+      try
+        {
+        this.addRow(row);
+        }
+      catch (IOException ioe)
+        {
+        return null;
+        }
+      }
+
+    return smRowId;
+    }
 
 
   @Override

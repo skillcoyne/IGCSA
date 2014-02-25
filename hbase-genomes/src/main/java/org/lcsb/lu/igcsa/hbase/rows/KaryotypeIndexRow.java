@@ -28,7 +28,7 @@ public class KaryotypeIndexRow extends Row
   private List<Aberration> aberrations;
   private List<Aneuploidy> aneuploidies;
 
-  // TODO change the row id of karyotypes to prevent region clashes
+  // TODO Might need to change the row id of karyotypes to prevent region clashes
   public KaryotypeIndexRow(String rowId, String parentGenome)
     {
     super(rowId);

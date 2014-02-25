@@ -11,6 +11,7 @@ package org.lcsb.lu.igcsa.hbase.tables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.KeyValue;
+import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -26,6 +27,21 @@ public class GenomeTable extends AbstractTable
   public GenomeTable(Configuration conf, String tableName) throws IOException
     {
     super(conf, tableName);
+    }
+
+  public List<GenomeResult> getGenomes() throws IOException
+    {
+    return this.getRows();
+    }
+
+  public List<GenomeResult> getReferenceGenomes() throws IOException
+    {
+    return this.queryTable(new Column("info", "parent", "reference"));
+    }
+
+  public GenomeResult getGenome(String genomeName) throws IOException
+    {
+    return this.createResult(this.get( new Get(Bytes.toBytes(genomeName)) ));
     }
 
   public String addGenome(String genomeName, String parentName) throws IOException
@@ -54,7 +70,6 @@ public class GenomeTable extends AbstractTable
 
     return rowId;
     }
-
 
   @Override
   public List<GenomeResult> getRows() throws IOException

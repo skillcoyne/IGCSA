@@ -22,7 +22,6 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
-import org.apache.hadoop.util.ToolRunner;
 
 import org.lcsb.lu.igcsa.database.normal.Bin;
 import org.lcsb.lu.igcsa.database.normal.Fragment;
@@ -32,11 +31,10 @@ import org.lcsb.lu.igcsa.database.normal.GCBinDAO;
 import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.genome.Location;
 
-import org.lcsb.lu.igcsa.hbase.HBaseChromosome;
-import org.lcsb.lu.igcsa.hbase.HBaseGenome;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
-import org.lcsb.lu.igcsa.hbase.HBaseSequence;
+import org.lcsb.lu.igcsa.hbase.tables.ChromosomeResult;
 import org.lcsb.lu.igcsa.hbase.tables.Column;
+import org.lcsb.lu.igcsa.hbase.tables.GenomeResult;
 import org.lcsb.lu.igcsa.hbase.tables.SequenceResult;
 
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
@@ -108,34 +106,42 @@ public class MutateFragments extends JobIGCSA
     {
     private String genomeName;
     private String parentName;
+    private GenomeResult genome;
     private VariantUtils variantUtils;
     private GCBinDAO binDAO;
     private FragmentDAO fragmentDAO;
 
+    private HBaseGenomeAdmin admin;
     @Override
     protected void setup(Context context) throws IOException, InterruptedException
       {
       super.setup(context);
+      admin = HBaseGenomeAdmin.getHBaseGenomeAdmin();
       genomeName = context.getConfiguration().get("genome");
       parentName = context.getConfiguration().get("parent");
       variantUtils = (VariantUtils) springContext.getBean("variantUtils");
       binDAO = (GCBinDAO) springContext.getBean("GCBinDAO");
       fragmentDAO = (FragmentDAO) springContext.getBean("FragmentDAO");
+
+      genome = admin.getGenomeTable().getGenome(genomeName);
       }
 
 
     @Override
     protected void map(ImmutableBytesWritable key, Result value, Context context) throws IOException, InterruptedException
       {
+      HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin();
       SequenceResult seq = HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().createResult(value);
 
       log.info(seq.getChr() + " " + seq.getStart() + "-" + seq.getEnd());
 
       // get hbase objects for new genome
-      HBaseGenome genome = HBaseGenomeAdmin.getHBaseGenomeAdmin().getGenome(genomeName);
-      HBaseChromosome chromosome = genome.getChromosome(seq.getChr());
+      ChromosomeResult chromosome = admin.getChromosomeTable().getChromosome(genomeName, seq.getChr());
       if (chromosome == null)
-        chromosome = genome.addChromosome(seq.getChr(), 0, 0);
+        {
+        String rowId = admin.getChromosomeTable().addChromosome(genome, seq.getChr(), 0, 0);
+        chromosome = admin.getChromosomeTable().queryTable(rowId);
+        }
 
       Random randomFragment = new Random();
       DNASequence mutatedSequence = new DNASequence(seq.getSequence());
@@ -165,27 +171,22 @@ public class MutateFragments extends JobIGCSA
         NOTE: I could cut down on the size of the HBase (and actually use derby or something similar) by keeping only the actual segments from the original reference
         all subsequent mutations could be applied at runtime when I generate a FASTA file.
          */
-        String seqRowId =  chromosome.addSequence(seq.getStart(),
-            seq.getStart() + mutatedSequence.getLength(),
-            mutatedSequence.getSequence(),
-            seq.getSegmentNum(), false);
-
-        HBaseSequence hBaseSequence;
-        if (seqRowId != null)
-          hBaseSequence = new HBaseSequence(seqRowId);
-        else
+        String mutSeqRowId = admin.getSequenceTable().addSequence(chromosome, seq.getStart(), (seq.getStart() + mutatedSequence.getLength()), mutatedSequence.getSequence(), seq.getSegmentNum());
+        if (mutSeqRowId == null)
           throw new IOException("Failed to add sequence.");
 
 
+        SequenceResult mutSequence = admin.getSequenceTable().queryTable(mutSeqRowId);
         for (Variation v : mutations.keySet())
           {
           // add any mutations to the small mutations table
           for (Map.Entry<Location, DNASequence> entry : mutations.get(v).entrySet())
-            hBaseSequence.addSmallMutation(v, entry.getKey().getStart(), entry.getKey().getEnd(), entry.getValue().getSequence());
+            admin.getSmallMutationsTable().addMutation(mutSequence, v, entry.getKey().getStart(), entry.getKey().getEnd(), entry.getValue().getSequence() );
+
           }
         }
       else
-        chromosome.addSequence(seq.getStart(), seq.getEnd(), seq.getSequence(), seq.getSegmentNum(), false);
+        admin.getSequenceTable().addSequence(chromosome, seq.getStart(), seq.getEnd(), seq.getSequence(), seq.getSegmentNum());
       }
 
     private List<Variation> getVariants(String chr)
@@ -212,13 +213,13 @@ public class MutateFragments extends JobIGCSA
     }
 
 
-//  public static void main(String[] args) throws Exception
-//    {
-//    String genome = "igcsa2", parent = "GRCh37";
-//    long start = System.currentTimeMillis();
-//    ToolRunner.run(new MutateFragments(), new String[]{genome, parent});
-//    long end = System.currentTimeMillis() - start;
-//
-//    log.info("Finished mutations for " + genome + ": " + (end/1000) );
-//    }
+  //  public static void main(String[] args) throws Exception
+  //    {
+  //    String genome = "igcsa2", parent = "GRCh37";
+  //    long start = System.currentTimeMillis();
+  //    ToolRunner.run(new MutateFragments(), new String[]{genome, parent});
+  //    long end = System.currentTimeMillis() - start;
+  //
+  //    log.info("Finished mutations for " + genome + ": " + (end/1000) );
+  //    }
   }

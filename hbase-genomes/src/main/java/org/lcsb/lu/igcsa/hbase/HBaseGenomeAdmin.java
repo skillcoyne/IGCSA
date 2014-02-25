@@ -12,18 +12,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.MasterNotRunningException;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
-import org.apache.hadoop.hbase.client.HConnection;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.hbase.tables.*;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 
 public class HBaseGenomeAdmin
@@ -157,50 +152,13 @@ public class HBaseGenomeAdmin
     return kT;
     }
 
-  public List<HBaseGenome> retrieveGenomes() throws IOException
-    {
-    GenomeTable gT = this.getGenomeTable();
-    List<HBaseGenome> genomes = new ArrayList<HBaseGenome>();
-    for (GenomeResult r : gT.getRows())
-      genomes.add(new HBaseGenome(r));
-    return genomes;
-    }
 
-  public HBaseGenome getGenome(String genomeName) throws IOException
-    {
-    GenomeTable gT = this.getGenomeTable();
-    GenomeResult result = gT.queryTable(genomeName);
-    return (result != null) ? new HBaseGenome(result) : null;
-    }
-
-  public HBaseKaryotype getKaryotype(String karyotypeName) throws IOException
-    {
-    KaryotypeIndexTable kiT = this.getKaryotypeIndexTable();
-    KaryotypeIndexTable.KaryotypeIndexResult result = kiT.queryTable(karyotypeName);
-    return (result != null) ? new HBaseKaryotype(result) : null;
-    }
-
-
-  public HBaseGenome getReference() throws IOException
-    {
-    GenomeTable gT = this.getGenomeTable();
-    HBaseGenome genome = new HBaseGenome((GenomeResult) gT.queryTable(new Column("info", "parent", "reference")));
-    return genome;
-    }
-
-
-  /**
-   * All
-   *
-   * @return
-   * @throws IOException
-   */
-  public List<AberrationResult> retrieveKaryotypes() throws IOException
-    {
-    KaryotypeAberrationTable kT = this.getKaryotypeTable();
-    List<AberrationResult> list =  kT.getRows();
-    return list;
-    }
+//  public HBaseKaryotype getKaryotype(String karyotypeName) throws IOException
+//    {
+//    KaryotypeIndexTable kiT = this.getKaryotypeIndexTable();
+//    KaryotypeIndexResult result = kiT.queryTable(karyotypeName);
+//    return (result != null) ? new HBaseKaryotype(result) : null;
+//    }
 
   public void deleteGenome(String genomeName) throws IOException
     {

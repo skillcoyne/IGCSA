@@ -30,17 +30,17 @@ public class SequenceTable extends AbstractTable
     }
 
 
-  public String addSequence(String genome, String chr, long start, long end, String sequence, long segmentNum) throws IOException
+  public String addSequence(ChromosomeResult chr, long start, long end, String sequence, long segmentNum) throws IOException
     {
     if (!(end >= start || sequence.length() >= 0))
       throw new IllegalArgumentException("End location must be greater than start, segment must be > 0, " +
                                          "and the sequence must have a minimum length of 1 (" + start + "," + end + "," +
                                          "" + sequence.length() + ")");
 
-    SequenceRow row = new SequenceRow(SequenceRow.createRowId(genome, chr, segmentNum));
+    SequenceRow row = new SequenceRow(SequenceRow.createRowId(chr.getGenomeName(), chr.getChrName(), segmentNum));
     row.addBasePairs(sequence);
-    row.addLocation(chr, start, end, segmentNum);
-    row.addGenome(genome);
+    row.addLocation(chr.getChrName(), start, end, segmentNum);
+    row.addGenome(chr.getGenomeName());
 
     try
       {
@@ -52,6 +52,30 @@ public class SequenceTable extends AbstractTable
       }
 
     return row.getRowIdAsString();
+    }
+
+  public SequenceResult getSequenceFor(ChromosomeResult chr, long segment) throws IOException
+    {
+    FilterList filters = new FilterList(FilterList.Operator.MUST_PASS_ALL);
+
+    filters.addFilter(new SingleColumnValueFilter(Bytes.toBytes("info"), Bytes.toBytes("genome"), CompareFilter.CompareOp.EQUAL,
+        Bytes.toBytes(chr.getGenomeName())));
+    filters.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("chr"), CompareFilter.CompareOp.EQUAL,
+        Bytes.toBytes(chr.getChrName())));
+    filters.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("segment"), CompareFilter.CompareOp.EQUAL,
+        Bytes.toBytes(segment)));
+
+    Scan scan = new Scan();
+    scan.setFilter(filters);
+
+    ResultScanner scanner = this.getScanner(scan);
+    Iterator<Result> rI = scanner.iterator();
+
+    SequenceResult sequence = this.createResult(rI.next());
+    if (rI.hasNext())
+      log.warn("Multiple results for sequence segment query, returning only the first one.");
+
+    return sequence;
     }
 
   @Override

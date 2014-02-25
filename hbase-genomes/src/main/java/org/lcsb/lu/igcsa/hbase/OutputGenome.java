@@ -11,21 +11,10 @@ package org.lcsb.lu.igcsa.hbase;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.hbase.HBaseChromosome;
-import org.lcsb.lu.igcsa.hbase.HBaseGenome;
-import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
-import org.lcsb.lu.igcsa.hbase.HBaseSequence;
-import org.lcsb.lu.igcsa.hbase.tables.SequenceResult;
-
-import java.util.Iterator;
-import java.util.List;
+import org.lcsb.lu.igcsa.hbase.tables.ChromosomeResult;
+import org.lcsb.lu.igcsa.hbase.tables.GenomeResult;
 
 
 public class OutputGenome
@@ -52,22 +41,23 @@ public class OutputGenome
     //  SequenceResult sr =     admin.getSequenceTable().queryTable("GRCh37-11:00043501");
     //    log.info(sr);
 
-    HBaseGenome genome = admin.getGenome("GRCh37");
+    GenomeResult genome = admin.getGenomeTable().getGenome("GRCh37");
 
-    for (HBaseChromosome chr : genome.getChromosomes())
-      {
-      String c = chr.getChromosome().getChrName();
-      log.info(c + " " + chr.getChromosome().getSegmentNumber() + " " + chr.getChromosome().getLength());
-
-      long segments = genome.getChromosome(c).getChromosome().getSegmentNumber();
-      for (int i = 1; i <= segments; i++)
-        {
-        HBaseSequence seq = genome.getChromosome(c).getSequence(i);
-        log.info( seq.getSequence().getStart() + ", " + seq.getSequence().getEnd() );
-        }
-
-
-      }
+//    for (ChromosomeResult chr: admin.getChromosomeTable().getChromosomesFor("GRCh37"))
+//      {
+//      String c = chr.getChrName();
+//      log.info(c + " " + chr.getSegmentNumber() + " " + chr.getLength());
+//
+//      long segments = chr.getSegmentNumber();
+//      for (int i = 1; i <= segments; i++)
+//        {
+//        admin.getSequenceTable()
+//        HBaseSequence seq = genome.getChromosome(c).getSequence(i);
+//        log.info( seq.getSequence().getStart() + ", " + seq.getSequence().getEnd() );
+//        }
+//
+//
+//      }
     //
     //    String c = "21";
     //    long segments = genome.getChromosome(c).getChromosome().getSegmentNumber();

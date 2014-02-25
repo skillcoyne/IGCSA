@@ -14,22 +14,22 @@ import java.util.Map;
 
 public enum AberrationTypes
   {
-
-    DUPLICATION   ("dup", "org.lcsb.lu.igcsa.aberrations.single.Duplication"),
-    INVERSION     ("inv", "org.lcsb.lu.igcsa.aberrations.single.Inversion"),
-    ADDITION      ("add", "org.lcsb.lu.igcsa.aberrations.single.Addition"),
-    ISOCENTRIC    ("iso", "org.lcsb.lu.igcsa.aberrations.single.Iso"),
-    DELETION      ("del", "org.lcsb.lu.igcsa.aberrations.single.Deletion"),
+    DUPLICATION("dup", "org.lcsb.lu.igcsa.aberrations.single.Duplication"),
+    INVERSION("inv", "org.lcsb.lu.igcsa.aberrations.single.Inversion"),
+    ADDITION("add", "org.lcsb.lu.igcsa.aberrations.single.Addition"),
+    ISOCENTRIC("iso", "org.lcsb.lu.igcsa.aberrations.single.Iso"),
+    DELETION("del", "org.lcsb.lu.igcsa.aberrations.single.Deletion"),
 
     //INSERTION     ("ins",   "org.lcsb.lu.igcsa.aberrations.multiple.Insertion"),  // Insertion requires that 2 derivative chromosomes are created.  One is a translocation, the other is a deletion. Current implementation doesn't easily allow for this
-    DICENTRIC     ("dic",   "org.lcsb.lu.igcsa.aberrations.multiple.Dicentric"),
-    TRANSLOCATION ("trans", "org.lcsb.lu.igcsa.aberrations.multiple.Translocation");
+    DICENTRIC("dic", "org.lcsb.lu.igcsa.aberrations.multiple.Dicentric"),
+    TRANSLOCATION("trans", "org.lcsb.lu.igcsa.aberrations.multiple.Translocation");
 
   private static Map<String, AberrationTypes> nameMap = new HashMap<String, AberrationTypes>();
   private static Map<String, AberrationTypes> classMap = new HashMap<String, AberrationTypes>();
+
   static
     {
-    for (AberrationTypes at: values())
+    for (AberrationTypes at : values())
       {
       nameMap.put(at.getShortName(), at);
       classMap.put(at.aberrationClass, at);
@@ -69,7 +69,7 @@ public enum AberrationTypes
 
   public static boolean hasClassFor(AberrationTypes type) throws ClassNotFoundException
     {
-    return (type.getAberrationClass() == null)? false: true;
+    return (type.getAberrationClass() == null) ? false : true;
     }
 
   public static boolean hasClassFor(String cytogenetic)
@@ -82,6 +82,14 @@ public enum AberrationTypes
     return classMap.get(classname).getShortName();
     }
 
-
+  public static AberrationTypes getTypeByCyto(String cyto)
+    {
+    for (AberrationTypes t:  AberrationTypes.values() )
+      {
+      if (t.cytogeneticDesignation.equalsIgnoreCase(cyto))
+        return t;
+      }
+    return null;
+    }
 
   }

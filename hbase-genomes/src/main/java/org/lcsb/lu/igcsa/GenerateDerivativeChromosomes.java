@@ -15,29 +15,25 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
-import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.filter.*;
-import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
-import org.apache.hadoop.io.*;
 
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
-import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.aberrations.AberrationTypes;
+import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
+import org.lcsb.lu.igcsa.generator.Aberration;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.hbase.*;
 import org.lcsb.lu.igcsa.hbase.filters.AberrationLocationFilter;
 import org.lcsb.lu.igcsa.hbase.tables.AberrationResult;
-import org.lcsb.lu.igcsa.mapreduce.*;
-import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAOutputFormat;
+import org.lcsb.lu.igcsa.hbase.tables.ChromosomeResult;
+import org.lcsb.lu.igcsa.hbase.tables.GenomeResult;
+import org.lcsb.lu.igcsa.hbase.tables.KaryotypeIndexResult;
 import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -79,10 +75,12 @@ public class GenerateDerivativeChromosomes extends BWAJob
 
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(getConf());
 
-    HBaseKaryotype karyotype = admin.getKaryotype(karyotypeName);
-    if (karyotype == null)
+    KaryotypeIndexResult karyotypeDef = admin.getKaryotypeIndexTable().getKaryotype(karyotypeName);
+    if (karyotypeDef == null)
       throw new Exception("No karyotype found for " + karyotypeName);
-    HBaseGenome parentGenome = admin.getGenome(karyotype.getKaryotype().getParentGenome());
+
+    GenomeResult parentGenome = admin.getGenomeTable().getGenome(karyotypeDef.getParentGenome());
+    List<ChromosomeResult> chromosomes = admin.getChromosomeTable().getChromosomesFor(parentGenome.getName());
 
     Path basePath = new Path(Paths.GENOMES.getPath()); // TODO this should probably be an arg
     if (!getJobFileSystem().getUri().toASCIIString().startsWith("hdfs"))
@@ -92,29 +90,30 @@ public class GenerateDerivativeChromosomes extends BWAJob
     if (karyotypePath.getFileSystem(getConf()).exists(karyotypePath))
       karyotypePath.getFileSystem(getConf()).delete(karyotypePath, true);
 
-    for (AberrationResult aberration : karyotype.getAberrations())
+    for (Aberration aberration : karyotypeDef.getAberrations())
       {
-      if (aberration.getAbrType().equals("iso"))
+      AberrationTypes aberrationType = aberration.getAberration();
+      if (aberrationType.getCytogeneticDesignation().equals("iso"))
         {
         log.warn("ISO ABERRATION, SKIPPING. We don't know yet how to deal with these");
         continue;
         }
 
-      String fastaName = "der" + aberration.getAberrationDefinitions().get(0).getChromosome();
+      String fastaName = "der" + aberration.getBands().get(0).getChromosomeName();
       log.info("Writing new derivative: " + fastaName);
-      log.info(aberration.getAbrType() + " " + aberration.getAberrationDefinitions());
+      log.info(aberrationType + " " + aberration.getWithLocations());
 
       // this FilterList will contain nested filter lists that putt all of the necessary locations
       AberrationLocationFilter alf = new AberrationLocationFilter();
-      FilterList filterList = alf.getFilter(aberration, parentGenome);
+      FilterList filterList = alf.getFilter(aberration, parentGenome, chromosomes);
 
       log.info(filterList);
 
       // to create an appropriate FASTA header
       List<String> abrs = new ArrayList<String>();
-      for (Location loc : aberration.getAberrationDefinitions())
-        abrs.add(loc.getChromosome() + ":" + loc.getStart() + "-" + loc.getEnd());
-      String abrDefinitions = aberration.getAbrType() + ":" + StringUtils.join(abrs.iterator(), ",");
+      for (Band band : aberration.getBands() )// aberration.getAberrationDefinitions())
+        abrs.add(band.getChromosomeName() + ":" + band.getLocation().getStart() + "-" + band.getLocation().getEnd());
+      String abrDefinitions = aberrationType.getCytogeneticDesignation() + ":" + StringUtils.join(abrs.iterator(), ",");
 
       Scan scan = new Scan();
       scan.setFilter(filterList);
@@ -122,10 +121,10 @@ public class GenerateDerivativeChromosomes extends BWAJob
       Path baseOutput = new Path(karyotypePath, fastaName);
 
       // Generate the segments for the new FASTA file
-      DerivativeChromosomeJob gdc = new DerivativeChromosomeJob(getConf(), scan, baseOutput, alf.getFilterLocationList(), aberration.getAbrType(), new FASTAHeader(fastaName, aberration.getGenome(), "parent=" + parentGenome.getGenome().getName(), abrDefinitions));
+      DerivativeChromosomeJob gdc = new DerivativeChromosomeJob(getConf(), scan, baseOutput, alf.getFilterLocationList(), aberrationType.getCytogeneticDesignation(), new FASTAHeader(fastaName, karyotypeDef.getKaryotype(), "parent=" + parentGenome.getName(), abrDefinitions));
 
       ToolRunner.run(gdc, null);
-      fixOutputFiles(aberration, baseOutput, alf.getFilterLocationList().size());
+      fixOutputFiles(aberrationType, baseOutput, alf.getFilterLocationList().size());
       }
 
     //Create BWA index with ONLY the derivative chromosomes
@@ -145,7 +144,7 @@ public class GenerateDerivativeChromosomes extends BWAJob
     }
 
   // just to clean up the main method a bit
-  protected void fixOutputFiles(AberrationResult aberration, Path output, int numLocs) throws Exception
+  protected void fixOutputFiles(AberrationTypes abrType, Path output, int numLocs) throws Exception
     {
     // CRC files mess up any attempt to directly read/write from an unchanged file which means copying/moving fails too. Easiest fix right now is to dump the file.
     deleteChecksumFiles(this.getJobFileSystem(), output);
@@ -158,7 +157,7 @@ public class GenerateDerivativeChromosomes extends BWAJob
     FileSystem jobFS = this.getJobFileSystem();
 
     log.info(jobFS.getWorkingDirectory());
-    if (aberration.getAbrType().equals("dup"))
+    if (abrType.getCytogeneticDesignation().equals("dup"))
       {
       log.info("DUP aberration");
       if (numLocs > 3)
@@ -174,7 +173,7 @@ public class GenerateDerivativeChromosomes extends BWAJob
       FileUtil.copy(jobFS, new Path(output, Integer.toString(1)), jobFS, new Path(output, Integer.toString(2)), false, false, jobFS.getConf());
       }
     // TODO Iso is different from inv in that I take the same segment and copy it in reverse.  But right now all I do is write out one segment.  Not sure quite how to handle that.
-    if (aberration.getAbrType().equals("iso"))
+    if (abrType.getCytogeneticDesignation().equals("iso"))
       {
       log.info("ISO aberration");
       if (numLocs > 2)

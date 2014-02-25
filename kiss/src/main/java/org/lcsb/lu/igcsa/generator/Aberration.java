@@ -12,6 +12,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.aberrations.AberrationTypes;
 import org.lcsb.lu.igcsa.database.Band;
+import org.lcsb.lu.igcsa.genome.Location;
 
 import java.util.*;
 
@@ -85,6 +86,25 @@ public class Aberration
 
     return this.getAberration().getCytogeneticDesignation() + "(" + StringUtils.join(strs.iterator(), ",") + ")";
     }
+
+  public static Aberration parseAberration(String str)
+    {
+    String cyto = str.substring(0, str.indexOf("("));
+
+    AberrationTypes type = AberrationTypes.getTypeByCyto(cyto);
+    str = str.replaceFirst(cyto, "").replace("(","").replace(")", "");
+
+    List<Band> bands = new ArrayList<Band>();
+
+    for (String bd : str.split(","))
+      {
+      String chr = bd.substring(0, bd.indexOf(":"));
+      bands.add(new Band(chr, "", new Location(chr, Long.parseLong(bd.substring(bd.indexOf(":") + 1, bd.indexOf("-"))), Long.parseLong(bd.substring(bd.indexOf("-") + 1, bd.length())))));
+      }
+
+    return new Aberration(bands, type);
+    }
+
 
   @Override
   public String toString()

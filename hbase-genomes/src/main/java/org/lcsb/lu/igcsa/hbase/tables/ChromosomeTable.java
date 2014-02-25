@@ -9,13 +9,9 @@
 package org.lcsb.lu.igcsa.hbase.tables;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HTableDescriptor;
-import org.apache.hadoop.hbase.KeyValue;
-import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.Increment;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.hbase.rows.ChromosomeRow;
 
 import java.io.IOException;
@@ -28,12 +24,11 @@ public class ChromosomeTable extends AbstractTable
     super(conf, tableName);
     }
 
-  public String addChromosome(String genome, String chr, long length, long numSegments) throws IOException
+  public String addChromosome(GenomeResult genome, String chr, long length, long numSegments) throws IOException
     {
-    ChromosomeRow row = new ChromosomeRow(ChromosomeRow.createRowId(genome, chr));
-    row.addGenome(genome);
+    ChromosomeRow row = new ChromosomeRow(ChromosomeRow.createRowId(genome.getName(), chr));
+    row.addGenome(genome.getName());
     row.addChromosomeInfo(chr, length, numSegments);
-
     try
       {
       this.addRow(row);
@@ -43,6 +38,16 @@ public class ChromosomeTable extends AbstractTable
       return null;
       }
     return row.getRowIdAsString();
+    }
+
+  public ChromosomeResult getChromosome(String genome, String chrName) throws IOException
+    {
+    return this.queryTable( ChromosomeRow.createRowId(genome, chrName) );
+    }
+
+  public List<ChromosomeResult> getChromosomesFor(String genomeName) throws IOException
+    {
+    return this.queryTable(new Column("info", "genome", genomeName));
     }
 
   public void increment(String rowId, long segment, long length) throws IOException
