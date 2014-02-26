@@ -15,6 +15,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.lcsb.lu.igcsa.hbase.tables.ChromosomeResult;
 import org.lcsb.lu.igcsa.hbase.tables.GenomeResult;
+import org.lcsb.lu.igcsa.hbase.tables.SequenceResult;
 
 
 public class OutputGenome
@@ -41,40 +42,21 @@ public class OutputGenome
     //  SequenceResult sr =     admin.getSequenceTable().queryTable("GRCh37-11:00043501");
     //    log.info(sr);
 
-    GenomeResult genome = admin.getGenomeTable().getGenome("GRCh37");
-
-//    for (ChromosomeResult chr: admin.getChromosomeTable().getChromosomesFor("GRCh37"))
-//      {
-//      String c = chr.getChrName();
-//      log.info(c + " " + chr.getSegmentNumber() + " " + chr.getLength());
-//
-//      long segments = chr.getSegmentNumber();
-//      for (int i = 1; i <= segments; i++)
-//        {
-//        admin.getSequenceTable()
-//        HBaseSequence seq = genome.getChromosome(c).getSequence(i);
-//        log.info( seq.getSequence().getStart() + ", " + seq.getSequence().getEnd() );
-//        }
-//
-//
-//      }
-    //
-    //    String c = "21";
-    //    long segments = genome.getChromosome(c).getChromosome().getSegmentNumber();
-    //    for (int i=1; i<=segments; i++)
-    //      {
-    //      HBaseSequence seq = genome.getChromosome(c).getSequence(i);
-    //      log.info(seq.getSequence().toString());
-    //      }
-    //    log.info(segments);
 
 
-    //    Iterator<Result> rI = genome.getChromosome("21").getSequences();
-    //    log.info(rI.toString());
-    //    while (rI.hasNext())
-    //      {
-    //      log.info(Bytes.toString(rI.next().getRow()));
-    //      }
+    for (ChromosomeResult chr: admin.getChromosomeTable().getChromosomesFor("Test"))
+      {
+      String c = chr.getChrName();
+      log.info(c + " " + chr.getSegmentNumber() + " " + chr.getLength());
+
+      long segments = chr.getSegmentNumber();
+      for (int i = 1; i <= segments; i++)
+        {
+        SequenceResult seq = admin.getSequenceTable().getSequenceFor(chr, (long)i);
+
+        log.info( seq.getStart() + ", " + seq.getEnd() );
+        }
+      }
 
     }
 

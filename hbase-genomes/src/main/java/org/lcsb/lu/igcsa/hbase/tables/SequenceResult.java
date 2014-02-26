@@ -82,7 +82,7 @@ public class SequenceResult extends AbstractResult
 
   public void setStart(byte[] start)
     {
-    this.start = Bytes.toLong(start);
+    this.start = Long.parseLong(Bytes.toString(start));
     }
 
   public long getEnd()
@@ -92,7 +92,7 @@ public class SequenceResult extends AbstractResult
 
   public void setEnd(byte[] end)
     {
-    this.end = Bytes.toLong(end);
+    this.end = Long.parseLong(Bytes.toString(end));
     }
 
   public int getGC()

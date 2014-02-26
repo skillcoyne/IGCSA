@@ -24,7 +24,6 @@ public enum IGCSATables
           return reqFields;
           }
         },
-
     CHR("chromosome")
         {
         @Override
