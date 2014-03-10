@@ -8,8 +8,11 @@
 
 package org.lcsb.lu.igcsa;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Scan;
@@ -23,6 +26,8 @@ import org.apache.hadoop.mapreduce.Job;
 
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 
+import org.apache.hadoop.util.GenericOptionsParser;
+import org.apache.hadoop.util.ToolRunner;
 import org.lcsb.lu.igcsa.database.normal.Bin;
 import org.lcsb.lu.igcsa.database.normal.Fragment;
 import org.lcsb.lu.igcsa.database.normal.FragmentDAO;
@@ -50,49 +55,66 @@ import java.util.*;
 NOTE:
 This isn't currently being used for anything so it could be that this doesn't work.  It's not been properly tested.
  */
-public class MutateFragments extends JobIGCSA
+public class MutateFragments extends BWAJob
   {
   private static final Log log = LogFactory.getLog(MutateFragments.class);
 
-  static ClassPathXmlApplicationContext springContext;
+  private ClassPathXmlApplicationContext springContext;
 
   public MutateFragments()
     {
-    super(HBaseConfiguration.create());
+    super(new Configuration());
     springContext = new ClassPathXmlApplicationContext(new String[]{"classpath*:spring-config.xml", "classpath*:/conf/genome.xml"});
     if (springContext == null)
       throw new RuntimeException("Failed to load Spring application context");
+
+
+    Option m = new Option("m", "mutation", true, "Name for mutated genome.");
+    m.setRequired(true);
+    this.addOptions(m);
+
+    Option p = new Option("p", "parent", true, "Name for parent genome.");
+    p.setRequired(true);
+    this.addOptions(p);
     }
 
   @Override
   public int run(String[] args) throws Exception
     {
-    /**
-     * TODO if this is to be used I have to fix all of the calls to admin
-     */
+    GenericOptionsParser gop = this.parseHadoopOpts(args);
+    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs());
+    if (args.length < 1)
+      {
+      System.err.println("Usage: " + MutateFragments.class.getSimpleName() + " -p <parent genome> -m <new genome name>");
+      System.exit(-1);
+      }
 
-    String genome = args[0];
-    String parent = args[1];
+    String genome = cl.getOptionValue("m");
+    String parent = cl.getOptionValue("p");
+    getConf().set("genome", genome);
 
     HBaseGenomeAdmin genomeAdmin = HBaseGenomeAdmin.getHBaseGenomeAdmin(getConf());
+    if (genomeAdmin.getGenomeTable().getGenome(parent) == null)
+      {
+      System.err.println("Parent genome '" + parent + "' does not exist! Exiting.");
+      System.exit(-1);
+      }
 
-    // don't think I need these
-    getConf().set("genome", genome);
-    getConf().set("parent", parent);
-
-    genomeAdmin.deleteGenome(genome);
-
-    // make sure the new genome is created before we start
-    //new HBaseGenome(genome, parent);
+    if (genomeAdmin.getGenomeTable().getGenome(genome) != null)
+      genomeAdmin.getGenomeTable().delete(genome);
+      //throw new Exception("Genome '" + genome + "' exists. Not overwriting.");
+    else // make sure the new genome is created before we start
+      genomeAdmin.getGenomeTable().addGenome(genome, parent);
 
     Job job = new Job(getConf(), "Reference Genome Fragmentation");
     job.setJarByClass(MutateFragments.class);
 
     // this scan will get all sequences for the given genome (so 300 million)
-    Scan seqScan = genomeAdmin.getSequenceTable().getScanFor(new Column("info", "genome", "GRCh37"));
+    Scan seqScan = genomeAdmin.getSequenceTable().getScanFor(new Column("info", "genome", parent));
     seqScan.setCaching(500);        // 1 is the default in Scan, which will be bad for MapReduce jobs
     seqScan.setCacheBlocks(false);
 
+    SequenceTableMapper.setSpringContext(springContext);
     job.setMapperClass(SequenceTableMapper.class);
     TableMapReduceUtil.initTableMapperJob(genomeAdmin.getSequenceTable().getTableName(), seqScan, SequenceTableMapper.class, null, null, job);
 
@@ -104,33 +126,45 @@ public class MutateFragments extends JobIGCSA
 
   public static class SequenceTableMapper extends TableMapper<ImmutableBytesWritable, Text>
     {
+    private static final Log log = LogFactory.getLog(SequenceTableMapper.class);
+
+    private HBaseGenomeAdmin admin;
     private String genomeName;
-    private String parentName;
     private GenomeResult genome;
     private VariantUtils variantUtils;
     private GCBinDAO binDAO;
     private FragmentDAO fragmentDAO;
 
-    private HBaseGenomeAdmin admin;
+    private static ClassPathXmlApplicationContext springContext;
+
+    public static void setSpringContext(ClassPathXmlApplicationContext sc)
+      {
+      if (sc == null || sc.getBeanDefinitionCount() <= 0)
+        throw new IllegalArgumentException("Spring context is null or no beans found.");
+
+      springContext = sc;
+      log.info("Set Spring context");
+      }
+
     @Override
     protected void setup(Context context) throws IOException, InterruptedException
       {
       super.setup(context);
       admin = HBaseGenomeAdmin.getHBaseGenomeAdmin();
       genomeName = context.getConfiguration().get("genome");
-      parentName = context.getConfiguration().get("parent");
+      genome = admin.getGenomeTable().getGenome(genomeName);
+
+      log.info("Spring beans: " + springContext.getBeanDefinitionNames());
+
       variantUtils = (VariantUtils) springContext.getBean("variantUtils");
       binDAO = (GCBinDAO) springContext.getBean("GCBinDAO");
       fragmentDAO = (FragmentDAO) springContext.getBean("FragmentDAO");
-
-      genome = admin.getGenomeTable().getGenome(genomeName);
       }
 
 
     @Override
     protected void map(ImmutableBytesWritable key, Result value, Context context) throws IOException, InterruptedException
       {
-      HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin();
       SequenceResult seq = HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().createResult(value);
 
       log.info(seq.getChr() + " " + seq.getStart() + "-" + seq.getEnd());
@@ -213,13 +247,13 @@ public class MutateFragments extends JobIGCSA
     }
 
 
-  //  public static void main(String[] args) throws Exception
-  //    {
-  //    String genome = "igcsa2", parent = "GRCh37";
-  //    long start = System.currentTimeMillis();
-  //    ToolRunner.run(new MutateFragments(), new String[]{genome, parent});
-  //    long end = System.currentTimeMillis() - start;
-  //
-  //    log.info("Finished mutations for " + genome + ": " + (end/1000) );
-  //    }
+    public static void main(String[] args) throws Exception
+      {
+      log.info(args);
+      long start = System.currentTimeMillis();
+      ToolRunner.run(new MutateFragments(), args);
+      long end = System.currentTimeMillis() - start;
+
+      log.info("Finished mutations " + (end/1000) );
+      }
   }
