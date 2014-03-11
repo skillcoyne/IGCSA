@@ -19,7 +19,7 @@ public class SequenceRow extends Row
   private String chr;
   private long segmentNum;
 
-  private static  final int numRandChars = 4;
+  public static final int numRandChars = 4;
 
   // This means that I can never deterministically guess what the row id is for any given sequence.  All queries will have to be run on a column based search
   private static String generateRandom(String chr)
@@ -46,7 +46,7 @@ public class SequenceRow extends Row
     {
     //1000000000
     if (segmentNum > 99999999)
-      throw new RuntimeException("Overran formatted size, 8d is not enough.");
+        throw new RuntimeException("Overran formatted size, 8d is not enough.");
 
     String formattedSeq = String.format("%08d", segmentNum);
     return  generateRandom(chr) + formattedSeq + ":" + ChromosomeRow.createRowId(genome, chr);

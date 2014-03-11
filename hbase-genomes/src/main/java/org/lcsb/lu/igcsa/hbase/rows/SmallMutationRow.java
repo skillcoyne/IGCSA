@@ -16,7 +16,7 @@ public class SmallMutationRow extends Row
   {
   private String genome;
   private String chr;
-  private long chrLoc = 0;
+  private long segment = 0;
   private long start = 0;
 
   public static String createRowId(String genome, String chr, long segment, long startLoc)
@@ -38,14 +38,15 @@ public class SmallMutationRow extends Row
     }
 
 
-  public void addLocation(String chr, long chrStart, long start, long end)
+  public void addLocation(String chr, long segment, long start, long end)
     {
+    this.addColumn( new Column("loc", "segment", segment));
+
     this.addColumn( new Column("loc", "chr", chr) );
-    this.addColumn( new Column("chr", "start", start));
     this.addColumn( new Column("loc", "start", start) );
     this.addColumn( new Column("loc", "end", end) );
 
-    this.chrLoc = chrStart;
+    this.segment = segment;
     this.start = start;
     this.chr = chr;
     }
@@ -60,6 +61,11 @@ public class SmallMutationRow extends Row
   @Override
   public boolean isRowIdCorrect()
     {
-    return (this.genome == null || this.chr == null || this.chrLoc <= 0 || this.start < 0 || !this.getRowIdAsString().equals(createRowId(genome, chr, chrLoc, start)))? false: true;
+    String testRow = createRowId(genome, chr, segment, start);
+    //return (this.getRowIdAsString().substring(numRandChars, this.getRowIdAsString().length()).equals(testRow.substring(numRandChars, testRow.length())) );
+
+    return this.getRowIdAsString().substring(SequenceRow.numRandChars, this.getRowIdAsString().length()).equals(testRow.substring(SequenceRow.numRandChars, testRow.length()));
+
+ //   return (this.genome == null || this.chr == null || this.segment <= 0 || this.start < 0 || !this.getRowIdAsString().equals(createRowId(genome, chr, chrLoc, start)))? false: true;
     }
   }

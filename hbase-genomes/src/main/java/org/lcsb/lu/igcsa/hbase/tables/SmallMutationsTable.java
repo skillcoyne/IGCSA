@@ -44,7 +44,7 @@ public class SmallMutationsTable extends AbstractTable
       {
       SmallMutationRow row = new SmallMutationRow(smRowId);
       row.addGenomeInfo(sequence.getGenome(), mutation);
-      row.addLocation(sequence.getChr(), sequence.getStart(), start, end);
+      row.addLocation(sequence.getChr(), sequence.getSegmentNum(), start, end);
       row.addSequence(mutationSequence);
 
       smRowId = row.getRowIdAsString();

@@ -81,9 +81,7 @@ public class LoadFromFASTA extends JobIGCSA
     job.setMapOutputKeyClass(LongWritable.class);
     job.setMapOutputValueClass(FragmentWritable.class);
 
-        job.setInputFormatClass(FASTAFragmentInputFormat.class);
-//    job.setInputFormatClass(NLineInputFormat.class);
-//    NLineInputFormat.setNumLinesPerSplit(job, 150);
+    job.setInputFormatClass(FASTAFragmentInputFormat.class);
 
     for (Path path : paths)
       {
@@ -120,9 +118,8 @@ public class LoadFromFASTA extends JobIGCSA
 
     if (admin.getGenomeTable().getGenome(genomeName) != null)
       {
-      System.out.println("Genome '" + genomeName + "' already exists, overwrites are not allowed. Deleting genome.");
-      //System.exit(-1);
-      admin.deleteGenome(genomeName);
+      System.out.println("Genome '" + genomeName + "' already exists, overwrites are not allowed. Exiting.");
+      System.exit(-1);
       }
 
     // create genome if it doesn't exist

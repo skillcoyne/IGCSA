@@ -109,7 +109,7 @@ public class GenerateDerivativeChromosomes extends BWAJob
 
       log.info(filterList);
 
-      // to create an appropriate FASTA header
+      // to create an appropriate FASTA header                        --
       List<String> abrs = new ArrayList<String>();
       for (Band band : aberration.getBands() )// aberration.getAberrationDefinitions())
         abrs.add(band.getChromosomeName() + ":" + band.getLocation().getStart() + "-" + band.getLocation().getEnd());

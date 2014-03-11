@@ -76,16 +76,14 @@ public class MutateFragments extends BWAJob
     //springContext.get
     // hardcoded to test only
 
-    try
-      {
-      DistributedCache.addCacheFile(new URI("/spring-config.xml"), getConf());
-      //this.addArchive(new URI("/spring.tgz#spr"));
-      this.addArchive(new URI("/normal_variation.tgz#db"));
-      }
-    catch (URISyntaxException e)
-      {
-      e.printStackTrace();
-      }
+    //    try
+    //      {
+    //      this.addArchive(new URI("/derby/normal_variation.tgz#db"));
+    //      }
+    //    catch (URISyntaxException e)
+    //      {
+    //      e.printStackTrace();
+    //      }
 
     Option m = new Option("m", "mutation", true, "Name for mutated genome.");
     m.setRequired(true);
@@ -118,10 +116,10 @@ public class MutateFragments extends BWAJob
       System.exit(-1);
       }
 
-    if (genomeAdmin.getGenomeTable().getGenome(genome) != null) genomeAdmin.getGenomeTable().delete(genome);
-    //throw new Exception("Genome '" + genome + "' exists. Not overwriting.");
-    else // make sure the new genome is created before we start
-      genomeAdmin.getGenomeTable().addGenome(genome, parent);
+    if (genomeAdmin.getGenomeTable().getGenome(genome) != null)
+      genomeAdmin.getGenomeTable().delete(genome);
+
+    genomeAdmin.getGenomeTable().addGenome(genome, parent);
 
     Job job = new Job(getConf(), "Reference Genome Fragmentation");
     job.setJarByClass(MutateFragments.class);
@@ -133,8 +131,7 @@ public class MutateFragments extends BWAJob
 
     //SequenceTableMapper.setSpringContext(springContext);
     job.setMapperClass(SequenceTableMapper.class);
-    TableMapReduceUtil.initTableMapperJob(genomeAdmin.getSequenceTable().getTableName(), seqScan, SequenceTableMapper.class, null, null,
-                                          job);
+    TableMapReduceUtil.initTableMapperJob(genomeAdmin.getSequenceTable().getTableName(), seqScan, SequenceTableMapper.class, null, null, job);
 
     // because we aren't emitting anything from mapper
     job.setOutputFormatClass(NullOutputFormat.class);
@@ -155,35 +152,30 @@ public class MutateFragments extends BWAJob
 
     private static ClassPathXmlApplicationContext springContext;
 
-//    public static void setSpringContext(ClassPathXmlApplicationContext sc)
-//      {
-//      if (sc == null || sc.getBeanDefinitionCount() <= 0) throw new IllegalArgumentException("Spring context is null or no beans found.");
-//
-//      springContext = sc;
-//      log.info("Set Spring context");
-//      }
+    //    public static void setSpringContext(ClassPathXmlApplicationContext sc)
+    //      {
+    //      if (sc == null || sc.getBeanDefinitionCount() <= 0) throw new IllegalArgumentException("Spring context is null or no beans found.");
+    //
+    //      springContext = sc;
+    //      log.info("Set Spring context");
+    //      }
 
     @Override
     protected void setup(Context context) throws IOException, InterruptedException
       {
       super.setup(context);
 
-//      File f = new File("/spring-config.xml");
-//      if (!f.exists())
-//        {
-//        throw new IOException("Spring configuration not accessible at " + f.getAbsolutePath());
-//        }
-      Path p = new Path("/spring-confg.xml");
-      log.info(p.getName());
-
-      springContext = new ClassPathXmlApplicationContext(new String[]{"/spring-config.xml"});
-      if (springContext == null) throw new IOException("Failed to load Spring application context");
+      springContext = new ClassPathXmlApplicationContext(new String[]{"classpath:derby-jdbc.xml"});
+      if (springContext == null)
+        throw new IOException("Failed to load Spring application context");
 
       admin = HBaseGenomeAdmin.getHBaseGenomeAdmin();
       genomeName = context.getConfiguration().get("genome");
       genome = admin.getGenomeTable().getGenome(genomeName);
+      if (genome == null)
+        throw new IOException("Genome " + genome + " is missing.");
 
-      log.info("Spring beans: " + springContext.getBeanDefinitionNames());
+      log.info("**** Spring beans: " + springContext.getBeanDefinitionNames());
 
       variantUtils = (VariantUtils) springContext.getBean("variantUtils");
       binDAO = (GCBinDAO) springContext.getBean("GCBinDAO");
@@ -199,14 +191,18 @@ public class MutateFragments extends BWAJob
       {
       SequenceResult seq = HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().createResult(value);
 
-      log.info(seq.getChr() + " " + seq.getStart() + "-" + seq.getEnd());
+      if (seq == null || seq.getChr() == null || genome == null || admin == null)
+        {
+        log.info("foo");
+        }
+      //log.info(seq.getChr() + " " + seq.getStart() + "-" + seq.getEnd());
 
       // get hbase objects for new genome
-      ChromosomeResult chromosome = admin.getChromosomeTable().getChromosome(genomeName, seq.getChr());
-      if (chromosome == null)
+      ChromosomeResult mutatedChr = admin.getChromosomeTable().getChromosome(seq.getGenome(), seq.getChr());
+      if (mutatedChr == null)
         {
         String rowId = admin.getChromosomeTable().addChromosome(genome, seq.getChr(), 0, 0);
-        chromosome = admin.getChromosomeTable().queryTable(rowId);
+        mutatedChr = admin.getChromosomeTable().queryTable(rowId);
         }
 
       Random randomFragment = new Random();
@@ -216,8 +212,7 @@ public class MutateFragments extends BWAJob
         {
         Bin gcBin = this.binDAO.getBinByGC(seq.getChr(), mutatedSequence.calculateGC());
         // TODO get random fragment within the GC bin for each variation -- this is the slowest query!!!
-        Map<String, Fragment> fragmentVarMap = fragmentDAO.getFragment(seq.getChr(), gcBin.getBinId(),
-                                                                       randomFragment.nextInt(gcBin.getSize()));
+        Map<String, Fragment> fragmentVarMap = fragmentDAO.getFragment(seq.getChr(), gcBin.getBinId(), randomFragment.nextInt(gcBin.getSize()));
 
         Map<Variation, Map<Location, DNASequence>> mutations = new HashMap<Variation, Map<Location, DNASequence>>();
 
@@ -230,7 +225,8 @@ public class MutateFragments extends BWAJob
 
           mutatedSequence = variation.mutateSequence(mutatedSequence);
 
-          if (variation.getLastMutations().size() > 0) mutations.put(variation, variation.getLastMutations());
+          if (variation.getLastMutations().size() > 0)
+            mutations.put(variation, variation.getLastMutations());
           }
 
         /*
@@ -238,9 +234,9 @@ public class MutateFragments extends BWAJob
          from the original reference
         all subsequent mutations could be applied at runtime when I generate a FASTA file.
          */
-        String mutSeqRowId = admin.getSequenceTable().addSequence(chromosome, seq.getStart(), (seq.getStart() + mutatedSequence.getLength
-            ()), mutatedSequence.getSequence(), seq.getSegmentNum());
-        if (mutSeqRowId == null) throw new IOException("Failed to add sequence.");
+        String mutSeqRowId = admin.getSequenceTable().addSequence(mutatedChr, seq.getStart(), (seq.getStart() + mutatedSequence.getLength()), mutatedSequence.getSequence(), seq.getSegmentNum());
+        if (mutSeqRowId == null)
+          throw new IOException("Failed to add sequence.");
 
 
         SequenceResult mutSequence = admin.getSequenceTable().queryTable(mutSeqRowId);
@@ -248,12 +244,12 @@ public class MutateFragments extends BWAJob
           {
           // add any mutations to the small mutations table
           for (Map.Entry<Location, DNASequence> entry : mutations.get(v).entrySet())
-            admin.getSmallMutationsTable().addMutation(mutSequence, v, entry.getKey().getStart(), entry.getKey().getEnd(),
-                                                       entry.getValue().getSequence());
+            admin.getSmallMutationsTable().addMutation(mutSequence, v, entry.getKey().getStart(), entry.getKey().getEnd(), entry.getValue().getSequence());
 
           }
         }
-      else admin.getSequenceTable().addSequence(chromosome, seq.getStart(), seq.getEnd(), seq.getSequence(), seq.getSegmentNum());
+      else
+        admin.getSequenceTable().addSequence(mutatedChr, seq.getStart(), seq.getEnd(), seq.getSequence(), seq.getSegmentNum());
       }
 
     private List<Variation> getVariants(String chr)

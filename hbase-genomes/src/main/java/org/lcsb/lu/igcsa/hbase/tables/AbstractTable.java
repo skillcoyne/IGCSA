@@ -235,7 +235,8 @@ public abstract class AbstractTable extends HTable
     {
     Put put = new Put(row.getRowId());
 
-    if (!row.isRowIdCorrect()) throw new IOException("Row id is incorrect: " + row.getRowIdAsString());
+    if (!row.isRowIdCorrect())
+      throw new IOException("Row id is incorrect: " + row.getRowIdAsString());
 
     for (Column col : row.getColumns())
       {
