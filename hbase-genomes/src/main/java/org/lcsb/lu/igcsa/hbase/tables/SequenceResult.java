@@ -9,14 +9,9 @@
 package org.lcsb.lu.igcsa.hbase.tables;
 
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.hbase.rows.SequenceRow;
-import org.lcsb.lu.igcsa.hbase.rows.SmallMutationRow;
 import org.springframework.util.StringUtils;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class SequenceResult extends AbstractResult
   {
@@ -82,7 +77,7 @@ public class SequenceResult extends AbstractResult
 
   public void setStart(byte[] start)
     {
-    this.start = Long.parseLong(Bytes.toString(start));
+    this.start = Bytes.toLong(start);
     }
 
   public long getEnd()
@@ -92,7 +87,7 @@ public class SequenceResult extends AbstractResult
 
   public void setEnd(byte[] end)
     {
-    this.end = Long.parseLong(Bytes.toString(end));
+    this.end = Bytes.toLong(end);
     }
 
   public int getGC()

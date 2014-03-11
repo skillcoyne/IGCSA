@@ -36,35 +36,35 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.6</version>
-                <executions>
-                    <execution>
-                        <id>copy-resources</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${resources.to.dir}</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>../sim/dist-resources/${props.dir}</directory>
-                                    <filtering>true</filtering>
-                                    <includes>
-                                        <include>*.properties</include>
-                                    </includes>
-                                    <excludes>
-                                        <exclude>*.sh</exclude>
-                                    </excludes>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+            <!--<plugin>-->
+                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <!--<artifactId>maven-resources-plugin</artifactId>-->
+                <!--<version>2.6</version>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<id>copy-resources</id>-->
+                        <!--<phase>compile</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>copy-resources</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<outputDirectory>${resources.to.dir}</outputDirectory>-->
+                            <!--<resources>-->
+                                <!--<resource>-->
+                                    <!--<directory>../sim/dist-resources/${props.dir}</directory>-->
+                                    <!--<filtering>true</filtering>-->
+                                    <!--<includes>-->
+                                        <!--<include>*.properties</include>-->
+                                    <!--</includes>-->
+                                    <!--<excludes>-->
+                                        <!--<exclude>*.sh</exclude>-->
+                                    <!--</excludes>-->
+                                <!--</resource>-->
+                            <!--</resources>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+            <!--</plugin>-->
      </plugins>
 
 

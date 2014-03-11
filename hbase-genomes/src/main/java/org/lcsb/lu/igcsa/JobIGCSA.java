@@ -63,5 +63,12 @@ public abstract class JobIGCSA extends Configured implements Tool
     log.info("Added to cache" + uri.toString());
     }
 
+  protected void addArchive(URI uri, boolean symlink)
+    {
+    if (symlink)
+      addArchive(uri);
+    else
+      DistributedCache.addCacheArchive(uri, getConf());
+    }
 
   }

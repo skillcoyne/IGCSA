@@ -37,6 +37,7 @@
     <profiles>
         <profile>
             <id>local</id>
+
             <properties>
                 <props.dir>local</props.dir>
                 <resources.to.dir>${basedir}/target</resources.to.dir>

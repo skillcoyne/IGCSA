@@ -85,36 +85,36 @@
     <build>
         <finalName>HBase-Genomes</finalName>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.6</version>
-                <executions>
-                    <execution>
-                        <id>copy-resources</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${resources.to.dir}</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>../sim/dist-resources/${props.dir}</directory>
-                                    <filtering>true</filtering>
-                                    <includes>
-                                        <include>*.properties</include>
-                                        <include>bwa</include>
-                                    </includes>
-                                    <excludes>
-                                        <exclude>*.sh</exclude>
-                                    </excludes>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+            <!--<plugin>-->
+                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <!--<artifactId>maven-resources-plugin</artifactId>-->
+                <!--<version>2.6</version>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<id>copy-resources</id>-->
+                        <!--<phase>compile</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>copy-resources</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<outputDirectory>${resources.to.dir}</outputDirectory>-->
+                            <!--<resources>-->
+                                <!--<resource>-->
+                                    <!--<directory>../sim/dist-resources/${props.dir}</directory>-->
+                                    <!--<filtering>true</filtering>-->
+                                    <!--<includes>-->
+                                        <!--<include>*.properties</include>-->
+                                        <!--<include>bwa</include>-->
+                                    <!--</includes>-->
+                                    <!--<excludes>-->
+                                        <!--<exclude>*.sh</exclude>-->
+                                    <!--</excludes>-->
+                                <!--</resource>-->
+                            <!--</resources>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+            <!--</plugin>-->
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <executions>
@@ -144,7 +144,7 @@
             <!--
             Exception in thread "main" java.io.IOException: Mkdirs failed to create /Users/skillcoyne/Tools/hd/hadoopdata/hadoop-unjar6550527998235391805/META-INF/license
              Have to remove this file:  MAC ONLY
-             zip -d HBase-Genomes-1.1.jar META-INF/LICENSE
+zip -d HBase-Genomes-1.1.jar META-INF/LICENSE
             -->
 
 
