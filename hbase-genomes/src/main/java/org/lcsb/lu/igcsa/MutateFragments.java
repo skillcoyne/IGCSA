@@ -13,9 +13,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.filecache.DistributedCache;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
@@ -50,10 +47,7 @@ import org.lcsb.lu.igcsa.variation.fragment.Variation;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.*;
 
 /*
@@ -165,7 +159,7 @@ public class MutateFragments extends BWAJob
       {
       super.setup(context);
 
-      springContext = new ClassPathXmlApplicationContext(new String[]{"classpath:derby-jdbc.xml"});
+      springContext = new ClassPathXmlApplicationContext(new String[]{"classpath:src/main/resources-OLD/derby-jdbc.xml"});
       if (springContext == null)
         throw new IOException("Failed to load Spring application context");
 

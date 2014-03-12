@@ -96,5 +96,14 @@ public enum IGCSATables
     return tableName;
     }
 
+  public static String[] getTableNames()
+    {
+    List<String> tables = new ArrayList<String>();
+    for (IGCSATables t: IGCSATables.values())
+      tables.add(t.getTableName());
+
+    return tables.toArray(new String[tables.size()]);
+    }
+
   public abstract Map<String, Set<String>> getRequiredFamilies();
   }

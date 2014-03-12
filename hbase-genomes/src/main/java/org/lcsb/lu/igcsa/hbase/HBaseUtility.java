@@ -13,8 +13,15 @@ import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.joda.time.LocalTime;
 import org.lcsb.lu.igcsa.IGCSACommandLineParser;
 import org.lcsb.lu.igcsa.hbase.tables.IGCSATables;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * org.lcsb.lu.igcsa.hbase
@@ -35,47 +42,53 @@ public class HBaseUtility
       o.setRequired(true);
       IGCSACommandLineParser.getParser().addOptions(o);
       }
+    IGCSACommandLineParser.getParser().addOptions(new Option("t", "tables", true, "Comma separated list of tables. Default is all."));
 
     Configuration conf = HBaseConfiguration.create();
 
     String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
     CommandLine cl = IGCSACommandLineParser.getParser().parseOptions(otherArgs);
 
-    Path path = new Path(cl.getOptionValue("d"));
+    Path path = new Path(cl.getOptionValue("d"), new SimpleDateFormat("yyyyMMddzHHmm").format( new Date() ));
     String cmd = cl.getOptionValue("c");
 
-    if (cmd.equalsIgnoreCase("export")) exportData(path, conf);
-    else if (cmd.equalsIgnoreCase("import")) importData(path, conf);
+    String[] tables = new String[0];
+    if (cl.hasOption("t"))
+      tables = cl.getOptionValue("t").split(",");
+
+    if (cmd.equalsIgnoreCase("export")) exportData(path, tables, conf);
+    else if (cmd.equalsIgnoreCase("import")) importData(path, tables, conf);
     }
 
-  private static void exportData(Path path, Configuration conf) throws Exception
+  private static void exportData(Path path, String[] tables, Configuration conf) throws Exception
     {
-    for (IGCSATables table : IGCSATables.values())
+    if (tables.length <= 0)
+      tables = IGCSATables.getTableNames();
+
+    for (String table: tables)
       {
-      String tableDir = new Path(path, table.getTableName()).toString();
-      System.out.println(" ********* Export data from " + table.getTableName() + " to " + tableDir + " *********");
+      String tableDir = new Path(path, table).toString();
+      System.out.println(" ********* Export data from " + table + " to " + tableDir + " *********");
 
-      Job job = Export.createSubmittableJob(conf, new String[]{table.getTableName(), tableDir});
+      Job job = Export.createSubmittableJob(conf, new String[]{table, tableDir});
       job.waitForCompletion(true);
-
-      //ToolRunner.run(new Export(), new String[]{table.getTableName(), tableDir.getName()});
-      //org.apache.hadoop.hbase.mapreduce.Export.main(new String[]{table.getTableName(), tableDir});
       }
     }
 
-  private static void importData(Path path, Configuration conf) throws Exception
+  private static void importData(Path path, String[] tables, Configuration conf) throws Exception
     {
     if (!HBaseGenomeAdmin.getHBaseGenomeAdmin().tablesExist()) HBaseGenomeAdmin.getHBaseGenomeAdmin().createTables();
 
-    for (IGCSATables table : IGCSATables.values())
+    if (tables.length <= 0)
+      tables = IGCSATables.getTableNames();
+
+    for (String table: tables)
       {
-      String tableDir = new Path(path, table.getTableName()).toString();
-      System.out.println(" ********* Import data from " + tableDir + " to " + table.getTableName() + " *********");
+      String tableDir = new Path(path, table).toString();
+      System.out.println(" ********* Import data from " + tableDir + " to " + table + " *********");
 
-      Job job = Import.createSubmittableJob(conf, new String[]{table.getTableName(), tableDir});
+      Job job = Import.createSubmittableJob(conf, new String[]{table, tableDir});
       job.waitForCompletion(true);
-
-      //org.apache.hadoop.hbase.mapreduce.Import.main(new String[]{table.getTableName(), tableDir});
       }
     }
 
