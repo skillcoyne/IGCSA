@@ -153,6 +153,22 @@ public class HBaseGenomeAdmin
     }
 
 
+  public boolean tableExists(String tableName) throws IOException
+    {
+    return this.hbaseAdmin.tableExists(tableName);
+    }
+
+
+  public boolean tablesExist() throws IOException
+    {
+    for (IGCSATables table: IGCSATables.values())
+      {
+      boolean exists = this.tableExists(table.getTableName());
+      if (!exists) return false;
+      }
+    return true;
+    }
+
 //  public HBaseKaryotype getKaryotype(String karyotypeName) throws IOException
 //    {
 //    KaryotypeIndexTable kiT = this.getKaryotypeIndexTable();
