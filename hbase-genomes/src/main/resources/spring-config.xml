@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation=
+               "http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/jdbc
+        http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+
+
+    <context:annotation-config/>
+
+    <bean id="variationDS" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="org.apache.derby.jdbc.EmbeddedDriver"/>
+        <property name="url" value="jdbc:derby:memory:variation;create=true"/>
+        <property name="username" value="hadoop"/>
+        <property name="password" value=""/>
+    </bean>
+
+    <jdbc:initialize-database data-source="variationDS" enabled="true">
+        <jdbc:script location="classpath:genome.sql"/>
+    </jdbc:initialize-database>
+
+    <!--<bean id="gcBinDAO" class="org.lcsb.lu.igcsa.embedded.DAO.impl.JDBCGCBinDAO">-->
+        <!--<property name="dataSource" ref="variationDS"/>-->
+        <!--<property name="tableName" value="gc_bins"/>-->
+    <!--</bean>-->
+
+    <!--<bean id="variationDAO" class="org.lcsb.lu.igcsa.embedded.DAO.impl.JDBCVariationDAO">-->
+        <!--<property name="dataSource" ref="variationDS"/>-->
+        <!--<property name="tableName" value="variation"/>-->
+    <!--</bean>-->
+
+    <!--<bean id="fragmentDAO" class="org.lcsb.lu.igcsa.embedded.DAO.impl.JDBCFragmentDAO">-->
+        <!--<property name="dataSource" ref="variationDS"/>-->
+        <!--<property name="tableName" value="variation_per_bin"/>-->
+    <!--</bean>-->
+
+    <!--<bean id="snvDAO" class="org.lcsb.lu.igcsa.embedded.DAO.impl.JDBCSNVProbabilityDAO">-->
+        <!--<property name="dataSource" ref="variationDS"/>-->
+        <!--<property name="tableName" value="snv_prob"/>-->
+    <!--</bean>-->
+
+    <!--<bean id="chrVarDAO" class="org.lcsb.lu.igcsa.embedded.DAO.impl.JDBCChrVariationDAO">-->
+        <!--<property name="dataSource" ref="variationDS"/>-->
+        <!--<property name="tableName" value="variation_to_chr"/>-->
+    <!--</bean>-->
+
+    <!--<bean id="sizeDAO" class="org.lcsb.lu.igcsa.embedded.DAO.impl.JDBCSizeDAO">-->
+        <!--<property name="dataSource" ref="variationDS"/>-->
+        <!--<property name="tableName" value="variation_size_prob"/>-->
+    <!--</bean>-->
+
+
+</beans>

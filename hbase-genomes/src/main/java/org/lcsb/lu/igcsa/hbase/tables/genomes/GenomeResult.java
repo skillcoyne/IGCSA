@@ -6,10 +6,11 @@
  */
 
 
-package org.lcsb.lu.igcsa.hbase.tables;
+package org.lcsb.lu.igcsa.hbase.tables.genomes;
 
 import org.apache.hadoop.hbase.util.Bytes;
 import org.lcsb.lu.igcsa.hbase.rows.ChromosomeRow;
+import org.lcsb.lu.igcsa.hbase.tables.AbstractResult;
 
 import java.io.IOException;
 import java.util.ArrayList;

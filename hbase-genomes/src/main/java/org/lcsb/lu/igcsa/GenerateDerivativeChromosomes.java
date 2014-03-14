@@ -25,13 +25,11 @@ import org.lcsb.lu.igcsa.aberrations.AberrationTypes;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.generator.Aberration;
-import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.hbase.*;
 import org.lcsb.lu.igcsa.hbase.filters.AberrationLocationFilter;
-import org.lcsb.lu.igcsa.hbase.tables.AberrationResult;
-import org.lcsb.lu.igcsa.hbase.tables.ChromosomeResult;
-import org.lcsb.lu.igcsa.hbase.tables.GenomeResult;
-import org.lcsb.lu.igcsa.hbase.tables.KaryotypeIndexResult;
+import org.lcsb.lu.igcsa.hbase.tables.genomes.ChromosomeResult;
+import org.lcsb.lu.igcsa.hbase.tables.genomes.GenomeResult;
+import org.lcsb.lu.igcsa.hbase.tables.genomes.KaryotypeIndexResult;
 import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil;
 
 import java.util.ArrayList;

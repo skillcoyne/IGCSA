@@ -12,14 +12,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 import org.lcsb.lu.igcsa.hbase.rows.ChromosomeRow;
-import org.lcsb.lu.igcsa.hbase.tables.ChromosomeResult;
-import org.lcsb.lu.igcsa.hbase.tables.GenomeResult;
+import org.lcsb.lu.igcsa.hbase.tables.genomes.ChromosomeResult;
+import org.lcsb.lu.igcsa.hbase.tables.genomes.GenomeResult;
 import org.lcsb.lu.igcsa.mapreduce.FragmentWritable;
 import org.lcsb.lu.igcsa.utils.FileUtils;
 

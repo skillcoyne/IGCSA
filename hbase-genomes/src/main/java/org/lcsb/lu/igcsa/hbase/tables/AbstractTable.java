@@ -7,13 +7,12 @@ import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.CompareFilter;
-import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.filter.FilterList;
 import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.log4j.Logger;
 //import org.joni.ScanEnvironment;
 import org.lcsb.lu.igcsa.hbase.rows.*;
+import org.lcsb.lu.igcsa.hbase.tables.genomes.IGCSATables;
 
 import java.io.IOException;
 import java.util.*;
@@ -26,7 +25,7 @@ import java.util.concurrent.ExecutorService;
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
 
-public abstract class AbstractTable extends HTable
+public abstract class AbstractTable<T> extends HTable
   {
   protected static final Log log = LogFactory.getLog(AbstractTable.class);
 
@@ -62,7 +61,7 @@ public abstract class AbstractTable extends HTable
     super(tableName, connection, pool);
     }
 
-  public static HTableDescriptor getDescriptor(IGCSATables table)
+  public static HTableDescriptor getDescriptor(TableDefinitions table)
     {
     HTableDescriptor descriptor = new HTableDescriptor(table.getTableName());
     for (String fam : table.getRequiredFamilies().keySet()) // columns

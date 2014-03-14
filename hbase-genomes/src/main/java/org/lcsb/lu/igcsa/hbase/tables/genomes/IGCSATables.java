@@ -1,6 +1,6 @@
-package org.lcsb.lu.igcsa.hbase.tables;
+package org.lcsb.lu.igcsa.hbase.tables.genomes;
 
-import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.hbase.tables.TableDefinitions;
 
 import java.util.*;
 
@@ -11,7 +11,7 @@ import java.util.*;
  * Copyright University of Luxembourg, Luxembourg Centre for Systems Biomedicine 2014
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public enum IGCSATables
+public enum IGCSATables  implements TableDefinitions
   {
     GN("genome")
         {

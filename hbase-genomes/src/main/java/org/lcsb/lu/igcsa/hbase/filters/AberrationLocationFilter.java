@@ -5,9 +5,8 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.generator.Aberration;
 import org.lcsb.lu.igcsa.genome.Location;
-import org.lcsb.lu.igcsa.hbase.tables.AberrationResult;
-import org.lcsb.lu.igcsa.hbase.tables.ChromosomeResult;
-import org.lcsb.lu.igcsa.hbase.tables.GenomeResult;
+import org.lcsb.lu.igcsa.hbase.tables.genomes.ChromosomeResult;
+import org.lcsb.lu.igcsa.hbase.tables.genomes.GenomeResult;
 
 import java.io.IOException;
 import java.util.ArrayList;

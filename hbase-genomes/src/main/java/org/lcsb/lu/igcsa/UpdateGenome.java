@@ -30,7 +30,7 @@
 //import org.lcsb.lu.igcsa.hbase.HBaseChromosome;
 //import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 //import org.lcsb.lu.igcsa.hbase.tables.Column;
-//import org.lcsb.lu.igcsa.hbase.tables.SequenceResult;
+//import org.lcsb.lu.igcsa.hbase.tables.genomes.SequenceResult;
 //import org.lcsb.lu.igcsa.mapreduce.NullReducer;
 //import org.lcsb.lu.igcsa.mapreduce.SelectedRowCount;
 //

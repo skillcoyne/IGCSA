@@ -13,9 +13,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.lcsb.lu.igcsa.hbase.tables.ChromosomeResult;
-import org.lcsb.lu.igcsa.hbase.tables.GenomeResult;
-import org.lcsb.lu.igcsa.hbase.tables.SequenceResult;
+import org.lcsb.lu.igcsa.hbase.tables.genomes.ChromosomeResult;
+import org.lcsb.lu.igcsa.hbase.tables.genomes.SequenceResult;
 
 
 public class OutputGenome

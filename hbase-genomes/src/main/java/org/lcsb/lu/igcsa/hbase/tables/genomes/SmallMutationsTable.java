@@ -6,18 +6,16 @@
  */
 
 
-package org.lcsb.lu.igcsa.hbase.tables;
+package org.lcsb.lu.igcsa.hbase.tables.genomes;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.KeyValue;
-import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.hbase.rows.SmallMutationRow;
+import org.lcsb.lu.igcsa.hbase.tables.AbstractTable;
+import org.lcsb.lu.igcsa.hbase.tables.Column;
+import org.lcsb.lu.igcsa.hbase.tables.genomes.SequenceResult;
 import org.lcsb.lu.igcsa.variation.fragment.Variation;
 
 import java.io.IOException;

@@ -6,16 +6,16 @@
  */
 
 
-package org.lcsb.lu.igcsa.hbase.tables;
+package org.lcsb.lu.igcsa.hbase.tables.genomes;
 
 import org.apache.hadoop.hbase.util.Bytes;
 import org.lcsb.lu.igcsa.hbase.rows.SequenceRow;
+import org.lcsb.lu.igcsa.hbase.tables.AbstractResult;
 import org.springframework.util.StringUtils;
 
 
 public class SequenceResult extends AbstractResult
   {
-
   private String sequence;
   private String chr;
   private String genome;

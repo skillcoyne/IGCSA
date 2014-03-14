@@ -27,7 +27,7 @@ public class JDBCSizeDAO extends DataLoadDAO
 
     BufferedReader reader = new BufferedReader(new FileReader(dataFile));
 
-    String sql = "INSERT INTO " + tableName + "(maxbp, variation_id, frequency) VALUES (?,?,?)";
+    String sql = "INSERT INTO " + tableName + "(maxbp, variation_id, probability) VALUES (?,?,?)";
     String line;
     while ((line = reader.readLine()) != null)
       {

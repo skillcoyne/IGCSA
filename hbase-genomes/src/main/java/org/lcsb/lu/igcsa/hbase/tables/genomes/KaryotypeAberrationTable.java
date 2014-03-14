@@ -6,7 +6,7 @@
  */
 
 
-package org.lcsb.lu.igcsa.hbase.tables;
+package org.lcsb.lu.igcsa.hbase.tables.genomes;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.KeyValue;
@@ -15,6 +15,8 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.lcsb.lu.igcsa.generator.Aberration;
 import org.lcsb.lu.igcsa.hbase.rows.AberrationRow;
+import org.lcsb.lu.igcsa.hbase.tables.AbstractTable;
+import org.lcsb.lu.igcsa.hbase.tables.Column;
 
 import java.io.IOException;
 import java.util.*;

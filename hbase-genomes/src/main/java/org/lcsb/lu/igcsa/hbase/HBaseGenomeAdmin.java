@@ -16,17 +16,16 @@ import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.lcsb.lu.igcsa.hbase.tables.*;
+import org.lcsb.lu.igcsa.hbase.tables.genomes.*;
 
 import java.io.IOException;
 import java.util.*;
 
 
-public class HBaseGenomeAdmin
+public class HBaseGenomeAdmin extends IGCSAHbaseAdmin
   {
   private static final Log log = LogFactory.getLog(HBaseGenomeAdmin.class);
 
-  private Configuration conf;
-  private HBaseAdmin hbaseAdmin;
   private static HBaseGenomeAdmin adminInstance;
 
   public static HBaseGenomeAdmin getHBaseGenomeAdmin() throws IOException
@@ -45,26 +44,9 @@ public class HBaseGenomeAdmin
     return adminInstance;
     }
 
-  private HBaseGenomeAdmin(Configuration configuration) throws IOException
+  protected HBaseGenomeAdmin(Configuration conf) throws IOException
     {
-    this.conf = configuration;
-    //this.conf.setInt("timeout", 10);
-    this.hbaseAdmin = new HBaseAdmin(conf);
-
-    int tryRunning = 1;
-    while (!this.hbaseAdmin.isMasterRunning() && tryRunning < 20)
-      {
-      try
-        {
-        this.wait(10);
-        log.warn("Waiting for master to run:" + this.hbaseAdmin.getClusterStatus().toString());
-        }
-      catch (InterruptedException e)
-        {
-        throw new RuntimeException(e);
-        }
-      ++tryRunning;
-      }
+    super(conf);
     }
 
   public GenomeTable getGenomeTable()
@@ -153,22 +135,6 @@ public class HBaseGenomeAdmin
     }
 
 
-  public boolean tableExists(String tableName) throws IOException
-    {
-    return this.hbaseAdmin.tableExists(tableName);
-    }
-
-
-  public boolean tablesExist() throws IOException
-    {
-    for (IGCSATables table: IGCSATables.values())
-      {
-      boolean exists = this.tableExists(table.getTableName());
-      if (!exists) return false;
-      }
-    return true;
-    }
-
 //  public HBaseKaryotype getKaryotype(String karyotypeName) throws IOException
 //    {
 //    KaryotypeIndexTable kiT = this.getKaryotypeIndexTable();
@@ -222,30 +188,18 @@ public class HBaseGenomeAdmin
     //kiT.close(); kT.close();
     }
 
-  public void closeConections() throws IOException
-    {
-    hbaseAdmin.close();
-    }
-
   public void disableTables() throws IOException
     {
-    for (IGCSATables tb : IGCSATables.values())
-      {
-      String t = tb.getTableName();
-      if (hbaseAdmin.tableExists(t) && hbaseAdmin.isTableEnabled(t)) hbaseAdmin.disableTable(t);
-      }
+    super.disableTables(IGCSATables.getTableNames());
     }
 
   public void deleteTables() throws IOException
     {
     disableTables();
-    for (IGCSATables tb : IGCSATables.values())
-      {
-      String t = tb.getTableName();
-      if (hbaseAdmin.tableExists(t)) hbaseAdmin.deleteTable(t);
-      }
+    super.deleteTables(IGCSATables.getTableNames());
     }
 
+  @Override
   public void createTables() throws IOException
     {
     for (IGCSATables table: IGCSATables.values())
@@ -255,5 +209,15 @@ public class HBaseGenomeAdmin
       }
     }
 
+  @Override
+  public boolean tablesExist() throws IOException
+    {
+    for (IGCSATables table: IGCSATables.values())
+      {
+      boolean exists = this.tableExists(table.getTableName());
+      if (!exists) return false;
+      }
+    return true;
+    }
 
   }

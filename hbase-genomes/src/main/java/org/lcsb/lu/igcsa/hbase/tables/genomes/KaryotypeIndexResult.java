@@ -6,7 +6,7 @@
  */
 
 
-package org.lcsb.lu.igcsa.hbase.tables;
+package org.lcsb.lu.igcsa.hbase.tables.genomes;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -16,6 +16,7 @@ import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.generator.Aberration;
 import org.lcsb.lu.igcsa.generator.Aneuploidy;
 import org.lcsb.lu.igcsa.genome.Location;
+import org.lcsb.lu.igcsa.hbase.tables.AbstractResult;
 
 import java.util.ArrayList;
 import java.util.List;

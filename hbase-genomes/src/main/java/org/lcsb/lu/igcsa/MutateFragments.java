@@ -10,6 +10,7 @@ package org.lcsb.lu.igcsa;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -27,19 +28,16 @@ import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.ToolRunner;
-import org.lcsb.lu.igcsa.database.normal.Bin;
-import org.lcsb.lu.igcsa.database.normal.Fragment;
-import org.lcsb.lu.igcsa.database.normal.FragmentDAO;
-import org.lcsb.lu.igcsa.database.normal.GCBinDAO;
+import org.lcsb.lu.igcsa.database.normal.*;
 
 import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.genome.Location;
 
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
-import org.lcsb.lu.igcsa.hbase.tables.ChromosomeResult;
+import org.lcsb.lu.igcsa.hbase.tables.genomes.ChromosomeResult;
 import org.lcsb.lu.igcsa.hbase.tables.Column;
-import org.lcsb.lu.igcsa.hbase.tables.GenomeResult;
-import org.lcsb.lu.igcsa.hbase.tables.SequenceResult;
+import org.lcsb.lu.igcsa.hbase.tables.genomes.GenomeResult;
+import org.lcsb.lu.igcsa.hbase.tables.genomes.SequenceResult;
 
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.lcsb.lu.igcsa.utils.VariantUtils;
@@ -47,7 +45,9 @@ import org.lcsb.lu.igcsa.variation.fragment.Variation;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import javax.sql.DataSource;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.*;
 
 /*
@@ -145,6 +145,20 @@ public class MutateFragments extends BWAJob
     private FragmentDAO fragmentDAO;
 
     private static ClassPathXmlApplicationContext springContext;
+    private DataSource ds;
+
+    private DataSource createConnection()
+      {
+//      String url = "jdbc:derby:memory:variation;create=true";
+//      //String url = "jdbc:derby:/db/normal_variation";
+//
+//      DriverManagerDataSource dmds = new DriverManagerDataSource(url);
+//      dmds.setDriverClassName("org.apache.derby.jdbc.EmbeddedDriver");
+
+      ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[]{"classpath:spring-config.xml"});
+
+      return (DataSource) context.getBean("variationDS");
+      }
 
     //    public static void setSpringContext(ClassPathXmlApplicationContext sc)
     //      {
@@ -154,12 +168,40 @@ public class MutateFragments extends BWAJob
     //      log.info("Set Spring context");
     //      }
 
+
+    @Override
+    protected void cleanup(Context context) throws IOException, InterruptedException
+      {
+      try
+        {
+        ds.getConnection().close();
+        }
+      catch (SQLException e)
+        {
+        log.error(e);
+        }
+      }
+
     @Override
     protected void setup(Context context) throws IOException, InterruptedException
       {
       super.setup(context);
 
-      springContext = new ClassPathXmlApplicationContext(new String[]{"classpath:src/main/resources-OLD/derby-jdbc.xml"});
+      log.info("CONNECTION " + context.getConfiguration().get("mapreduce.jobtracker.staging.root.dir"));
+      log.info("JOB ID" + context.getJobID());
+
+      ds = createConnection();
+
+      try
+        {
+        log.info("**** " + ds.getConnection().getClientInfo().toString());
+        }
+      catch (SQLException e)
+        {
+        log.error(e);
+        }
+
+      springContext = new ClassPathXmlApplicationContext(new String[]{"classpath:derby-jdbc.xml"});
       if (springContext == null)
         throw new IOException("Failed to load Spring application context");
 
@@ -169,11 +211,11 @@ public class MutateFragments extends BWAJob
       if (genome == null)
         throw new IOException("Genome " + genome + " is missing.");
 
-      log.info("**** Spring beans: " + springContext.getBeanDefinitionNames());
+      log.info("**** Spring beans: " + StringUtils.join(springContext.getBeanDefinitionNames(), ", "));
 
-      variantUtils = (VariantUtils) springContext.getBean("variantUtils");
       binDAO = (GCBinDAO) springContext.getBean("GCBinDAO");
       fragmentDAO = (FragmentDAO) springContext.getBean("FragmentDAO");
+      variantUtils = (VariantUtils) springContext.getBean("variantUtils");
 
       if (variantUtils == null || binDAO == null || fragmentDAO == null)
         throw new IOException("Beans not defined.");

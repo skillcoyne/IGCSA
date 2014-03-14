@@ -18,8 +18,8 @@
 //import org.lcsb.lu.igcsa.hbase.HBaseGenome;
 //import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 //import org.lcsb.lu.igcsa.hbase.HBaseSequence;
-//import org.lcsb.lu.igcsa.hbase.tables.AberrationResult;
-//import org.lcsb.lu.igcsa.hbase.tables.SequenceResult;
+//import org.lcsb.lu.igcsa.hbase.tables.genomes.AberrationResult;
+//import org.lcsb.lu.igcsa.hbase.tables.genomes.SequenceResult;
 //
 //import java.io.IOException;
 //import java.util.Iterator;
