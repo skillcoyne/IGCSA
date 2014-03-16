@@ -16,7 +16,7 @@ import org.apache.log4j.Logger;
 import java.io.IOException;
 import java.util.List;
 
-public abstract class AbstractResult
+public abstract class AbstractResult<T>
   {
   protected static final Log log = LogFactory.getLog(AbstractResult.class);
 

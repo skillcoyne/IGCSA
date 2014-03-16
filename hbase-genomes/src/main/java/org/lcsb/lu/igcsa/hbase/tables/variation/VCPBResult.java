@@ -12,24 +12,23 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.lcsb.lu.igcsa.hbase.rows.SequenceRow;
 import org.lcsb.lu.igcsa.hbase.tables.AbstractResult;
 
 
-public class VCBPResult extends AbstractResult
+public class VCPBResult extends AbstractResult
   {
-  private static final Log log = LogFactory.getLog(VCBPResult.class);
+  private static final Log log = LogFactory.getLog(VCPBResult.class);
 
   private String chr, variationName, variationClass;
-  private long varCount, gcMin, gcMax;
+  private int varCount, gcMin, gcMax, fragCount;
 
 
-  protected VCBPResult(byte[] rowId)
+  protected VCPBResult(byte[] rowId)
     {
     super(rowId);
     }
 
-  protected VCBPResult(String rowId)
+  protected VCPBResult(String rowId)
     {
     super(rowId);
     }
@@ -64,40 +63,50 @@ public class VCBPResult extends AbstractResult
     this.variationClass = Bytes.toString(variationClass);
     }
 
-  public long getVariationCount()
+  public int getFragmentNum()
+    {
+    return fragCount;
+    }
+
+  public void setFragmentNum(byte[] fragCount)
+    {
+    this.fragCount = Bytes.toInt(fragCount);
+    }
+
+  public int getVariationCount()
     {
     return varCount;
     }
 
   public void setVarCount(byte[] varCount)
     {
-    this.varCount = Bytes.toLong(varCount);
+    this.varCount = Bytes.toInt(varCount);
     }
 
-  public long getGCMin()
+  public int getGCMin()
     {
     return gcMin;
     }
 
   public void setGCMin(byte[] gcMin)
     {
-    this.gcMin = Bytes.toLong(gcMin);
+    this.gcMin = Bytes.toInt(gcMin);
     }
 
-  public long getGCMax()
+  public int getGCMax()
     {
     return gcMax;
     }
 
   public void setGCMax(byte[] gcMax)
     {
-    this.gcMax = Bytes.toLong(gcMax);
+    this.gcMax = Bytes.toInt(gcMax);
     }
 
   @Override
   public String toString()
     {
-    return StringUtils.join( new String[]{chr, String.valueOf(varCount), variationName, String.valueOf(gcMin), String.valueOf(gcMax)}, ", ");
+    return StringUtils.join( new String[]{chr, "frag:"+String.valueOf(fragCount), "var:"+String.valueOf(varCount), variationName, String.valueOf(gcMin) + "-" + String.valueOf(gcMax)}, ", ");
     }
 
   }

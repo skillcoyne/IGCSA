@@ -7,10 +7,7 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.lcsb.lu.igcsa.hbase.tables.AbstractTable;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.IGCSATables;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.SequenceTable;
-import org.lcsb.lu.igcsa.hbase.tables.variation.SNVProbability;
-import org.lcsb.lu.igcsa.hbase.tables.variation.SizeProbability;
-import org.lcsb.lu.igcsa.hbase.tables.variation.VariationCountPerBin;
-import org.lcsb.lu.igcsa.hbase.tables.variation.VariationTables;
+import org.lcsb.lu.igcsa.hbase.tables.variation.*;
 
 import java.io.IOException;
 
@@ -43,7 +40,7 @@ public class VariationAdmin extends IGCSAHbaseAdmin
 
   public AbstractTable<? extends AbstractTable> getTable(String tableName) throws IOException
     {
-    switch (VariationTables.valueOf(tableName))
+    switch (VariationTables.valueOfName(tableName))
       {
       case VPB:
         return new VariationCountPerBin(conf, VPB.getTableName());
@@ -51,6 +48,8 @@ public class VariationAdmin extends IGCSAHbaseAdmin
         return new SizeProbability(conf, SIZE.getTableName());
       case SNVP:
         return new SNVProbability(conf, SNVP.getTableName());
+      case GC:
+        return new GCBin(conf, GC.getTableName());
       }
     return null;
     }

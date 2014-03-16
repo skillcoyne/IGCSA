@@ -121,8 +121,8 @@ public class FragmentMutable extends Mutable
         {
         Fragment fragment = fragmentVarMap.get(variation.getVariationName());
         log.debug("Chromosome " + chr.getName() + " MUTATING FRAGMENT " + fragment.toString());
-        variation.setMutationFragment(fragment);
-        mutatedSequence = variation.mutateSequence(mutatedSequence);
+        //variation.setMutationFragment(fragment);
+        mutatedSequence = variation.mutateSequence(mutatedSequence, fragment.getCount());
 
         if (mutationWriter != null)  // This isn't going to work when I add in location-based structural variation mutation
           writeVariations(chr, location, gcBin, variation, variation.getLastMutations());

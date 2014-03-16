@@ -28,11 +28,11 @@ public class InsertionTest
   @Before
   public void setUp() throws Exception
     {
-    insertion = new Insertion();
-    Fragment fragment = new Fragment();
-    fragment.setCount(2);
-
-    insertion.setMutationFragment(fragment);
+//    insertion = new Insertion();
+//    Fragment fragment = new Fragment();
+//    fragment.setCount(2);
+//
+//    insertion.setMutationFragment(fragment);
 
 
     Map<Object, Double> probs = new TreeMap<Object, Double>();
@@ -48,7 +48,7 @@ public class InsertionTest
   public void testMutateSequence() throws Exception
     {
     DNASequence oldSeq = new DNASequence(String.valueOf(sequence));
-    DNASequence newSeq = insertion.mutateSequence(oldSeq);
+    DNASequence newSeq = insertion.mutateSequence(oldSeq, 2);
 
     assertNotSame(oldSeq, newSeq);
     assertTrue(newSeq.getLength() > oldSeq.getLength());

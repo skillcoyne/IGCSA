@@ -26,9 +26,8 @@ public class Substitution extends Variation
   static Logger log = Logger.getLogger(Substitution.class.getName());
 
   @Override
-  public DNASequence mutateSequence(String sequence)
+  public DNASequence mutateSequence(String sequence, int count)
     {
-    int count = this.fragment.getCount();
     lastMutations = new LinkedHashMap<Location, DNASequence>();
 
     log.debug(sequence.length() + " expected count " + count);

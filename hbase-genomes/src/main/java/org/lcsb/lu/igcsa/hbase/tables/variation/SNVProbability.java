@@ -17,13 +17,17 @@ import org.lcsb.lu.igcsa.hbase.rows.Row;
 import org.lcsb.lu.igcsa.hbase.tables.AbstractResult;
 import org.lcsb.lu.igcsa.hbase.tables.AbstractTable;
 import org.lcsb.lu.igcsa.hbase.tables.Column;
+import org.lcsb.lu.igcsa.prob.Probability;
+import org.lcsb.lu.igcsa.prob.ProbabilityException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
-public class SNVProbability extends AbstractTable
+public class SNVProbability extends AbstractTable<SNVProbability>
   {
   private static final Log log = LogFactory.getLog(SNVProbability.class);
 
@@ -32,7 +36,7 @@ public class SNVProbability extends AbstractTable
     super(conf, tableName);
     }
 
-  public String addSNV(String from, String to, long prob)
+  public String addSNV(String from, String to, double prob)
     {
     SNVRow row = new SNVRow(SNVRow.createRowId(from, to));
     row.addProbability(prob);
@@ -42,9 +46,31 @@ public class SNVProbability extends AbstractTable
       }
     catch (IOException e)
       {
+      log.error(e);
       return null;
       }
     return row.getRowIdAsString();
+    }
+
+  public Map<Character, Probability> getProbabilities() throws IOException, ProbabilityException
+    {
+    Map<String, Map<Object, Double>> nucProbs = new HashMap<String, Map<Object, Double>>();
+    for (Result r: (List<Result>) getRows())
+      {
+      SNVResult snv = createResult(r);
+
+      if (!nucProbs.containsKey(snv.getFromNuc()))
+        nucProbs.put(snv.getFromNuc(), new HashMap<Object, Double>());
+
+      Map<Object, Double> probs = nucProbs.get(snv.getFromNuc());
+      probs.put(snv.getToNuc(), snv.getProb());
+      }
+
+    Map<Character, Probability> snvProbabilies = new HashMap<Character, Probability>();
+    for (String nuc: nucProbs.keySet())
+      snvProbabilies.put( Character.valueOf(nuc.charAt(0)), new Probability(nucProbs.get(nuc)));
+
+    return snvProbabilies;
     }
 
   @Override
@@ -71,7 +97,7 @@ public class SNVProbability extends AbstractTable
   public static class SNVResult extends AbstractResult
     {
     private String fromNuc, toNuc;
-    private long prob;
+    private double prob;
 
     public SNVResult(byte[] rowId)
       {
@@ -92,21 +118,21 @@ public class SNVProbability extends AbstractTable
       return toNuc;
       }
 
-    public long getProb()
+    public double getProb()
       {
       return prob;
       }
 
     public void setProb(byte[] prob)
       {
-      this.prob = Bytes.toLong(prob);
+      this.prob = Bytes.toDouble(prob);
       }
     }
 
   public static class SNVRow extends Row
     {
     private String fromNuc, toNuc;
-    private long prob;
+    private double prob;
 
     public static String createRowId(String from, String to)
       {
@@ -116,9 +142,12 @@ public class SNVProbability extends AbstractTable
     public SNVRow(String rowId)
       {
       super(rowId);
+      String[] nucs = rowId.split("-");
+      this.fromNuc = nucs[0];
+      this.toNuc = nucs[1];
       }
 
-    public void addProbability(long prob)
+    public void addProbability(double prob)
       {
       super.addColumn( new Column("prob", "val", prob) );
       this.prob = prob;
@@ -127,7 +156,7 @@ public class SNVProbability extends AbstractTable
     @Override
     public boolean isRowIdCorrect()
       {
-      return createRowId(fromNuc, toNuc).equals(this.getRowId());
+      return createRowId(fromNuc, toNuc).equals(this.getRowIdAsString());
       }
     }
 

@@ -44,14 +44,14 @@ public class SNVTest
     @Test
     public void testMutate() throws Exception
       {
-      Fragment fragment = new Fragment();
-      fragment.setVariation("SNV");
-      fragment.setCount(3);
+//      Fragment fragment = new Fragment();
+//      fragment.setVariation("SNV");
+//      fragment.setCount(3);
 
-      testSNV.setMutationFragment(fragment);
+      //testSNV.setMutationFragment(fragment);
 
       DNASequence oldSeq = new DNASequence(String.valueOf(sequence));
-      DNASequence newSeq = testSNV.mutateSequence(oldSeq);
+      DNASequence newSeq = testSNV.mutateSequence(oldSeq, 3);
 
       assertNotNull(newSeq);
       assertNotSame(newSeq.getSequence(), oldSeq.getSequence());

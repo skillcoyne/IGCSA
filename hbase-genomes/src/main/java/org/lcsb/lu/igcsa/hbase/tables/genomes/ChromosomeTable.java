@@ -20,7 +20,7 @@ import org.lcsb.lu.igcsa.hbase.tables.Column;
 import java.io.IOException;
 import java.util.*;
 
-public class ChromosomeTable extends AbstractTable
+public class ChromosomeTable extends AbstractTable<ChromosomeTable>
   {
   public ChromosomeTable(Configuration conf, String tableName) throws IOException
     {

@@ -38,11 +38,10 @@ public class SNV extends Variation
   Randomly selects nucleotides to attempt to mutate based on their frequency table.  Stops when the max (count)
   is reached.
   */
-  public DNASequence mutateSequence(String sequence)
+  public DNASequence mutateSequence(String sequence, int count)
     {
     long start = System.currentTimeMillis();
 
-    int count = this.fragment.getCount();
     log.debug(sequence.length() + " expected count " + count);
 
     lastMutations = new LinkedHashMap<Location, DNASequence>();
@@ -65,10 +64,10 @@ public class SNV extends Variation
       if (n == GAP.value() || n == UNKNOWN.value()) continue;
 
       Probability f = snvFrequencies.get(n);
-      char newN = (Character) f.roll();
-      if (newN != n)
+      String newN = (String) f.roll();
+      if (newN.charAt(0) != n)
         {
-        nucleotides[nIndex] = newN;
+        nucleotides[nIndex] = newN.charAt(0);
         lastMutations.put( new Location(nIndex, nIndex), new DNASequence(String.valueOf(newN)) );
         ++totalSNPs;
         }

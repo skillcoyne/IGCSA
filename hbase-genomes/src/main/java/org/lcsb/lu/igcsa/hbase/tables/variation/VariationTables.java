@@ -22,7 +22,7 @@ public enum VariationTables implements TableDefinitions
           Map<String, Set<String>> reqFields = new HashMap<String, Set<String>>();
           reqFields.put("chr", new HashSet<String>(Arrays.asList("name")));
           reqFields.put("var", new HashSet<String>(Arrays.asList("name", "count", "class")));
-          reqFields.put("gc", new HashSet<String>(Arrays.asList("min", "max")));
+          reqFields.put("gc", new HashSet<String>(Arrays.asList("min", "max", "frag")));
           return reqFields;
           }
         },
@@ -46,19 +46,19 @@ public enum VariationTables implements TableDefinitions
           reqFields.put("bp", new HashSet<String>(Arrays.asList("max", "prob")));
           return reqFields;
           }
+        },
+    GC("gc_bin")
+        { // RowIDS: X:0-85
+        @Override
+        public Map<String, Set<String>> getRequiredFamilies()
+          {
+          Map<String, Set<String>> reqFields = new HashMap<String, Set<String>>();
+          reqFields.put("chr", new HashSet<String>(Arrays.asList("name")));
+          reqFields.put("gc", new HashSet<String>(Arrays.asList("min", "max")));
+          reqFields.put("frag",new HashSet<String>(Arrays.asList("total")));
+          return reqFields;
+          }
         };
-//    GC("gc_bin_counts")
-//        { // RowIDS: X:0-85
-//        @Override
-//        public Map<String, Set<String>> getRequiredFamilies()
-//          {
-//          Map<String, Set<String>> reqFields = new HashMap<String, Set<String>>();
-//          reqFields.put("chr", new HashSet<String>(Arrays.asList("name")));
-//          reqFields.put("gc", new HashSet<String>(Arrays.asList("min", "max")));
-//          reqFields.put("frag",new HashSet<String>(Arrays.asList("total")));
-//          return reqFields;
-//          }
-//        };
 
 
   private String tableName;
@@ -71,6 +71,15 @@ public enum VariationTables implements TableDefinitions
     {
     return tableName;
     }
+
+
+  public static VariationTables valueOfName(String tn)
+    {
+    for (VariationTables t: VariationTables.values())
+      if (t.getTableName().equals(tn)) return t;
+    return null;
+    }
+
 
   public static String[] getTableNames()
     {

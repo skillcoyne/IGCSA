@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.util.*;
 
 
-public class VariationCountPerBin extends AbstractTable
+public class VariationCountPerBin extends AbstractTable<VariationCountPerBin>
   {
   private static final Log log = LogFactory.getLog(VariationCountPerBin.class);
 
@@ -34,15 +34,19 @@ public class VariationCountPerBin extends AbstractTable
     super(conf, tableName);
     }
 
-  public String addFragment(String chromosome, String variation, String varClass, long count, long gcMin, long gcMax)
+
+  public String addFragment(String chromosome, String variation, String varClass, int count, int gcMin, int gcMax, int fragments)
     {
-    VCPBRow row = new VCPBRow( VCPBRow.createRowId(chromosome, count, variation, gcMin, gcMax) );
+    if (VCPBRow.getRowCounter() > fragments) VCPBRow.resetRowCounter();
+
+    VCPBRow row = new VCPBRow(VCPBRow.createRowId(chromosome, variation, gcMin, gcMax));
     row.addChromosome(chromosome);
     row.addVariation(variation, varClass, count);
-    row.addGCRange(gcMin, gcMax);
+    row.addGCRange(gcMin, gcMax, VCPBRow.getRowCounter());
     try
       {
       this.addRow(row);
+      VCPBRow.incrementRowCounter();
       }
     catch (IOException e)
       {
@@ -51,36 +55,31 @@ public class VariationCountPerBin extends AbstractTable
     return row.getRowIdAsString();
     }
 
-  public List<VCBPResult> getFragmentsFor(String chromosome, long gcMin, long gcMax) throws IOException
+
+  public List<VCPBResult> getFragment(String chromosome, int gcMin, int gcMax, int fragmentNumber,
+                                      List<String> variations) throws IOException
     {
-    // Actually I don't want them all, I want to grab a random one out of the pile
-    FilterList filters = new FilterList(FilterList.Operator.MUST_PASS_ALL);
-    filters.addFilter(new SingleColumnValueFilter(Bytes.toBytes("chr"), Bytes.toBytes("name"), CompareFilter.CompareOp.EQUAL,
-        Bytes.toBytes(chromosome)));
-    filters.addFilter(new SingleColumnValueFilter(Bytes.toBytes("gc"), Bytes.toBytes("min"), CompareFilter.CompareOp.GREATER_OR_EQUAL, Bytes.toBytes(gcMin)));
-    filters.addFilter(new SingleColumnValueFilter(Bytes.toBytes("gc"), Bytes.toBytes("max"), CompareFilter.CompareOp.LESS_OR_EQUAL, Bytes.toBytes(gcMax)));
+    List<VCPBResult> results = new ArrayList<VCPBResult>();
 
-    Scan scan = new Scan();
-    scan.setFilter(filters);
+    for (String var: variations)
+      {
+      String rowId = VCPBRow.createRowId(chromosome, var, gcMin, gcMax, fragmentNumber);
+      VCPBResult result = this.queryTable(rowId);
+      if (result.getVariationCount() > 0) results.add(result);
+      }
 
-    List<VCBPResult> variations = new ArrayList<VCBPResult>();
-    ResultScanner scanner = this.getScanner(scan);
-    Iterator<Result> rI = scanner.iterator();
-    while (rI.hasNext())
-      variations.add( createResult(rI.next()) );
-
-    return variations;
+    return results;
     }
 
   @Override
-  public VCBPResult queryTable(String rowId, Column column) throws IOException
+  public VCPBResult queryTable(String rowId, Column column) throws IOException
     {
     Result result = (Result) super.queryTable(rowId, column);
     return this.createResult(result);
     }
 
   @Override
-  public VCBPResult queryTable(String rowId) throws IOException
+  public VCPBResult queryTable(String rowId) throws IOException
     {
     Result result = (Result) super.queryTable(rowId);
     return this.createResult(result);
@@ -93,9 +92,9 @@ public class VariationCountPerBin extends AbstractTable
     }
 
   @Override
-  protected List<VCBPResult> createResults(List<Result> results)
+  public List<VCPBResult> createResults(List<Result> results)
     {
-    List<VCBPResult> varResults = new ArrayList<VCBPResult>();
+    List<VCPBResult> varResults = new ArrayList<VCPBResult>();
     for (Result r : results)
       varResults.add(createResult(r));
 
@@ -103,11 +102,11 @@ public class VariationCountPerBin extends AbstractTable
     }
 
   @Override
-  protected VCBPResult createResult(Result result)
+  public VCPBResult createResult(Result result)
     {
     if (result.getRow() != null)
       {
-      VCBPResult varResult = new VCBPResult(result.getRow());
+      VCPBResult varResult = new VCPBResult(result.getRow());
 
       byte[] chrFam = Bytes.toBytes("chr");
       varResult.setChromosome(result.getValue(chrFam, Bytes.toBytes("name")));
@@ -120,6 +119,7 @@ public class VariationCountPerBin extends AbstractTable
       byte[] gcFam = Bytes.toBytes("gc");
       varResult.setGCMin(result.getValue(gcFam, Bytes.toBytes("min")));
       varResult.setGCMax(result.getValue(gcFam, Bytes.toBytes("max")));
+      varResult.setFragmentNum(result.getValue(gcFam, Bytes.toBytes("frag")));
 
       return varResult;
       }

@@ -20,7 +20,7 @@ import org.lcsb.lu.igcsa.hbase.tables.Column;
 import java.io.IOException;
 import java.util.*;
 
-public class GenomeTable extends AbstractTable
+public class GenomeTable extends AbstractTable<GenomeTable>
   {
 
   public GenomeTable(Configuration conf, String tableName) throws IOException

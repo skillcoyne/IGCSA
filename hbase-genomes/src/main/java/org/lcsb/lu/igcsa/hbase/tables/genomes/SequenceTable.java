@@ -22,7 +22,7 @@ import org.lcsb.lu.igcsa.hbase.tables.Column;
 import java.io.IOException;
 import java.util.*;
 
-public class SequenceTable extends AbstractTable
+public class SequenceTable extends AbstractTable<SequenceTable>
   {
 
   public SequenceTable(Configuration configuration, String tableName) throws IOException

@@ -20,7 +20,7 @@ public abstract class Variation
     {
     static Logger log = Logger.getLogger(Variation.class.getName());
 
-    protected Fragment fragment;
+//    protected Fragment fragment;
     protected Probability sizeVariation;
 
     protected LinkedHashMap<Location, DNASequence> lastMutations;
@@ -37,10 +37,10 @@ public abstract class Variation
       return this.variationName;
       }
 
-    public void setMutationFragment(Fragment fragment)
-      {
-      this.fragment = fragment;
-      }
+//    public void setMutationFragment(Fragment fragment)
+//      {
+//      this.fragment = fragment;
+//      }
 
     public void setSizeVariation(Probability probability)
       {
@@ -52,11 +52,11 @@ public abstract class Variation
       return this.lastMutations;
       }
 
-    public abstract DNASequence mutateSequence(String sequence);
+    public abstract DNASequence mutateSequence(String sequence, int n);
 
-    public DNASequence mutateSequence(DNASequence sequence)
+    public DNASequence mutateSequence(DNASequence sequence, int n)
       {
-      return mutateSequence(sequence.getSequence());
+      return mutateSequence(sequence.getSequence(), n);
       }
 
     @Override

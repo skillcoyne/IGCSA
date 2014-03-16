@@ -35,11 +35,11 @@ public class TandemRepeatTest
   @Before
   public void setUp() throws Exception
     {
-    tandemRpt = new TandemRepeat();
-    Fragment fragment = new Fragment();
-    fragment.setCount(3);
-
-    tandemRpt.setMutationFragment(fragment);
+//    tandemRpt = new TandemRepeat();
+//    Fragment fragment = new Fragment();
+//    fragment.setCount(3);
+//
+//    tandemRpt.setMutationFragment(fragment);
 
     Map<Object, Double> probs = new TreeMap<Object, Double>();
     probs.put(3, 0.9897);
@@ -54,7 +54,7 @@ public class TandemRepeatTest
   public void testMutateSequence() throws Exception
     {
     DNASequence oldSeq = new DNASequence(String.valueOf(sequence));
-    DNASequence newSeq = tandemRpt.mutateSequence(oldSeq);
+    DNASequence newSeq = tandemRpt.mutateSequence(oldSeq, 1);
 
     assertNotSame(oldSeq, newSeq);
     assertTrue(newSeq.getLength() > oldSeq.getLength());
@@ -65,11 +65,11 @@ public class TandemRepeatTest
   @Test
   public void testZeroLengthError() throws Exception
     {
-    tandemRpt = new TandemRepeat();
-    Fragment fragment = new Fragment();
-    fragment.setCount(3);
-
-    tandemRpt.setMutationFragment(fragment);
+//    tandemRpt = new TandemRepeat();
+//    Fragment fragment = new Fragment();
+//    fragment.setCount(3);
+//
+//    tandemRpt.setMutationFragment(fragment);
 
     Map<Object, Double> probs = new TreeMap<Object, Double>();
     probs.put(10, 0.9897);
@@ -83,7 +83,7 @@ public class TandemRepeatTest
 
     for (int i = 0; i < 10; i++)
       {
-      DNASequence newSeq = tandemRpt.mutateSequence(shortseq);
+      DNASequence newSeq = tandemRpt.mutateSequence(shortseq, 3);
       assertEquals(newSeq, shortseq);
       }
     }

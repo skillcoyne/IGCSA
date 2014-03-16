@@ -21,10 +21,8 @@ import org.lcsb.lu.igcsa.variation.fragment.Variation;
 import java.io.IOException;
 import java.util.*;
 
-public class SmallMutationsTable extends AbstractTable
+public class SmallMutationsTable extends AbstractTable<SmallMutationsTable>
   {
-
-
   public SmallMutationsTable(Configuration configuration, String tableName) throws IOException
     {
     super(configuration, tableName);
@@ -58,7 +56,6 @@ public class SmallMutationsTable extends AbstractTable
 
     return smRowId;
     }
-
 
   @Override
   public SmallMutationsResult queryTable(String rowId, Column column) throws IOException

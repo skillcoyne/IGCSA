@@ -1,15 +1,3 @@
-## Example file.  Copy to "genome.properties" and "cancer.properties" and alter as required.
-
-# Reference genome, Ignore random & unlocalized chromosome files
-assembly=GRCh37
-
-# Local Directories
-dir.assembly=/Path/to/FASTA
-dir.insilico=/Path/to/output/Insilico
-dir.karyotype=/Path/to/output/karyotype
-dir.tmp=/Path/to/temp/output/dir
-
-
 # Window size (to calculate GC content)
 # NOTE: This should NOT be changed unless all of the probability information is rerun using a new window (see Ruby and R code)
 window=1000

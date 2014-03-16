@@ -28,11 +28,11 @@ public class DeletionTest
   @Before
   public void setUp() throws Exception
     {
-    deletion = new Deletion();
-    Fragment fragment = new Fragment();
-    fragment.setCount(3);
-
-    deletion.setMutationFragment(fragment);
+//    deletion = new Deletion();
+//    Fragment fragment = new Fragment();
+//    fragment.setCount(3);
+//
+//    deletion.setMutationFragment(fragment);
 
     Map<Object, Double> probs = new TreeMap<Object, Double>();
     probs.put(1, 0.9897);
@@ -46,7 +46,7 @@ public class DeletionTest
   public void testMutateSequence() throws Exception
     {
     DNASequence oldSeq = new DNASequence(String.valueOf(sequence));
-    DNASequence newSeq = deletion.mutateSequence(oldSeq);
+    DNASequence newSeq = deletion.mutateSequence(oldSeq, 3);
 
     assertNotSame(oldSeq, newSeq);
     assertTrue(newSeq.getLength() < oldSeq.getLength());

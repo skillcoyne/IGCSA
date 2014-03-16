@@ -17,11 +17,9 @@ public class Deletion extends Variation
   {
   static Logger log = Logger.getLogger(Deletion.class.getName());
 
-  public DNASequence mutateSequence(String sequence)
+  public DNASequence mutateSequence(String sequence, int count)
     {
     long start = System.currentTimeMillis();
-
-    int count = this.fragment.getCount();
 
     lastMutations = new LinkedHashMap<Location, DNASequence>();
 

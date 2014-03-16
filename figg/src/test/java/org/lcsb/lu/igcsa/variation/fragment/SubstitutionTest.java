@@ -35,7 +35,7 @@ public class SubstitutionTest
     Fragment fragment = new Fragment();
     fragment.setCount(3);
 
-    substitution.setMutationFragment(fragment);
+    //substitution.setMutationFragment(fragment);
 
     Map<Object, Double> probs = new TreeMap<Object, Double>();
     probs.put(1, 0.9897);
@@ -51,7 +51,7 @@ public class SubstitutionTest
   public void testMutateSequence() throws Exception
     {
     DNASequence oldSeq = new DNASequence(String.valueOf(sequence));
-    DNASequence newSeq = substitution.mutateSequence(oldSeq);
+    DNASequence newSeq = substitution.mutateSequence(oldSeq, 1);
 
     assertNotSame(oldSeq, newSeq);
     assertEquals(newSeq.getLength(), oldSeq.getLength());

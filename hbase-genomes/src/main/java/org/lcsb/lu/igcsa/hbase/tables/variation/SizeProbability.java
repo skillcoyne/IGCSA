@@ -17,11 +17,11 @@ import org.lcsb.lu.igcsa.hbase.rows.Row;
 import org.lcsb.lu.igcsa.hbase.tables.AbstractResult;
 import org.lcsb.lu.igcsa.hbase.tables.AbstractTable;
 import org.lcsb.lu.igcsa.hbase.tables.Column;
+import org.lcsb.lu.igcsa.prob.Probability;
+import org.lcsb.lu.igcsa.prob.ProbabilityException;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.*;
 
 
 public class SizeProbability extends AbstractTable<SizeProbability>
@@ -33,7 +33,7 @@ public class SizeProbability extends AbstractTable<SizeProbability>
     super(conf, tableName);
     }
 
-  public String addSizeProbabiilty(String variation, int maxbp, long prob)
+  public String addSizeProbabiilty(String variation, int maxbp, double prob)
     {
     SizeRow row = new SizeRow(SizeRow.createRowId(variation, maxbp));
     row.addProbability(prob);
@@ -46,6 +46,47 @@ public class SizeProbability extends AbstractTable<SizeProbability>
       return null;
       }
     return row.getRowIdAsString();
+    }
+
+  public Map<String, Probability> getProbabilities() throws IOException, ProbabilityException
+    {
+    Map<String, Map<Object, Double>> varProbs = new HashMap<String, Map<Object, Double>>();
+
+    for (Result r: (List<Result>) getRows())
+      {
+      SizeResult size = createResult(r);
+      if (!varProbs.containsKey(size.getVariation()))
+        varProbs.put(size.getVariation(), new HashMap<Object, Double>());
+
+      Map<Object, Double> probs = varProbs.get(size.getVariation());
+      probs.put(size.getMaxbp(), size.getProb());
+      }
+
+    Map<String, Probability> sizeProbs = new HashMap<String, Probability>();
+    for (String var: varProbs.keySet())
+      sizeProbs.put(var, new Probability(varProbs.get(var)));
+
+    return sizeProbs;
+    }
+
+  public List<String> getVariationList() throws IOException
+    {
+    Set<String> vars = new HashSet<String>();
+    List<SizeResult> results = queryTable(new Column("bp", "max", 10));
+    for (SizeResult sr: results)
+      vars.add(sr.getVariation());
+
+    return new ArrayList<String>(vars);
+    }
+
+  @Override
+  public List<SizeResult> queryTable(Column... columns) throws IOException
+    {
+    List<SizeResult> results = new ArrayList<SizeResult>();
+    for (Result r: (List<Result>) super.queryTable(columns))
+      results.add(createResult(r));
+
+    return results;
     }
 
   @Override
@@ -73,12 +114,12 @@ public class SizeProbability extends AbstractTable<SizeProbability>
     {
     private String variation;
     private int maxbp;
-    private long prob;
+    private double prob;
 
-    SizeResult(byte[] rowId)
+    public SizeResult(byte[] rowId)
       {
       super(rowId);
-      String[] row = this.getRowId().split("_");
+      String[] row = this.getRowId().split(":");
       this.variation = row[0];
       this.maxbp = Integer.parseInt(row[1]);
       }
@@ -93,14 +134,14 @@ public class SizeProbability extends AbstractTable<SizeProbability>
       return maxbp;
       }
 
-    public long getProb()
+    public double getProb()
       {
       return prob;
       }
 
     public void setProbability(byte[] prob)
       {
-      this.prob = Bytes.toLong(prob);
+      this.prob = Bytes.toDouble(prob);
       }
     }
 
@@ -111,13 +152,13 @@ public class SizeProbability extends AbstractTable<SizeProbability>
 
     public static String createRowId(String variation, int maxbp)
       {
-      return variation + "_" + maxbp;
+      return variation + ":" + maxbp;
       }
 
     public SizeRow(String rowId)
       {
       super(rowId);
-      String[] row = rowId.split("_");
+      String[] row = rowId.split(":");
 
       this.variation = row[0];
       this.maxbp = Integer.parseInt(row[1]);
@@ -126,7 +167,7 @@ public class SizeProbability extends AbstractTable<SizeProbability>
       super.addColumn(new Column("bp", "max", maxbp));
       }
 
-    public void addProbability(long prob)
+    public void addProbability(double prob)
       {
       super.addColumn(new Column("bp", "prob", prob));
       }

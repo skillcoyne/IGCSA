@@ -19,11 +19,9 @@ public class TandemRepeat extends Variation
   static Logger log = Logger.getLogger(TandemRepeat.class.getName());
 
   @Override
-  public DNASequence mutateSequence(String sequence)
+  public DNASequence mutateSequence(String sequence, int count)
     {
     lastMutations = new LinkedHashMap<Location, DNASequence>();
-
-    int count = this.fragment.getCount();
 
     for (int i = 0; i < count; i++)
       {

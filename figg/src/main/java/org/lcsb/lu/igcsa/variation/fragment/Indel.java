@@ -24,7 +24,7 @@ public class Indel extends Variation
   {
   static Logger log = Logger.getLogger(Indel.class.getName());
 
-  public DNASequence mutateSequence(String sequence)
+  public DNASequence mutateSequence(String sequence, int count)
     {
     DNASequence newSequence;
 
@@ -44,16 +44,14 @@ public class Indel extends Variation
       {
       Insertion ins = new Insertion();
       ins.setSizeVariation(this.sizeVariation);
-      ins.setMutationFragment(fragment);
-      newSequence = ins.mutateSequence(sequence);
+      newSequence = ins.mutateSequence(sequence, count);
       lastMutations = ins.lastMutations;
       }
     else
       {
       Deletion del = new Deletion();
       del.setSizeVariation(this.sizeVariation);
-      del.setMutationFragment(fragment);
-      newSequence = del.mutateSequence(sequence);
+      newSequence = del.mutateSequence(sequence, count);
       lastMutations = del.lastMutations;
       }
 

@@ -20,7 +20,7 @@ import org.lcsb.lu.igcsa.hbase.tables.Column;
 import java.io.IOException;
 import java.util.*;
 
-public class KaryotypeIndexTable extends AbstractTable
+public class KaryotypeIndexTable extends AbstractTable<KaryotypeIndexTable>
   {
 
   public KaryotypeIndexTable(Configuration conf, String tableName) throws IOException

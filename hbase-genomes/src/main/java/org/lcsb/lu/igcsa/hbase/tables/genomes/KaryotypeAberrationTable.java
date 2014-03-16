@@ -21,7 +21,7 @@ import org.lcsb.lu.igcsa.hbase.tables.Column;
 import java.io.IOException;
 import java.util.*;
 
-public class KaryotypeAberrationTable extends AbstractTable
+public class KaryotypeAberrationTable extends AbstractTable<KaryotypeAberrationTable>
   {
   public KaryotypeAberrationTable(Configuration conf, String tableName) throws IOException
     {

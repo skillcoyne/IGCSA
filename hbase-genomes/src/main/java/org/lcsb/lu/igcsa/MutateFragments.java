@@ -10,7 +10,6 @@ package org.lcsb.lu.igcsa;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -34,21 +33,23 @@ import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.genome.Location;
 
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
+import org.lcsb.lu.igcsa.hbase.VariationAdmin;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.ChromosomeResult;
 import org.lcsb.lu.igcsa.hbase.tables.Column;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.GenomeResult;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.SequenceResult;
 
+import org.lcsb.lu.igcsa.hbase.tables.variation.*;
+import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.lcsb.lu.igcsa.utils.VariantUtils;
+import org.lcsb.lu.igcsa.variation.fragment.SNV;
 import org.lcsb.lu.igcsa.variation.fragment.Variation;
 
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-
-import javax.sql.DataSource;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.*;
+
+import static org.lcsb.lu.igcsa.hbase.tables.variation.GCBin.*;
 
 /*
 NOTE:
@@ -138,87 +139,47 @@ public class MutateFragments extends BWAJob
     private static final Log log = LogFactory.getLog(SequenceTableMapper.class);
 
     private HBaseGenomeAdmin admin;
+    private VariationAdmin variationAdmin;
     private String genomeName;
     private GenomeResult genome;
-    private VariantUtils variantUtils;
-    private GCBinDAO binDAO;
-    private FragmentDAO fragmentDAO;
 
-    private static ClassPathXmlApplicationContext springContext;
-    private DataSource ds;
-
-    private DataSource createConnection()
-      {
-//      String url = "jdbc:derby:memory:variation;create=true";
-//      //String url = "jdbc:derby:/db/normal_variation";
-//
-//      DriverManagerDataSource dmds = new DriverManagerDataSource(url);
-//      dmds.setDriverClassName("org.apache.derby.jdbc.EmbeddedDriver");
-
-      ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[]{"classpath:spring-config.xml"});
-
-      return (DataSource) context.getBean("variationDS");
-      }
-
-    //    public static void setSpringContext(ClassPathXmlApplicationContext sc)
-    //      {
-    //      if (sc == null || sc.getBeanDefinitionCount() <= 0) throw new IllegalArgumentException("Spring context is null or no beans found.");
-    //
-    //      springContext = sc;
-    //      log.info("Set Spring context");
-    //      }
-
-
-    @Override
-    protected void cleanup(Context context) throws IOException, InterruptedException
-      {
-      try
-        {
-        ds.getConnection().close();
-        }
-      catch (SQLException e)
-        {
-        log.error(e);
-        }
-      }
+    private Map<Character, Probability> snvProbabilities;
+    private Map<String, Probability> sizeProbabilities;
+    private List<String> variationList;
+//    private VariantUtils variantUtils;
+//    private GCBinDAO binDAO;
+//    private FragmentDAO fragmentDAO;
 
     @Override
     protected void setup(Context context) throws IOException, InterruptedException
       {
       super.setup(context);
 
-      log.info("CONNECTION " + context.getConfiguration().get("mapreduce.jobtracker.staging.root.dir"));
-      log.info("JOB ID" + context.getJobID());
-
-      ds = createConnection();
-
-      try
-        {
-        log.info("**** " + ds.getConnection().getClientInfo().toString());
-        }
-      catch (SQLException e)
-        {
-        log.error(e);
-        }
-
-      springContext = new ClassPathXmlApplicationContext(new String[]{"classpath:derby-jdbc.xml"});
-      if (springContext == null)
-        throw new IOException("Failed to load Spring application context");
-
       admin = HBaseGenomeAdmin.getHBaseGenomeAdmin();
+      variationAdmin = VariationAdmin.getInstance();
+
       genomeName = context.getConfiguration().get("genome");
       genome = admin.getGenomeTable().getGenome(genomeName);
       if (genome == null)
         throw new IOException("Genome " + genome + " is missing.");
 
-      log.info("**** Spring beans: " + StringUtils.join(springContext.getBeanDefinitionNames(), ", "));
 
-      binDAO = (GCBinDAO) springContext.getBean("GCBinDAO");
-      fragmentDAO = (FragmentDAO) springContext.getBean("FragmentDAO");
-      variantUtils = (VariantUtils) springContext.getBean("variantUtils");
 
-      if (variantUtils == null || binDAO == null || fragmentDAO == null)
-        throw new IOException("Beans not defined.");
+      try
+        {
+        SNVProbability table = (SNVProbability) variationAdmin.getTable(VariationTables.SNVP.getTableName());
+        snvProbabilities = table.getProbabilities();
+
+        SizeProbability sizeTable = (SizeProbability) variationAdmin.getTable(VariationTables.SIZE.getTableName());
+        sizeProbabilities = sizeTable.getProbabilities();
+        variationList = sizeTable.getVariationList();
+        variationList.add("SNV");
+        }
+      catch (ProbabilityException e)
+        {
+        throw new InterruptedException("Failed to startup mapper: " + e);
+        }
+
       }
 
 
@@ -226,12 +187,6 @@ public class MutateFragments extends BWAJob
     protected void map(ImmutableBytesWritable key, Result value, Context context) throws IOException, InterruptedException
       {
       SequenceResult seq = HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().createResult(value);
-
-      if (seq == null || seq.getChr() == null || genome == null || admin == null)
-        {
-        log.info("foo");
-        }
-      //log.info(seq.getChr() + " " + seq.getStart() + "-" + seq.getEnd());
 
       // get hbase objects for new genome
       ChromosomeResult mutatedChr = admin.getChromosomeTable().getChromosome(seq.getGenome(), seq.getChr());
@@ -246,25 +201,37 @@ public class MutateFragments extends BWAJob
       /* Don't bother to try and mutate a fragment that is more than 70% 'N' */
       if (mutatedSequence.calculateNucleotides() > (0.3 * seq.getSequenceLength()))
         {
-        Bin gcBin = this.binDAO.getBinByGC(seq.getChr(), mutatedSequence.calculateGC());
-        // TODO get random fragment within the GC bin for each variation -- this is the slowest query!!!
-        Map<String, Fragment> fragmentVarMap = fragmentDAO.getFragment(seq.getChr(), gcBin.getBinId(), randomFragment.nextInt(gcBin.getSize()));
+        GCBin gcTable = (GCBin) variationAdmin.getTable(VariationTables.GC.getTableName());
+        GCResult gcResult = gcTable.getBinFor(seq.getChr(), mutatedSequence.calculateGC());
+
+        // get random fragment within this bin
+        VariationCountPerBin table = (VariationCountPerBin) variationAdmin.getTable(VariationTables.VPB.getTableName());
+        List<VCPBResult> varsPerFrag = table.getFragment(seq.getChr(), gcResult.getMin(), gcResult.getMax(),
+                                                         randomFragment.nextInt(gcResult.getTotalFragments()), variationList);
 
         Map<Variation, Map<Location, DNASequence>> mutations = new HashMap<Variation, Map<Location, DNASequence>>();
 
         // apply the variations to the sequence, each of them needs to apply to the same fragment
         // it is possible that one could override another (e.g. a deletion removes SNVs)
-        for (Variation variation : getVariants(seq.getChr()))
+
+        // TODO need to order these by variation...?
+        for (VCPBResult variation: varsPerFrag)
           {
-          Fragment fragment = fragmentVarMap.get(variation.getVariationName());
-          variation.setMutationFragment(fragment);
-
-          mutatedSequence = variation.mutateSequence(mutatedSequence);
-
-          if (variation.getLastMutations().size() > 0)
-            mutations.put(variation, variation.getLastMutations());
+          Variation v = createInstance(variation.getVariationClass());
+          if (variation.getVariationName().equals("SNV"))
+            {
+            SNV snv = ((SNV) v);
+            snv.setSnvFrequencies(snvProbabilities);
+            }
+          else
+            {
+            v.setVariationName(variation.getVariationName());
+            v.setSizeVariation( sizeProbabilities.get(variation.getVariationName()) );
+            }
+          mutatedSequence = v.mutateSequence(mutatedSequence, variation.getVariationCount());
+          if (v.getLastMutations().size() > 0)
+            mutations.put(v, v.getLastMutations());
           }
-
         /*
         NOTE: I could cut down on the size of the HBase (and actually use derby or something similar) by keeping only the actual segments
          from the original reference
@@ -273,7 +240,6 @@ public class MutateFragments extends BWAJob
         String mutSeqRowId = admin.getSequenceTable().addSequence(mutatedChr, seq.getStart(), (seq.getStart() + mutatedSequence.getLength()), mutatedSequence.getSequence(), seq.getSegmentNum());
         if (mutSeqRowId == null)
           throw new IOException("Failed to add sequence.");
-
 
         SequenceResult mutSequence = admin.getSequenceTable().queryTable(mutSeqRowId);
         for (Variation v : mutations.keySet())
@@ -288,17 +254,14 @@ public class MutateFragments extends BWAJob
         admin.getSequenceTable().addSequence(mutatedChr, seq.getStart(), seq.getEnd(), seq.getSequence(), seq.getSegmentNum());
       }
 
-    private List<Variation> getVariants(String chr)
+
+    private Variation createInstance(String className)
       {
       try
         {
-        return variantUtils.getVariantList(chr);
+        return (Variation) Class.forName(className).newInstance();
         }
-      catch (IllegalAccessException e)
-        {
-        e.printStackTrace();
-        }
-      catch (ProbabilityException e)
+      catch (ClassNotFoundException e)
         {
         e.printStackTrace();
         }
@@ -306,8 +269,13 @@ public class MutateFragments extends BWAJob
         {
         e.printStackTrace();
         }
-      return new ArrayList<Variation>();
+      catch (IllegalAccessException e)
+        {
+        e.printStackTrace();
+        }
+      return null;
       }
+
 
     }
 
