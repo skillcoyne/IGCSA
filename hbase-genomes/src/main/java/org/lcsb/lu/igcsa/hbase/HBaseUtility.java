@@ -1,8 +1,10 @@
 package org.lcsb.lu.igcsa.hbase;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
+import com.amazonaws.services.rds.model.OptionSetting;
+import org.apache.commons.cli.*;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.mapreduce.Export;
@@ -11,6 +13,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.IGCSACommandLineParser;
+import org.lcsb.lu.igcsa.aws.AWSProperties;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.IGCSATables;
 
 import java.text.SimpleDateFormat;
@@ -26,21 +29,40 @@ public class HBaseUtility
   {
   static Logger log = Logger.getLogger(HBaseUtility.class.getName());
 
+  private static Configuration setAWSProps(Configuration conf)
+    {
+    AWSProperties props = AWSProperties.getProperties();
+    conf.set("fs.s3n.awsAccessKeyId", props.getAccessKey());
+    conf.set("fs.s3n.awsSecretAccessKey", props.getSecretKey());
+
+    //conf.setInt("hbase.regionserver.handler.count", 100);
+    conf.setInt("hbase.rpc.timeout", 360000);
+
+    return conf;
+    }
+
+
   public static void main(String[] args) throws Exception
     {
-    for (Option o : new Option[]{
-        new Option("d", "dir", true, "Directory to import/export hbase tables."),
-        new Option("c", "command",true,"IMPORT or EXPORT tables to the directory.")})
-      {
-      o.setRequired(true);
-      IGCSACommandLineParser.getParser().addOptions(o);
-      }
-    IGCSACommandLineParser.getParser().addOptions(new Option("t", "tables", true, "Comma separated list of tables. Default is all."));
+    Options options = new Options();
+    options.addOption(new Option("d", "dir", true, "Directory to import/export hbase tables."));
+    options.addOption(new Option("c", "command", true,"IMPORT or EXPORT tables to the directory."));
+    options.addOption(new Option("t", "tables", true, "Comma separated list of tables. Default is all in hbase or in the import directory."));
 
     Configuration conf = HBaseConfiguration.create();
 
     String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
-    CommandLine cl = IGCSACommandLineParser.getParser().parseOptions(otherArgs);
+    CommandLine cl = new BasicParser().parse(options, otherArgs);
+
+    if (!cl.hasOption("d") || !cl.hasOption("c"))
+      {
+      HelpFormatter help = new HelpFormatter();
+      help.printHelp("Missing required option 'd' or 'c'", options);
+      System.exit(-1);
+      }
+
+    if (cl.getOptionValue("d").startsWith("s3"))
+      conf = setAWSProps(conf);
 
     Path path = new Path(cl.getOptionValue("d"));
     String cmd = cl.getOptionValue("c");
@@ -56,7 +78,9 @@ public class HBaseUtility
   private static void exportData(Path path, String[] tables, Configuration conf) throws Exception
     {
     if (tables.length <= 0)
-      tables = IGCSATables.getTableNames();
+      tables = HBaseGenomeAdmin.getHBaseGenomeAdmin().listTables();
+
+    System.out.println(tables);
 
     path = new Path(path, new SimpleDateFormat("yyyyMMddzHHmm").format( new Date() ));
 
@@ -76,7 +100,14 @@ public class HBaseUtility
     if (!VariationAdmin.getInstance().tablesExist()) VariationAdmin.getInstance().createTables();
 
     if (tables.length <= 0)
-      tables = IGCSATables.getTableNames();
+      {
+      FileSystem fs = FileSystem.get(conf);
+      FileStatus[] statuses = fs.listStatus(path);
+      tables = new String[statuses.length];
+      for (int i=0; i<statuses.length; i++)
+        tables[i] = statuses[i].getPath().getName();
+      }
+    System.out.println(tables);
 
     for (String table: tables)
       {

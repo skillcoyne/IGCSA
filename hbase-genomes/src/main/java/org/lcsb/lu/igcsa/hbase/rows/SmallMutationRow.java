@@ -8,8 +8,8 @@
 
 package org.lcsb.lu.igcsa.hbase.rows;
 
-import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.hbase.tables.Column;
+import org.lcsb.lu.igcsa.hbase.tables.genomes.IGCSATables;
 import org.lcsb.lu.igcsa.variation.fragment.Variation;
 
 public class SmallMutationRow extends Row
@@ -31,8 +31,14 @@ public class SmallMutationRow extends Row
 
   public void addGenomeInfo(String genome, Variation sm)
     {
-    this.addColumn(new Column("info", "genome", genome));
-    this.addColumn(new Column("info", "mutation", sm.getVariationName()));
+    if (genome == null || sm == null)
+      throw new IllegalArgumentException("Genome name and Variation object required.");
+
+    log.info("Added genome info " + genome + " " + sm.getVariationName());
+
+    String family = "info";
+    this.addColumn(new Column(family, "genome", genome));
+    this.addColumn(new Column(family, "mutation", sm.getVariationName()));
 
     this.genome = genome;
     }
@@ -40,11 +46,14 @@ public class SmallMutationRow extends Row
 
   public void addLocation(String chr, long segment, long start, long end)
     {
-    this.addColumn( new Column("loc", "segment", segment));
+    log.info("addLocation: " + chr + " " + segment + " " + start + "-" + end);
+    String family = "loc";
 
-    this.addColumn( new Column("loc", "chr", chr) );
-    this.addColumn( new Column("loc", "start", start) );
-    this.addColumn( new Column("loc", "end", end) );
+    //"segment", "chr", "start", "end"
+    this.addColumn(new Column(family, "segment", segment));
+    this.addColumn(new Column(family, "chr", chr));
+    this.addColumn(new Column(family, "start", start));
+    this.addColumn(new Column(family, "end", end));
 
     this.segment = segment;
     this.start = start;
@@ -53,19 +62,18 @@ public class SmallMutationRow extends Row
 
   public void addSequence(String seq)
     {
-    if (seq != null)
+    if (seq == null)
+      seq = "";
+    log.info("Add seq " + seq);
 
-      this.addColumn(new Column("bp", "seq", seq));
+    this.addColumn(new Column("bp", "seq", seq));
     }
 
   @Override
   public boolean isRowIdCorrect()
     {
     String testRow = createRowId(genome, chr, segment, start);
-    //return (this.getRowIdAsString().substring(numRandChars, this.getRowIdAsString().length()).equals(testRow.substring(numRandChars, testRow.length())) );
 
     return this.getRowIdAsString().substring(SequenceRow.numRandChars, this.getRowIdAsString().length()).equals(testRow.substring(SequenceRow.numRandChars, testRow.length()));
-
- //   return (this.genome == null || this.chr == null || this.segment <= 0 || this.start < 0 || !this.getRowIdAsString().equals(createRowId(genome, chr, chrLoc, start)))? false: true;
     }
   }

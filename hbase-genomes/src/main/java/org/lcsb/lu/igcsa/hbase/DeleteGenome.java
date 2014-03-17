@@ -18,7 +18,7 @@ public class DeleteGenome
 
   public static void main(String[] args) throws Exception
     {
-    args = new String[]{"Test"};
+    args = new String[]{"S1"};
     if (args.length < 1)
       {
       System.err.println("Genome name required.");
@@ -38,9 +38,9 @@ public class DeleteGenome
 
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(conf);
     print("Connected");
-    //admin.deleteGenome(genome);
+//    admin.deleteGenome(genome);
 
-    admin.deleteTables();
+//    admin.deleteTables();
     admin.createTables();
 
     admin.closeConections();

@@ -35,7 +35,7 @@ public class SmallMutationsTable extends AbstractTable<SmallMutationsTable>
 
     String smRowId = SmallMutationRow.createRowId(sequence.getGenome(), sequence.getChr(), sequence.getSegmentNum(), start);
     if (this.queryTable(smRowId) != null)
-      log.warn("Row " + smRowId + " exists in mutations table, not overwriting");
+      log.warn("Row " + smRowId + " exists in mutations table, OVERWRITING!");
     else
       {
       SmallMutationRow row = new SmallMutationRow(smRowId);
@@ -50,10 +50,10 @@ public class SmallMutationsTable extends AbstractTable<SmallMutationsTable>
         }
       catch (IOException ioe)
         {
+        log.error(ioe);
         return null;
         }
       }
-
     return smRowId;
     }
 

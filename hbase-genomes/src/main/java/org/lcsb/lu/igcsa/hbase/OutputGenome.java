@@ -13,6 +13,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.lcsb.lu.igcsa.hbase.tables.genomes.ChromosomeResult;
+import org.lcsb.lu.igcsa.hbase.tables.genomes.SequenceResult;
 import org.lcsb.lu.igcsa.hbase.tables.variation.*;
 
 import java.util.List;
@@ -38,6 +40,13 @@ public class OutputGenome
     //    conf.set("hbase.zookeeper.quorum", "bmf00004.uni.lux");
     //    conf.set("hbase.zookeeper.property.clientPort", "2181");
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(conf);
+    admin.createTables();
+
+        for (ChromosomeResult chr: admin.getChromosomeTable().getChromosomesFor("GRCh37"))
+          {
+          String c = chr.getChrName();
+          log.info(c + " " + chr.getSegmentNumber() + " " + chr.getLength());
+          }
 
     //  SequenceResult sr =     admin.getSequenceTable().queryTable("GRCh37-11:00043501");
     //    log.info(sr);
@@ -82,19 +91,6 @@ public class OutputGenome
     //    VCPBResult result = table.getFragment("6", 252, 336, 1);
 //    log.info(result);
 
-//    for (ChromosomeResult chr: admin.getChromosomeTable().getChromosomesFor("Test"))
-//      {
-//      String c = chr.getChrName();
-//      log.info(c + " " + chr.getSegmentNumber() + " " + chr.getLength());
-//
-//      long segments = chr.getSegmentNumber();
-//      for (int i = 1; i <= segments; i++)
-//        {
-//        SequenceResult seq = admin.getSequenceTable().getSequenceFor(chr, (long)i);
-//
-//        log.info( seq.getStart() + ", " + seq.getEnd() );
-//        }
-//      }
 
     }
 

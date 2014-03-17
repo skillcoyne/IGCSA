@@ -11,6 +11,7 @@ package org.lcsb.lu.igcsa.hbase;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.MasterNotRunningException;
 import org.apache.hadoop.hbase.ZooKeeperConnectionException;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
@@ -18,6 +19,8 @@ import org.lcsb.lu.igcsa.hbase.tables.AbstractTable;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.IGCSATables;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public abstract class IGCSAHbaseAdmin
@@ -73,6 +76,16 @@ public abstract class IGCSAHbaseAdmin
       if (hbaseAdmin.tableExists(t))
         hbaseAdmin.deleteTable(t);
       }
+    }
+
+  public String[] listTables() throws IOException
+    {
+    HTableDescriptor[] tables = hbaseAdmin.listTables();
+    List<String> tableNames = new ArrayList<String>();
+    for (HTableDescriptor t: tables)
+      tableNames.add(t.getNameAsString());
+
+    return tableNames.toArray(new String[tableNames.size()]);
     }
 
   public abstract boolean tablesExist() throws IOException;

@@ -103,6 +103,7 @@ public class MutateFragments extends BWAJob
     String genome = cl.getOptionValue("m");
     String parent = cl.getOptionValue("p");
     getConf().set("genome", genome);
+    getConf().set("parent", parent);
 
     HBaseGenomeAdmin genomeAdmin = HBaseGenomeAdmin.getHBaseGenomeAdmin(getConf());
     if (genomeAdmin.getGenomeTable().getGenome(parent) == null)
@@ -116,7 +117,7 @@ public class MutateFragments extends BWAJob
 
     genomeAdmin.getGenomeTable().addGenome(genome, parent);
 
-    Job job = new Job(getConf(), "Reference Genome Fragmentation");
+    Job job = new Job(getConf(), "Genome Fragment Mutation");
     job.setJarByClass(MutateFragments.class);
 
     // this scan will get all sequences for the given genome (so 300 million)
@@ -140,15 +141,12 @@ public class MutateFragments extends BWAJob
 
     private HBaseGenomeAdmin admin;
     private VariationAdmin variationAdmin;
-    private String genomeName;
+    private String genomeName, parenGenome;
     private GenomeResult genome;
 
     private Map<Character, Probability> snvProbabilities;
     private Map<String, Probability> sizeProbabilities;
     private List<String> variationList;
-//    private VariantUtils variantUtils;
-//    private GCBinDAO binDAO;
-//    private FragmentDAO fragmentDAO;
 
     @Override
     protected void setup(Context context) throws IOException, InterruptedException
@@ -159,11 +157,10 @@ public class MutateFragments extends BWAJob
       variationAdmin = VariationAdmin.getInstance();
 
       genomeName = context.getConfiguration().get("genome");
+      parenGenome = context.getConfiguration().get("parent");
       genome = admin.getGenomeTable().getGenome(genomeName);
       if (genome == null)
         throw new IOException("Genome " + genome + " is missing.");
-
-
 
       try
         {
@@ -186,58 +183,54 @@ public class MutateFragments extends BWAJob
     @Override
     protected void map(ImmutableBytesWritable key, Result value, Context context) throws IOException, InterruptedException
       {
-      SequenceResult seq = HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().createResult(value);
+      final SequenceResult origSeq = HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().createResult(value);
+      final ChromosomeResult origChr = HBaseGenomeAdmin.getHBaseGenomeAdmin().getChromosomeTable().getChromosome(parenGenome, origSeq.getChr());
 
       // get hbase objects for new genome
-      ChromosomeResult mutatedChr = admin.getChromosomeTable().getChromosome(seq.getGenome(), seq.getChr());
+      ChromosomeResult mutatedChr = admin.getChromosomeTable().getChromosome(genome.getName(), origSeq.getChr());
       if (mutatedChr == null)
         {
-        String rowId = admin.getChromosomeTable().addChromosome(genome, seq.getChr(), 0, 0);
+        String rowId = admin.getChromosomeTable().addChromosome(genome, origChr.getChrName(), origChr.getLength(), origChr.getSegmentNumber());
         mutatedChr = admin.getChromosomeTable().queryTable(rowId);
         }
 
+      /* --- Mutate sequence --- */
       Random randomFragment = new Random();
-      DNASequence mutatedSequence = new DNASequence(seq.getSequence());
+      DNASequence mutatedSequence = new DNASequence(origSeq.getSequence());
       /* Don't bother to try and mutate a fragment that is more than 70% 'N' */
-      if (mutatedSequence.calculateNucleotides() > (0.3 * seq.getSequenceLength()))
+      if (mutatedSequence.calculateNucleotides() > (0.3 * origSeq.getSequenceLength()))
         {
         GCBin gcTable = (GCBin) variationAdmin.getTable(VariationTables.GC.getTableName());
-        GCResult gcResult = gcTable.getBinFor(seq.getChr(), mutatedSequence.calculateGC());
+        GCResult gcResult = gcTable.getBinFor(origSeq.getChr(), mutatedSequence.calculateGC());
 
         // get random fragment within this bin
         VariationCountPerBin table = (VariationCountPerBin) variationAdmin.getTable(VariationTables.VPB.getTableName());
-        List<VCPBResult> varsPerFrag = table.getFragment(seq.getChr(), gcResult.getMin(), gcResult.getMax(),
+        List<VCPBResult> varsPerFrag = table.getFragment(origSeq.getChr(), gcResult.getMin(), gcResult.getMax(),
                                                          randomFragment.nextInt(gcResult.getTotalFragments()), variationList);
 
         Map<Variation, Map<Location, DNASequence>> mutations = new HashMap<Variation, Map<Location, DNASequence>>();
 
         // apply the variations to the sequence, each of them needs to apply to the same fragment
         // it is possible that one could override another (e.g. a deletion removes SNVs)
-
-        // TODO need to order these by variation...?
+        // TODO need to order these by variation...SNV, del, ins, ...
         for (VCPBResult variation: varsPerFrag)
           {
           Variation v = createInstance(variation.getVariationClass());
+          v.setVariationName(variation.getVariationName());
           if (variation.getVariationName().equals("SNV"))
             {
             SNV snv = ((SNV) v);
             snv.setSnvFrequencies(snvProbabilities);
             }
           else
-            {
-            v.setVariationName(variation.getVariationName());
             v.setSizeVariation( sizeProbabilities.get(variation.getVariationName()) );
-            }
+
           mutatedSequence = v.mutateSequence(mutatedSequence, variation.getVariationCount());
           if (v.getLastMutations().size() > 0)
             mutations.put(v, v.getLastMutations());
           }
-        /*
-        NOTE: I could cut down on the size of the HBase (and actually use derby or something similar) by keeping only the actual segments
-         from the original reference
-        all subsequent mutations could be applied at runtime when I generate a FASTA file.
-         */
-        String mutSeqRowId = admin.getSequenceTable().addSequence(mutatedChr, seq.getStart(), (seq.getStart() + mutatedSequence.getLength()), mutatedSequence.getSequence(), seq.getSegmentNum());
+
+        String mutSeqRowId = admin.getSequenceTable().addSequence(mutatedChr, origSeq.getStart(), (origSeq.getStart() + mutatedSequence.getLength()), mutatedSequence.getSequence(), origSeq.getSegmentNum());
         if (mutSeqRowId == null)
           throw new IOException("Failed to add sequence.");
 
@@ -247,13 +240,11 @@ public class MutateFragments extends BWAJob
           // add any mutations to the small mutations table
           for (Map.Entry<Location, DNASequence> entry : mutations.get(v).entrySet())
             admin.getSmallMutationsTable().addMutation(mutSequence, v, entry.getKey().getStart(), entry.getKey().getEnd(), entry.getValue().getSequence());
-
           }
         }
       else
-        admin.getSequenceTable().addSequence(mutatedChr, seq.getStart(), seq.getEnd(), seq.getSequence(), seq.getSegmentNum());
+        admin.getSequenceTable().addSequence(mutatedChr, origSeq.getStart(), origSeq.getEnd(), origSeq.getSequence(), origSeq.getSegmentNum());
       }
-
 
     private Variation createInstance(String className)
       {
@@ -275,10 +266,7 @@ public class MutateFragments extends BWAJob
         }
       return null;
       }
-
-
     }
-
 
   public static void main(String[] args) throws Exception
     {
