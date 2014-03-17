@@ -41,7 +41,7 @@ public class ImportVariationData
     options.addOption(new Option("z", "size", true, "Size probs"));
     options.addOption(new Option("f", "fragments", true, "Var per gc bin"));
     options.addOption(new Option("g", "gc", true, "GC bins"));
-    options.addOption(new Option("e", "export", false, "Export tables instead."));
+    options.addOption(new Option("e", "export", true, "Directory to export tables to (all other options ignored)."));
 
     String[] otherArgs = new GenericOptionsParser(HBaseConfiguration.create(), args).getRemainingArgs();
     CommandLine cl = new BasicParser().parse(options, otherArgs);
@@ -53,7 +53,7 @@ public class ImportVariationData
         {
         if (!cl.hasOption(opt))
           {
-          help.printHelp("Missing required option: -" + opt + " ", IGCSACommandLineParser.getParser().getOptions());
+          help.printHelp("Missing required options", IGCSACommandLineParser.getParser().getOptions());
           System.exit(-1);
           }
         }
@@ -63,14 +63,12 @@ public class ImportVariationData
 
   public static void main(String[] args) throws Exception
     {
-    // TODO change this...these are only required for an import
     CommandLine cl = parseCommandLine(args);
 
     if (cl.hasOption("e"))
-      {
-      HBaseUtility.main(new String[]{"-d", "/hbase-backup", "-c", "export", "-t", StringUtils.join(VariationTables.getTableNames(), ",")});
-      }
-    new ImportVariationData().runImport(cl);
+      HBaseUtility.main(new String[]{"-d", cl.getOptionValue("e"), "-c", "export", "-t", StringUtils.join(VariationTables.getTableNames(), ",")});
+    else
+      new ImportVariationData().runImport(cl);
     }
 
   private Map<Integer, String[]> variations = new HashMap<Integer, String[]>();
