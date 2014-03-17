@@ -42,7 +42,7 @@ public class HBaseUtility
     String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
     CommandLine cl = IGCSACommandLineParser.getParser().parseOptions(otherArgs);
 
-    Path path = new Path(cl.getOptionValue("d"), new SimpleDateFormat("yyyyMMddzHHmm").format( new Date() ));
+    Path path = new Path(cl.getOptionValue("d"));
     String cmd = cl.getOptionValue("c");
 
     String[] tables = new String[0];
@@ -57,6 +57,8 @@ public class HBaseUtility
     {
     if (tables.length <= 0)
       tables = IGCSATables.getTableNames();
+
+    path = new Path(path, new SimpleDateFormat("yyyyMMddzHHmm").format( new Date() ));
 
     for (String table: tables)
       {
