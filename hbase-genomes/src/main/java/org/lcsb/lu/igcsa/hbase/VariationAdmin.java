@@ -28,7 +28,7 @@ public class VariationAdmin extends IGCSAHbaseAdmin
   private static VariationAdmin adminInstance;
   public static VariationAdmin getInstance() throws IOException
     {
-    if (adminInstance == null)
+    //if (adminInstance == null)
       adminInstance = new VariationAdmin(HBaseConfiguration.create());
     return adminInstance;
     }

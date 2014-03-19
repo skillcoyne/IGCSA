@@ -29,13 +29,6 @@ public abstract class AbstractTable<T> extends HTable
   {
   protected static final Log log = LogFactory.getLog(AbstractTable.class);
 
-  //protected HBaseAdmin admin;
-  //protected Configuration configuration;
-
-  //protected HTable hTable;
-//  protected String tableName;
-//  protected byte[] hTableName;
-
   public AbstractTable(Configuration conf, String tableName) throws IOException
     {
     super(conf, tableName);
@@ -68,43 +61,6 @@ public abstract class AbstractTable<T> extends HTable
       descriptor.addFamily(new HColumnDescriptor(fam));
     return descriptor;
     }
-
-
-
-  //  private void createTable() throws IOException
-  //    {
-  //    if (this.requiredFields == null || this.requiredFields.keySet().size() <= 0)
-  //      throw new IOException("Column families are not set, table cannot be created.");
-  //
-  ////    if (!admin.tableExists(Bytes.toBytes(tableName)))
-  ////      {
-  ////      HTableDescriptor descriptor = new HTableDescriptor(tableName);
-  ////      for (String fam : requiredFields.keySet()) // columns
-  ////        descriptor.addFamily(new HColumnDescriptor(fam));
-  ////
-  ////      admin.createTable(descriptor);
-  ////      }
-  //    }
-
-
-  //  private void setTableName(String tableName)
-  //    {
-  //    this.tableName = tableName;
-  //    this.hTableName = Bytes.toBytes(tableName);
-  //    }
-
-  //  protected void setColumnFamilies(String[] families)
-  //    {
-  //    this.families = new HashSet<String>();
-  //    for (String str : families)
-  //      this.families.add(str);
-  //    }
-  //
-  //  public String[] getColumnFamilies()
-  //    {
-  //    return this.families.toArray(new String[this.families.size()]);
-  //    }
-
 
   public Object queryTable(String rowId, Column column) throws IOException
     {
@@ -262,7 +218,7 @@ public abstract class AbstractTable<T> extends HTable
     List<Result> results = new ArrayList<Result>();
     for (Result r : scanner)
       results.add(r);
-
+    scanner.close();
     return results;
     }
 

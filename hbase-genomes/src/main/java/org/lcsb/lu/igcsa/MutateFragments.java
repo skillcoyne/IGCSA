@@ -25,6 +25,7 @@ import org.apache.hadoop.io.Text;
 
 import org.apache.hadoop.mapreduce.Job;
 
+import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 
 import org.apache.hadoop.util.GenericOptionsParser;
@@ -72,6 +73,11 @@ public class MutateFragments extends BWAJob
     Option p = new Option("p", "parent", true, "Name for parent genome.");
     p.setRequired(true);
     this.addOptions(p);
+
+    Option t = new Option("t", "Test", false, "");
+    p.setRequired(false);
+    this.addOptions(t);
+
     }
 
   @Override
@@ -99,19 +105,19 @@ public class MutateFragments extends BWAJob
 
     if (genomeAdmin.getGenomeTable().getGenome(genome) != null)
       genomeAdmin.deleteGenome(genome);
-
     genomeAdmin.getGenomeTable().addGenome(genome, parent);
 
     Job job = new Job(getConf(), "Genome Fragment Mutation");
     job.setJarByClass(MutateFragments.class);
 
     // this scan will get all sequences for the given genome (so 300 million)
-    //Scan seqScan = genomeAdmin.getSequenceTable().getScanFor(new Column("info", "genome", parent));
-    Scan seqScan = genomeAdmin.getSequenceTable().getScanFor(new Column("info", "genome", parent), new Column("loc", "chr", "1"));
-    seqScan.setCaching(100);        // 1 is the default in Scan, which will be bad for MapReduce jobs
+    Scan seqScan = genomeAdmin.getSequenceTable().getScanFor(new Column("info", "genome", parent));
+//    if (cl.hasOption("t"))
+//      seqScan = genomeAdmin.getSequenceTable().getScanFor(new Column("info", "genome", parent), new Column("loc", "chr", "1"));
+
+    seqScan.setCaching(500);        // 1 is the default in Scan, which will be bad for MapReduce jobs
     seqScan.setCacheBlocks(false);
 
-    //SequenceTableMapper.setSpringContext(springContext);
     job.setMapperClass(SequenceTableMapper.class);
 
     TableMapReduceUtil.initTableMapperJob(genomeAdmin.getSequenceTable().getTableName(), seqScan, SequenceTableMapper.class, null, null, job);
@@ -176,12 +182,13 @@ public class MutateFragments extends BWAJob
     @Override
     protected void map(ImmutableBytesWritable key, Result value, Context context) throws IOException, InterruptedException
       {
-      log.info("map " + Bytes.toString(key.copyBytes()) + " val:" + value.toString());
+      long start = System.currentTimeMillis();
+
       final SequenceResult origSeq = genomeAdmin.getSequenceTable().createResult(value);
       final ChromosomeResult origChr = genomeAdmin.getChromosomeTable().getChromosome(parentGenome, origSeq.getChr());
 
-      log.info("original seq: " + origSeq.getChr() + " " + origSeq.getStart() + "-" + origSeq.getEnd() + " " + origSeq.getSequence().substring(0,5) + "...");
-      log.info("original chr: " + origChr.toString());
+//      log.info("original seq: " + origSeq.getChr() + " " + origSeq.getStart() + "-" + origSeq.getEnd() + " " + origSeq.getSequence().substring(0,5) + "...");
+//      log.info("original chr: " + origChr.toString());
 
       // get hbase objects for new genome
       ChromosomeResult mutatedChr = genomeAdmin.getChromosomeTable().getChromosome(genome.getName(), origSeq.getChr());
@@ -195,9 +202,12 @@ public class MutateFragments extends BWAJob
       Random randomFragment = new Random();
       DNASequence mutatedSequence = new DNASequence(origSeq.getSequence());
       /* Don't bother to try and mutate a fragment that is more than 70% 'N' */
-      if (mutatedSequence.calculateNucleotides() > (0.3 * origSeq.getSequenceLength()))
+      int gcContent = mutatedSequence.calculateGC();
+      if (gcContent > (0.3 * origSeq.getSequenceLength()))
         {
-        GCResult gcResult = gcTable.getBinFor(origSeq.getChr(), mutatedSequence.calculateGC());
+        GCResult gcResult = gcTable.getMaxBin(origSeq.getChr());
+        if (gcContent < gcResult.getMax())
+            gcResult = gcTable.getBinFor(origSeq.getChr(), mutatedSequence.calculateGC());
 
         // get random fragment within this bin
         List<VCPBResult> varsPerFrag = varTable.getFragment(origSeq.getChr(), gcResult.getMin(), gcResult.getMax(), randomFragment.nextInt(gcResult.getTotalFragments()), variationList);
@@ -238,6 +248,16 @@ public class MutateFragments extends BWAJob
         }
       else
         genomeAdmin.getSequenceTable().addSequence(mutatedChr, origSeq.getStart(), origSeq.getEnd(), origSeq.getSequence(), origSeq.getSegmentNum());
+
+      long end = System.currentTimeMillis() - start;
+      //log.info("FINISHED MAP " + String.valueOf(end) );
+      }
+
+    @Override
+    protected void cleanup(Context context) throws IOException, InterruptedException
+      {
+      genomeAdmin.closeConections();
+      variationAdmin.closeConections();
       }
 
     private Variation createInstance(String className)
@@ -264,10 +284,6 @@ public class MutateFragments extends BWAJob
 
   public static void main(String[] args) throws Exception
     {
-    log.info(StringUtils.join(args, " "));
-    long start = System.currentTimeMillis();
     ToolRunner.run(new MutateFragments(), args);
-    long end = System.currentTimeMillis() - start;
-    log.info("Finished mutations " + (end / 1000));
     }
   }

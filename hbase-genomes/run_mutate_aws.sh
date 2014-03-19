@@ -5,22 +5,25 @@ if [ ! -f "$EMR_HOME/elastic-mapreduce" ]; then
   exit
 fi
 
-if [ $# -eq 0 ]; then
-  echo "Default cores set to 3."
-  CORES=3;
-else
-  CORES=$1
+if [ $# -lt 2 ]; then
+  echo "USAGE: $0 <New Genome Name: string> <Terminate on failure: true/false> <number of cores: default=3>"
+  exit
 fi
 
-if [ ! $2 ]; then
-  echo "No name provided for new genome."
-  exit;
+NAME=$1
+
+TERM="TERMINATE_JOB_FLOW"
+if [ $2 == "false" ]; then
+  TERM="CANCEL_AND_WAIT"
 fi
 
-echo "Running MUTATE pipeline with ${CORES} core instances."
+CORES=3;
+if [ $# -eq 3 ]; then
+  CORES=$3
+fi
 
+echo "Running MUTATE pipeline for ${NAME} with ${CORES} core instances. On failure: ${TERM}"
 
-NAME=$2
 
 JAR="s3://insilico/HBase-Genomes-1.1.jar"
 

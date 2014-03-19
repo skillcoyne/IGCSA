@@ -43,63 +43,74 @@ public class OutputGenome
     //    conf.set("hbase.zookeeper.property.clientPort", "2181");
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(conf);
 
-    SequenceResult r  = admin.getSequenceTable().queryTable("AAAA00024002:1-GRCh37");
+    SequenceResult r = admin.getSequenceTable().queryTable("AAAA00024002:1-GRCh37");
 
-    System.out.println(" " + r.getRowId() + " " + r.getChr() );
-
-
-
-    Scan seqScan = admin.getSequenceTable().getScanFor(new Column("info", "genome", "GRCh37"));
+    System.out.println(" " + r.getRowId() + " " + r.getChr());
 
 
-//        for (ChromosomeResult chr: admin.getChromosomeTable().getChromosomesFor("GRCh37"))
-//          {
-//          String c = chr.getChrName();
-//          log.info(c + " " + chr.getSegmentNumber() + " " + chr.getLength());
-//          }
-//
+    //Scan seqScan = admin.getSequenceTable().getScanFor(new Column("info", "genome", "GRCh37"));
+
+
+    //        for (ChromosomeResult chr: admin.getChromosomeTable().getChromosomesFor("GRCh37"))
+    //          {
+    //          String c = chr.getChrName();
+    //          log.info(c + " " + chr.getSegmentNumber() + " " + chr.getLength());
+    //          }
+    //
     //  SequenceResult sr =     admin.getSequenceTable().queryTable("GRCh37-11:00043501");
     //    log.info(sr);
 
     VariationAdmin vadmin = VariationAdmin.getInstance();
-//    GCBin table = (GCBin) vadmin.getTable(VariationTables.GC.getTableName());
-//
-//    for (Object r: table.getRows())
-//      {
-//      GCBin.GCResult gc = table.createResult((Result) r);
-//      log.info( gc.getChromosome() + " " + gc.getMin() + "-" + gc.getMax() + " " + gc.getTotalFragments());
-//      }
+    GCBin gcTable = (GCBin) vadmin.getTable(VariationTables.GC.getTableName());
+    GCBin.GCResult gcResult = gcTable.getMaxBin("1");
 
-//    GCBin.GCResult gc = table.getBinFor("1", 230);
-//    log.info( gc.getChromosome() + " " + gc.getMin() + "-" + gc.getMax() + " " + gc.getTotalFragments());
-
-    VariationCountPerBin table = (VariationCountPerBin) vadmin.getTable(VariationTables.VPB.getTableName());
-
-//    VCPBResult result = table.queryTable(VCPBRow.createRowId("1", "SNV", 0, 85, 1) );
-
-//    List<VCPBResult> results = table.getFragment("1", 340, 425, 6);
-//    for (VCPBResult result: results)
-//      {
-//      log.info(result.getRowId());
-//      log.info(result.getVariationClass());
-//      log.info(result);
-//      }
+    int gcContent = 336;
+    if (gcContent < gcResult.getMax())
+      gcResult = gcTable.getBinFor("1", gcContent);
 
 
-//    ResultScanner scanner = table.getScanner(new Scan());
-//    Iterator<Result> rI = scanner.iterator();
-//    while(rI.hasNext())
-//      {
-//      VCPBResult result = table.createResult(rI.next());
-//      if(result.getFragmentNum() <= 1)
-//        {
-//        log.info(result.getRowId());
-//        log.info(result);
-//        }
-//      }
+    log.info(gcContent >= gcResult.getMax());
+
+    log.info(gcResult);
+    //GCBin.GCResult gc = table.getBinFor("1", 852);
+
+    //
+    //    for (Object r: table.getRows())
+    //      {
+    //      GCBin.GCResult gc = table.createResult((Result) r);
+    //      log.info( gc.getChromosome() + " " + gc.getMin() + "-" + gc.getMax() + " " + gc.getTotalFragments());
+    //      }
+
+    //    GCBin.GCResult gc = table.getBinFor("1", 230);
+    //    log.info( gc.getChromosome() + " " + gc.getMin() + "-" + gc.getMax() + " " + gc.getTotalFragments());
+
+    //VariationCountPerBin table = (VariationCountPerBin) vadmin.getTable(VariationTables.VPB.getTableName());
+
+    //    VCPBResult result = table.queryTable(VCPBRow.createRowId("1", "SNV", 0, 85, 1) );
+
+    //    List<VCPBResult> results = table.getFragment("1", 340, 425, 6);
+    //    for (VCPBResult result: results)
+    //      {
+    //      log.info(result.getRowId());
+    //      log.info(result.getVariationClass());
+    //      log.info(result);
+    //      }
+
+
+    //    ResultScanner scanner = table.getScanner(new Scan());
+    //    Iterator<Result> rI = scanner.iterator();
+    //    while(rI.hasNext())
+    //      {
+    //      VCPBResult result = table.createResult(rI.next());
+    //      if(result.getFragmentNum() <= 1)
+    //        {
+    //        log.info(result.getRowId());
+    //        log.info(result);
+    //        }
+    //      }
 
     //    VCPBResult result = table.getFragment("6", 252, 336, 1);
-//    log.info(result);
+    //    log.info(result);
 
 
     }

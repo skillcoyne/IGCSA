@@ -76,6 +76,8 @@ public class SequenceTable extends AbstractTable<SequenceTable>
     if (rI.hasNext())
       log.warn("Multiple results for sequence segment query, returning only the first one.");
 
+    scanner.close();
+
     return sequence;
     }
 

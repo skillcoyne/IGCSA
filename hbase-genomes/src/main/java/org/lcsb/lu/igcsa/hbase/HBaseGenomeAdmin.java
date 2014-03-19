@@ -30,7 +30,7 @@ public class HBaseGenomeAdmin extends IGCSAHbaseAdmin
 
   public static HBaseGenomeAdmin getHBaseGenomeAdmin() throws IOException
     {
-    if (adminInstance == null)
+    //if (adminInstance == null)
       adminInstance = new HBaseGenomeAdmin(HBaseConfiguration.create());
 
     return adminInstance;

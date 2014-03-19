@@ -40,7 +40,7 @@ public class DeleteGenome
     print("Connected");
 //    admin.deleteGenome(genome);
 
-//    admin.deleteTables();
+    admin.deleteTables();
     admin.createTables();
 
     admin.closeConections();
