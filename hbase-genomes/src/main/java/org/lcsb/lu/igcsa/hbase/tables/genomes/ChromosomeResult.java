@@ -9,14 +9,8 @@
 package org.lcsb.lu.igcsa.hbase.tables.genomes;
 
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.hbase.rows.ChromosomeRow;
-import org.lcsb.lu.igcsa.hbase.rows.SequenceRow;
 import org.lcsb.lu.igcsa.hbase.tables.AbstractResult;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ChromosomeResult extends AbstractResult
   {
@@ -25,13 +19,6 @@ public class ChromosomeResult extends AbstractResult
   private String chrName;
   private String genomeName;
 
-
-  public ChromosomeResult(String chromosomeName, int length, int numSegments)
-    {
-    this.chrName = chromosomeName;
-    this.length = length;
-    this.segmentNumber = numSegments;
-    }
 
   protected ChromosomeResult(byte[] rowId)
     {
@@ -43,28 +30,6 @@ public class ChromosomeResult extends AbstractResult
     super(rowId);
     }
 
-  public void setLength(long length)
-    {
-    this.length = length;
-    }
-
-  public void setSegmentNumber(long segmentNumber)
-    {
-    this.segmentNumber = segmentNumber;
-    }
-
-  public void setChrName(String chrName)
-    {
-    this.chrName = chrName;
-    }
-
-  public void setGenomeName(String genomeName)
-    {
-    this.genomeName = genomeName;
-    if (rowId == null)
-      rowId = ChromosomeRow.createRowId(genomeName, this.chrName);
-    }
-
   public long getLength()
     {
     return length;
@@ -72,6 +37,7 @@ public class ChromosomeResult extends AbstractResult
 
   public void setLength(byte[] length)
     {
+    argTest(length);
     this.length = Bytes.toLong(length);
     }
 
@@ -82,6 +48,7 @@ public class ChromosomeResult extends AbstractResult
 
   public void setSegmentNumber(byte[] segmentNumber)
     {
+    argTest(segmentNumber);
     this.segmentNumber = Bytes.toLong(segmentNumber);
     }
 
@@ -92,6 +59,7 @@ public class ChromosomeResult extends AbstractResult
 
   public void setChrName(byte[] chrName)
     {
+    argTest(chrName);
     this.chrName = Bytes.toString(chrName);
     }
 
@@ -102,6 +70,7 @@ public class ChromosomeResult extends AbstractResult
 
   public void setGenomeName(byte[] genomeName)
     {
+    argTest(genomeName);
     this.genomeName = Bytes.toString(genomeName);
     }
 

@@ -41,4 +41,10 @@ public abstract class AbstractResult<T>
     return rowId;
     }
 
+  protected void argTest(byte[] bytes)
+    {
+    if (bytes == null || bytes.length <=0)
+      throw new IllegalArgumentException("No bytes retrieved for " + rowId);
+    }
+
   }

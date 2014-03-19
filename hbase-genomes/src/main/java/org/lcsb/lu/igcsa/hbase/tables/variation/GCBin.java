@@ -38,6 +38,7 @@ public class GCBin extends AbstractTable<GCBin>
 
   public GCResult getBinFor(String chr, int gcContent) throws IOException
     {
+    log.info("Get GC bin: " + chr + " " + gcContent);
     FilterList filters = new FilterList(FilterList.Operator.MUST_PASS_ALL);
     filters.addFilter(new SingleColumnValueFilter(Bytes.toBytes("chr"), Bytes.toBytes("name"), CompareFilter.CompareOp.EQUAL,
                                                   Bytes.toBytes(chr)));
@@ -51,6 +52,11 @@ public class GCBin extends AbstractTable<GCBin>
 
     ResultScanner scanner = this.getScanner(scan);
     Iterator<Result> rI =  scanner.iterator();
+
+    if (!rI.hasNext())
+      {
+      throw new IOException("Failed to retrieve any GC bins for chr " + chr + " GC=" + gcContent);
+      }
 
     // only expect one result
     GCResult gcResult = createResult(rI.next());

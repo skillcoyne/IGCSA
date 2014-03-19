@@ -33,7 +33,6 @@ public abstract class IGCSAHbaseAdmin
   protected IGCSAHbaseAdmin(Configuration conf) throws IOException
     {
     this.conf = conf;
-    //this.conf.setInt("timeout", 10);
     this.hbaseAdmin = new HBaseAdmin(conf);
 
     int tryRunning = 1;

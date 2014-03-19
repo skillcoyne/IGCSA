@@ -25,16 +25,6 @@ public class SequenceResult extends AbstractResult
 
   private long segmentNum;
 
-  public long getSegmentNum()
-    {
-    return segmentNum;
-    }
-
-  public void setSegmentNum(byte[] segmentNum)
-    {
-    this.segmentNum = Bytes.toLong(segmentNum);
-    }
-
   protected SequenceResult(byte[] rowId)
     {
     super(rowId);
@@ -45,8 +35,20 @@ public class SequenceResult extends AbstractResult
     return sequence;
     }
 
+  public long getSegmentNum()
+    {
+    return segmentNum;
+    }
+
+  public void setSegmentNum(byte[] segmentNum)
+    {
+    argTest(segmentNum);
+    this.segmentNum = Bytes.toLong(segmentNum);
+    }
+
   public void setSequence(byte[] sequence)
     {
+    argTest(sequence);
     this.sequence = Bytes.toString(sequence);
     }
 
@@ -57,6 +59,7 @@ public class SequenceResult extends AbstractResult
 
   public void setChr(byte[] chr)
     {
+    argTest(chr);
     this.chr = Bytes.toString(chr);
     }
 
@@ -67,6 +70,7 @@ public class SequenceResult extends AbstractResult
 
   public void setGenome(byte[] genome)
     {
+    argTest(genome);
     this.genome = Bytes.toString(genome);
     }
 
@@ -77,6 +81,7 @@ public class SequenceResult extends AbstractResult
 
   public void setStart(byte[] start)
     {
+    argTest(start);
     this.start = Bytes.toLong(start);
     }
 
@@ -87,6 +92,7 @@ public class SequenceResult extends AbstractResult
 
   public void setEnd(byte[] end)
     {
+    argTest(end);
     this.end = Bytes.toLong(end);
     }
 

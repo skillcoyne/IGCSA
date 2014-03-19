@@ -120,24 +120,14 @@ public class SequenceTable extends AbstractTable<SequenceTable>
       {
       SequenceResult seqResult = new SequenceResult(result.getRow());
 
-      for (KeyValue kv : result.list())
-        {
-        String family = Bytes.toString(kv.getFamily());
-        String qualifier = Bytes.toString(kv.getQualifier());
-        byte[] value = kv.getValue();
+      seqResult.setGenome(result.getValue( Bytes.toBytes("info"), Bytes.toBytes("genome")));
+      seqResult.setSequence(result.getValue(Bytes.toBytes("bp"), Bytes.toBytes("seq")));
 
-        if (family.equals("info") && qualifier.equals("genome")) seqResult.setGenome(value);
-
-        if (family.equals("bp") && qualifier.equals("seq")) seqResult.setSequence(value);
-
-        if (family.equals("loc"))
-          {
-          if (qualifier.equals("start")) seqResult.setStart(value);
-          else if (qualifier.equals("end")) seqResult.setEnd(value);
-          else if (qualifier.equals("chr")) seqResult.setChr(value);
-          else if (qualifier.equals("segment")) seqResult.setSegmentNum(value);
-          }
-        }
+      byte[] loc = Bytes.toBytes("loc");
+      seqResult.setChr(result.getValue(loc, Bytes.toBytes("chr")));
+      seqResult.setStart(result.getValue(loc, Bytes.toBytes("start")));
+      seqResult.setEnd(result.getValue(loc, Bytes.toBytes("end")));
+      seqResult.setSegmentNum(result.getValue(loc, Bytes.toBytes("segment")));
 
       return seqResult;
       }

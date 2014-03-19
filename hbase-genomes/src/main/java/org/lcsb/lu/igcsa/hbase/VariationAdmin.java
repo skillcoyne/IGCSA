@@ -33,6 +33,12 @@ public class VariationAdmin extends IGCSAHbaseAdmin
     return adminInstance;
     }
 
+  public static VariationAdmin getInstance(Configuration conf) throws IOException
+    {
+    adminInstance = new VariationAdmin(conf);
+    return adminInstance;
+    }
+
   protected VariationAdmin(Configuration conf) throws IOException
     {
     super(conf);

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ ! -f "$EMR_HOME/elastic-mapreduce" ]; then
   echo "EMR_HOME not set."
@@ -32,7 +32,7 @@ ruby $EMR_HOME/elastic-mapreduce --create --name "Mutate Genome" --ami-version 2
 --hbase --step-action TERMINATE_JOB_FLOW \
 --jar $JAR --main-class org.lcsb.lu.igcsa.hbase.HBaseUtility --args -d,s3://insilico/hbase,-c,IMPORT --arg "-t" --arg "genome,chromosome,sequence,karyotype_index,karyotype,small_mutations" --step-action TERMINATE_JOB_FLOW --step-name "IMPORT genome db" \
 --jar $JAR --main-class org.lcsb.lu.igcsa.hbase.HBaseUtility --args -d,s3://insilico/hbase/normal-variation,-c,IMPORT --arg "-t" --arg "gc_bin,snv_probability,variation_per_bin" --step-action TERMINATE_JOB_FLOW --step-name "IMPORT variation db" \
---jar $JAR --main-class org.lcsb.lu.igcsa.MutateFragments --args -b,s3://insilico/bwa.tgz,-m,$NAME,-p,GRCh37 --step-action TERMINATE_JOB_FLOW --step-name "CREATE mutated genome" \
+--jar $JAR --main-class org.lcsb.lu.igcsa.MutateFragments --args -b,s3://insilico/bwa.tgz,-m,$NAME,-p,GRCh37 --step-action CANCEL_AND_WAIT --step-name "CREATE mutated genome" \
 --jar $JAR --main-class org.lcsb.lu.igcsa.GenerateFullGenome --args -g,$NAME,-b,s3://insilico/bwa.tgz --step-action CONTINUE --step-name "Generate FASTA files and index" \
 --jar $JAR --main-class org.lcsb.lu.igcsa.hbase.HBaseUtility --args -d,s3://insilico/hbase,-c,EXPORT --arg "-t" --arg "genome,chromosome,sequence,karyotype_index,karyotype,small_mutations" --step-action TERMINATE_JOB_FLOW --step-name "EXPORT genome db" \
 
