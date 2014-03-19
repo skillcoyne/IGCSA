@@ -1,6 +1,12 @@
 package org.lcsb.lu.igcsa.hbase;
 
+import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.rds.model.OptionSetting;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.ListObjectsRequest;
+import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.apache.commons.cli.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -14,10 +20,15 @@ import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.IGCSACommandLineParser;
 import org.lcsb.lu.igcsa.aws.AWSProperties;
+import org.lcsb.lu.igcsa.aws.AWSUtils;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.IGCSATables;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * org.lcsb.lu.igcsa.hbase
@@ -41,13 +52,20 @@ public class HBaseUtility
     return conf;
     }
 
+  private static void usage(String msg, Options options)
+    {
+    HelpFormatter help = new HelpFormatter();
+    help.printHelp(msg, options);
+    System.exit(-1);
+
+    }
 
   public static void main(String[] args) throws Exception
     {
     Options options = new Options();
     options.addOption(new Option("d", "dir", true, "Directory to import/export hbase tables."));
     options.addOption(new Option("c", "command", true,"IMPORT or EXPORT tables to the directory."));
-    options.addOption(new Option("t", "tables", true, "Comma separated list of tables. Default is all in hbase or in the import directory."));
+    options.addOption(new Option("t", "tables", true, "Comma separated list of tables. Default is all in hbase or in the import directory. If using s3 a list of tables is required!"));
 
     Configuration conf = HBaseConfiguration.create();
 
@@ -55,14 +73,14 @@ public class HBaseUtility
     CommandLine cl = new BasicParser().parse(options, otherArgs);
 
     if (!cl.hasOption("d") || !cl.hasOption("c"))
-      {
-      HelpFormatter help = new HelpFormatter();
-      help.printHelp("Missing required option 'd' or 'c'", options);
-      System.exit(-1);
-      }
+      usage("Missing required option 'd' or 'c'", options);
 
     if (cl.getOptionValue("d").startsWith("s3"))
+      {
       conf = setAWSProps(conf);
+      if (!cl.hasOption("t"))
+        usage("When using s3 a list of tables is required.", options);
+      }
 
     Path path = new Path(cl.getOptionValue("d"));
     String cmd = cl.getOptionValue("c");
@@ -102,6 +120,10 @@ public class HBaseUtility
     if (tables.length <= 0)
       {
       FileSystem fs = FileSystem.get(conf);
+
+      if (path.getName().startsWith("s3"))
+        fs = FileSystem.get(path.toUri(), conf);
+
       FileStatus[] statuses = fs.listStatus(path);
       tables = new String[statuses.length];
       for (int i=0; i<statuses.length; i++)
@@ -118,5 +140,5 @@ public class HBaseUtility
       job.waitForCompletion(true);
       }
     }
-
   }
+

@@ -10,6 +10,7 @@ package org.lcsb.lu.igcsa;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -59,26 +60,9 @@ public class MutateFragments extends BWAJob
   {
   private static final Log log = LogFactory.getLog(MutateFragments.class);
 
-  //private ClassPathXmlApplicationContext springContext;
-
   public MutateFragments()
     {
     super(new Configuration());
-    //    springContext = new ClassPathXmlApplicationContext(new String[]{"classpath*:spring-config.xml", "classpath*:/conf/genome.xml"});
-    //    if (springContext == null)
-    //      throw new RuntimeException("Failed to load Spring application context");
-
-    //springContext.get
-    // hardcoded to test only
-
-    //    try
-    //      {
-    //      this.addArchive(new URI("/derby/normal_variation.tgz#db"));
-    //      }
-    //    catch (URISyntaxException e)
-    //      {
-    //      e.printStackTrace();
-    //      }
 
     Option m = new Option("m", "mutation", true, "Name for mutated genome.");
     m.setRequired(true);
@@ -113,7 +97,8 @@ public class MutateFragments extends BWAJob
       }
 
     if (genomeAdmin.getGenomeTable().getGenome(genome) != null)
-      genomeAdmin.getGenomeTable().delete(genome);
+      genomeAdmin.deleteGenome(genome);
+
 
     genomeAdmin.getGenomeTable().addGenome(genome, parent);
 
@@ -121,12 +106,14 @@ public class MutateFragments extends BWAJob
     job.setJarByClass(MutateFragments.class);
 
     // this scan will get all sequences for the given genome (so 300 million)
-    Scan seqScan = genomeAdmin.getSequenceTable().getScanFor(new Column("info", "genome", parent));
-    seqScan.setCaching(500);        // 1 is the default in Scan, which will be bad for MapReduce jobs
+    //Scan seqScan = genomeAdmin.getSequenceTable().getScanFor(new Column("info", "genome", parent));
+    Scan seqScan = genomeAdmin.getSequenceTable().getScanFor(new Column("info", "genome", parent), new Column("loc", "chr", "22"));
+    seqScan.setCaching(100);        // 1 is the default in Scan, which will be bad for MapReduce jobs
     seqScan.setCacheBlocks(false);
 
     //SequenceTableMapper.setSpringContext(springContext);
     job.setMapperClass(SequenceTableMapper.class);
+
     TableMapReduceUtil.initTableMapperJob(genomeAdmin.getSequenceTable().getTableName(), seqScan, SequenceTableMapper.class, null, null, job);
 
     // because we aren't emitting anything from mapper
@@ -141,7 +128,7 @@ public class MutateFragments extends BWAJob
 
     private HBaseGenomeAdmin admin;
     private VariationAdmin variationAdmin;
-    private String genomeName, parenGenome;
+    private String genomeName, parentGenome;
     private GenomeResult genome;
 
     private Map<Character, Probability> snvProbabilities;
@@ -157,7 +144,7 @@ public class MutateFragments extends BWAJob
       variationAdmin = VariationAdmin.getInstance();
 
       genomeName = context.getConfiguration().get("genome");
-      parenGenome = context.getConfiguration().get("parent");
+      parentGenome = context.getConfiguration().get("parent");
       genome = admin.getGenomeTable().getGenome(genomeName);
       if (genome == null)
         throw new IOException("Genome " + genome + " is missing.");
@@ -179,12 +166,31 @@ public class MutateFragments extends BWAJob
 
       }
 
-
     @Override
     protected void map(ImmutableBytesWritable key, Result value, Context context) throws IOException, InterruptedException
       {
       final SequenceResult origSeq = HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().createResult(value);
-      final ChromosomeResult origChr = HBaseGenomeAdmin.getHBaseGenomeAdmin().getChromosomeTable().getChromosome(parenGenome, origSeq.getChr());
+      final ChromosomeResult origChr = HBaseGenomeAdmin.getHBaseGenomeAdmin().getChromosomeTable().getChromosome(parentGenome, origSeq.getChr());
+
+      if (origChr == null || origSeq == null)
+        {
+        log.error("Unable to generate sequence for " + value + " OR could not retrieve original chromosome for " + parentGenome + " " + origSeq.getChr());
+        }
+      else
+        {
+        log.info("Chr: " + origChr.getChrName() + " Len:" + origChr.getLength() + " Seg:" + origChr.getSegmentNumber());
+        }
+
+      try
+        {
+        origChr.getLength();
+        origChr.getSegmentNumber();
+        }
+      catch (NullPointerException npe)
+        {
+        log.error("Chromosome for " + parentGenome + " " + origSeq.getChr() + " missing length and segment!");
+        HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().createResult(value);
+        }
 
       // get hbase objects for new genome
       ChromosomeResult mutatedChr = admin.getChromosomeTable().getChromosome(genome.getName(), origSeq.getChr());
@@ -205,15 +211,14 @@ public class MutateFragments extends BWAJob
 
         // get random fragment within this bin
         VariationCountPerBin table = (VariationCountPerBin) variationAdmin.getTable(VariationTables.VPB.getTableName());
-        List<VCPBResult> varsPerFrag = table.getFragment(origSeq.getChr(), gcResult.getMin(), gcResult.getMax(),
-                                                         randomFragment.nextInt(gcResult.getTotalFragments()), variationList);
+        List<VCPBResult> varsPerFrag = table.getFragment(origSeq.getChr(), gcResult.getMin(), gcResult.getMax(), randomFragment.nextInt(gcResult.getTotalFragments()), variationList);
 
         Map<Variation, Map<Location, DNASequence>> mutations = new HashMap<Variation, Map<Location, DNASequence>>();
 
         // apply the variations to the sequence, each of them needs to apply to the same fragment
         // it is possible that one could override another (e.g. a deletion removes SNVs)
         // TODO need to order these by variation...SNV, del, ins, ...
-        for (VCPBResult variation: varsPerFrag)
+        for (VCPBResult variation : varsPerFrag)
           {
           Variation v = createInstance(variation.getVariationClass());
           v.setVariationName(variation.getVariationName());
@@ -223,7 +228,7 @@ public class MutateFragments extends BWAJob
             snv.setSnvFrequencies(snvProbabilities);
             }
           else
-            v.setSizeVariation( sizeProbabilities.get(variation.getVariationName()) );
+            v.setSizeVariation(sizeProbabilities.get(variation.getVariationName()));
 
           mutatedSequence = v.mutateSequence(mutatedSequence, variation.getVariationCount());
           if (v.getLastMutations().size() > 0)
@@ -270,11 +275,10 @@ public class MutateFragments extends BWAJob
 
   public static void main(String[] args) throws Exception
     {
-    log.info(args);
+    log.info(StringUtils.join(args, " "));
     long start = System.currentTimeMillis();
     ToolRunner.run(new MutateFragments(), args);
     long end = System.currentTimeMillis() - start;
-
     log.info("Finished mutations " + (end / 1000));
     }
   }

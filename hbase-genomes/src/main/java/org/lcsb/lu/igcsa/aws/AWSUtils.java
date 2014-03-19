@@ -33,13 +33,42 @@ public class AWSUtils
     AmazonS3 s3 = getS3();
     String bucket = "insilico";
 
-    ObjectListing listing = s3.listObjects(new ListObjectsRequest().withBucketName(bucket).withPrefix("FASTA"));
+    ObjectListing listing = s3.listObjects(new ListObjectsRequest().withBucketName(bucket).withPrefix("hbase/"));
 
 //    GetObjectRequest req = new GetObjectRequest("insilico", "FASTA");
 //    S3Object obj = s3.getObject(req);
-    log.info(listing.toString());
+
+
+    Map<String, S3ObjectSummary> objects = new HashMap<String, S3ObjectSummary>();
+    Pattern p = Pattern.compile("hbase\\/\\w+_\\$folder\\$$");
+    for (S3ObjectSummary summary : listing.getObjectSummaries())
+      {
+      Matcher match = p.matcher(summary.getKey());
+      if (match.find())
+        {
+        String name = summary.getKey().split("/")[1];
+        objects.put(name, summary);
+        }
+      }
+
     }
 
+
+  public static Map<String, S3ObjectSummary> listDirectories(String bucket, String prefix)
+    {
+    Map<String, S3ObjectSummary> objects = new HashMap<String, S3ObjectSummary>();
+    AWSCredentials creds = AWSUtils.getCredentials();
+    AmazonS3 s3 = new AmazonS3Client(creds);
+
+
+    ObjectListing listing = s3.listObjects(new ListObjectsRequest().withBucketName(bucket).withPrefix(prefix));
+    for (S3ObjectSummary summary: listing.getObjectSummaries())
+      {
+      log.info(summary);
+      }
+
+    return null;
+    }
 
   /**
    * In any bucket the fasta files must be contained in a folder (or "prefix") named 'FASTA'

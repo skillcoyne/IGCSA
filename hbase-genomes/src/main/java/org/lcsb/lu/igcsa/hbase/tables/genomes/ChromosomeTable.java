@@ -29,6 +29,7 @@ public class ChromosomeTable extends AbstractTable<ChromosomeTable>
 
   public String addChromosome(GenomeResult genome, String chr, long length, long numSegments) throws IOException
     {
+    log.info("Genome:" + genome.getName() + " chr " + chr);
     ChromosomeRow row = new ChromosomeRow(ChromosomeRow.createRowId(genome.getName(), chr));
     row.addGenome(genome.getName());
     row.addChromosomeInfo(chr, length, numSegments);

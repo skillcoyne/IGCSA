@@ -9,7 +9,6 @@
 package org.lcsb.lu.igcsa.hbase.rows;
 
 import org.lcsb.lu.igcsa.hbase.tables.Column;
-import org.lcsb.lu.igcsa.hbase.tables.genomes.IGCSATables;
 import org.lcsb.lu.igcsa.variation.fragment.Variation;
 
 public class SmallMutationRow extends Row
@@ -34,7 +33,7 @@ public class SmallMutationRow extends Row
     if (genome == null || sm == null)
       throw new IllegalArgumentException("Genome name and Variation object required.");
 
-    log.info("Added genome info " + genome + " " + sm.getVariationName());
+    log.debug("Added genome info " + genome + " " + sm.getVariationName());
 
     String family = "info";
     this.addColumn(new Column(family, "genome", genome));
@@ -46,7 +45,7 @@ public class SmallMutationRow extends Row
 
   public void addLocation(String chr, long segment, long start, long end)
     {
-    log.info("addLocation: " + chr + " " + segment + " " + start + "-" + end);
+    log.debug("addLocation: " + chr + " " + segment + " " + start + "-" + end);
     String family = "loc";
 
     //"segment", "chr", "start", "end"
@@ -64,7 +63,7 @@ public class SmallMutationRow extends Row
     {
     if (seq == null)
       seq = "";
-    log.info("Add seq " + seq);
+    log.debug("Add seq " + seq);
 
     this.addColumn(new Column("bp", "seq", seq));
     }

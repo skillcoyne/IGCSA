@@ -92,14 +92,12 @@ public class GenerateFullGenome extends BWAJob
     return output;
     }
 
-
   protected void cleanUpFiles() throws IOException
     {
     FASTAUtil.deleteChecksumFiles(getJobFileSystem(), output);
     for (String c : chromosomes)
       FileUtil.copy(getJobFileSystem(), new Path(output, c), getJobFileSystem(), new Path(output, c + ".fa"), true, false, getConf());
     }
-
 
   private Scan setup() throws IOException
     {

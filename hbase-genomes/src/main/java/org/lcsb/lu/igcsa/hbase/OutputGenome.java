@@ -13,6 +13,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.Scan;
+import org.lcsb.lu.igcsa.hbase.tables.Column;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.ChromosomeResult;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.SequenceResult;
 import org.lcsb.lu.igcsa.hbase.tables.variation.*;
@@ -40,14 +42,22 @@ public class OutputGenome
     //    conf.set("hbase.zookeeper.quorum", "bmf00004.uni.lux");
     //    conf.set("hbase.zookeeper.property.clientPort", "2181");
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(conf);
-    admin.createTables();
 
-        for (ChromosomeResult chr: admin.getChromosomeTable().getChromosomesFor("GRCh37"))
-          {
-          String c = chr.getChrName();
-          log.info(c + " " + chr.getSegmentNumber() + " " + chr.getLength());
-          }
+    SequenceResult r  = admin.getSequenceTable().queryTable("AAAA00024002:1-GRCh37");
 
+    System.out.println(" " + r.getRowId() + " " + r.getChr() );
+
+
+
+    Scan seqScan = admin.getSequenceTable().getScanFor(new Column("info", "genome", "GRCh37"));
+
+
+//        for (ChromosomeResult chr: admin.getChromosomeTable().getChromosomesFor("GRCh37"))
+//          {
+//          String c = chr.getChrName();
+//          log.info(c + " " + chr.getSegmentNumber() + " " + chr.getLength());
+//          }
+//
     //  SequenceResult sr =     admin.getSequenceTable().queryTable("GRCh37-11:00043501");
     //    log.info(sr);
 
