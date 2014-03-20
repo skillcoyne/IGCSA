@@ -46,7 +46,7 @@ public class GCBin extends AbstractTable<GCBin>
     return results;
     }
 
-  private void getMaxBins() throws IOException
+  public Map<String, List<GCResult>> getBins() throws IOException
     {
     Map<String, List<GCResult>> byChr = new HashMap<String, List<GCResult>>();
     for (GCResult r: this.getRows())
@@ -55,6 +55,24 @@ public class GCBin extends AbstractTable<GCBin>
         byChr.put(r.getChromosome(), new ArrayList<GCResult>());
       byChr.get(r.getChromosome()).add(r);
       }
+    for (String chr: byChr.keySet())
+      {
+      Collections.sort(byChr.get(chr), new Comparator<GCResult>()
+      {
+      @Override
+      public int compare(GCResult a, GCResult b)
+        {
+        return  (a.getMax() < b.getMax())? -1: (a.getMax() > b.getMax()) ? 1: 0;
+        }
+      });
+      }
+    return byChr;
+
+    }
+
+  public Map<String, GCResult> getMaxBins() throws IOException
+    {
+    Map<String, List<GCResult>> byChr = getBins();
 
     maxBins = new HashMap<String, GCResult>();
     for (String chr: byChr.keySet())
@@ -69,6 +87,7 @@ public class GCBin extends AbstractTable<GCBin>
       });
       maxBins.put(chr, byChr.get(chr).get(0));
       }
+    return maxBins;
     }
 
   public GCResult getMaxBin(String chr) throws IOException

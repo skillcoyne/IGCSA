@@ -96,6 +96,8 @@ public class MutateFragments extends BWAJob
     getConf().set("genome", genome);
     getConf().set("parent", parent);
 
+    getConf().setInt("hbase.rpc.timeout",90000);
+
     HBaseGenomeAdmin genomeAdmin = HBaseGenomeAdmin.getHBaseGenomeAdmin(getConf());
     if (genomeAdmin.getGenomeTable().getGenome(parent) == null)
       {
@@ -120,7 +122,19 @@ public class MutateFragments extends BWAJob
 
     job.setMapperClass(SequenceTableMapper.class);
 
-    TableMapReduceUtil.initTableMapperJob(genomeAdmin.getSequenceTable().getTableName(), seqScan, SequenceTableMapper.class, null, null, job);
+    GCBin gcTable = (GCBin) VariationAdmin.getInstance().getTable(VariationTables.GC.getTableName());
+    SequenceTableMapper.setMaxGCBins(gcTable.getMaxBins());
+
+    Map<Location, GCResult> bins = new HashMap<Location, GCResult>();
+    for (Map.Entry<String, List<GCResult>> entry: gcTable.getBins().entrySet())
+      {
+      for (GCResult r: entry.getValue())
+        bins.put( new Location(entry.getKey(), r.getMin(), r.getMax()), r  );
+      }
+    SequenceTableMapper.setGCBins(bins);
+
+    TableMapReduceUtil.initTableMapperJob(genomeAdmin.getSequenceTable().getTableName(), seqScan, SequenceTableMapper.class, null, null,
+                                          job);
 
     // because we aren't emitting anything from mapper
     job.setNumReduceTasks(0);
@@ -142,13 +156,27 @@ public class MutateFragments extends BWAJob
     private Map<String, Probability> sizeProbabilities;
     private List<String> variationList;
 
-    private GCBin gcTable;
     private VariationCountPerBin varTable;
+
+    private static Map<String, GCResult> maxGCBins;
+    private static Map<Location, GCResult> GCBins;
+
+    public static void setMaxGCBins(Map<String, GCResult> gcBins)
+      {
+      maxGCBins = gcBins;
+      }
+
+    public static void setGCBins(Map<Location, GCResult> bins)
+      {
+      GCBins = bins;
+      }
 
     @Override
     protected void setup(Context context) throws IOException, InterruptedException
       {
       super.setup(context);
+      if (maxGCBins == null || GCBins == null)
+        throw new IOException("GC Bins need to be set up.");
 
       genomeAdmin = HBaseGenomeAdmin.getHBaseGenomeAdmin(context.getConfiguration());
       variationAdmin = VariationAdmin.getInstance(context.getConfiguration());
@@ -171,13 +199,21 @@ public class MutateFragments extends BWAJob
         }
       catch (ProbabilityException e)
         {
-        throw new InterruptedException("Failed to startup mapper: " + e);
+        throw new InterruptedException("Failed to start mapper: " + e);
         }
 
-      gcTable = (GCBin) variationAdmin.getTable(VariationTables.GC.getTableName());
       varTable = (VariationCountPerBin) variationAdmin.getTable(VariationTables.VPB.getTableName());
       }
 
+    private GCResult getBin(String chr, int gcContent)
+      {
+      for (Location loc: GCBins.keySet())
+        {
+        if (loc.getChromosome().equals(chr) && loc.containsLocation(gcContent))
+          return GCBins.get(loc);
+        }
+      return null;
+      }
 
     @Override
     protected void map(ImmutableBytesWritable key, Result value, Context context) throws IOException, InterruptedException
@@ -186,9 +222,6 @@ public class MutateFragments extends BWAJob
 
       final SequenceResult origSeq = genomeAdmin.getSequenceTable().createResult(value);
       final ChromosomeResult origChr = genomeAdmin.getChromosomeTable().getChromosome(parentGenome, origSeq.getChr());
-
-//      log.info("original seq: " + origSeq.getChr() + " " + origSeq.getStart() + "-" + origSeq.getEnd() + " " + origSeq.getSequence().substring(0,5) + "...");
-//      log.info("original chr: " + origChr.toString());
 
       // get hbase objects for new genome
       ChromosomeResult mutatedChr = genomeAdmin.getChromosomeTable().getChromosome(genome.getName(), origSeq.getChr());
@@ -205,9 +238,9 @@ public class MutateFragments extends BWAJob
       int gcContent = mutatedSequence.calculateGC();
       if (gcContent > (0.3 * origSeq.getSequenceLength()))
         {
-        GCResult gcResult = gcTable.getMaxBin(origSeq.getChr());
+        GCResult gcResult = maxGCBins.get(origSeq.getChr());
         if (gcContent < gcResult.getMax())
-            gcResult = gcTable.getBinFor(origSeq.getChr(), mutatedSequence.calculateGC());
+          getBin(origSeq.getChr(), gcContent);
 
         // get random fragment within this bin
         List<VCPBResult> varsPerFrag = varTable.getFragment(origSeq.getChr(), gcResult.getMin(), gcResult.getMax(), randomFragment.nextInt(gcResult.getTotalFragments()), variationList);
@@ -241,7 +274,7 @@ public class MutateFragments extends BWAJob
         SequenceResult mutSequence = genomeAdmin.getSequenceTable().queryTable(mutSeqRowId);
         for (Variation v : mutations.keySet())
           {
-          // add any mutations to the small mutations table
+          // add any mutations to the small mutations table -- could do this as a reduce task, might be better as I could do a list of puts
           for (Map.Entry<Location, DNASequence> entry : mutations.get(v).entrySet())
             genomeAdmin.getSmallMutationsTable().addMutation(mutSequence, v, entry.getKey().getStart(), entry.getKey().getEnd(), entry.getValue().getSequence());
           }
@@ -250,14 +283,7 @@ public class MutateFragments extends BWAJob
         genomeAdmin.getSequenceTable().addSequence(mutatedChr, origSeq.getStart(), origSeq.getEnd(), origSeq.getSequence(), origSeq.getSegmentNum());
 
       long end = System.currentTimeMillis() - start;
-      //log.info("FINISHED MAP " + String.valueOf(end) );
-      }
-
-    @Override
-    protected void cleanup(Context context) throws IOException, InterruptedException
-      {
-      genomeAdmin.closeConections();
-      variationAdmin.closeConections();
+      log.info("FINISHED MAP " + String.valueOf(end) );
       }
 
     private Variation createInstance(String className)

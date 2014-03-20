@@ -72,6 +72,11 @@ public class Location implements Comparable<Location>
     return this.range.containsRange(location.range);
     }
 
+  public boolean containsLocation(int location)
+    {
+    return this.range.containsInteger(location);
+    }
+
   public boolean overlapsLocation(Location location)
     {
     return this.range.overlapsRange(location.range);
