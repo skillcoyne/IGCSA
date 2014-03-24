@@ -57,6 +57,7 @@ public abstract class AbstractTable<T> extends HTable
   public static HTableDescriptor getDescriptor(TableDefinitions table)
     {
     HTableDescriptor descriptor = new HTableDescriptor(table.getTableName());
+
     for (String fam : table.getRequiredFamilies().keySet()) // columns
       descriptor.addFamily(new HColumnDescriptor(fam));
     return descriptor;

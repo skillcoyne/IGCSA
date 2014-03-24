@@ -17,5 +17,7 @@ public interface TableDefinitions
   {
   public String getTableName();
 
+  public int regionSplits();
+
   public abstract Map<String, Set<String>> getRequiredFamilies();
   }

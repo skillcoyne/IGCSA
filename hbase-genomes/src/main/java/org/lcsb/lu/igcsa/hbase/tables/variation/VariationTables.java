@@ -14,7 +14,7 @@ import java.util.*;
 
 public enum VariationTables implements TableDefinitions
   {
-    VPB("variation_per_bin")
+    VPB("variation_per_bin", 60)
         {
         @Override
         public Map<String, Set<String>> getRequiredFamilies()
@@ -26,7 +26,7 @@ public enum VariationTables implements TableDefinitions
           return reqFields;
           }
         },
-    SNVP("snv_probability")
+    SNVP("snv_probability", 1)
         { // RowIDS:  A-C, A-T etc...
         @Override
         public Map<String, Set<String>> getRequiredFamilies()
@@ -36,7 +36,7 @@ public enum VariationTables implements TableDefinitions
           return reqFields;
           }
         },
-    SIZE("variation_size_probability")
+    SIZE("variation_size_probability", 1)
         { // RowIDS: SNV_10, SNV_100, etc
         @Override
         public Map<String, Set<String>> getRequiredFamilies()
@@ -47,7 +47,7 @@ public enum VariationTables implements TableDefinitions
           return reqFields;
           }
         },
-    GC("gc_bin")
+    GC("gc_bin", 1)
         { // RowIDS: X:0-85
         @Override
         public Map<String, Set<String>> getRequiredFamilies()
@@ -62,14 +62,22 @@ public enum VariationTables implements TableDefinitions
 
 
   private String tableName;
-  private VariationTables(String tn)
+  private int splits;
+  private VariationTables(String tn, int s)
     {
     tableName = tn;
+    splits = s;
     }
 
   public String getTableName()
     {
     return tableName;
+    }
+
+  @Override
+  public int regionSplits()
+    {
+    return splits;
     }
 
 

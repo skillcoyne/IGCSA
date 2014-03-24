@@ -1,9 +1,12 @@
 package org.lcsb.lu.igcsa.hbase;
 
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.util.RegionSplitter;
 import org.lcsb.lu.igcsa.hbase.tables.AbstractTable;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.IGCSATables;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.SequenceTable;
@@ -26,10 +29,11 @@ public class VariationAdmin extends IGCSAHbaseAdmin
   private static final Log log = LogFactory.getLog(VariationAdmin.class);
 
   private static VariationAdmin adminInstance;
+
   public static VariationAdmin getInstance() throws IOException
     {
     //if (adminInstance == null)
-      adminInstance = new VariationAdmin(HBaseConfiguration.create());
+    adminInstance = new VariationAdmin(HBaseConfiguration.create());
     return adminInstance;
     }
 
@@ -62,28 +66,36 @@ public class VariationAdmin extends IGCSAHbaseAdmin
 
   public void disableTables() throws IOException
     {
-    super.disableTables( VariationTables.getTableNames() );
+    super.disableTables(VariationTables.getTableNames());
     }
 
   public void deleteTables() throws IOException
     {
-    super.deleteTables( VariationTables.getTableNames() );
+    super.deleteTables(VariationTables.getTableNames());
     }
 
   @Override
-  public void createTables() throws IOException
+  public void createTables() throws IOException, ParseException, InterruptedException
     {
-    for (VariationTables table: VariationTables.values())
+    for (VariationTables table : VariationTables.values())
       {
       if (!hbaseAdmin.tableExists(table.getTableName()))
-        hbaseAdmin.createTable(AbstractTable.getDescriptor(table));
+        {
+        if (table.regionSplits() > 1 && hbaseAdmin.getConfiguration().getInt("mapred.map.tasks", 2) > 2)
+          {
+          RegionSplitter.main(new String[]{table.getTableName(), "-c", String.valueOf(table.regionSplits()),
+              "-f", StringUtils.join(table.getRequiredFamilies().keySet().iterator(), ":")});
+          }
+        else
+          hbaseAdmin.createTable(AbstractTable.getDescriptor(table));
+        }
       }
     }
 
   @Override
   public boolean tablesExist() throws IOException
     {
-    for (VariationTables table: VariationTables.values())
+    for (VariationTables table : VariationTables.values())
       {
       boolean exists = this.tableExists(table.getTableName());
       if (!exists) return false;

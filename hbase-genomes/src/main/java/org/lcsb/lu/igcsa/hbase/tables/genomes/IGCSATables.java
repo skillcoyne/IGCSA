@@ -13,7 +13,7 @@ import java.util.*;
  */
 public enum IGCSATables  implements TableDefinitions
   {
-    GN("genome")
+    GN("genome", 1)
         {
         @Override
         public Map<String, Set<String>> getRequiredFamilies()
@@ -24,7 +24,7 @@ public enum IGCSATables  implements TableDefinitions
           return reqFields;
           }
         },
-    CHR("chromosome")
+    CHR("chromosome", 1)
         {
         @Override
         public Map<String, Set<String>> getRequiredFamilies()
@@ -35,7 +35,7 @@ public enum IGCSATables  implements TableDefinitions
           return reqFields;
           }
         },
-      SEQ("sequence")
+      SEQ("sequence", 60)
           {
         @Override
         public Map<String, Set<String>> getRequiredFamilies()
@@ -47,7 +47,7 @@ public enum IGCSATables  implements TableDefinitions
           return reqFields;
           }
         },
-      SMUT("small_mutations")
+      SMUT("small_mutations", 60)
           {
           @Override
           public Map<String, Set<String>> getRequiredFamilies()
@@ -59,7 +59,7 @@ public enum IGCSATables  implements TableDefinitions
             return reqFields;
             }
           },
-      KI("karyotype_index")
+      KI("karyotype_index", 60)
           {
           @Override
           public Map<String, Set<String>> getRequiredFamilies()
@@ -72,7 +72,7 @@ public enum IGCSATables  implements TableDefinitions
             return reqFields;
             }
           },
-      KT("karyotype")
+      KT("karyotype", 10)
           {
           @Override
           public Map<String, Set<String>> getRequiredFamilies()
@@ -85,15 +85,25 @@ public enum IGCSATables  implements TableDefinitions
           };
 
   private String tableName;
+  private int splits;
 
-  private IGCSATables(String tn)
+  private IGCSATables(String tn, int s)
     {
     tableName = tn;
+    splits = s;
     }
+
+
 
   public String getTableName()
     {
     return tableName;
+    }
+
+  @Override
+  public int regionSplits()
+    {
+    return splits;
     }
 
   public static String[] getTableNames()

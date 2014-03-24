@@ -78,7 +78,7 @@ public class ImportVariationData
   private VariationAdmin admin;
 
 
-  public void runImport(CommandLine cl) throws IOException
+  public void runImport(CommandLine cl) throws IOException, ParseException, InterruptedException
     {
     admin = VariationAdmin.getInstance();
     admin.deleteTables();

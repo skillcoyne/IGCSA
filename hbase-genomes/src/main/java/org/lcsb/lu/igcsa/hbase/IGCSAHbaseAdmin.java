@@ -8,6 +8,7 @@
 
 package org.lcsb.lu.igcsa.hbase;
 
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -88,6 +89,6 @@ public abstract class IGCSAHbaseAdmin
     }
 
   public abstract boolean tablesExist() throws IOException;
-  public abstract void createTables() throws IOException;
+  public abstract void createTables() throws IOException, ParseException, InterruptedException;
 
   }

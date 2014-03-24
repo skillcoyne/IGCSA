@@ -8,6 +8,8 @@
 
 package org.lcsb.lu.igcsa.hbase;
 
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -15,6 +17,7 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.hbase.util.RegionSplitter;
 import org.lcsb.lu.igcsa.hbase.tables.*;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.*;
 
@@ -31,7 +34,7 @@ public class HBaseGenomeAdmin extends IGCSAHbaseAdmin
   public static HBaseGenomeAdmin getHBaseGenomeAdmin() throws IOException
     {
     //if (adminInstance == null)
-      adminInstance = new HBaseGenomeAdmin(HBaseConfiguration.create());
+    adminInstance = new HBaseGenomeAdmin(HBaseConfiguration.create());
 
     return adminInstance;
     }
@@ -133,12 +136,12 @@ public class HBaseGenomeAdmin extends IGCSAHbaseAdmin
     }
 
 
-//  public HBaseKaryotype getKaryotype(String karyotypeName) throws IOException
-//    {
-//    KaryotypeIndexTable kiT = this.getKaryotypeIndexTable();
-//    KaryotypeIndexResult result = kiT.queryTable(karyotypeName);
-//    return (result != null) ? new HBaseKaryotype(result) : null;
-//    }
+  //  public HBaseKaryotype getKaryotype(String karyotypeName) throws IOException
+  //    {
+  //    KaryotypeIndexTable kiT = this.getKaryotypeIndexTable();
+  //    KaryotypeIndexResult result = kiT.queryTable(karyotypeName);
+  //    return (result != null) ? new HBaseKaryotype(result) : null;
+  //    }
 
   public void deleteGenome(String genomeName) throws IOException
     {
@@ -162,8 +165,8 @@ public class HBaseGenomeAdmin extends IGCSAHbaseAdmin
 
     gT.delete(genomeName);
 
-//    for (AbstractTable t: new AbstractTable[]{cT, sT, smT, gT})
-//      t.close();
+    //    for (AbstractTable t: new AbstractTable[]{cT, sT, smT, gT})
+    //      t.close();
     }
 
   public void deleteKaryotypes(String genomeName) throws IOException
@@ -198,22 +201,29 @@ public class HBaseGenomeAdmin extends IGCSAHbaseAdmin
     }
 
   @Override
-  public void createTables() throws IOException
+  public void createTables() throws IOException, ParseException, InterruptedException
     {
-    for (IGCSATables table: IGCSATables.values())
+    for (IGCSATables table : IGCSATables.values())
       {
       if (!hbaseAdmin.tableExists(table.getTableName()))
-        hbaseAdmin.createTable(AbstractTable.getDescriptor(table));
+        {
+        if (table.regionSplits() > 1 && hbaseAdmin.getConfiguration().getInt("mapred.map.tasks", 2) > 2)
+          {
+          RegionSplitter.main(new String[]{table.getTableName(), "-c", String.valueOf(table.regionSplits()),
+              "-f", StringUtils.join(table.getRequiredFamilies().keySet().iterator(), ":")});
+          }
+        else hbaseAdmin.createTable(AbstractTable.getDescriptor(table));
+        }
+
       }
     }
 
   @Override
   public boolean tablesExist() throws IOException
     {
-    for (IGCSATables table: IGCSATables.values())
+    for (IGCSATables table : IGCSATables.values())
       {
-      boolean exists = this.tableExists(table.getTableName());
-      if (!exists) return false;
+      if (!this.tableExists(table.getTableName())) return false;
       }
     return true;
     }
