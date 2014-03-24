@@ -1,12 +1,5 @@
 package org.lcsb.lu.igcsa.hbase;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.services.rds.model.OptionSetting;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.ListObjectsRequest;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.apache.commons.cli.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -18,17 +11,10 @@ import org.apache.hadoop.hbase.mapreduce.Import;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.IGCSACommandLineParser;
 import org.lcsb.lu.igcsa.aws.AWSProperties;
-import org.lcsb.lu.igcsa.aws.AWSUtils;
-import org.lcsb.lu.igcsa.hbase.tables.genomes.IGCSATables;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * org.lcsb.lu.igcsa.hbase
@@ -75,14 +61,16 @@ public class HBaseUtility
     if (!cl.hasOption("d") || !cl.hasOption("c"))
       usage("Missing required option 'd' or 'c'", options);
 
-    if (cl.getOptionValue("d").startsWith("s3"))
+    String dir = cl.getOptionValue("d");
+    if (dir.startsWith("s3"))
       {
-      conf = setAWSProps(conf);
+      dir = "s3n://" + dir.substring(dir.indexOf("/")+1, dir.length());
+      //conf = setAWSProps(conf);
       if (!cl.hasOption("t"))
         usage("When using s3 a list of tables is required.", options);
       }
 
-    Path path = new Path(cl.getOptionValue("d"));
+    Path path = new Path(dir);
     String cmd = cl.getOptionValue("c");
 
     String[] tables = new String[0];

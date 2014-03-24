@@ -267,9 +267,12 @@ public class MutateFragments extends BWAJob
         for (Variation v : mutations.keySet())
           {
           // add any mutations to the small mutations table -- could do this as a reduce task, might be better as I could do a list of puts
+
           for (Map.Entry<Location, DNASequence> entry : mutations.get(v).entrySet())
+            {
             genomeAdmin.getSmallMutationsTable().addMutation(mutSequence, v, entry.getKey().getStart(), entry.getKey().getEnd(),
                                                              entry.getValue().getSequence());
+            }
           }
         }
       else
