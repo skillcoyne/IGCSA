@@ -1,10 +1,13 @@
 package org.lcsb.lu.igcsa;
 
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.Tool;
 import org.apache.log4j.Logger;
 
@@ -21,6 +24,8 @@ import java.net.URI;
 public abstract class JobIGCSA extends Configured implements Tool
   {
   static Logger log = Logger.getLogger(JobIGCSA.class.getName());
+
+  public IGCSACommandLineParser parser = IGCSACommandLineParser.getParser();
 
   public enum Paths
     {
@@ -69,6 +74,26 @@ public abstract class JobIGCSA extends Configured implements Tool
       addArchive(uri);
     else
       DistributedCache.addCacheArchive(uri, getConf());
+    }
+
+  protected void addOptions(Option... opts)
+    {
+    this.parser.addOptions(opts);
+    }
+
+  protected GenericOptionsParser parseHadoopOpts(String[] args) throws ParseException
+    {
+    GenericOptionsParser gop = null;
+    try
+      {
+      gop = new GenericOptionsParser(getConf(), args);
+      }
+    catch (IOException e)
+      {
+      log.error(e);
+      }
+
+    return gop;
     }
 
   }

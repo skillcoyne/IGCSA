@@ -19,5 +19,9 @@ public interface TableDefinitions
 
   public int regionSplits();
 
+  public byte[] getStartKey();
+
+  public byte[] getEndKey();
+
   public abstract Map<String, Set<String>> getRequiredFamilies();
   }

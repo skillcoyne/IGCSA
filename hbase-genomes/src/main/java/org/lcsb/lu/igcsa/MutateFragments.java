@@ -10,7 +10,6 @@ package org.lcsb.lu.igcsa;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -19,24 +18,19 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 
-import org.apache.hadoop.hbase.mapreduce.TableInputFormat;
 import org.apache.hadoop.hbase.mapreduce.TableInputFormatBase;
 import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
 import org.apache.hadoop.hbase.mapreduce.TableMapper;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.Text;
 
-import org.apache.hadoop.mapred.lib.MultithreadedMapRunner;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Job;
 
 import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.ToolRunner;
-import org.lcsb.lu.igcsa.database.normal.*;
 
 import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.genome.Location;
@@ -51,7 +45,6 @@ import org.lcsb.lu.igcsa.hbase.tables.genomes.SequenceResult;
 import org.lcsb.lu.igcsa.hbase.tables.variation.*;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
-import org.lcsb.lu.igcsa.utils.VariantUtils;
 import org.lcsb.lu.igcsa.variation.fragment.SNV;
 import org.lcsb.lu.igcsa.variation.fragment.Variation;
 
@@ -64,7 +57,7 @@ import static org.lcsb.lu.igcsa.hbase.tables.variation.GCBin.*;
 NOTE:
 This isn't currently being used for anything so it could be that this doesn't work.  It's not been properly tested.
  */
-public class MutateFragments extends BWAJob
+public class MutateFragments extends JobIGCSA
   {
   private static final Log log = LogFactory.getLog(MutateFragments.class);
 
@@ -83,7 +76,6 @@ public class MutateFragments extends BWAJob
     Option t = new Option("t", "Test", false, "");
     p.setRequired(false);
     this.addOptions(t);
-
     }
 
   @Override
@@ -109,7 +101,12 @@ public class MutateFragments extends BWAJob
       System.exit(-1);
       }
 
-    if (genomeAdmin.getGenomeTable().getGenome(genome) != null) genomeAdmin.deleteGenome(genome);
+    if (genomeAdmin.getGenomeTable().getGenome(genome) != null)
+      {
+      log.info(genome + " already exists, deleting.");
+      genomeAdmin.deleteGenome(genome);
+      }
+    log.info("Adding genome " + genome);
     genomeAdmin.getGenomeTable().addGenome(genome, parent);
 
     Job job = new Job(getConf(), "Genome Fragment Mutation");
@@ -259,7 +256,7 @@ public class MutateFragments extends BWAJob
                                                                         mutatedSequence.getSequence(), origSeq.getSegmentNum());
         if (mutSeqRowId == null) throw new IOException("Failed to add sequence.");
 
-        SequenceResult mutSequence = genomeAdmin.getSequenceTable().queryTable(mutSeqRowId);
+//        SequenceResult mutSequence = genomeAdmin.getSequenceTable().queryTable(mutSeqRowId);
 //        for (Variation v : mutations.keySet())
 //          {
 //          // add any mutations to the small mutations table -- could do this as a reduce task, might be better as I could do a list of puts
@@ -274,7 +271,7 @@ public class MutateFragments extends BWAJob
                                                    origSeq.getSegmentNum());
 
       long end = System.currentTimeMillis() - start;
-      //log.info("FINISHED MAP " + String.valueOf(end));
+      log.info("FINISHED MAP " + origSeq.getRowId() + " time=" + String.valueOf(end));
       }
 
     private Variation createInstance(String className)

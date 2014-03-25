@@ -11,7 +11,6 @@ import org.apache.hadoop.hbase.mapreduce.Import;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.aws.AWSProperties;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -26,24 +25,11 @@ public class HBaseUtility
   {
   static Logger log = Logger.getLogger(HBaseUtility.class.getName());
 
-  private static Configuration setAWSProps(Configuration conf)
-    {
-    AWSProperties props = AWSProperties.getProperties();
-    conf.set("fs.s3n.awsAccessKeyId", props.getAccessKey());
-    conf.set("fs.s3n.awsSecretAccessKey", props.getSecretKey());
-
-    //conf.setInt("hbase.regionserver.handler.count", 100);
-    conf.setInt("hbase.rpc.timeout", 360000);
-
-    return conf;
-    }
-
   private static void usage(String msg, Options options)
     {
     HelpFormatter help = new HelpFormatter();
     help.printHelp(msg, options);
     System.exit(-1);
-
     }
 
   public static void main(String[] args) throws Exception
@@ -64,8 +50,7 @@ public class HBaseUtility
     String dir = cl.getOptionValue("d");
     if (dir.startsWith("s3"))
       {
-      dir = "s3n://" + dir.substring(dir.indexOf("/")+1, dir.length());
-      //conf = setAWSProps(conf);
+      dir = dir.replace("s3://", "s3n://");
       if (!cl.hasOption("t"))
         usage("When using s3 a list of tables is required.", options);
       }
@@ -117,7 +102,6 @@ public class HBaseUtility
       for (int i=0; i<statuses.length; i++)
         tables[i] = statuses[i].getPath().getName();
       }
-    System.out.println(tables);
 
     for (String table: tables)
       {

@@ -25,8 +25,6 @@ public abstract class BWAJob extends JobIGCSA
   {
   static Logger log = Logger.getLogger(BWAJob.class.getName());
 
-  public IGCSACommandLineParser parser = IGCSACommandLineParser.getParser();
-
   public BWAJob(Configuration conf)
     {
     super(conf);
@@ -36,27 +34,6 @@ public abstract class BWAJob extends JobIGCSA
 
     parser.addOptions(bwa);
     }
-
-  protected void addOptions(Option... opts)
-    {
-    this.parser.addOptions(opts);
-    }
-
-  protected GenericOptionsParser parseHadoopOpts(String[] args) throws ParseException
-    {
-    GenericOptionsParser gop = null;
-    try
-      {
-      gop = new GenericOptionsParser(getConf(), args);
-      }
-    catch (IOException e)
-      {
-      log.error(e);
-      }
-
-    return gop;
-    }
-
 
   protected void setupBWA(String bwaPath) throws URISyntaxException
     {

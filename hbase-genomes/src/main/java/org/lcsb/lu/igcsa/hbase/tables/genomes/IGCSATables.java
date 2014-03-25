@@ -1,5 +1,6 @@
 package org.lcsb.lu.igcsa.hbase.tables.genomes;
 
+import org.apache.hadoop.hbase.util.Bytes;
 import org.lcsb.lu.igcsa.hbase.tables.TableDefinitions;
 
 import java.util.*;
@@ -13,7 +14,7 @@ import java.util.*;
  */
 public enum IGCSATables  implements TableDefinitions
   {
-    GN("genome", 1)
+    GN("genome", 1, new byte[0], new byte[0])
         {
         @Override
         public Map<String, Set<String>> getRequiredFamilies()
@@ -24,7 +25,7 @@ public enum IGCSATables  implements TableDefinitions
           return reqFields;
           }
         },
-    CHR("chromosome", 1)
+    CHR("chromosome", 1, new byte[0], new byte[0])
         {
         @Override
         public Map<String, Set<String>> getRequiredFamilies()
@@ -35,7 +36,7 @@ public enum IGCSATables  implements TableDefinitions
           return reqFields;
           }
         },
-      SEQ("sequence", 60)
+      SEQ("sequence", 60, Bytes.toBytes("AAAA00000000"), Bytes.toBytes("YZZZ99999999"))
           {
         @Override
         public Map<String, Set<String>> getRequiredFamilies()
@@ -47,7 +48,7 @@ public enum IGCSATables  implements TableDefinitions
           return reqFields;
           }
         },
-      SMUT("small_mutations", 60)
+      SMUT("small_mutations", 60, Bytes.toBytes("AAAA00000000"), Bytes.toBytes("YZZZ99999999"))
           {
           @Override
           public Map<String, Set<String>> getRequiredFamilies()
@@ -59,7 +60,7 @@ public enum IGCSATables  implements TableDefinitions
             return reqFields;
             }
           },
-      KI("karyotype_index", 60)
+      KI("karyotype_index", 1, new byte[0], new byte[0])
           {
           @Override
           public Map<String, Set<String>> getRequiredFamilies()
@@ -72,7 +73,7 @@ public enum IGCSATables  implements TableDefinitions
             return reqFields;
             }
           },
-      KT("karyotype", 10)
+      KT("karyotype", 1, new byte[0], new byte[0])
           {
           @Override
           public Map<String, Set<String>> getRequiredFamilies()
@@ -86,15 +87,17 @@ public enum IGCSATables  implements TableDefinitions
 
   private String tableName;
   private int splits;
+  private byte[] startKey, endKey;
 
-  private IGCSATables(String tn, int s)
+  private IGCSATables(String tn, int s, byte[] startKey, byte[] endKey)
     {
-    tableName = tn;
-    splits = s;
+    this.tableName = tn;
+    this.splits = s;
+    this.startKey = startKey;
+    this.endKey = endKey;
     }
 
-
-
+  @Override
   public String getTableName()
     {
     return tableName;
@@ -105,6 +108,19 @@ public enum IGCSATables  implements TableDefinitions
     {
     return splits;
     }
+
+  @Override
+  public byte[] getStartKey()
+    {
+    return startKey;
+    }
+
+  @Override
+  public byte[] getEndKey()
+    {
+    return endKey;
+    }
+
 
   public static String[] getTableNames()
     {

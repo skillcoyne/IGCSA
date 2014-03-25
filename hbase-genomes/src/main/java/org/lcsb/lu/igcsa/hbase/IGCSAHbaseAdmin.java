@@ -13,11 +13,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HTableDescriptor;
-import org.apache.hadoop.hbase.MasterNotRunningException;
-import org.apache.hadoop.hbase.ZooKeeperConnectionException;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
-import org.lcsb.lu.igcsa.hbase.tables.AbstractTable;
-import org.lcsb.lu.igcsa.hbase.tables.genomes.IGCSATables;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,6 +32,10 @@ public abstract class IGCSAHbaseAdmin
     this.conf = conf;
     this.hbaseAdmin = new HBaseAdmin(conf);
 
+
+    //    configuration.setInt("hbase.rpc.timeout", 1200000);
+    //    configuration.setInt("hbase.regionserver.lease.period", 120000);
+
     int tryRunning = 1;
     while (!this.hbaseAdmin.isMasterRunning() && tryRunning < 20)
       {
@@ -50,6 +50,7 @@ public abstract class IGCSAHbaseAdmin
         }
       ++tryRunning;
       }
+    log.info("HBASE CONFIG rpc.timeout=" + hbaseAdmin.getConfiguration().get("hbase.rpc.timeout") + " regionserver.lease=" +  hbaseAdmin.getConfiguration().get("hbase.regionserver.lease.period"));
     }
 
   public void closeConections() throws IOException

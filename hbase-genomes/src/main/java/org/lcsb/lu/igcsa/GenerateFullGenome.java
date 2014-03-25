@@ -44,7 +44,7 @@ import java.io.IOException;
 import java.util.*;
 
 
-public class GenerateFullGenome extends BWAJob
+public class GenerateFullGenome extends JobIGCSA
   {
   public static void main(String[] args) throws Exception
     {
@@ -60,7 +60,12 @@ public class GenerateFullGenome extends BWAJob
     // Run BWA index
     Path tmp = BWAIndex.writeReferencePointerFile(mergedFasta, gfg.getJobFileSystem());
 
-    ToolRunner.run(new BWAIndex(), (String[]) ArrayUtils.addAll(args, new String[]{"-f", tmp.toString()}));
+    boolean runIndex = false;
+    for (String arg: args)
+      if (arg.equals("-b")) runIndex = true;
+
+    if (runIndex)
+      ToolRunner.run(new BWAIndex(), (String[]) ArrayUtils.addAll(args, new String[]{"-f", tmp.toString()}));
 
     gfg.getJobFileSystem().delete(tmp, true);
     }

@@ -1,5 +1,6 @@
 package org.lcsb.lu.igcsa.hbase.tables.variation;
 
+import org.apache.hadoop.hbase.util.Bytes;
 import org.lcsb.lu.igcsa.hbase.tables.TableDefinitions;
 
 import java.util.*;
@@ -14,7 +15,7 @@ import java.util.*;
 
 public enum VariationTables implements TableDefinitions
   {
-    VPB("variation_per_bin", 60)
+    VPB("variation_per_bin", 1, new byte[0], new byte[0])
         {
         @Override
         public Map<String, Set<String>> getRequiredFamilies()
@@ -26,7 +27,7 @@ public enum VariationTables implements TableDefinitions
           return reqFields;
           }
         },
-    SNVP("snv_probability", 1)
+    SNVP("snv_probability", 1, new byte[0], new byte[0])
         { // RowIDS:  A-C, A-T etc...
         @Override
         public Map<String, Set<String>> getRequiredFamilies()
@@ -36,7 +37,7 @@ public enum VariationTables implements TableDefinitions
           return reqFields;
           }
         },
-    SIZE("variation_size_probability", 1)
+    SIZE("variation_size_probability", 1, new byte[0], new byte[0])
         { // RowIDS: SNV_10, SNV_100, etc
         @Override
         public Map<String, Set<String>> getRequiredFamilies()
@@ -47,7 +48,7 @@ public enum VariationTables implements TableDefinitions
           return reqFields;
           }
         },
-    GC("gc_bin", 1)
+    GC("gc_bin", 1, new byte[0], new byte[0])
         { // RowIDS: X:0-85
         @Override
         public Map<String, Set<String>> getRequiredFamilies()
@@ -63,10 +64,13 @@ public enum VariationTables implements TableDefinitions
 
   private String tableName;
   private int splits;
-  private VariationTables(String tn, int s)
+  private byte[] startKey, endKey;
+  private VariationTables(String tn, int s, byte[] start, byte[] end)
     {
     tableName = tn;
     splits = s;
+    startKey = start;
+    endKey = end;
     }
 
   public String getTableName()
@@ -80,6 +84,17 @@ public enum VariationTables implements TableDefinitions
     return splits;
     }
 
+  @Override
+  public byte[] getStartKey()
+    {
+    return startKey;
+    }
+
+  @Override
+  public byte[] getEndKey()
+    {
+    return endKey;
+    }
 
   public static VariationTables valueOfName(String tn)
     {

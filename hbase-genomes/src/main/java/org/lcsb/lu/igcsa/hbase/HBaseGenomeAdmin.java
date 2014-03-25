@@ -14,7 +14,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.util.RegionSplitter;
@@ -33,9 +32,7 @@ public class HBaseGenomeAdmin extends IGCSAHbaseAdmin
 
   public static HBaseGenomeAdmin getHBaseGenomeAdmin() throws IOException
     {
-    //if (adminInstance == null)
     adminInstance = new HBaseGenomeAdmin(HBaseConfiguration.create());
-
     return adminInstance;
     }
 
@@ -47,7 +44,7 @@ public class HBaseGenomeAdmin extends IGCSAHbaseAdmin
     return adminInstance;
     }
 
-  protected HBaseGenomeAdmin(Configuration conf) throws IOException
+  public HBaseGenomeAdmin(Configuration conf) throws IOException
     {
     super(conf);
     }
@@ -211,8 +208,9 @@ public class HBaseGenomeAdmin extends IGCSAHbaseAdmin
         {
         if (table.regionSplits() > 1 && hbaseAdmin.getConfiguration().getInt("mapred.map.tasks", 2) > 2)
           {
-          RegionSplitter.main(new String[]{table.getTableName(), "-c", String.valueOf(table.regionSplits()),
-              "-f", StringUtils.join(table.getRequiredFamilies().keySet().iterator(), ":")});
+          hbaseAdmin.createTable(AbstractTable.getDescriptor(table), table.getStartKey(), table.getEndKey(), table.regionSplits());
+//          RegionSplitter.main(new String[]{table.getTableName(), "-c", String.valueOf(table.regionSplits()),
+//              "-f", StringUtils.join(table.getRequiredFamilies().keySet().iterator(), ":")});
           }
         else hbaseAdmin.createTable(AbstractTable.getDescriptor(table));
         }
