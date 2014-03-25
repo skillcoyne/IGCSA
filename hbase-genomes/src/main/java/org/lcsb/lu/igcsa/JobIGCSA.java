@@ -56,6 +56,10 @@ public abstract class JobIGCSA extends Configured implements Tool
     return FileSystem.get(getConf());
     }
 
+  public FileSystem getJobFileSystem(URI uri) throws IOException
+    {
+    return FileSystem.get(uri, getConf());
+    }
   protected Path getPath(Paths p)
     {
     return new Path(p.getPath());

@@ -35,8 +35,6 @@ public class SmallMutationsTable extends AbstractTable<SmallMutationsTable>
       throw new IllegalArgumentException("The end must be >= start and mutation cannot be null");
 
     String smRowId = SmallMutationRow.createRowId(sequence.getGenome(), sequence.getChr(), sequence.getSegmentNum(), start);
-    if (this.queryTable(smRowId) != null)
-      log.warn("Row " + smRowId + " exists in mutations table, OVERWRITING!");
 
     SmallMutationRow row = new SmallMutationRow(smRowId);
     row.addGenomeInfo(sequence.getGenome(), mutation);
@@ -49,20 +47,12 @@ public class SmallMutationsTable extends AbstractTable<SmallMutationsTable>
 
   public String addMutation(SequenceResult sequence, Variation mutation, int start, int end, String mutationSequence) throws IOException
     {
-    //Row row = newMutationRow(sequence, mutation, start, end, mutationSequence);
+    Row row = newMutationRow(sequence, mutation, start, end, mutationSequence);
 
-
-    String smRowId = SmallMutationRow.createRowId(sequence.getGenome(), sequence.getChr(), sequence.getSegmentNum(), start);
-    if (this.queryTable(smRowId) != null)
-      log.warn("Row " + smRowId + " exists in mutations table, OVERWRITING!");
+    if (this.queryTable(row.getRowIdAsString()) != null)
+      log.warn("Row " + row.getRowIdAsString() + " exists in mutations table, OVERWRITING!");
     else
       {
-      SmallMutationRow row = new SmallMutationRow(smRowId);
-      row.addGenomeInfo(sequence.getGenome(), mutation);
-      row.addLocation(sequence.getChr(), sequence.getSegmentNum(), start, end);
-      row.addSequence(mutationSequence);
-
-      smRowId = row.getRowIdAsString();
       try
         {
         this.addRow(row);
@@ -73,7 +63,7 @@ public class SmallMutationsTable extends AbstractTable<SmallMutationsTable>
         return null;
         }
       }
-    return smRowId;
+    return row.getRowIdAsString();
     }
 
   @Override

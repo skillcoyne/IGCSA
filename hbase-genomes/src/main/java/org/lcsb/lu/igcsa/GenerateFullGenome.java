@@ -14,17 +14,14 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
-import org.apache.hadoop.hbase.mapreduce.TableMapper;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
@@ -35,8 +32,9 @@ import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.ChromosomeResult;
 import org.lcsb.lu.igcsa.hbase.tables.Column;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.GenomeResult;
-import org.lcsb.lu.igcsa.hbase.tables.genomes.SequenceResult;
 import org.lcsb.lu.igcsa.mapreduce.*;
+import org.lcsb.lu.igcsa.mapreduce.fasta.ChromosomeSequenceMapper;
+import org.lcsb.lu.igcsa.mapreduce.fasta.ChromosomeSequenceReducer;
 import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAOutputFormat;
 import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil;
 
@@ -44,6 +42,9 @@ import java.io.IOException;
 import java.util.*;
 
 
+/**
+ * It might actually work best to run these as a set of separate jobs, one for each chromosome.
+ */
 public class GenerateFullGenome extends JobIGCSA
   {
   public static void main(String[] args) throws Exception
@@ -58,16 +59,16 @@ public class GenerateFullGenome extends JobIGCSA
     FASTAUtil.mergeFASTAFiles(gfg.getJobFileSystem(), gfg.getOutputPath().toString(), mergedFasta.toString());
 
     // Run BWA index
-    Path tmp = BWAIndex.writeReferencePointerFile(mergedFasta, gfg.getJobFileSystem());
-
     boolean runIndex = false;
-    for (String arg: args)
+    for (String arg : args)
       if (arg.equals("-b")) runIndex = true;
 
     if (runIndex)
+      {
+      Path tmp = BWAIndex.writeReferencePointerFile(mergedFasta, gfg.getJobFileSystem(mergedFasta.toUri()));
       ToolRunner.run(new BWAIndex(), (String[]) ArrayUtils.addAll(args, new String[]{"-f", tmp.toString()}));
-
-    gfg.getJobFileSystem().delete(tmp, true);
+      gfg.getJobFileSystem(tmp.toUri()).delete(tmp, true);
+      }
     }
 
 
@@ -84,7 +85,11 @@ public class GenerateFullGenome extends JobIGCSA
 
     Option genome = new Option("g", "genome", true, "Genome name.");
     genome.setRequired(true);
-    this.addOptions( genome );
+    this.addOptions(genome);
+
+    Option output = new Option("o", "Output path", true, "Fully qualified path in HDFS or S3 to write FASTA files.");
+    output.setRequired(true);
+    this.addOptions(output);
     }
 
   public List<String> getChromosomes()
@@ -109,30 +114,12 @@ public class GenerateFullGenome extends JobIGCSA
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(getConf());
     genome = admin.getGenomeTable().getGenome(genomeName);
 
-    chromosomes = new ArrayList<String>();
     Scan scan = admin.getSequenceTable().getScanFor(new Column("info", "genome", genomeName));
-    scan.setCaching(200);
+    scan.setCaching(100);
 
-    // This matters only for testing...pay attn to the 'else' for full genomes
-    if (genomeName.equalsIgnoreCase("test"))
-      {
-      // should be 59129 rows
-      chromosomes.add("Y");
-      scan = admin.getSequenceTable().getScanFor(new Column("info", "genome", "GRCh37"), new Column("loc", "chr", chromosomes.get(0)));
-      genome = admin.getGenomeTable().getGenome("GRCh37");
-      }
-    else
-      {
-      for (ChromosomeResult chr: admin.getChromosomeTable().getChromosomesFor(genomeName))
-        chromosomes.add(chr.getChrName());
-      }
-
-    output = new Path(getPath(Paths.GENOMES), genomeName);
-    if (!getJobFileSystem().getUri().toASCIIString().startsWith("hdfs"))
-      output = new Path("/tmp/" + getPath(Paths.GENOMES), genomeName);
-
-    if (getJobFileSystem().exists(output))
-      getJobFileSystem().delete(output, true);
+    chromosomes = new ArrayList<String>();
+    for (ChromosomeResult chr : admin.getChromosomeTable().getChromosomesFor(genomeName))
+      chromosomes.add(chr.getChrName());
 
     return scan;
     }
@@ -144,17 +131,27 @@ public class GenerateFullGenome extends JobIGCSA
     CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs());
 
     genomeName = cl.getOptionValue("g");
+    output = new Path(new Path(cl.getOptionValue("o"), Paths.GENOMES.getPath()), genomeName);
+
+    FileSystem fs = getJobFileSystem();
+    if (output.toString().startsWith("s3")) fs = getJobFileSystem(output.toUri());
+
+    if (fs.exists(output))
+      {
+      log.info("Overwriting output path " + output.toString());
+      fs.delete(output, true);
+      }
+
     Scan scan = setup();
 
-    log.info(scan);
-
+    /* Set up job */
     Job job = new Job(getConf(), "Generate FASTA files for " + genomeName);
     job.setJarByClass(GenerateFullGenome.class);
 
     job.setMapperClass(ChromosomeSequenceMapper.class);
     ChromosomeSequenceMapper.setChromosomes(job, chromosomes.toArray(new String[chromosomes.size()]));
 
-    TableMapReduceUtil.initTableMapperJob(HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().getTableName(), scan, ChromosomeSequenceMapper.class, SegmentOrderComparator.class, FragmentWritable.class, job);
+    TableMapReduceUtil.initTableMapperJob(HBaseGenomeAdmin.getHBaseGenomeAdmin(getConf()).getSequenceTable().getTableName(), scan, ChromosomeSequenceMapper.class, SegmentOrderComparator.class, FragmentWritable.class, job);
 
     // partitioner is required to make sure all fragments from a given chromosome go to the same reducers
     job.setPartitionerClass(FragmentPartitioner.class);
@@ -167,91 +164,12 @@ public class GenerateFullGenome extends JobIGCSA
     FASTAOutputFormat.setLineLength(job, 70);
     for (String chr : chromosomes)
       {
-      //getConf().setInt();
       MultipleOutputs.addNamedOutput(job, chr, FASTAOutputFormat.class, LongWritable.class, Text.class);
-      FASTAOutputFormat.addHeader(job, new Path(output, chr), new FASTAHeader("chr" + chr, genome.getName(), "parent=" + genome.getParent(), "hbase-generation"));
+      FASTAOutputFormat.addHeader(job, new Path(output, chr), new FASTAHeader("chr" + chr, genome.getName(),
+                                                                              "parent=" + genome.getParent(), "hbase-generation"));
       }
 
     return (job.waitForCompletion(true) ? 0 : 1);
-    }
-
-  /****************************
-  MAPPER & REDUCER
-   ****************************/
-  static class ChromosomeSequenceMapper extends TableMapper<SegmentOrderComparator, FragmentWritable>
-    {
-    private static final Log log = LogFactory.getLog(ChromosomeSequenceMapper.class);
-
-    private List<String> chrs;
-
-
-    protected static void setChromosomes(Job job, String... chrs)
-      {
-      job.getConfiguration().setStrings("chromosomes", chrs);
-      log.info("Setting chromosomes in config: " + chrs);
-      }
-
-    @Override
-    protected void setup(Context context) throws IOException, InterruptedException
-      {
-      chrs = new ArrayList<String>(context.getConfiguration().getStringCollection("chromosomes"));
-      }
-
-    @Override
-    protected void map(ImmutableBytesWritable key, Result value, Context context) throws IOException, InterruptedException
-      {
-      SequenceResult sr = HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().createResult(value);
-      String sequence = sr.getSequence();
-      SegmentOrderComparator soc = new SegmentOrderComparator(chrs.indexOf(sr.getChr()), sr.getSegmentNum());
-      if (soc.getOrder() < 0)
-        throw new IOException("Failed to load all chromosomes, missing " + sr.getChr());
-
-      FragmentWritable fw = new FragmentWritable(sr.getChr(), sr.getStart(), sr.getEnd(), sr.getSegmentNum(), sequence);
-
-      context.write(soc, fw);
-      }
-    }
-
-  static class ChromosomeSequenceReducer extends Reducer<SegmentOrderComparator, FragmentWritable, LongWritable, Text>
-    {
-    private static final Log log = LogFactory.getLog(ChromosomeSequenceReducer.class);
-
-    private MultipleOutputs mos;
-    private List<String> chrs;
-
-    @Override
-    protected void setup(Context context) throws IOException, InterruptedException
-      {
-      mos = new MultipleOutputs(context);
-      chrs = new ArrayList<String>(context.getConfiguration().getStringCollection("chromosomes"));
-      if (chrs == null || chrs.size() <= 0)
-        throw new IOException("Chromosomes not defined in configuration.");
-      log.info("CHROMOSOMES: " + chrs);
-      }
-
-    @Override
-    protected void reduce(SegmentOrderComparator key, Iterable<FragmentWritable> values, Context context) throws IOException, InterruptedException
-      {
-      log.debug("ORDER " + key.getOrder() + ":" + key.getSegment());
-
-      Iterator<FragmentWritable> fI = values.iterator();
-      while (fI.hasNext())
-        {
-        FragmentWritable fw = fI.next();
-        LongWritable segmentKey = new LongWritable(fw.getSegment());
-
-        String namedOutput = chrs.get((int) key.getOrder());
-        mos.write(namedOutput, segmentKey, new Text(fw.getSequence()));
-        }
-
-      }
-
-    @Override
-    protected void cleanup(Context context) throws IOException, InterruptedException
-      {
-      mos.close();
-      }
-
     }
 
 

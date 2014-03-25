@@ -32,10 +32,8 @@ public abstract class IGCSAHbaseAdmin
     this.conf = conf;
     this.hbaseAdmin = new HBaseAdmin(conf);
 
-
     //    configuration.setInt("hbase.rpc.timeout", 1200000);
     //    configuration.setInt("hbase.regionserver.lease.period", 120000);
-
     int tryRunning = 1;
     while (!this.hbaseAdmin.isMasterRunning() && tryRunning < 20)
       {
@@ -50,7 +48,6 @@ public abstract class IGCSAHbaseAdmin
         }
       ++tryRunning;
       }
-    log.info("HBASE CONFIG rpc.timeout=" + hbaseAdmin.getConfiguration().get("hbase.rpc.timeout") + " regionserver.lease=" +  hbaseAdmin.getConfiguration().get("hbase.regionserver.lease.period"));
     }
 
   public void closeConections() throws IOException

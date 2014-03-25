@@ -29,7 +29,7 @@ import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAOutputFormat;
 import java.util.List;
 
 
-public class DerivativeChromosomeJob extends BWAJob
+public class DerivativeChromosomeJob extends JobIGCSA
   {
   private static final Log log = LogFactory.getLog(DerivativeChromosomeJob.class);
 
