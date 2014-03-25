@@ -102,9 +102,6 @@ public class MutateFragments extends BWAJob
     getConf().set("genome", genome);
     getConf().set("parent", parent);
 
-    getConf().setInt("hbase.rpc.timeout", 90000);
-
-
     HBaseGenomeAdmin genomeAdmin = HBaseGenomeAdmin.getHBaseGenomeAdmin(getConf());
     if (genomeAdmin.getGenomeTable().getGenome(parent) == null)
       {
@@ -120,9 +117,8 @@ public class MutateFragments extends BWAJob
     // this scan will get all sequences for the given genome (so 300 million)
     Scan seqScan = genomeAdmin.getSequenceTable().getScanFor(new Column("info", "genome", parent));
 
-    seqScan.setCaching(200);        // 1 is the default in Scan, which will be bad for MapReduce jobs
-    seqScan.setCacheBlocks(false);
-
+    seqScan.setCaching(150);        // 1 is the default in Scan, which will be bad for MapReduce jobs
+    //seqScan.setCacheBlocks(false);
 
     TableMapReduceUtil.initTableMapperJob(genomeAdmin.getSequenceTable().getTableName(), seqScan, SequenceTableMapper.class, null, null,
                                           job);
@@ -264,16 +260,14 @@ public class MutateFragments extends BWAJob
         if (mutSeqRowId == null) throw new IOException("Failed to add sequence.");
 
         SequenceResult mutSequence = genomeAdmin.getSequenceTable().queryTable(mutSeqRowId);
-        for (Variation v : mutations.keySet())
-          {
-          // add any mutations to the small mutations table -- could do this as a reduce task, might be better as I could do a list of puts
-
-          for (Map.Entry<Location, DNASequence> entry : mutations.get(v).entrySet())
-            {
-            genomeAdmin.getSmallMutationsTable().addMutation(mutSequence, v, entry.getKey().getStart(), entry.getKey().getEnd(),
-                                                             entry.getValue().getSequence());
-            }
-          }
+//        for (Variation v : mutations.keySet())
+//          {
+//          // add any mutations to the small mutations table -- could do this as a reduce task, might be better as I could do a list of puts
+//          for (Map.Entry<Location, DNASequence> entry : mutations.get(v).entrySet())
+//            {
+//            genomeAdmin.getSmallMutationsTable().addMutation(mutSequence, v, entry.getKey().getStart(), entry.getKey().getEnd(),entry.getValue().getSequence());
+//            }
+//          }
         }
       else
         genomeAdmin.getSequenceTable().addSequence(mutatedChr, origSeq.getStart(), origSeq.getEnd(), origSeq.getSequence(),

@@ -41,6 +41,8 @@ public class HBaseGenomeAdmin extends IGCSAHbaseAdmin
 
   public static HBaseGenomeAdmin getHBaseGenomeAdmin(Configuration configuration) throws IOException
     {
+//    configuration.setInt("hbase.rpc.timeout", 1200000);
+//    configuration.setInt("hbase.regionserver.lease.period", 120000);
     adminInstance = new HBaseGenomeAdmin(configuration);
     return adminInstance;
     }
