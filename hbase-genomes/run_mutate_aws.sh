@@ -24,25 +24,34 @@ if [ $# -eq 4 ]; then
   CORES=$4
 fi
 
+INSTANCE_TYPE="m1.large"
+#if [ $CORES -gt 10 ]; then
+#  INSTANCE_TYPE="m2.xlarge"
+#fi
 
 
-echo "Running MUTATE pipeline for ${NAME} with ${CORES} core instances. On failure: ${TERM}"
+echo "Running MUTATE pipeline for ${NAME} with ${CORES} core instances (${INSTANCE_TYPE}). On failure: ${TERM}"
 
 
 JAR="s3://${BUCKET}/HBase-Genomes-1.1.jar"
+DATA="s3://${BUCKET}/hbase"
 
 MASTER="--instance-group master --instance-type m1.large --instance-count 1 --bid-price 0.07"
-CORE="--instance-group core --instance-type m1.large --instance-count $CORES --bid-price 0.07"
+CORE="--instance-group core --instance-type ${INSTANCE_TYPE} --instance-count $CORES --bid-price 0.07"
 HBASE="--hbase --bootstrap-action s3://eu-west-1.elasticmapreduce/bootstrap-actions/configure-hbase --args -s,hbase.rpc.timeout=1200000,-s,hbase.regionserver.lease.period=120000,-s,hbase.regionserver.handler.count=30"
 
 #,hbase.hregion.memstore.flush.size=134217728
 
-ruby $EMR_HOME/elastic-mapreduce --create --region eu-west-1 --name "Mutate Genome" --ami-version 2.4.2  --enable-debugging --log-uri s3://${BUCKET}/logs \
+
+ruby $EMR_HOME/elastic-mapreduce --create --alive --region eu-west-1 --name "Mutate Genome" --ami-version 2.4.2  --enable-debugging --log-uri s3://${BUCKET}/logs \
 --set-termination-protection false --key-pair amazonkeypair $MASTER $CORE $HBASE \
---jar $JAR --main-class org.lcsb.lu.igcsa.hbase.HBaseUtility --args -d,s3://${BUCKET}/hbase,-c,IMPORT --arg "-t" --arg "genome,chromosome,sequence,karyotype_index,karyotype,small_mutations" --step-action TERMINATE_JOB_FLOW --step-name "IMPORT genome db" \
---jar $JAR --main-class org.lcsb.lu.igcsa.hbase.HBaseUtility --args -d,s3://${BUCKET}/hbase/normal-variation,-c,IMPORT --arg "-t" --arg "gc_bin,snv_probability,variation_per_bin" --step-action TERMINATE_JOB_FLOW --step-name "IMPORT variation db" \
---jar $JAR --main-class org.lcsb.lu.igcsa.MutateFragments --args -b,s3://${BUCKET}/bwa.tgz,-m,$NAME,-p,GRCh37 --step-action ${TERM} --step-name "CREATE mutated genome" \
---jar $JAR --main-class org.lcsb.lu.igcsa.GenerateFullGenome --args -g,$NAME,-b,s3://${BUCKET}/bwa.tgz --step-action CONTINUE --step-name "Generate FASTA files and index" \
---jar $JAR --main-class org.lcsb.lu.igcsa.hbase.HBaseUtility --args -d,s3://${BUCKET}/hbase,-c,EXPORT --arg "-t" --arg "genome,chromosome,sequence,karyotype_index,karyotype,small_mutations" --step-action TERMINATE_JOB_FLOW --step-name "EXPORT genome db" \
+--jar $JAR --main-class org.lcsb.lu.igcsa.hbase.HBaseUtility --args -d,$DATA,-c,IMPORT --arg "-t" --arg "genome,chromosome,sequence,karyotype_index,karyotype,small_mutations" --step-action ${TERM} --step-name "IMPORT genome db" \
+--jar $JAR --main-class org.lcsb.lu.igcsa.hbase.HBaseUtility --args -d,$DATA,-c,IMPORT --arg "-t" --arg "gc_bin,snv_probability,variation_per_bin" --step-action ${TERM} --step-name "IMPORT variation db" \
+--jar $JAR --main-class org.lcsb.lu.igcsa.MutateFragments --args -m,$NAME,-p,GRCh37 --step-action ${TERM} --step-name "CREATE mutated genome" \
+--jar $JAR --main-class org.lcsb.lu.igcsa.GenerateFullGenome --args -g,$NAME, --step-action CONTINUE --step-name "Generate FASTA files and index" \
+--jar $JAR --main-class org.lcsb.lu.igcsa.hbase.HBaseUtility --args -d,$DATA,-c,EXPORT --arg "-t" --arg "genome,chromosome,sequence,karyotype_index,karyotype,small_mutations" --step-action ${TERM} --step-name "EXPORT genome db" \
 
 
+#ruby $EMR_HOME/elastic-mapreduce --jar $JAR --main-class org.lcsb.lu.igcsa.MutateFragments --args -m,$NAME,-p,GRCh37 --step-action $TERM --step-name "CREATE mutated genome" \
+#--jar $JAR --main-class org.lcsb.lu.igcsa.GenerateFullGenome --args -g,$NAME, --step-action CONTINUE --step-name "Generate FASTA files and index" \
+#--jar $JAR --main-class org.lcsb.lu.igcsa.hbase.HBaseUtility --args -d,$DATA,-c,EXPORT --arg "-t" --arg "genome,chromosome,sequence,karyotype_index,karyotype,small_mutations" --step-action $TERM --step-name "EXPORT genome db" $5
