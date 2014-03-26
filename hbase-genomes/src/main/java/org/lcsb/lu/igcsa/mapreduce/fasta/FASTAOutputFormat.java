@@ -41,12 +41,10 @@ public class FASTAOutputFormat extends FileOutputFormat<LongWritable, Text>
     job.getConfiguration().setInt(FASTA_LINE_LENGTH, length);
     }
 
-  public static void addHeader(Job job, Path p, FASTAHeader h)
+  public static void addHeader(Job job, FASTAHeader h)
     {
-    String path = p.toString().replaceAll("/", ".");
-    job.getConfiguration().set(path, h.getFormattedHeader());
-
-    log.info("Adding header " + p + ": " + h);
+    job.getConfiguration().set(FASTA_HEADER, h.getFormattedHeader());
+    log.info("Adding header " +  h);
     }
 
   @Override
@@ -64,7 +62,8 @@ public class FASTAOutputFormat extends FileOutputFormat<LongWritable, Text>
 
     if (writeHeader)
       {
-      String header = context.getConfiguration().get( file.toString().replaceAll("/", ".") ) + FASTARecordWriter.CARRIAGE_RETURN;
+      String header = context.getConfiguration().get(FASTA_HEADER) + FASTARecordWriter.CARRIAGE_RETURN;
+      //String header = context.getConfiguration().get( file.toString().replaceAll("/", ".") ) + FASTARecordWriter.CARRIAGE_RETURN;
       //String header =  + FASTARecordWriter.CARRIAGE_RETURN;
       //String header = context.getConfiguration().get(FASTA_HEADER) + FASTARecordWriter.CARRIAGE_RETURN;
       log.debug(header);

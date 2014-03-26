@@ -71,6 +71,11 @@ public class SequenceTable extends AbstractTable<SequenceTable>
 
     ResultScanner scanner = this.getScanner(scan);
     Iterator<Result> rI = scanner.iterator();
+    if (!rI.hasNext())
+      {
+      log.info("No segment " + chr + " " + segment);
+      return null;
+      }
 
     SequenceResult sequence = this.createResult(rI.next());
     if (rI.hasNext())

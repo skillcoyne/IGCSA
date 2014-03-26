@@ -167,7 +167,6 @@ public class FragmentMutationMapper extends TableMapper<ImmutableBytesWritable, 
       SequenceResult mutSequence = genomeAdmin.getSequenceTable().queryTable(mutSeqRowId);
       for (Variation v : mutations.keySet())
         {
-
         for (Map.Entry<Location, DNASequence> entry : mutations.get(v).entrySet())
           {
           Row row = genomeAdmin.getSmallMutationsTable().newMutationRow(mutSequence, v, entry.getKey().getStart(),
@@ -182,7 +181,7 @@ public class FragmentMutationMapper extends TableMapper<ImmutableBytesWritable, 
                                                  origSeq.getSegmentNum());
 
     long end = System.currentTimeMillis() - start;
-    log.info("FINISHED MAP " + origSeq.getRowId() + " time=" + String.valueOf(end));
+    log.debug("FINISHED MAP " + origSeq.getRowId() + " time=" + String.valueOf(end));
     }
 
   private Variation createInstance(String className)

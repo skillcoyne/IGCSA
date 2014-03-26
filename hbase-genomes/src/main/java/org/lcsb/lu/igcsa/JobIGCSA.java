@@ -29,9 +29,9 @@ public abstract class JobIGCSA extends Configured implements Tool
 
   public enum Paths
     {
-      GENOMES("/genomes"),
-      ALIGN("/bwaalignment"),
-      TMP("/tmp");
+      GENOMES("genomes"),
+      ALIGN("bwaalignment"),
+      TMP("tmp");
 
     private String p;
 
@@ -60,6 +60,7 @@ public abstract class JobIGCSA extends Configured implements Tool
     {
     return FileSystem.get(uri, getConf());
     }
+
   protected Path getPath(Paths p)
     {
     return new Path(p.getPath());
@@ -98,6 +99,18 @@ public abstract class JobIGCSA extends Configured implements Tool
       }
 
     return gop;
+    }
+
+  protected void checkPath(Path path, boolean overwrite) throws IOException
+    {
+    FileSystem fs = getJobFileSystem();
+    if (path.toString().startsWith("s3")) fs = getJobFileSystem(path.toUri());
+
+    if (fs.exists(path))
+      {
+      log.info("Overwriting output path " + path.toString());
+      fs.delete(path, true);
+      }
     }
 
   }

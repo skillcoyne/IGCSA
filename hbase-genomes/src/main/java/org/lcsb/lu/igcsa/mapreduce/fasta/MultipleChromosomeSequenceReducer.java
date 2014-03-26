@@ -6,8 +6,6 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
-import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.GenerateFullGenome;
 import org.lcsb.lu.igcsa.mapreduce.FragmentWritable;
 import org.lcsb.lu.igcsa.mapreduce.SegmentOrderComparator;
 
@@ -23,9 +21,9 @@ import java.util.List;
 * Copyright University of Luxembourg, Luxembourg Centre for Systems Biomedicine 2014
 * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
 */
-public class ChromosomeSequenceReducer extends Reducer<SegmentOrderComparator, FragmentWritable, LongWritable, Text>
+public class MultipleChromosomeSequenceReducer extends Reducer<SegmentOrderComparator, FragmentWritable, LongWritable, Text>
   {
-  private static final Log log = LogFactory.getLog(ChromosomeSequenceReducer.class);
+  private static final Log log = LogFactory.getLog(MultipleChromosomeSequenceReducer.class);
 
   private MultipleOutputs mos;
   private List<String> chrs;

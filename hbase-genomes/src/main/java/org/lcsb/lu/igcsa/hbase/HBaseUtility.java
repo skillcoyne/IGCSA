@@ -87,7 +87,8 @@ public class HBaseUtility
 
   private static void importData(Path path, String[] tables, Configuration conf) throws Exception
     {
-    if (!HBaseGenomeAdmin.getHBaseGenomeAdmin().tablesExist()) HBaseGenomeAdmin.getHBaseGenomeAdmin().createTables();
+    if (!HBaseGenomeAdmin.getHBaseGenomeAdmin().tablesExist())
+      HBaseGenomeAdmin.getHBaseGenomeAdmin().createTables();
     if (!VariationAdmin.getInstance().tablesExist()) VariationAdmin.getInstance().createTables();
 
     if (tables.length <= 0)

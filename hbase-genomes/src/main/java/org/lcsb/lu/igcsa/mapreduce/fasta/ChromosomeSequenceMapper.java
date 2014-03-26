@@ -25,6 +25,11 @@ import java.util.List;
  */
 public class ChromosomeSequenceMapper extends TableMapper<SegmentOrderComparator, FragmentWritable>
   {
+  public enum SegmentCounters {
+    SEGMENTS
+  }
+
+
   private static final Log log = LogFactory.getLog(ChromosomeSequenceMapper.class);
 
   private List<String> chrs;
@@ -47,12 +52,14 @@ public class ChromosomeSequenceMapper extends TableMapper<SegmentOrderComparator
   protected void map(ImmutableBytesWritable key, Result value, Context context) throws IOException, InterruptedException
     {
     SequenceResult sr = admin.getSequenceTable().createResult(value);
+
     String sequence = sr.getSequence();
     SegmentOrderComparator soc = new SegmentOrderComparator(chrs.indexOf(sr.getChr()), sr.getSegmentNum());
     if (soc.getOrder() < 0) throw new IOException("Failed to load all chromosomes, missing " + sr.getChr());
 
     FragmentWritable fw = new FragmentWritable(sr.getChr(), sr.getStart(), sr.getEnd(), sr.getSegmentNum(), sequence);
 
+    context.getCounter(SegmentCounters.SEGMENTS).increment(1);
     context.write(soc, fw);
     }
   }

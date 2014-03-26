@@ -14,13 +14,17 @@ import org.apache.commons.logging.LogFactory;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
-import org.lcsb.lu.igcsa.hbase.tables.Column;
+import org.apache.hadoop.hbase.filter.FuzzyRowFilter;
+import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.hbase.util.Pair;
+import org.lcsb.lu.igcsa.hbase.rows.SequenceRow;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.ChromosomeResult;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.SequenceResult;
-import org.lcsb.lu.igcsa.hbase.tables.variation.*;
 
-import java.util.List;
+import java.util.*;
 
 
 public class OutputGenome
@@ -37,21 +41,61 @@ public class OutputGenome
 
   public static void main(String[] args) throws Exception
     {
-//    Configuration conf = HBaseConfiguration.create();
+    Configuration conf = HBaseConfiguration.create();
 //    //    conf.setInt("timeout", 120000);
 //    //    conf.set("hbase.master", "*" + "bmf00004.uni.lux" + ":9000*");
 //    //    conf.set("hbase.zookeeper.quorum", "bmf00004.uni.lux");
 //    //    conf.set("hbase.zookeeper.property.clientPort", "2181");
-//    HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(conf);
+    HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(conf);
+
+    String chr = "1";
+    char c = SequenceRow.initialChar(chr);
+    String rowKey = c + "???????????:" + chr + "-GRCh37";
+    List<Pair<byte[], byte[]>> fuzzyKeys = new ArrayList<Pair<byte[], byte[]>>();
+    fuzzyKeys.add(
+        new Pair<byte[],byte[]>(Bytes.toBytes(rowKey),
+                                new byte[]{0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0})
+    );
+
+//    FuzzyRowFilter filter = new FuzzyRowFilter(fuzzyKeys);
+//    Scan scan = new Scan();
+//    scan.setFilter(filter);
 //
-//    SequenceResult r = admin.getSequenceTable().queryTable("AAAA00024002:1-GRCh37");
+//    ResultScanner scanner = admin.getSequenceTable().getScanner(scan);
+//    Iterator<Result> rI = scanner.iterator();
+//
+//    //Iterator<Result> rI =  admin.getSequenceTable().getSequencesFor("GRCh37", "1", 1, 1000);
+//    List<Long> frags = new ArrayList<Long>();
+//    int i=0;
+//    while (rI.hasNext())
+//      {
+//      SequenceResult sr = admin.getSequenceTable().createResult(rI.next());
+//      log.info(sr.getRowId() + "\t" + sr.getStart());
+//
+//      frags.add(sr.getStart());
+//
+//      i++;
+//      }
+//
+//    Collections.sort(frags);
+//
+//    log.info("*****  " + i);
+    ChromosomeResult cr = admin.getChromosomeTable().getChromosome("GRCh37", chr);
+    log.info(cr.getChrName() + " len=" + cr.getLength() + " seg=" + cr.getSegmentNumber());
+
+    Iterator<Result> sI = admin.getSequenceTable().getSequencesFor("GRCh37", chr, 10000, 18001);
+    if (!sI.hasNext())
+      log.info("fucked up");
+    while(sI.hasNext())
+      {
+      SequenceResult sr =  admin.getSequenceTable().createResult(sI.next());
+      log.info(sr.getStart() + "-" + sr.getEnd() + "\t" + sr.getSegmentNum());
+      }
+
+    //    SequenceResult r = admin.getSequenceTable().queryTable("AAAA00024002:1-GRCh37");
 //
 //    System.out.println(" " + r.getRowId() + " " + r.getChr());
 
-    IntRange ir = new IntRange(300,500);
-    log.info(ir.containsInteger(234));
-    log.info(ir.containsInteger(500));
-    log.info(ir.containsInteger(301));
     //Scan seqScan = admin.getSequenceTable().getScanFor(new Column("info", "genome", "GRCh37"));
 
 

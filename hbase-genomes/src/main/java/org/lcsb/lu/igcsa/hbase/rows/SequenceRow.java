@@ -21,19 +21,23 @@ public class SequenceRow extends Row
 
   public static final int numRandChars = 4;
 
+  public static char initialChar(String chr)
+    {
+    // Initial letter will be the same within each chromosome
+    if (chr.matches("X|Y"))
+      return chr.charAt(0);
+    else
+      {
+      int cc = Integer.parseInt(chr) + 64;
+      return  (char)cc ;
+      }
+    }
+
   // This means that I can never deterministically guess what the row id is for any given sequence.  All queries will have to be run on a column based search
   private static String generateRandom(String chr)
     {
     StringBuffer rstr = new StringBuffer();
-
-    // Initial letter will be the same within each chromosome
-    if (chr.matches("X|Y"))
-      rstr.append( chr.charAt(0) );
-    else
-      {
-      int cc = Integer.parseInt(chr) + 64;
-      rstr.append( (char)cc );
-      }
+    rstr.append(initialChar(chr));
 
     RandomRange rand = new RandomRange(65, 90);
     for (int i=0; rstr.length()<numRandChars; i++)

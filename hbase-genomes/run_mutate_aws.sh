@@ -34,7 +34,8 @@ echo "Running MUTATE pipeline for ${NAME} with ${CORES} core instances (${INSTAN
 
 
 JAR="s3://${BUCKET}/HBase-Genomes-1.1.jar"
-DATA="s3://${BUCKET}/hbase"
+GENOME_DATA="s3://${BUCKET}/hbase"
+VAR_DATA="s3://${BUCKET}/hbase"
 OUTPUT="s3://${BUCKET}/figg-output"
 
 MASTER="--instance-group master --instance-type m1.large --instance-count 1 --bid-price 0.07"
@@ -44,10 +45,11 @@ HBASE="--hbase --bootstrap-action s3://eu-west-1.elasticmapreduce/bootstrap-acti
 
 ruby $EMR_HOME/elastic-mapreduce --create --alive --region eu-west-1 --name "Mutate Genome" --ami-version 2.4.2  --enable-debugging --log-uri s3://${BUCKET}/logs \
 --set-termination-protection false --key-pair amazonkeypair $MASTER $CORE $HBASE \
---jar $JAR --main-class org.lcsb.lu.igcsa.hbase.HBaseUtility --args -d,$DATA,-c,IMPORT --arg "-t" --arg "genome,chromosome,sequence,karyotype_index,karyotype,small_mutations" --step-action ${TERM} --step-name "IMPORT genome db" \
---jar $JAR --main-class org.lcsb.lu.igcsa.hbase.HBaseUtility --args -d,$DATA,-c,IMPORT --arg "-t" --arg "gc_bin,snv_probability,variation_per_bin" --step-action ${TERM} --step-name "IMPORT variation db" \
+--jar $JAR --main-class org.lcsb.lu.igcsa.hbase.HBaseUtility --args -d,$GENOME_DATA,-c,IMPORT --arg "-t" --arg "genome,chromosome,sequence,karyotype_index,karyotype,small_mutations" --step-action ${TERM} --step-name "IMPORT genome db" \
+--jar $JAR --main-class org.lcsb.lu.igcsa.hbase.HBaseUtility --args -d,$VAR_DATA,-c,IMPORT --arg "-t" --arg "gc_bin,snv_probability,variation_per_bin" --step-action ${TERM} --step-name "IMPORT variation db" \
 --jar $JAR --main-class org.lcsb.lu.igcsa.MutateFragments --args -m,$NAME,-p,GRCh37 --step-action ${TERM} --step-name "CREATE mutated genome" \
---jar $JAR --main-class org.lcsb.lu.igcsa.GenerateFullGenome --args -g,$NAME,-o,${OUTPUT} --step-action CONTINUE --step-name "Generate FASTA files and index" \
---jar $JAR --main-class org.lcsb.lu.igcsa.hbase.HBaseUtility --args -d,$DATA,-c,EXPORT --arg "-t" --arg "genome,chromosome,sequence,karyotype_index,karyotype,small_mutations" --step-action ${TERM} --step-name "EXPORT genome db" \
+
+#--jar $JAR --main-class org.lcsb.lu.igcsa.hbase.HBaseUtility --args -d,$DATA,-c,EXPORT --arg "-t" --arg "genome,chromosome,sequence,karyotype_index,karyotype,small_mutations" --step-action ${TERM} --step-name "EXPORT genome db" 
+#--jar $JAR --main-class org.lcsb.lu.igcsa.GenerateFullGenome --args -g,$NAME,-o,${OUTPUT} --step-action CONTINUE --step-name "Generate FASTA files and index" \
 
 

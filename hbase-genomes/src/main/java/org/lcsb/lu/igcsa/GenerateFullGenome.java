@@ -34,7 +34,7 @@ import org.lcsb.lu.igcsa.hbase.tables.Column;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.GenomeResult;
 import org.lcsb.lu.igcsa.mapreduce.*;
 import org.lcsb.lu.igcsa.mapreduce.fasta.ChromosomeSequenceMapper;
-import org.lcsb.lu.igcsa.mapreduce.fasta.ChromosomeSequenceReducer;
+import org.lcsb.lu.igcsa.mapreduce.fasta.MultipleChromosomeSequenceReducer;
 import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAOutputFormat;
 import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil;
 
@@ -109,68 +109,76 @@ public class GenerateFullGenome extends JobIGCSA
       FileUtil.copy(getJobFileSystem(), new Path(output, c), getJobFileSystem(), new Path(output, c + ".fa"), true, false, getConf());
     }
 
-  private Scan setup() throws IOException
-    {
-    HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(getConf());
-    genome = admin.getGenomeTable().getGenome(genomeName);
-
-    Scan scan = admin.getSequenceTable().getScanFor(new Column("info", "genome", genomeName));
-    scan.setCaching(100);
-
-    chromosomes = new ArrayList<String>();
-    for (ChromosomeResult chr : admin.getChromosomeTable().getChromosomesFor(genomeName))
-      chromosomes.add(chr.getChrName());
-
-    return scan;
-    }
 
   @Override
-  public int run(String[] args) throws Exception
+  public int run(String[] strings) throws Exception
     {
-    GenericOptionsParser gop = this.parseHadoopOpts(args);
-    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs());
-
-    genomeName = cl.getOptionValue("g");
-    output = new Path(new Path(cl.getOptionValue("o"), Paths.GENOMES.getPath()), genomeName);
-
-    FileSystem fs = getJobFileSystem();
-    if (output.toString().startsWith("s3")) fs = getJobFileSystem(output.toUri());
-
-    if (fs.exists(output))
-      {
-      log.info("Overwriting output path " + output.toString());
-      fs.delete(output, true);
-      }
-
-    Scan scan = setup();
-
-    /* Set up job */
-    Job job = new Job(getConf(), "Generate FASTA files for " + genomeName);
-    job.setJarByClass(GenerateFullGenome.class);
-
-    job.setMapperClass(ChromosomeSequenceMapper.class);
-    ChromosomeSequenceMapper.setChromosomes(job, chromosomes.toArray(new String[chromosomes.size()]));
-
-    TableMapReduceUtil.initTableMapperJob(HBaseGenomeAdmin.getHBaseGenomeAdmin(getConf()).getSequenceTable().getTableName(), scan, ChromosomeSequenceMapper.class, SegmentOrderComparator.class, FragmentWritable.class, job);
-
-    // partitioner is required to make sure all fragments from a given chromosome go to the same reducers
-    job.setPartitionerClass(FragmentPartitioner.class);
-
-    job.setReducerClass(ChromosomeSequenceReducer.class);
-    job.setNumReduceTasks(chromosomes.size()); // one reducer for each segment
-    job.setOutputFormatClass(NullOutputFormat.class);
-
-    FileOutputFormat.setOutputPath(job, output);
-    FASTAOutputFormat.setLineLength(job, 70);
-    for (String chr : chromosomes)
-      {
-      MultipleOutputs.addNamedOutput(job, chr, FASTAOutputFormat.class, LongWritable.class, Text.class);
-      FASTAOutputFormat.addHeader(job, new Path(output, chr), new FASTAHeader("chr" + chr, genome.getName(),
-                                                                              "parent=" + genome.getParent(), "hbase-generation"));
-      }
-
-    return (job.waitForCompletion(true) ? 0 : 1);
+    log.info("No job to run for " + this.getClass().getSimpleName());
+    return 1;
     }
+
+
+//  private Scan setup() throws IOException
+//    {
+//    HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(getConf());
+//    genome = admin.getGenomeTable().getGenome(genomeName);
+//
+//    Scan scan = admin.getSequenceTable().getScanFor(new Column("info", "genome", genomeName));
+//    scan.setCaching(100);
+//
+//    chromosomes = new ArrayList<String>();
+//    for (ChromosomeResult chr : admin.getChromosomeTable().getChromosomesFor(genomeName))
+//      chromosomes.add(chr.getChrName());
+//
+//    return scan;
+//    }
+
+  //  @Override
+//  public int run(String[] args) throws Exception
+//    {
+//    GenericOptionsParser gop = this.parseHadoopOpts(args);
+//    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs());
+//
+//    genomeName = cl.getOptionValue("g");
+//    output = new Path(new Path(cl.getOptionValue("o"), Paths.GENOMES.getPath()), genomeName);
+//
+//    FileSystem fs = getJobFileSystem();
+//    if (output.toString().startsWith("s3")) fs = getJobFileSystem(output.toUri());
+//
+//    if (fs.exists(output))
+//      {
+//      log.info("Overwriting output path " + output.toString());
+//      fs.delete(output, true);
+//      }
+//
+//    Scan scan = setup();
+//
+//    /* Set up job */
+//    Job job = new Job(getConf(), "Generate FASTA files for " + genomeName);
+//    job.setJarByClass(GenerateFullGenome.class);
+//
+//    job.setMapperClass(ChromosomeSequenceMapper.class);
+//    ChromosomeSequenceMapper.setChromosomes(job, chromosomes.toArray(new String[chromosomes.size()]));
+//
+//    TableMapReduceUtil.initTableMapperJob(HBaseGenomeAdmin.getHBaseGenomeAdmin(getConf()).getSequenceTable().getTableName(), scan, ChromosomeSequenceMapper.class, SegmentOrderComparator.class, FragmentWritable.class, job);
+//
+//    // partitioner is required to make sure all fragments from a given chromosome go to the same reducers
+//    job.setPartitionerClass(FragmentPartitioner.class);
+//
+//    job.setReducerClass(MultipleChromosomeSequenceReducer.class);
+//    job.setNumReduceTasks(chromosomes.size()); // one reducer for each segment
+//    job.setOutputFormatClass(NullOutputFormat.class);
+//
+//    FileOutputFormat.setOutputPath(job, output);
+//    FASTAOutputFormat.setLineLength(job, 70);
+//    for (String chr : chromosomes)
+//      {
+//      MultipleOutputs.addNamedOutput(job, chr, FASTAOutputFormat.class, LongWritable.class, Text.class);
+//      //FASTAOutputFormat.addHeader(job, new Path(output, chr), new FASTAHeader("chr" + chr, genome.getName(), "parent=" + genome.getParent(), "hbase-generation"));
+//      }
+//
+//    return (job.waitForCompletion(true) ? 0 : 1);
+//    }
 
 
   }

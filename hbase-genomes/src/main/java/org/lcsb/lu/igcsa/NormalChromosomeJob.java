@@ -4,31 +4,33 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.filter.*;
 import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
+import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.hbase.util.Pair;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
-import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
-import org.lcsb.lu.igcsa.hbase.tables.Column;
-import org.lcsb.lu.igcsa.hbase.tables.genomes.ChromosomeResult;
+import org.lcsb.lu.igcsa.hbase.rows.SequenceRow;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.GenomeResult;
+import org.lcsb.lu.igcsa.hbase.tables.genomes.IGCSATables;
 import org.lcsb.lu.igcsa.mapreduce.FragmentPartitioner;
 import org.lcsb.lu.igcsa.mapreduce.FragmentWritable;
 import org.lcsb.lu.igcsa.mapreduce.SegmentOrderComparator;
 import org.lcsb.lu.igcsa.mapreduce.fasta.ChromosomeSequenceMapper;
-import org.lcsb.lu.igcsa.mapreduce.fasta.ChromosomeSequenceReducer;
+import org.lcsb.lu.igcsa.mapreduce.fasta.MultipleChromosomeSequenceReducer;
 import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAOutputFormat;
+import org.lcsb.lu.igcsa.mapreduce.fasta.SingleChromosomeReducer;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -47,10 +49,7 @@ public class NormalChromosomeJob extends JobIGCSA
   public NormalChromosomeJob(Configuration conf)
     {
     super(conf);
-    }
 
-  public void NormalChromosomeJob()
-    {
     Option genome = new Option("g", "genome", true, "Genome name.");
     genome.setRequired(true);
     this.addOptions(genome);
@@ -70,16 +69,31 @@ public class NormalChromosomeJob extends JobIGCSA
     CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs());
 
     genomeName = cl.getOptionValue("g");
-    output = new Path(new Path(cl.getOptionValue("o"), Paths.GENOMES.getPath()), genomeName);
-
     chr = cl.getOptionValue("c");
+
+    output = new Path(new Path(new Path(cl.getOptionValue("o"), Paths.GENOMES.getPath()), genomeName), chr);
+    this.checkPath(output, true);
+
 
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(getConf());
     GenomeResult genome = admin.getGenomeTable().getGenome(genomeName);
-    if (genome == null) throw new IOException("No genome found for " + genomeName + ". Exiting.");
-    else parent = genome.getParent();
+    if (genome == null)
+      throw new IOException("No genome found for " + genomeName + ". Exiting.");
+    else
+      parent = genome.getParent();
 
-    Scan scan = admin.getSequenceTable().getScanFor(new Column("info", "genome", genomeName), new Column("chr", "name", chr));
+//    FilterList filters = new FilterList(FilterList.Operator.MUST_PASS_ALL);
+//    filters.addFilter(new SingleColumnValueFilter(Bytes.toBytes("info"), Bytes.toBytes("genome"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(genomeName)));
+//    filters.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("chr"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(chr)));
+
+    char c = SequenceRow.initialChar(chr);
+    String rowKey = c + "???????????:" + chr + "-" + genomeName;
+    List<Pair<byte[], byte[]>> fuzzyKeys = new ArrayList<Pair<byte[], byte[]>>();
+    fuzzyKeys.add(new Pair<byte[], byte[]>(Bytes.toBytes(rowKey), new byte[]{0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
+
+    Scan scan = new Scan();
+    scan.setFilter(new FuzzyRowFilter(fuzzyKeys));
+
     scan.setCaching(100);
 
     return scan;
@@ -95,20 +109,20 @@ public class NormalChromosomeJob extends JobIGCSA
     job.setMapperClass(ChromosomeSequenceMapper.class);
     ChromosomeSequenceMapper.setChromosomes(job, new String[]{chr});
 
-    TableMapReduceUtil.initTableMapperJob(HBaseGenomeAdmin.getHBaseGenomeAdmin(getConf()).getSequenceTable().getTableName(), scan,
-                                          ChromosomeSequenceMapper.class, SegmentOrderComparator.class, FragmentWritable.class, job);
+    TableMapReduceUtil.initTableMapperJob(IGCSATables.SEQ.getTableName(), scan, ChromosomeSequenceMapper.class, SegmentOrderComparator.class, FragmentWritable.class, job);
 
     // partitioner is required to make sure all fragments from a given chromosome go to the same reducers
     job.setPartitionerClass(FragmentPartitioner.class);
 
-    job.setReducerClass(ChromosomeSequenceReducer.class);
+    job.setReducerClass(SingleChromosomeReducer.class);
     job.setNumReduceTasks(1); // one reducer for each chr?
     job.setOutputFormatClass(FASTAOutputFormat.class);
 
+    // TODO named output
+
     FileOutputFormat.setOutputPath(job, output);
     FASTAOutputFormat.setLineLength(job, 70);
-    FASTAOutputFormat.addHeader(job, new Path(output, chr),
-                                new FASTAHeader("chr" + chr, genomeName, "parent=" + parent, "hbase-generation"));
+    FASTAOutputFormat.addHeader(job, new FASTAHeader("chr" + chr, genomeName, "parent=" + parent, "hbase-generation"));
 
     return job;
     }
@@ -120,6 +134,15 @@ public class NormalChromosomeJob extends JobIGCSA
     /* Set up job */
     Job job = this.createJob(args);
     return (job.waitForCompletion(true) ? 0 : 1);
+    }
+
+
+  public static void main(String[] args) throws Exception
+    {
+    NormalChromosomeJob chr = new NormalChromosomeJob(new Configuration());
+
+    Job job = chr.createJob(new String[]{"-g", "GRCh37", "-c", "12", "-o", "/tmp"});
+    job.waitForCompletion(true);
     }
 
 
