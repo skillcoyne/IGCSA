@@ -118,8 +118,7 @@ public class FragmentMutationMapper extends TableMapper<ImmutableBytesWritable, 
     ChromosomeResult mutatedChr = genomeAdmin.getChromosomeTable().getChromosome(genome.getName(), origSeq.getChr());
     if (mutatedChr == null)
       {
-      String rowId = genomeAdmin.getChromosomeTable().addChromosome(genome, origChr.getChrName(), origChr.getLength(),
-                                                                    origChr.getSegmentNumber());
+      String rowId = genomeAdmin.getChromosomeTable().addChromosome(genome, origChr.getChrName(), origChr.getLength(),origChr.getSegmentNumber());
       mutatedChr = genomeAdmin.getChromosomeTable().queryTable(rowId);
       }
 

@@ -15,8 +15,11 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.Scan;
 
+import org.apache.hadoop.hbase.filter.FuzzyRowFilter;
 import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
 
+import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.hbase.util.Pair;
 import org.apache.hadoop.mapreduce.Job;
 
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
@@ -25,9 +28,13 @@ import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.ToolRunner;
 
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
+import org.lcsb.lu.igcsa.hbase.rows.SequenceRow;
 import org.lcsb.lu.igcsa.hbase.tables.Column;
 
 import org.lcsb.lu.igcsa.mapreduce.figg.FragmentMutationMapper;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /*
 NOTE:
@@ -87,11 +94,23 @@ public class MutateFragments extends JobIGCSA
 
     Job job = new Job(getConf(), "Genome Fragment Mutation");
     job.setJarByClass(MutateFragments.class);
-    // this scan will get all sequences for the given genome (so 300 million)
-    Scan seqScan = genomeAdmin.getSequenceTable().getScanFor(new Column("info", "genome", parent));
-    seqScan.setCaching(150);
 
-    TableMapReduceUtil.initTableMapperJob(genomeAdmin.getSequenceTable().getTableName(), seqScan, FragmentMutationMapper.class, null, null,
+    // this scan will get all sequences for the given genome (so 200 million)
+    List<Pair<byte[], byte[]>> fuzzyKeys = new ArrayList<Pair<byte[], byte[]>>();
+    fuzzyKeys.add(
+        new Pair<byte[],byte[]>(Bytes.toBytes("????????????:" + "?" + "-" + parent),
+                                //         ? ? ? ? ? ? ? ? ? ? ? ? : ? - G R C h 3 7
+                                new byte[]{1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0})
+    );
+
+    FuzzyRowFilter filter = new FuzzyRowFilter(fuzzyKeys);
+    Scan scan = new Scan();
+    scan.setFilter(filter);
+
+    //Scan Scan = genomeAdmin.getSequenceTable().getScanFor(new Column("info", "genome", parent));
+    scan.setCaching(100);
+
+    TableMapReduceUtil.initTableMapperJob(genomeAdmin.getSequenceTable().getTableName(), scan, FragmentMutationMapper.class, null, null,
                                           job);
     // because we aren't emitting anything from mapper
     job.setOutputFormatClass(NullOutputFormat.class);

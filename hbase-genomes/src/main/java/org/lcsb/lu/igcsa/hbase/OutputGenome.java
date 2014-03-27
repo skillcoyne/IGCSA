@@ -50,47 +50,48 @@ public class OutputGenome
 
     String chr = "1";
     char c = SequenceRow.initialChar(chr);
-    String rowKey = c + "???????????:" + chr + "-GRCh37";
+    String rowKey = "????????????:" + "?" + "-GRCh37";
     List<Pair<byte[], byte[]>> fuzzyKeys = new ArrayList<Pair<byte[], byte[]>>();
     fuzzyKeys.add(
         new Pair<byte[],byte[]>(Bytes.toBytes(rowKey),
-                                new byte[]{0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0})
+//                                         ? ? ? ? ? ? ? ? ? ? ? ? : ? - G R C h 3 7
+                                new byte[]{1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0})
     );
 
-//    FuzzyRowFilter filter = new FuzzyRowFilter(fuzzyKeys);
-//    Scan scan = new Scan();
-//    scan.setFilter(filter);
-//
-//    ResultScanner scanner = admin.getSequenceTable().getScanner(scan);
-//    Iterator<Result> rI = scanner.iterator();
-//
-//    //Iterator<Result> rI =  admin.getSequenceTable().getSequencesFor("GRCh37", "1", 1, 1000);
-//    List<Long> frags = new ArrayList<Long>();
-//    int i=0;
-//    while (rI.hasNext())
-//      {
-//      SequenceResult sr = admin.getSequenceTable().createResult(rI.next());
-//      log.info(sr.getRowId() + "\t" + sr.getStart());
-//
-//      frags.add(sr.getStart());
-//
-//      i++;
-//      }
-//
-//    Collections.sort(frags);
-//
-//    log.info("*****  " + i);
+    FuzzyRowFilter filter = new FuzzyRowFilter(fuzzyKeys);
+    Scan scan = new Scan();
+    scan.setFilter(filter);
+
+    ResultScanner scanner = admin.getSequenceTable().getScanner(scan);
+    Iterator<Result> rI = scanner.iterator();
+
+    //Iterator<Result> rI =  admin.getSequenceTable().getSequencesFor("GRCh37", "1", 1, 1000);
+    List<Long> frags = new ArrayList<Long>();
+    int i=0;
+    while (rI.hasNext())
+      {
+      SequenceResult sr = admin.getSequenceTable().createResult(rI.next());
+      log.info(sr.getRowId() + "\t" + sr.getStart());
+
+      frags.add(sr.getStart());
+
+      i++;
+      }
+
+    Collections.sort(frags);
+
+    log.info("*****  " + i);
     ChromosomeResult cr = admin.getChromosomeTable().getChromosome("GRCh37", chr);
     log.info(cr.getChrName() + " len=" + cr.getLength() + " seg=" + cr.getSegmentNumber());
 
-    Iterator<Result> sI = admin.getSequenceTable().getSequencesFor("GRCh37", chr, 10000, 18001);
-    if (!sI.hasNext())
-      log.info("fucked up");
-    while(sI.hasNext())
-      {
-      SequenceResult sr =  admin.getSequenceTable().createResult(sI.next());
-      log.info(sr.getStart() + "-" + sr.getEnd() + "\t" + sr.getSegmentNum());
-      }
+//    Iterator<Result> sI = admin.getSequenceTable().getSequencesFor("GRCh37", chr, 10000, 18001);
+//    if (!sI.hasNext())
+//      log.info("fucked up");
+//    while(sI.hasNext())
+//      {
+//      SequenceResult sr =  admin.getSequenceTable().createResult(sI.next());
+//      log.info(sr.getStart() + "-" + sr.getEnd() + "\t" + sr.getSegmentNum());
+//      }
 
     //    SequenceResult r = admin.getSequenceTable().queryTable("AAAA00024002:1-GRCh37");
 //
