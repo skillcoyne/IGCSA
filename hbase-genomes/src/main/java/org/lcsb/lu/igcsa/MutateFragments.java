@@ -15,7 +15,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.Scan;
 
-import org.apache.hadoop.hbase.filter.FuzzyRowFilter;
 import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
 
 import org.apache.hadoop.hbase.util.Bytes;
@@ -36,10 +35,6 @@ import org.lcsb.lu.igcsa.mapreduce.figg.FragmentMutationMapper;
 import java.util.ArrayList;
 import java.util.List;
 
-/*
-NOTE:
-This isn't currently being used for anything so it could be that this doesn't work.  It's not been properly tested.
- */
 public class MutateFragments extends JobIGCSA
   {
   private static final Log log = LogFactory.getLog(MutateFragments.class);
@@ -95,19 +90,17 @@ public class MutateFragments extends JobIGCSA
     Job job = new Job(getConf(), "Genome Fragment Mutation");
     job.setJarByClass(MutateFragments.class);
 
-    // this scan will get all sequences for the given genome (so 200 million)
-    List<Pair<byte[], byte[]>> fuzzyKeys = new ArrayList<Pair<byte[], byte[]>>();
-    fuzzyKeys.add(
-        new Pair<byte[],byte[]>(Bytes.toBytes("????????????:" + "?" + "-" + parent),
-                                //         ? ? ? ? ? ? ? ? ? ? ? ? : ? - G R C h 3 7
-                                new byte[]{1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0})
-    );
-
-    FuzzyRowFilter filter = new FuzzyRowFilter(fuzzyKeys);
-    Scan scan = new Scan();
-    scan.setFilter(filter);
-
-    //Scan Scan = genomeAdmin.getSequenceTable().getScanFor(new Column("info", "genome", parent));
+    // this scan will get all sequences for the given genome (so 200 million) -- or it would if you could use 0.94
+//    List<Pair<byte[], byte[]>> fuzzyKeys = new ArrayList<Pair<byte[], byte[]>>();
+//    fuzzyKeys.add(
+//        new Pair<byte[],byte[]>(Bytes.toBytes("????????????:" + "?" + "-" + parent),
+//                                //         ? ? ? ? ? ? ? ? ? ? ? ? : ? - G R C h 3 7
+//                                new byte[]{1,1,1,1,1,1,1,1,1,1,1,1,0,1,0,0,0,0,0,0,0})
+//    );
+//
+//    FuzzyRowFilter filter = new FuzzyRowFilter(fuzzyKeys);
+    //Scan scan = new Scan();
+    Scan scan = genomeAdmin.getSequenceTable().getScanFor(new Column("info", "genome", parent));
     scan.setCaching(100);
 
     TableMapReduceUtil.initTableMapperJob(genomeAdmin.getSequenceTable().getTableName(), scan, FragmentMutationMapper.class, null, null,

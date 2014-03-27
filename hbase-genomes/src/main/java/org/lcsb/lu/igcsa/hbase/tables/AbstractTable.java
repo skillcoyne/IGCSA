@@ -39,20 +39,20 @@ public abstract class AbstractTable<T> extends HTable
     super(conf, tableName);
     }
 
-  public AbstractTable(byte[] tableName, HConnection connection) throws IOException
-    {
-    super(tableName, connection);
-    }
+//  public AbstractTable(byte[] tableName, HConnection connection) throws IOException
+//    {
+//    super(tableName, connection);
+//    }
 
-  public AbstractTable(Configuration conf, byte[] tableName, ExecutorService pool) throws IOException
-    {
-    super(conf, tableName, pool);
-    }
+//  public AbstractTable(Configuration conf, byte[] tableName, ExecutorService pool) throws IOException
+//    {
+//    super(conf, tableName, pool);
+//    }
 
-  public AbstractTable(byte[] tableName, HConnection connection, ExecutorService pool) throws IOException
-    {
-    super(tableName, connection, pool);
-    }
+//  public AbstractTable(byte[] tableName, HConnection connection, ExecutorService pool) throws IOException
+//    {
+//    super(tableName, connection, pool);
+//    }
 
   public static HTableDescriptor getDescriptor(TableDefinitions table)
     {

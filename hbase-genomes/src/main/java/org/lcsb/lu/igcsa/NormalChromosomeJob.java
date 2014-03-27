@@ -4,7 +4,6 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.filter.*;
@@ -24,7 +23,6 @@ import org.lcsb.lu.igcsa.mapreduce.FragmentPartitioner;
 import org.lcsb.lu.igcsa.mapreduce.FragmentWritable;
 import org.lcsb.lu.igcsa.mapreduce.SegmentOrderComparator;
 import org.lcsb.lu.igcsa.mapreduce.fasta.ChromosomeSequenceMapper;
-import org.lcsb.lu.igcsa.mapreduce.fasta.MultipleChromosomeSequenceReducer;
 import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAOutputFormat;
 import org.lcsb.lu.igcsa.mapreduce.fasta.SingleChromosomeReducer;
 
@@ -74,7 +72,6 @@ public class NormalChromosomeJob extends JobIGCSA
     output = new Path(new Path(new Path(cl.getOptionValue("o"), Paths.GENOMES.getPath()), genomeName), chr);
     this.checkPath(output, true);
 
-
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(getConf());
     GenomeResult genome = admin.getGenomeTable().getGenome(genomeName);
     if (genome == null)
@@ -82,18 +79,13 @@ public class NormalChromosomeJob extends JobIGCSA
     else
       parent = genome.getParent();
 
-//    FilterList filters = new FilterList(FilterList.Operator.MUST_PASS_ALL);
-//    filters.addFilter(new SingleColumnValueFilter(Bytes.toBytes("info"), Bytes.toBytes("genome"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(genomeName)));
-//    filters.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("chr"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(chr)));
-
-    char c = SequenceRow.initialChar(chr);
-    String rowKey = c + "???????????:" + chr + "-" + genomeName;
-    List<Pair<byte[], byte[]>> fuzzyKeys = new ArrayList<Pair<byte[], byte[]>>();
-    fuzzyKeys.add(new Pair<byte[], byte[]>(Bytes.toBytes(rowKey), new byte[]{0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
-
+//    char c = SequenceRow.initialChar(chr);
+//    String rowKey = c + "???????????:" + chr + "-" + genomeName;
+//    List<Pair<byte[], byte[]>> fuzzyKeys = new ArrayList<Pair<byte[], byte[]>>();
+//    fuzzyKeys.add(new Pair<byte[], byte[]>(Bytes.toBytes(rowKey), new byte[]{0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
+//
     Scan scan = new Scan();
-    scan.setFilter(new FuzzyRowFilter(fuzzyKeys));
-
+//    scan.setFilter(new FuzzyRowFilter(fuzzyKeys));
     scan.setCaching(100);
 
     return scan;
