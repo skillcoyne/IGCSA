@@ -21,7 +21,7 @@ import static org.junit.Assert.*;
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-@RunWith (SpringJUnit4ClassRunner.class) @ContextConfiguration (locations = {"classpath:test-spring-config.xml"})
+//@RunWith (SpringJUnit4ClassRunner.class) @ContextConfiguration (locations = {"classpath:test-spring-config.xml"})
 public class ProbabilityTest
   {
   private Probability probability;
@@ -32,6 +32,40 @@ public class ProbabilityTest
   public void setup()
     {
     nucleotides = new TreeMap<Object, Double>();
+    }
+
+  @Test  // Bug where sometimes a stack of probabilities are 1.0, 0, 0, 0 and the last one added ends up with a prob of 1 incorrectly.
+  public void testOnlyOneProb() throws Exception
+    {
+    Map<Object, Double> sizes = new TreeMap<Object, Double>();
+
+    sizes.put( 100, new Double(0.0) );
+    sizes.put( 10,  new Double(1.0) );
+    for (int i=200; i<=1000; i+=100)
+      sizes.put(i, new Double(0.0));
+
+    Probability p = new Probability(sizes, 4);
+
+    assertEquals(p.getProbabilities().get(1.0), 10);
+
+    for (int i=0; i<100; i++)
+      assertEquals(p.roll(), 10);
+    }
+
+  @Test /* This tests a bug I ran across where a map of sparse probabilities doesn't always result in what you expect */
+  public void testSparse() throws Exception
+    {
+    Map<Object, Double> sizes = new TreeMap<Object, Double>();
+
+    sizes.put( 100, new Double(0.0005) );
+    sizes.put( 10,  new Double(0.9995) );
+    for (int i=200; i<=1000; i+=100)
+      sizes.put(i, new Double(0.0));
+
+    Probability p = new Probability(sizes, 4);
+
+    for (int i=0; i<5; i++)
+      assertEquals(p.roll(), 10);
     }
 
   @Test

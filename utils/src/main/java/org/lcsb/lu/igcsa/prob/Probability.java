@@ -144,9 +144,15 @@ public class Probability
     double total = 0.0;
     for (Map.Entry<Object, Double> entry : probabilities.entrySet())
       {
+      if (String.valueOf(entry.getValue()).length() > decimalPlaces + 2 )
+        throw new ProbabilityException( "Provided probability value has more decimal places than precision is set for, rounding errors likely." );
+
       rawProbabilities.put(entry.getKey(), entry.getValue());
 
-      objProbabilities.put(round(entry.getValue() + total, this.decimalPlaces), entry.getKey());
+      if (entry.getValue() <= 0.0)
+        objProbabilities.put(0.0, entry.getKey());
+      else
+        objProbabilities.put(round(entry.getValue() + total, this.decimalPlaces), entry.getKey());
       total = round(total + entry.getValue(), this.decimalPlaces);
       }
     this.totalValue = round(total, this.decimalPlaces);
