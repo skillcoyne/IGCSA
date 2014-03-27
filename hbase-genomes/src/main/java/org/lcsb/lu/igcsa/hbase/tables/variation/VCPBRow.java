@@ -49,15 +49,15 @@ public class VCPBRow extends Row
     return rowFrag;
     }
 
-  public static String createRowId(String chr, String variation, int min, int max, int fragmentNumber)
+  public static String createRowId(String chr, String variation, int min, int max, int sampleCount)
     {
-    String rowId = String.valueOf(fragmentNumber) + sep + chr + sep + variation + sep + min + "-" + max;
+    String rowId = String.valueOf(sampleCount) + sep + chr + sep + variation + sep + min + "-" + max;
     return rowId;
     }
 
   public static String createRowId(String chr, String variation, int min, int max)
     {
-    if (rowFrag <= 1)
+    if (rowFrag < 1)
       log.info("foo");
     String rowId = String.valueOf(rowFrag) + sep + chr + sep + variation + sep + min + "-" + max;
     return rowId;

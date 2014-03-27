@@ -17,8 +17,6 @@ import org.apache.hadoop.hbase.client.Scan;
 
 import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
 
-import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.hadoop.hbase.util.Pair;
 import org.apache.hadoop.mapreduce.Job;
 
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
@@ -27,13 +25,10 @@ import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.ToolRunner;
 
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
-import org.lcsb.lu.igcsa.hbase.rows.SequenceRow;
 import org.lcsb.lu.igcsa.hbase.tables.Column;
 
 import org.lcsb.lu.igcsa.mapreduce.figg.FragmentMutationMapper;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public class MutateFragments extends JobIGCSA
   {

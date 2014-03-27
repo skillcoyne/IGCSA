@@ -48,23 +48,47 @@ public class SizeProbability extends AbstractTable<SizeProbability>
     return row.getRowIdAsString();
     }
 
+  public Probability getProbabilityFor(String variation) throws IOException, ProbabilityException
+    {
+    List<SizeResult> results = queryTable(new Column("var", "name", variation));
+
+    Map<Object, Double> probs = new TreeMap<Object, Double>();
+    for(SizeResult sr: results)
+      probs.put( sr.getMaxbp(), sr.getProb() );
+
+    /*
+    This is clearly wrong, for some variations the probabilities are being created totally incorrectly.
+    Has to be a fault of the Probability class.
+     */
+
+    Probability p =  new Probability(probs, 4);
+    return p;
+    }
+
+
   public Map<String, Probability> getProbabilities() throws IOException, ProbabilityException
     {
-    Map<String, Map<Object, Double>> varProbs = new HashMap<String, Map<Object, Double>>();
-
-    for (Result r: (List<Result>) getRows())
-      {
-      SizeResult size = createResult(r);
-      if (!varProbs.containsKey(size.getVariation()))
-        varProbs.put(size.getVariation(), new HashMap<Object, Double>());
-
-      Map<Object, Double> probs = varProbs.get(size.getVariation());
-      probs.put(size.getMaxbp(), size.getProb());
-      }
-
+    List<String> variations = getVariationList();
     Map<String, Probability> sizeProbs = new HashMap<String, Probability>();
-    for (String var: varProbs.keySet())
-      sizeProbs.put(var, new Probability(varProbs.get(var)));
+
+    for (String v: variations)
+      sizeProbs.put(v, getProbabilityFor(v));
+
+
+//    Map<String, TreeMap<Object, Double>> varProbs = new HashMap<String, TreeMap<Object, Double>>();
+
+//    for (Result r: (List<Result>) getRows())
+//      {
+//      SizeResult size = createResult(r);
+//      if (!varProbs.containsKey(size.getVariation()))
+//        varProbs.put(size.getVariation(), new TreeMap<Object, Double>());
+//
+//      TreeMap<Object, Double> probs = varProbs.get(size.getVariation());
+//      probs.put(size.getMaxbp(), size.getProb());
+//      }
+
+//    for (String var: varProbs.keySet())
+//      sizeProbs.put(var, new Probability(varProbs.get(var)));
 
     return sizeProbs;
     }

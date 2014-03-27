@@ -60,7 +60,7 @@ public class VariationCountPerBin extends AbstractTable<VariationCountPerBin>
       {
       String rowId = VCPBRow.createRowId(chromosome, var, gcMin, gcMax, fragmentNumber);
       VCPBResult result = this.queryTable(rowId);
-      if (result != null && result.getVariationCount() > 0)
+      if (result != null)
         results.add(result);
       }
 

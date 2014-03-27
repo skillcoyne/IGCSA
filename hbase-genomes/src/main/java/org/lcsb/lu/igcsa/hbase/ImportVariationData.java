@@ -99,7 +99,8 @@ public class ImportVariationData
     while ((line = reader.readLine()) != null)
       {
       String[] db = line.split("\t");
-      if (db[0].equals("")) continue;
+      if (db[0].equals(""))
+        continue;
       variations.put(Integer.parseInt(db[0]), new String[]{db[1], db[2]});
       }
     }
@@ -114,7 +115,8 @@ public class ImportVariationData
     while ((line = reader.readLine()) != null)
       {
       String[] bins = line.split("\t");
-      if (bins[0].equals("") || bins[0].startsWith("[A-Za-z]")) continue;
+      if (bins[0].equals("") || bins[0].startsWith("[A-Za-z]"))
+        continue;
 
       String key = bins[1] + ":" + bins[2];
       int min = Integer.parseInt(bins[3]);
@@ -139,7 +141,8 @@ public class ImportVariationData
     String line;
     while ((line = reader.readLine()) != null)
       {
-      if (line.split("\t")[0].equals("")) continue;
+      if (line.split("\t")[0].equals(""))
+        continue;
       snvs.add(line.split("\t"));
       snvOrder.add(line.split("\t")[0]);
       }
@@ -151,7 +154,8 @@ public class ImportVariationData
         {
         double p = Double.parseDouble(prob[i + 1]);
         String rowId = table.addSNV(from, snvOrder.get(i), p);
-        if (rowId == null) throw new IOException("Failed to add snv probability for " + from + "-" + snvOrder.get(i));
+        if (rowId == null)
+          throw new IOException("Failed to add snv probability for " + from + "-" + snvOrder.get(i));
         }
       }
     }
@@ -167,14 +171,17 @@ public class ImportVariationData
     while ((line = reader.readLine()) != null)
       {
       String[] sizes = line.split("\t");
-      if (sizes[0].equals("") || sizes[0].matches("[A-Za-z]+")) continue;
+      if (sizes[0].equals("") || sizes[0].matches("[A-Za-z]+"))
+        continue;
       String[] variation = variations.get(Integer.parseInt(sizes[1]));
       int maxbp = Integer.parseInt(sizes[0]);
-      if (maxbp < 10) throw new IOException("Incorrect formatting or parsing, maxbp should never be <10");
+      if (maxbp < 10)
+        throw new IOException("Incorrect formatting or parsing, maxbp should never be <10");
       double prob = Double.parseDouble(sizes[2]);
 
       String rowId = table.addSizeProbabiilty(variation[0], maxbp, prob);
-      if (rowId != null) ++count;
+      if (rowId != null)
+        ++count;
       }
     log.info("Added " + count + " rows to SIZE");
     }
@@ -188,13 +195,15 @@ public class ImportVariationData
 
     VariationCountPerBin table = (VariationCountPerBin) admin.getTable(VariationTables.VPB.getTableName());
 
+    int all = 0;
     int rowCount = 0;
     String line;
 
     while ((line = reader.readLine()) != null)
       {
       String[] frag = line.split("\t");
-      if (frag[0].equals("chr")) continue;
+      if (frag[0].equals("chr"))
+        continue;
 
       String chr = frag[0];
       IntRange gcRange = gcBins.get(chr + ":" + frag[1]);
@@ -202,14 +211,23 @@ public class ImportVariationData
       int count = Integer.parseInt(frag[3]);
       int fragmentCount = fragmentCountPerBin.get(chr + ":" + frag[1]);
 
-      String rowId = table.addFragment(chr, variation[0], variation[1], count, gcRange.getMinimumInteger(), gcRange.getMaximumInteger(),
-                                       fragmentCount);
-      if (rowId == null) throw new IOException("Failed to add line: " + line);
-      else ++rowCount;
-      log.info(rowId);
+      if (count > 0)
+        {
+        String rowId = table.addFragment(chr, variation[0], variation[1], count, gcRange.getMinimumInteger(), gcRange.getMaximumInteger(), fragmentCount);
+        if (rowId == null)
+          throw new IOException("Failed to add line: " + line);
+        else
+          ++rowCount;
+        if (!variation[0].equals("SNV"))
+          log.info(rowId + " count=" + count);
+        }
+//      else
+//        log.info("Variation count 0 for " + variation[0]);
+      ++all;
       }
 
     log.info(rowCount + " rows added.");
+    log.info(all + " total lines.");
     }
 
   }

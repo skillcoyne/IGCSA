@@ -133,8 +133,10 @@ public class FragmentMutationMapper extends TableMapper<ImmutableBytesWritable, 
       if (gcContent < gcResult.getMax()) getBin(origSeq.getChr(), gcContent);
 
       // get random fragment within this bin
-      List<VCPBResult> varsPerFrag = varTable.getFragment(origSeq.getChr(), gcResult.getMin(), gcResult.getMax(),
-                                                          randomFragment.nextInt(gcResult.getTotalFragments()), variationList);
+
+      List<VCPBResult> varsPerFrag = varTable.getFragment("21", 336, 420,  5270, variationList);
+
+      //List<VCPBResult> varsPerFrag = varTable.getFragment(origSeq.getChr(), gcResult.getMin(), gcResult.getMax(), randomFragment.nextInt(gcResult.getTotalFragments()), variationList);
 
       Map<Variation, Map<Location, DNASequence>> mutations = new HashMap<Variation, Map<Location, DNASequence>>();
 
@@ -150,7 +152,8 @@ public class FragmentMutationMapper extends TableMapper<ImmutableBytesWritable, 
           SNV snv = ((SNV) v);
           snv.setSnvFrequencies(snvProbabilities);
           }
-        else v.setSizeVariation(sizeProbabilities.get(variation.getVariationName()));
+        else
+          v.setSizeVariation(sizeProbabilities.get(variation.getVariationName()));
 
         mutatedSequence = v.mutateSequence(mutatedSequence, variation.getVariationCount());
         if (v.getLastMutations().size() > 0) mutations.put(v, v.getLastMutations());
