@@ -1,4 +1,4 @@
-<html xmlns="http://www.w3.org/1999/html">
+<html xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
 <head>
   <meta name="verify-v1" content="6wo51xu6ARUrklKNbMeXjgoTCvR8I3C7/IESIFp0t10="/>
   <link rel="stylesheet" type="text/css" href="style.css">
@@ -41,8 +41,8 @@
     <h3>Requirements:</h3>
     <ul>
       <li><a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">Java 1.6+</a></li>
-      <li><a href="http://dev.mysql.com/downloads/">MySQL 5.1</a></li>
-      <li><a href="http://hgdownload.cse.ucsc.edu/downloads.html">FASTA files</a></li>
+      <li><a href="http://hadoop.apache.org/">Hadoop MapReduce v1.2</a></li>
+      <li><a href="https://hbase.apache.org/book/quickstart.html">HBase v0.92</a></li>
     </ul>
   </div>
 
@@ -51,36 +51,68 @@
     <h2>Introduction</h2>
 
     <p>
-      FIGG is a genome simulation tool that uses known or theorized variation probability, per a given fragment size and grouped by GC content across a genome to generate
+      FIGG is a genome simulation tool that uses known or theorized variation frequency, per a given fragment size and grouped by GC content across a genome to model
       new genomes in FASTA format while tracking applied mutations for use in analysis tools or population simulations.
+    </p>
+
+    <p>
+      FIGG uses <a href="http://hadoop.apache.org/">Hadoop MapReduce and HBase</a> to scalably and rapidly generate individual genomes.
     </p>
     <br>
 
-    <h2>Installation</h2>
+    <h2>Instructions for Local Installation</h2>
 
     <p>
-      <a href="http://www.oracle.com/technetwork/java/javase/downloads/jre6-downloads-1637595.html">Java 1.6</a> or higher is required to run FIGG.
-      Download and expand one of the provided compressed packages from the <a href="http://sourceforge.net/projects/insilicogenome/files/releases">releases page</a>. This package
-      includes a database and one FASTA file for an example run.
-
-    <h3>Run Provided Example</h3>
-    After uncompressing the package in a Unix or OSX system open a terminal and run:
-    <pre>sh figg.sh -n MyGenome -o -c 22 </pre>
-    on Windows run cmd.exe and in the window run:
-    <pre>figg.bat -n MyGenome -o -c 22 </pre>
-    Chromosome 22 takes about 26 minutes to fragment and mutate on current hardware. A
-    <h3>In order to run a full genome</h3>
+      Hadoop version 1.2 and HBase 0.94 is required to run this on a local cluster or single node setup. Please see the <a href="https://hadoop.apache.org/docs/r1.2.1/single_node_setup.html">documentation</a> provided by Apache in order to
+      set up a single node installation of Hadoop.
+    </p>
 
     <p>
-    <ul>
-      <li>Download human FASTA files from <a href="ftp://ftp.ncbi.nlm.nih.gov/genbank/genomes/Eukaryotes/vertebrates_mammals/Homo_sapiens/GRCh37/Primary_Assembly/assembled_chromosomes/FASTA">NCBI</a> or <a
-          href="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/chromosomes/">UCSC</a>. Note that only chromosomes 1-22, X and Y are represented in the database.
+
+    <h3>Setup</h3>
+    <ol>
+      <li>Download the HBase-Genomes-1.1.jar file from the <a href="http://sourceforge.net/projects/insilicogenome/files/releases">release page</a>.</li>
+      <li>Download the GRCh37-loaded.tgz file. This contains <a href="http://www.ncbi.nlm.nih.gov/assembly/GCF_000001405.13/">GRCh37</a> pre-fragmented and a database for "normal" variation frequencies based on 1000Genomes and HapMap.
+        Uncompress this file, then load all of the directories into HDFS:
+        <pre>hadoop dfs -copyFromLocal /path/to/GRCh37-loaded /my/hdfs/path </pre>
       </li>
-      <li>Update the dir.assembly property in the genome.properties file to point to the directory where the FASTA files were saved</li>
-      <li>Alter the dir.insilico directory if you wish to save the mutated genomes in a new location.</li>
-      <li>Run the correct script for your OS (bat/sh file) without the -c option: <pre>sh figg.sh -n MyGenome -o -t 12</pre></li>
-    </ul>
-    <b><i>Note:</i></b> The full genome run using the thread option -t 12 takes 32-36 hours to complete on current hardware.
+      <li> Run a Hadoop job to load all of the database files into HBase:
+        <pre>
+        hadoop -jar HBase-Genomes-1.1.jar org.lcsb.lu.igcsa.hbase.HBaseUtility -d /my/hdfs/path/to/GRCh37-loaded -c IMPORT
+        </pre>
+      </li>
+      </p>
+      <p>
+      <h3>Run</h3>
+      <li>Each mutate job generates one new genome. A new genome name is required each time.  This job generates mutated fragments and stores them in HBase. This can be run as many times as required.
+        <pre>
+        hadoop -jar HBase-Genomes-1.1.jar org.lcsb.lu.igcsa.MutateFragments -p GRCh37 -m MyNewGenomeName
+        </pre>
+      </li>
+      <li>
+        This step generates all of the FASTA files for each chromosome in any genome identifed by name. This can be run anytime, as many times as needed, after the mutation step.  If you try to generate the same genome twice, any existing files for that genome in HDFS will be overwritten.
+        <pre>
+        hadoop -jar HBase-Genomes-1.1.jar org.lcsb.lu.igcsa.GenerateFullGenome -g MyNewGenomeName -o /my/hdfs/path
+        </pre>
+      </li>
+    </ol>
+    <p>
+    The resulting FASTA files can be copied out of HDFS using <pre>hadoop -dfs -copyToLocal ... </pre>
+    </p>
+
+    <h4>Optional: Load a New Reference Genome</h4>
+    <p>
+      There is a job available to generate your own fragmented reference genome tables (e.g. not GRCh37). This will overwrite the tables provided by the tgz file referenced above (genome, chromosome, sequences, small_mutations) so if you have generated any mutated genomes the data will be lost!  All FASTA files must be copied to a directory in HDFS. When running the "Load" step all files in the provided directory will be read, including compressed files.
+    </p>
+    <pre>
+    hadoop -jar HBase-Genomes-1.1.jar org.lcsb.lu.igcsa.LoadFromFASTA SomeName /full/hdfs/path/to/FASTA
+    </pre>
+
+    <p>
+      Generating your own variation frequencies is also possible.  Please see the R directory under 'fragment-database/normal' to generate files of the appropriate format.  This is not set up as a Hadoop job, so these files can be loaded from the local file system (not HDFS) into HBase by running:
+      <pre>
+    java -class HBase-Genomes-1.1.jar org.lcsb.lu.igcsa.hbase.ImportVariationData -v /local/path/variation.txt -g /local/path/gc_bin.txt -s /local/path/snv_prob.txt -z /local/path/size_prob.txt -f /local/path/variation_per_bin.txt
+      </pre>
     </p>
 
     <h2>FAQ</h2>
@@ -105,41 +137,30 @@
       </dd>
       <dt>Can I include specific variations at known locations?</dt>
       <dd>
-        While the code is set up to support this, the current implementation does not provide for location based, or specific genomic alterations.
-        This may be added in the future.
+        FIGG currently only provides a random variation location based on frequency data. Future implementations will include the ability to specify location based variations.
       </dd>
     </dl>
-    <h2>Usage</h2>
+    <h2>Available Tools</h2>
     <dl>
       <dd>
-      <dt>Usage: figg.sh (or figg.bat) [options]</dt>
-        <pre>
-    -n, --name Genome directory name, if not provided a random name is generated.
-    -o, --overwrite Overwrite genome directory if name already exists.
-    -c, --chromosome List of chromosomes to use/mutate, comma-separated (e.g. 21,3,X). If not included chromosomes will be determined by
-    the fasta files found in the dir.assembly directory (see genome.properties).
-    -t, --threads Number of concurrent threads, default is 5. Each thread handles a single chromosome.
-    -h, --help Print usage help.
-        </pre>
+      <dt>Usage: hadoop -jar HBase-Genomes-1.1.jar [main-class] [args]</dt>
+      <ul>
+        <li>org.lcsb.lu.igcsa.LoadFromFASTA [genome name] [hdfs path to FASTA file directory]</li>
+        <li>org.lcsb.lu.igcsa.hbase.HBaseUtility -d [hdfs directory for read/write] -c [IMPORT|EXPORT] -t [comma separated list of tables OPTIONAL]</li>
+        <li>org.lcsb.lu.igcsa.MutateFragments -p [reference genome, ex. GRCh37] -m [new genome name]</li>
+        <li>org.lcsb.lu.igcsa.GenerateFullGenome -g [reference genome name, ex. GRCh37] -o [hdfs output path for FASTA files]
+        </li>
+      </ul>
       </dd>
-      <dt>Examples using the provided shell script:</dt>
-      <dd>
-        Generate mutations for chromosome 22, overwrite previous named run.
-        <pre>figg.sh -n MyChr17 -o -c 22</pre>
-
-        Generate mutations for all chromosomes in the dir.assembly directory using 12 threads. Don't overwrite.
-        <pre>figg.sh -n MyGenome -t 12</pre>
-
-      </dd>
-    </dl>
-    <h2>Notes & Warnings</h2>
-    <dt>Database Use</dt>
-    <dd>
-      The Derby database is provided within the zip package. The provided setup connects directly (see genome.properties). If you intend to use this on a cluster it is currently recommended that you set up your cluster run to copy the derby
-      database directory (db) to the local node for IO speed and update the properties file appropriately.
-      If you prefer MySQL please <a href="http://sourceforge.net/projects/insilicogenome/files/Databases/insilico-genome-mysql.zip/download">download the database dump</a> and alter the properties file appropriately. Note that no guarantees
-      are made for speed if you choose to connect to a remote MySQL database from a cluster environment. While a local MySQL database is as fast as Derby, tests of the remote database show slowdowns of more than 50%.
-    </dd>
+      <dt>Run on Amazon Elastic MapReduce:</dt>
+      <dl>
+        <p>
+        A shell script, <i>run_mutate_aws.sh</i> which uses the Amazon Command Line tool (CLI) and <a href="https://docs.aws.amazon.com/ElasticMapReduce/latest/DeveloperGuide/emr-cli-install.html">Ruby elastic-mapreduce (EMR)</a> to submit and run the jobs.  For this it is assumed that you will upload all of the tables provided to a folder in S3.  The job specified will load all of the tables into HBase, run the Mutate jobs, export the database tables that were changed (genome,sequence,chromosome) and Generate FASTA files (in S3).  Please see Amazon Web Services documentation for information on setting up your AWS account, security, and S3.
+        </p>
+        <p>
+          This script sets up Spot Instances for less expensive runs, however please keep in mind that running these jobs is charged to the owner of the account, this is not provided by us.
+        </p>
+      </dl>
     <h2>Software License</h2>
     <dt><a href="http://www.apache.org/licenses/LICENSE-2.0.html">Apache License 2.0</a></dt>
     <pre>

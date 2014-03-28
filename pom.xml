@@ -76,14 +76,14 @@
 
     <modules>
         <module>utils</module>
-        <module>derby-db</module>
-        <module>kiss-derby</module>
+        <!--<module>derby-db</module>-->
+        <!--<module>kiss-derby</module>-->
         <module>figg</module>
         <module>kiss</module>
         <module>kiss-population</module>
         <module>hbase-genomes</module>
 
-        <module>sim</module>
+        <!--<module>sim</module>-->
         <module>hadoop-align</module>
     </modules>
 
