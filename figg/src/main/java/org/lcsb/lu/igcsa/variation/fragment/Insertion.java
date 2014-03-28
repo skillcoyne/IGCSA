@@ -1,5 +1,7 @@
 package org.lcsb.lu.igcsa.variation.fragment;
 
+import org.apache.commons.lang.math.IntRange;
+import org.lcsb.lu.igcsa.dist.RandomRange;
 import org.lcsb.lu.igcsa.genome.DNASequence;
 
 import org.apache.log4j.Logger;
@@ -36,7 +38,7 @@ public class Insertion extends Variation
     while (totalIns < count && sequence.length() > 1)
       {
       int nIndex = siteSelector.nextInt(sequence.length());
-      int size = (Integer) this.sizeVariation.roll();
+      int size = this.getRandomVarLength();
 
       log.debug("Site selected " + nIndex + " insertion size " + size);
 

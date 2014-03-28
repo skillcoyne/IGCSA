@@ -36,7 +36,7 @@ public class Substitution extends Variation
       // TODO what is the general probability of occurrence for each nucleotide anyhow??
       char[] validNucleotides = {A.value(), C.value(), T.value(), G.value()};
 
-      int size = (Integer) this.sizeVariation.roll();
+      int size = this.getRandomVarLength();
       int site = siteSelector.nextInt(sequence.length());
       Location newLoc = new Location(site, site + size);
       // need to exclude previous sites

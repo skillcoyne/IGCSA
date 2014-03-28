@@ -25,7 +25,7 @@ public class TandemRepeat extends Variation
 
     for (int i = 0; i < count; i++)
       {
-      int size = (Integer) this.sizeVariation.roll();
+      int size = this.getRandomVarLength();
       if (size >= sequence.length())
         continue;
 

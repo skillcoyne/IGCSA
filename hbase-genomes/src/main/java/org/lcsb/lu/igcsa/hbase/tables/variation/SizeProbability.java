@@ -56,13 +56,7 @@ public class SizeProbability extends AbstractTable<SizeProbability>
     for(SizeResult sr: results)
       probs.put( sr.getMaxbp(), sr.getProb() );
 
-    /*
-    This is clearly wrong, for some variations the probabilities are being created totally incorrectly.
-    Has to be a fault of the Probability class.
-     */
-
-    Probability p =  new Probability(probs, 4);
-    return p;
+    return new Probability(probs, 4);
     }
 
 

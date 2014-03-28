@@ -135,13 +135,6 @@ public class HBaseGenomeAdmin extends IGCSAHbaseAdmin
     }
 
 
-  //  public HBaseKaryotype getKaryotype(String karyotypeName) throws IOException
-  //    {
-  //    KaryotypeIndexTable kiT = this.getKaryotypeIndexTable();
-  //    KaryotypeIndexResult result = kiT.queryTable(karyotypeName);
-  //    return (result != null) ? new HBaseKaryotype(result) : null;
-  //    }
-
   public void deleteGenome(String genomeName) throws IOException
     {
     ChromosomeTable cT = this.getChromosomeTable();
@@ -160,12 +153,9 @@ public class HBaseGenomeAdmin extends IGCSAHbaseAdmin
     iterator = smT.getResultIterator(toFilter);
     while (iterator.hasNext()) smT.delete(Bytes.toString(iterator.next().getRow()));
 
-    deleteKaryotypes(genomeName);
+    //deleteKaryotypes(genomeName);
 
     gT.delete(genomeName);
-
-    //    for (AbstractTable t: new AbstractTable[]{cT, sT, smT, gT})
-    //      t.close();
     }
 
   public void deleteKaryotypes(String genomeName) throws IOException
@@ -185,7 +175,6 @@ public class HBaseGenomeAdmin extends IGCSAHbaseAdmin
 
       kiT.delete(Bytes.toString(result.getRow()));
       }
-    //kiT.close(); kT.close();
     }
 
   public void disableTables() throws IOException
@@ -204,17 +193,15 @@ public class HBaseGenomeAdmin extends IGCSAHbaseAdmin
     {
     for (IGCSATables table : IGCSATables.values())
       {
+      if (table.equals(IGCSATables.KI) || table.equals(IGCSATables.KT)) continue; // TODO turn this on after FIGG release
       if (!hbaseAdmin.tableExists(table.getTableName()))
         {
         if (table.regionSplits() > 1 && hbaseAdmin.getConfiguration().getInt("mapred.map.tasks", 2) > 2)
           {
           hbaseAdmin.createTable(AbstractTable.getDescriptor(table), table.getStartKey(), table.getEndKey(), table.regionSplits());
-//          RegionSplitter.main(new String[]{table.getTableName(), "-c", String.valueOf(table.regionSplits()),
-//              "-f", StringUtils.join(table.getRequiredFamilies().keySet().iterator(), ":")});
           }
         else hbaseAdmin.createTable(AbstractTable.getDescriptor(table));
         }
-
       }
     }
 

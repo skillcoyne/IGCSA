@@ -42,6 +42,7 @@ public class Indel extends Variation
     int indel = new Random().nextInt(2);
     if (indel == 0)
       {
+      this.setVariationName("insertion");
       Insertion ins = new Insertion();
       ins.setSizeVariation(this.sizeVariation);
       newSequence = ins.mutateSequence(sequence, count);
@@ -49,6 +50,7 @@ public class Indel extends Variation
       }
     else
       {
+      this.setVariationName("deletion");
       Deletion del = new Deletion();
       del.setSizeVariation(this.sizeVariation);
       newSequence = del.mutateSequence(sequence, count);

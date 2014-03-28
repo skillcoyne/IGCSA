@@ -20,7 +20,7 @@ public class Probability
 
   protected NavigableMap<Double, Object> objProbabilities = new TreeMap<Double, Object>();
 
-  protected HashMap<Object, Double> rawProbabilities = new HashMap<Object, Double>();
+  protected NavigableMap<Object, Double> rawProbabilities = new TreeMap<Object, Double>();
 
   private int decimalPlaces = 2;
 
@@ -95,7 +95,7 @@ public class Probability
     return objProbabilities;
     }
 
-  public Map<Object, Double> getRawProbabilities()
+  public NavigableMap<Object, Double> getRawProbabilities()
     {
     return rawProbabilities;
     }
@@ -145,7 +145,7 @@ public class Probability
     for (Map.Entry<Object, Double> entry : probabilities.entrySet())
       {
       if (String.valueOf(entry.getValue()).length() > decimalPlaces + 2 )
-        throw new ProbabilityException( "Provided probability value has more decimal places than precision is set for, rounding errors likely." );
+        log.warn( "Provided probability value has more decimal places than precision is set for, rounding errors likely." );
 
       rawProbabilities.put(entry.getKey(), entry.getValue());
 

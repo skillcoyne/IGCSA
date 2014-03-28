@@ -2,6 +2,7 @@ package org.lcsb.lu.igcsa.variation.fragment;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.normal.Fragment;
+import org.lcsb.lu.igcsa.dist.RandomRange;
 import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.prob.Probability;
@@ -45,6 +46,16 @@ public abstract class Variation
     public void setSizeVariation(Probability probability)
       {
       this.sizeVariation = probability;
+      }
+
+    public int getRandomVarLength()
+      {
+      int max = (Integer) sizeVariation.roll();
+      int min = 0;
+      if (sizeVariation.getRawProbabilities().lowerKey(max) != null)
+        min = (Integer) sizeVariation.getRawProbabilities().lowerKey(max);
+
+      return new RandomRange(min, max).nextInt();
       }
 
     public Map<Location, DNASequence> getLastMutations()

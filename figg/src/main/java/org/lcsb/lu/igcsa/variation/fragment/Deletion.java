@@ -31,7 +31,7 @@ public class Deletion extends Variation
       if (sequence.length() <= 0 ) break;
 
       int nIndex = siteSelector.nextInt(sequence.length());
-      int size = (Integer) this.sizeVariation.roll();
+      int size = this.getRandomVarLength();
 
       if (size > sequence.length()-nIndex) size = sequence.length()-nIndex;
 
