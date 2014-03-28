@@ -3,7 +3,10 @@ package org.lcsb.lu.igcsa;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.filter.*;
@@ -17,6 +20,7 @@ import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 import org.lcsb.lu.igcsa.hbase.rows.SequenceRow;
+import org.lcsb.lu.igcsa.hbase.tables.Column;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.GenomeResult;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.IGCSATables;
 import org.lcsb.lu.igcsa.mapreduce.FragmentPartitioner;
@@ -43,6 +47,8 @@ public class NormalChromosomeJob extends JobIGCSA
 
   private Path output;
   private String chr, genomeName, parent;
+  private boolean wait = false;
+  private Job job;
 
   public NormalChromosomeJob(Configuration conf)
     {
@@ -61,7 +67,13 @@ public class NormalChromosomeJob extends JobIGCSA
     this.addOptions(output);
     }
 
-  private Scan setup(String[] args) throws IOException, ParseException
+  public NormalChromosomeJob(Configuration conf, boolean wait)
+    {
+    this(conf);
+    this.wait = wait;
+    }
+
+    private Scan setup(String[] args) throws IOException, ParseException
     {
     GenericOptionsParser gop = this.parseHadoopOpts(args);
     CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs());
@@ -79,19 +91,27 @@ public class NormalChromosomeJob extends JobIGCSA
     else
       parent = genome.getParent();
 
+    // ONLY works in 0.94 and above, but AWS uses 0.92
 //    char c = SequenceRow.initialChar(chr);
 //    String rowKey = c + "???????????:" + chr + "-" + genomeName;
 //    List<Pair<byte[], byte[]>> fuzzyKeys = new ArrayList<Pair<byte[], byte[]>>();
 //    fuzzyKeys.add(new Pair<byte[], byte[]>(Bytes.toBytes(rowKey), new byte[]{0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
-//
-    Scan scan = new Scan();
 //    scan.setFilter(new FuzzyRowFilter(fuzzyKeys));
+
+    FilterList filters = new FilterList(FilterList.Operator.MUST_PASS_ALL);
+    filters.addFilter(new SingleColumnValueFilter(Bytes.toBytes("info"), Bytes.toBytes("genome"), CompareFilter.CompareOp.EQUAL,
+        Bytes.toBytes(genomeName)));
+    filters.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("chr"), CompareFilter.CompareOp.EQUAL,
+        Bytes.toBytes(chr)));
+
+    Scan scan = new Scan();
+    scan.setFilter(filters);
     scan.setCaching(100);
 
     return scan;
     }
 
-  public Job createJob(String[] args) throws IOException, ParseException
+  public void createJob(String[] args) throws IOException, ParseException
     {
     Scan scan = setup(args);
     /* Set up job */
@@ -110,22 +130,33 @@ public class NormalChromosomeJob extends JobIGCSA
     job.setNumReduceTasks(1); // one reducer for each chr?
     job.setOutputFormatClass(FASTAOutputFormat.class);
 
-    // TODO named output
-
     FileOutputFormat.setOutputPath(job, output);
     FASTAOutputFormat.setLineLength(job, 70);
     FASTAOutputFormat.addHeader(job, new FASTAHeader("chr" + chr, genomeName, "parent=" + parent, "hbase-generation"));
 
-    return job;
+    this.job = job;
     }
+
+  public Job getJob()
+    {
+    return this.job;
+    }
+
 
 
   @Override
   public int run(String[] args) throws Exception
     {
     /* Set up job */
-    Job job = this.createJob(args);
-    return (job.waitForCompletion(true) ? 0 : 1);
+    this.createJob(args);
+    return (job.waitForCompletion(wait) ? 0 : 1);
+    }
+
+  public void renameToFASTA() throws IOException
+    {
+    FileSystem fs = this.getJobFileSystem(this.output.toUri());
+    FileUtil.copy(fs, new Path(this.output, "part"), fs, new Path(this.output.toString() + ".fa"), true, this.getConf());
+    fs.delete(this.output, true);
     }
 
 
@@ -133,8 +164,11 @@ public class NormalChromosomeJob extends JobIGCSA
     {
     NormalChromosomeJob chr = new NormalChromosomeJob(new Configuration());
 
-    Job job = chr.createJob(new String[]{"-g", "GRCh37", "-c", "12", "-o", "/tmp"});
+    chr.createJob(new String[]{"-g", "GRCh37", "-c", "Y", "-o", "/tmp"});
+    Job job = chr.getJob();
     job.waitForCompletion(true);
+
+    chr.renameToFASTA();
     }
 
 

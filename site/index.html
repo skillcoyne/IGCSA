@@ -78,7 +78,7 @@
       </li>
       <li> Run a Hadoop job to load all of the database files into HBase:
         <pre>
-        hadoop -jar HBase-Genomes-1.1.jar org.lcsb.lu.igcsa.hbase.HBaseUtility -d /my/hdfs/path/to/GRCh37-loaded -c IMPORT
+        hadoop jar HBase-Genomes-1.1.jar org.lcsb.lu.igcsa.hbase.HBaseUtility -d /my/hdfs/path/to/GRCh37-loaded -c IMPORT
         </pre>
       </li>
       </p>
@@ -86,13 +86,13 @@
       <h3>Run</h3>
       <li>Each mutate job generates one new genome. A new genome name is required each time.  This job generates mutated fragments and stores them in HBase. This can be run as many times as required.
         <pre>
-        hadoop -jar HBase-Genomes-1.1.jar org.lcsb.lu.igcsa.MutateFragments -p GRCh37 -m MyNewGenomeName
+        hadoop jar HBase-Genomes-1.1.jar org.lcsb.lu.igcsa.MutateFragments -p GRCh37 -m MyNewGenomeName
         </pre>
       </li>
       <li>
         This step generates all of the FASTA files for each chromosome in any genome identifed by name. This can be run anytime, as many times as needed, after the mutation step.  If you try to generate the same genome twice, any existing files for that genome in HDFS will be overwritten.
         <pre>
-        hadoop -jar HBase-Genomes-1.1.jar org.lcsb.lu.igcsa.GenerateFullGenome -g MyNewGenomeName -o /my/hdfs/path
+        hadoop jar HBase-Genomes-1.1.jar org.lcsb.lu.igcsa.GenerateFullGenome -g MyNewGenomeName -o /my/hdfs/path
         </pre>
       </li>
     </ol>
@@ -105,7 +105,7 @@
       There is a job available to generate your own fragmented reference genome tables (e.g. not GRCh37). This will overwrite the tables provided by the tgz file referenced above (genome, chromosome, sequences, small_mutations) so if you have generated any mutated genomes the data will be lost!  All FASTA files must be copied to a directory in HDFS. When running the "Load" step all files in the provided directory will be read, including compressed files.
     </p>
     <pre>
-    hadoop -jar HBase-Genomes-1.1.jar org.lcsb.lu.igcsa.LoadFromFASTA SomeName /full/hdfs/path/to/FASTA
+    hadoop jar HBase-Genomes-1.1.jar org.lcsb.lu.igcsa.LoadFromFASTA SomeName /full/hdfs/path/to/FASTA
     </pre>
 
     <p>
@@ -143,7 +143,7 @@
     <h2>Available Tools</h2>
     <dl>
       <dd>
-      <dt>Usage: hadoop -jar HBase-Genomes-1.1.jar [main-class] [args]</dt>
+      <dt>Usage: hadoop jar HBase-Genomes-1.1.jar [main-class] [args]</dt>
       <ul>
         <li>org.lcsb.lu.igcsa.LoadFromFASTA [genome name] [hdfs path to FASTA file directory]</li>
         <li>org.lcsb.lu.igcsa.hbase.HBaseUtility -d [hdfs directory for read/write] -c [IMPORT|EXPORT] -t [comma separated list of tables OPTIONAL]</li>

@@ -55,7 +55,8 @@ public class ChromosomeSequenceMapper extends TableMapper<SegmentOrderComparator
 
     String sequence = sr.getSequence();
     SegmentOrderComparator soc = new SegmentOrderComparator(chrs.indexOf(sr.getChr()), sr.getSegmentNum());
-    if (soc.getOrder() < 0) throw new IOException("Failed to load all chromosomes, missing " + sr.getChr());
+    if (soc.getOrder() < 0)
+      throw new IOException("Failed to load all chromosomes, missing " + sr.getChr());
 
     FragmentWritable fw = new FragmentWritable(sr.getChr(), sr.getStart(), sr.getEnd(), sr.getSegmentNum(), sequence);
 

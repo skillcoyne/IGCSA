@@ -28,17 +28,11 @@ public class Indel extends Variation
     {
     DNASequence newSequence;
 
-    /* TODO
+    /* "indel" and "sequence_alteration" are the same variation.  It's possible SA should also include substitutions though.
     So it seems that it can be an insertion/deletion of differing sizes, or it can look like a SNV (but 2 or more bp's in length)
     In the gvf files it appears to always get listed as a deletion or insertion with comments about it being a large indel or something
      That means I need to change this a bit, BUT it's not even in my database as a variation currently so it can wait.
      */
-
-//    int site = siteSelector.nextInt(sequence.length());
-//
-//    int delSize = siteSelector.nextInt(3)
-
-
     int indel = new Random().nextInt(2);
     if (indel == 0)
       {

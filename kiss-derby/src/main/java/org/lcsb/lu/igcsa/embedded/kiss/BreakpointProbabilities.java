@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+@Deprecated /* moved everything to HBase currently */
 public class BreakpointProbabilities
   {
   static Logger log = Logger.getLogger(BreakpointProbabilities.class.getName());

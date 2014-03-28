@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Properties;
 
-
+@Deprecated /* Moved everything to HBase at this point */
 public class GenomeVariation
   {
   static Logger log = Logger.getLogger(GenomeVariation.class.getName());
