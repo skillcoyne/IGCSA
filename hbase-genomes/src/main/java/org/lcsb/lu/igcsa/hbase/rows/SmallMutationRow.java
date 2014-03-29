@@ -31,7 +31,7 @@ public class SmallMutationRow extends Row
   public void addGenomeInfo(String genome, Variation sm)
     {
     if (genome == null || sm == null)
-      throw new IllegalArgumentException("Genome name and Variation object required.");
+      throw new IllegalArgumentException("Genome name and Variation object required. " + this.toString() );
 
     log.debug("Added genome info " + genome + " " + sm.getVariationName());
 
@@ -45,6 +45,9 @@ public class SmallMutationRow extends Row
 
   public void addLocation(String chr, long segment, long start, long end)
     {
+    if (chr== null || segment  <= 0 || start <=  0 || end <= 0)
+      throw new IllegalArgumentException("Chromosome required for " + this.toString());
+
     log.debug("addLocation: " + chr + " " + segment + " " + start + "-" + end);
     String family = "loc";
 
@@ -62,7 +65,7 @@ public class SmallMutationRow extends Row
   public void addSequence(String seq)
     {
     if (seq == null)
-      seq = "";
+      seq = " ";
     log.debug("Add seq " + seq);
 
     this.addColumn(new Column("bp", "seq", seq));

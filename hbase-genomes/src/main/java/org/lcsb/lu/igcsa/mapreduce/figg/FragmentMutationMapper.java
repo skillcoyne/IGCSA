@@ -118,7 +118,8 @@ public class FragmentMutationMapper extends TableMapper<ImmutableBytesWritable, 
     ChromosomeResult mutatedChr = genomeAdmin.getChromosomeTable().getChromosome(genome.getName(), origSeq.getChr());
     if (mutatedChr == null)
       {
-      String rowId = genomeAdmin.getChromosomeTable().addChromosome(genome, origChr.getChrName(), origChr.getLength(),origChr.getSegmentNumber());
+      String rowId = genomeAdmin.getChromosomeTable().addChromosome(genome, origChr.getChrName(), origChr.getLength(),
+                                                                    origChr.getSegmentNumber());
       mutatedChr = genomeAdmin.getChromosomeTable().queryTable(rowId);
       }
 
@@ -133,7 +134,8 @@ public class FragmentMutationMapper extends TableMapper<ImmutableBytesWritable, 
       if (gcContent < gcResult.getMax()) getBin(origSeq.getChr(), gcContent);
 
       // get random fragment within this bin
-      List<VCPBResult> varsPerFrag = varTable.getFragment(origSeq.getChr(), gcResult.getMin(), gcResult.getMax(), randomFragment.nextInt(gcResult.getTotalFragments()), variationList);
+      List<VCPBResult> varsPerFrag = varTable.getFragment(origSeq.getChr(), gcResult.getMin(), gcResult.getMax(),
+                                                          randomFragment.nextInt(gcResult.getTotalFragments()), variationList);
 
       Map<Variation, Map<Location, DNASequence>> mutations = new HashMap<Variation, Map<Location, DNASequence>>();
 
@@ -149,8 +151,7 @@ public class FragmentMutationMapper extends TableMapper<ImmutableBytesWritable, 
           SNV snv = ((SNV) v);
           snv.setSnvFrequencies(snvProbabilities);
           }
-        else
-          v.setSizeVariation(sizeProbabilities.get(variation.getVariationName()));
+        else v.setSizeVariation(sizeProbabilities.get(variation.getVariationName()));
 
         mutatedSequence = v.mutateSequence(mutatedSequence, variation.getVariationCount());
         if (v.getLastMutations().size() > 0) mutations.put(v, v.getLastMutations());
@@ -168,9 +169,16 @@ public class FragmentMutationMapper extends TableMapper<ImmutableBytesWritable, 
         {
         for (Map.Entry<Location, DNASequence> entry : mutations.get(v).entrySet())
           {
-          Row row = genomeAdmin.getSmallMutationsTable().newMutationRow(mutSequence, v, entry.getKey().getStart(),
-                                                                        entry.getKey().getEnd(), entry.getValue().getSequence());
-          puts.add(new Put(genomeAdmin.getSmallMutationsTable().getPut(row)));
+          try
+            {
+            Row row = genomeAdmin.getSmallMutationsTable().newMutationRow(mutSequence, v, entry.getKey().getStart(),
+                                                                          entry.getKey().getEnd(), entry.getValue().getSequence());
+            puts.add(new Put(genomeAdmin.getSmallMutationsTable().getPut(row)));
+            }
+          catch (IllegalArgumentException ae)
+            {
+            log.error("Failed to add " + mutSeqRowId + " var " + v.toString(), ae);
+            }
           }
         }
       genomeAdmin.getSmallMutationsTable().put(puts);
