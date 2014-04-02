@@ -45,12 +45,12 @@ public class SmallMutationRow extends Row
 
   public void addLocation(String chr, long segment, long start, long end)
     {
-    if (chr== null || segment  <= 0 || start <=  0 || end <= 0)
-      throw new IllegalArgumentException("Chromosome required for " + this.toString());
+//    if (chr== null || segment  <= 0 || start <=  0 || end <= 0)
+//      throw new IllegalArgumentException("Chromosome required for " + this.toString());
 
     log.debug("addLocation: " + chr + " " + segment + " " + start + "-" + end);
-    String family = "loc";
 
+    String family = "loc";
     //"segment", "chr", "start", "end"
     this.addColumn(new Column(family, "segment", segment));
     this.addColumn(new Column(family, "chr", chr));

@@ -94,6 +94,10 @@ public class GenerateFullGenome extends JobIGCSA
     output.setRequired(true);
     this.addOptions(output);
 
+    Option mappers = new Option("m", "Mappers", true, "number of mappers, default to 5");
+    mappers.setRequired(false);
+    this.addOptions(mappers);
+
     Option bwa = new Option("b", "bwa", true, "Path to bwa.tgz");
     bwa.setRequired(false);
     this.addOptions(bwa);
@@ -141,7 +145,7 @@ public class GenerateFullGenome extends JobIGCSA
       if (runningJobs.size() > 2) break;
       }
 
-    int mappers = Integer.parseInt(getConf().get("mapred.map.tasks"));
+    int mappers = Integer.parseInt(cl.getOptionValue("m", "5"));
     int complete = 0; int running = 0;
     while (complete < runningJobs.size())
       {

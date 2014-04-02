@@ -181,7 +181,14 @@ public class FragmentMutationMapper extends TableMapper<ImmutableBytesWritable, 
             }
           }
         }
-      genomeAdmin.getSmallMutationsTable().put(puts);
+      try
+        {
+        genomeAdmin.getSmallMutationsTable().put(puts);
+        }
+        catch (IOException ioe)
+          {
+          log.error(ioe);
+          }
       }
     else
       genomeAdmin.getSequenceTable().addSequence(mutatedChr, origSeq.getStart(), origSeq.getEnd(), origSeq.getSequence(),
