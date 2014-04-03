@@ -34,44 +34,7 @@
         <org.springframework.version>3.2.2.RELEASE</org.springframework.version>
     </properties>
 
-    <profiles>
-        <profile>
-            <id>local</id>
 
-            <properties>
-                <props.dir>local</props.dir>
-                <resources.to.dir>${basedir}/target</resources.to.dir>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>aws</id>
-            <properties>
-                <props.dir>aws</props.dir>
-                <resources.to.dir>${basedir}/target/classes</resources.to.dir>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>uni.lu</id>
-            <properties>
-                <props.dir>uni.lu</props.dir>
-                <resources.to.dir>${basedir}/target</resources.to.dir>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>test</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-
-            <properties>
-                <props.dir>local</props.dir>
-                <resources.to.dir>${basedir}/target/classes</resources.to.dir>
-            </properties>
-        </profile>
-    </profiles>
 
 
     <modules>
