@@ -33,8 +33,21 @@ public class MainApp
 
   public static void main(String[] args) throws Exception
     {
-    // Required... parent genome name, bwa, read pair
+    ProgramDriver pgd = new ProgramDriver();
+    try
+      {
+      pgd.addClass("fastaload", LoadFromFASTA.class, "Loads the HBase database from the provided FASTA files.");
+      pgd.addClass("karygen", CreateKaryotypes.class, "Generates karyotypes for the given genome.");
+      pgd.addClass("karyofasta", GenerateDerivativeChromosomes.class, "Generate FASTA files for a karyotype.");
+      pgd.addClass("gennormal", GenerateFullGenome.class, "Generate FASTA files for a normal genome.");
+      pgd.addClass("mutate", MutateFragments.class, "Generate genome with small-scale mutations.");
 
+      pgd.driver(args);
+      }
+    catch (Throwable throwable)
+      {
+      throwable.printStackTrace();
+      }
 
 
 
@@ -46,16 +59,3 @@ public class MainApp
 
 
   }
-   //    ProgramDriver pgd = new ProgramDriver();
-   //    try
-   //      {
-   //      pgd.addClass(LoadFromFASTA.class.getSimpleName(), LoadFromFASTA.class, "Loads the HBase database from the provided FASTA files.");
-   //      pgd.addClass(CreateKaryotypes.class.getSimpleName(), CreateKaryotypes.class, "Generates karyotypes for the given genome.");
-   //      pgd.addClass(GenerateDerivativeChromosomes.class.getSimpleName(), GenerateDerivativeChromosomes.class, "Generate FASTA files for a karyotype.");
-   //      pgd.addClass(GenerateFullGenome.class.getSimpleName(), GenerateFullGenome.class, "Generate FASTA files for a normal genome.");
-   //      pgd.addClass(MutateFragments.class.getSimpleName(), MutateFragments.class, "Generate genome with small-scale mutations.");
-   //      }
-   //    catch (Throwable throwable)
-   //      {
-   //      throwable.printStackTrace();
-   //      }

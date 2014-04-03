@@ -103,6 +103,9 @@ public class MutateFragments extends JobIGCSA
     // because we aren't emitting anything from mapper
     job.setOutputFormatClass(NullOutputFormat.class);
 
+    job.setSpeculativeExecution(false);
+    job.setReduceSpeculativeExecution(false);
+
     return (job.waitForCompletion(true) ? 0 : 1);
     }
 

@@ -55,6 +55,9 @@ public class DerivativeChromosomeJob extends JobIGCSA
     Job job = new Job(getConf(), "Generate derivative FASTA");
     job.setJarByClass(GenerateDerivativeChromosomes.class);
 
+    job.setSpeculativeExecution(false);
+    job.setReduceSpeculativeExecution(false);
+
     // M/R setup
     job.setMapperClass(SequenceRequestMapper.class);
     SequenceRequestMapper.setLocations(job, filterLocations);

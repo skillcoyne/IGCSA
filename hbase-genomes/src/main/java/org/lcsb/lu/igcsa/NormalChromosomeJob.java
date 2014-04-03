@@ -130,6 +130,9 @@ public class NormalChromosomeJob extends JobIGCSA
     job.setNumReduceTasks(1); // one reducer for each chr?
     job.setOutputFormatClass(FASTAOutputFormat.class);
 
+    job.setSpeculativeExecution(false);
+    job.setReduceSpeculativeExecution(false);
+
     FileOutputFormat.setOutputPath(job, output);
     FASTAOutputFormat.setLineLength(job, 70);
     FASTAOutputFormat.addHeader(job, new FASTAHeader("chr" + chr, genomeName, "parent=" + parent, "hbase-generation"));
@@ -163,8 +166,8 @@ public class NormalChromosomeJob extends JobIGCSA
   public static void main(String[] args) throws Exception
     {
     NormalChromosomeJob chr = new NormalChromosomeJob(new Configuration());
-
-    chr.createJob(new String[]{"-g", "GRCh37", "-c", "Y", "-o", "/tmp"});
+    chr.createJob(args);
+    //chr.createJob(new String[]{"-g", "GRCh37", "-c", "Y", "-o", "/tmp"});
     Job job = chr.getJob();
     job.waitForCompletion(true);
 

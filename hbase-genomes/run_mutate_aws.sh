@@ -58,6 +58,6 @@ ruby $EMR_HOME/elastic-mapreduce --create --alive --region eu-west-1 --name "Mut
 --jar $JAR --main-class org.lcsb.lu.igcsa.MutateFragments --args -m,$NAME,-p,GRCh37 --step-action ${TERM} --step-name "CREATE mutated genome" \
 --jar $JAR --main-class org.lcsb.lu.igcsa.hbase.HBaseUtility --args -d,$GENOME_DATA,-c,EXPORT --arg "-t" --arg "genome,chromosome,sequence,small_mutations" --step-action ${TERM} --step-name "EXPORT genome db" \
 
-#--jar $JAR --main-class org.lcsb.lu.igcsa.GenerateFullGenome --args -g,$NAME,-o,${OUTPUT} --step-action TERMINATE_JOB_FLOW --step-name "Generate FASTA files and index" \
+#--jar $JAR --main-class org.lcsb.lu.igcsa.GenerateFullGenome --args -m,$CORES,-g,$NAME,-o,${OUTPUT} --step-action TERMINATE_JOB_FLOW --step-name "Generate FASTA files and index" \
 
 

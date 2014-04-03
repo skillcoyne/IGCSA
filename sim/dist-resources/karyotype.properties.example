@@ -1,9 +1,0 @@
-#44,X,-Y,-6,t(11;14)(q13;q32),add(22)(q13)
-ploidy=46
-sex=XY
-
-karyotype.genome.driver=org.apache.derby.jdbc.EmbeddedDriver
-karyotype.genome.url=jdbc:derby:db/cancer/karyotype_probabilities
-karyotype.genome.user=igcsa
-karyotype.genome.pwd=
-
