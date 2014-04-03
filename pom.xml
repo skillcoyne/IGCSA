@@ -82,8 +82,6 @@
         <module>kiss</module>
         <module>kiss-population</module>
         <module>hbase-genomes</module>
-
-        <!--<module>sim</module>-->
         <module>hadoop-align</module>
     </modules>
 

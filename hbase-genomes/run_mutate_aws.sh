@@ -53,11 +53,11 @@ HBASE="--hbase --bootstrap-action s3://eu-west-1.elasticmapreduce/bootstrap-acti
 
 ruby $EMR_HOME/elastic-mapreduce --create --alive --region eu-west-1 --name "Mutate Genome" --ami-version 2.4.2  --enable-debugging --log-uri s3://${BUCKET}/logs \
 --set-termination-protection false --key-pair amazonkeypair $MASTER $CORE $HBASE \
---jar $JAR --main-class org.lcsb.lu.igcsa.hbase.HBaseUtility --args -d,$GENOME_DATA,-c,IMPORT --arg "-t" --arg "genome,chromosome,sequence,small_mutations" --step-action ${TERM} --step-name "IMPORT genome db" \
---jar $JAR --main-class org.lcsb.lu.igcsa.hbase.HBaseUtility --args -d,$VAR_DATA,-c,IMPORT --arg "-t" --arg "gc_bin,snv_probability,variation_size_probability,variation_per_bin" --step-action ${TERM} --step-name "IMPORT variation db" \
---jar $JAR --main-class org.lcsb.lu.igcsa.MutateFragments --args -m,$NAME,-p,GRCh37 --step-action ${TERM} --step-name "CREATE mutated genome" \
---jar $JAR --main-class org.lcsb.lu.igcsa.hbase.HBaseUtility --args -d,$GENOME_DATA,-c,EXPORT --arg "-t" --arg "genome,chromosome,sequence,small_mutations" --step-action ${TERM} --step-name "EXPORT genome db" \
+--jar $JAR --args hbaseutil,-d,$GENOME_DATA,-c,IMPORT --arg "-t" --arg "genome,chromosome,sequence,small_mutations" --step-action ${TERM} --step-name "IMPORT genome db" \
+--jar $JAR --args hbaseutil,-d,$VAR_DATA,-c,IMPORT --arg "-t" --arg "gc_bin,snv_probability,variation_size_probability,variation_per_bin" --step-action ${TERM} --step-name "IMPORT variation db" \
+--jar $JAR --args mutate,-m,$NAME,-p,GRCh37 --step-action ${TERM} --step-name "CREATE mutated genome" \
+--jar $JAR --args hbaseutil,-d,$GENOME_DATA,-c,EXPORT --arg "-t" --arg "genome,chromosome,sequence,small_mutations" --step-action ${TERM} --step-name "EXPORT genome db" \
 
-#--jar $JAR --main-class org.lcsb.lu.igcsa.GenerateFullGenome --args -m,$CORES,-g,$NAME,-o,${OUTPUT} --step-action TERMINATE_JOB_FLOW --step-name "Generate FASTA files and index" \
+#--jar $JAR --args gennormal,-m,$CORES,-g,$NAME,-o,${OUTPUT} --step-action TERMINATE_JOB_FLOW --step-name "Generate FASTA files and index" \
 
 

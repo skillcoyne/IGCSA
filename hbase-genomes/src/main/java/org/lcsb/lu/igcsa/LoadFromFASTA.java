@@ -72,8 +72,10 @@ public class LoadFromFASTA extends JobIGCSA
   @Override
   public int run(String[] args) throws Exception
     {
-
     Job job = new Job(getConf(), "Reference Genome Fragmentation");
+
+    job.setSpeculativeExecution(false);
+    job.setReduceSpeculativeExecution(false);
 
     job.setJarByClass(LoadFromFASTA.class);
     job.setMapperClass(FASTAFragmentMapper.class);

@@ -41,6 +41,7 @@ public class MainApp
       pgd.addClass("karyofasta", GenerateDerivativeChromosomes.class, "Generate FASTA files for a karyotype.");
       pgd.addClass("gennormal", GenerateFullGenome.class, "Generate FASTA files for a normal genome.");
       pgd.addClass("mutate", MutateFragments.class, "Generate genome with small-scale mutations.");
+      pgd.addClass("hbaseutil", org.lcsb.lu.igcsa.hbase.HBaseUtility.class, "Import/Export HBase tables from/to hdfs or s3.");
 
       pgd.driver(args);
       }
