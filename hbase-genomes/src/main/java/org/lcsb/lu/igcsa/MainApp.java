@@ -36,12 +36,12 @@ public class MainApp
     ProgramDriver pgd = new ProgramDriver();
     try
       {
-      pgd.addClass("fastaload", LoadFromFASTA.class, "Loads the HBase database from the provided FASTA files.");
-      pgd.addClass("karygen", CreateKaryotypes.class, "Generates karyotypes for the given genome.");
-      pgd.addClass("karyofasta", GenerateDerivativeChromosomes.class, "Generate FASTA files for a karyotype.");
-      pgd.addClass("gennormal", GenerateFullGenome.class, "Generate FASTA files for a normal genome.");
-      pgd.addClass("mutate", MutateFragments.class, "Generate genome with small-scale mutations.");
-      pgd.addClass("hbaseutil", org.lcsb.lu.igcsa.hbase.HBaseUtility.class, "Import/Export HBase tables from/to hdfs or s3.");
+      pgd.addClass("fastaload", LoadFromFASTA.class, "Loads a genome into the HBase database from the provided FASTA files. Args: -g [genome name] -f [hdfs path to FASTA file directory] ");
+      //pgd.addClass("karygen", CreateKaryotypes.class, "Generates karyotypes for the given genome.");
+      //pgd.addClass("karyofasta", GenerateDerivativeChromosomes.class, "Generate FASTA files for a karyotype.");
+      pgd.addClass("gennormal", GenerateFullGenome.class, "Generate FASTA files for a normal genome. Args: -g [genome name, ex. GRCh37] -o [hdfs output path for FASTA files]");
+      pgd.addClass("mutate", MutateFragments.class, "Generate genome with small-scale mutations. Args: -p [reference genome, ex. GRCh37] -m [new genome name]");
+      pgd.addClass("hbaseutil", org.lcsb.lu.igcsa.hbase.HBaseUtility.class, "Import/Export HBase tables from/to hdfs or s3. Args: -d [hdfs directory for read/write] -c [IMPORT|EXPORT] -t [comma separated list of tables OPTIONAL]");
 
       pgd.driver(args);
       }

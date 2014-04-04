@@ -184,7 +184,6 @@ public class HBaseGenomeAdmin extends IGCSAHbaseAdmin
 
   public void deleteTables() throws IOException
     {
-    disableTables();
     super.deleteTables(IGCSATables.getTableNames());
     }
 
