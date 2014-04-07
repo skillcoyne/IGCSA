@@ -79,8 +79,8 @@ public class SmallMutationsResult extends AbstractResult
     }
 
   public void setStart(byte[] start)
-    {
-    this.start = Bytes.toInt(start);
+    { // this was just a mistake, SmallMutationRow should have been putting these as ints not long but little late now...
+    this.start = (int) Bytes.toLong(start);
     }
 
   public int getEnd()
@@ -100,6 +100,6 @@ public class SmallMutationsResult extends AbstractResult
 
   public void setSegment(byte[] segment)
     {
-    this.segment = Bytes.toInt(segment);
+    this.segment = (int) Bytes.toLong(segment);
     }
   }

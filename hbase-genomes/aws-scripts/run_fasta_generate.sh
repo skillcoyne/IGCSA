@@ -54,6 +54,6 @@ HBASE="--hbase --bootstrap-action s3://eu-west-1.elasticmapreduce/bootstrap-acti
 ruby $EMR_HOME/elastic-mapreduce --create --region eu-west-1 --name "Generate FASTA for ${NAME} (${CORES})" --ami-version 2.4.2  --enable-debugging --log-uri s3://${BUCKET}/logs \
 --set-termination-protection false --key-pair amazonkeypair $MASTER $CORE $HBASE \
 --jar $JAR --args hbaseutil,-d,$GENOME_DATA,-c,IMPORT --arg "-t" --arg "genome,chromosome,sequence,small_mutations" --step-action ${TERM} --step-name "IMPORT genome db" \
---jar $JAR --args gennormal,-m,$CORES,-g,$NAME,-o,${OUTPUT} --step-action TERMINATE_JOB_FLOW --step-name "Generate FASTA files and index" \
+--jar $JAR --args gennormal,-g,$NAME,-o,${OUTPUT} --step-action TERMINATE_JOB_FLOW --step-name "Generate FASTA files and index" \
 
 
