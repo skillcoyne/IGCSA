@@ -100,39 +100,23 @@ public class SmallMutationsTable extends AbstractTable<SmallMutationsTable>
     }
 
   @Override
-  protected SmallMutationsResult createResult(Result result)
+  public SmallMutationsResult createResult(Result result)
     {
     if (result.getRow() != null)
       {
       SmallMutationsResult mutResult = new SmallMutationsResult(result.getRow());
 
-      for (KeyValue kv : result.list())
-        {
-        String family = Bytes.toString(kv.getFamily());
-        String qualifier = Bytes.toString(kv.getQualifier());
-        byte[] value = kv.getValue();
+      byte[] family = Bytes.toBytes("info");
+      mutResult.setGenome(result.getValue(family, Bytes.toBytes("genome")));
+      mutResult.setMutation(result.getValue(family, Bytes.toBytes("mutation")));
 
-        if (family.equals("info"))
-          {
-          if (qualifier.equals("genome"))
-            mutResult.setGenome(value);
-          else if (qualifier.equals("mutation"))
-            mutResult.setMutation(value);
-          }
-        else if (family.equals("loc"))
-          {
-          if (qualifier.equals("segment"))
-            mutResult.setSegment(value);
-          else if (qualifier.equals("chr"))
-            mutResult.setChr(value);
-          else if (qualifier.equals("start"))
-            mutResult.setStart(value);
-          else if (qualifier.equals("end"))
-            mutResult.setEnd(value);
-          }
-        else if (family.equals("bp"))
-          mutResult.setSequence(value);
-        }
+      family = Bytes.toBytes("loc");
+      mutResult.setSegment(result.getValue(family, Bytes.toBytes("segment")));
+      mutResult.setChr(result.getValue(family, Bytes.toBytes("chr")));
+      mutResult.setStart(result.getValue(family, Bytes.toBytes("start")));
+      mutResult.setEnd(result.getValue(family, Bytes.toBytes("end")));
+
+      mutResult.setSequence(result.getValue(Bytes.toBytes("bp"), Bytes.toBytes("seq")));
 
       return mutResult;
       }

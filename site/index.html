@@ -29,7 +29,7 @@
     <ul>
       <li><a href="http://sourceforge.net/projects/insilicogenome/">SF project page</a>
       <li><a href="http://sourceforge.net/projects/insilicogenome/files/">SF download page</a>
-      <li><a href="https://github.com/skillcoyne/IGCSA/tree/v1.1">Repository</a>
+      <li><a href="https://github.com/skillcoyne/IGCSA/">Source Repository</a>
     </ul>
     <br>
 
@@ -71,47 +71,48 @@
 
     <h3>Setup</h3>
     <ol>
-      <li>Download the HBase-Genomes-1.1.jar file from the <a href="http://sourceforge.net/projects/insilicogenome/files/releases">release page</a>.</li>
-      <li>Download the GRCh37-loaded.tgz file. This contains <a href="http://www.ncbi.nlm.nih.gov/assembly/GCF_000001405.13/">GRCh37</a> pre-fragmented and a database for "normal" variation frequencies based on 1000Genomes and HapMap.
-        Uncompress this file, then load all of the directories into HDFS:
-        <pre>hadoop dfs -copyFromLocal /path/to/GRCh37-loaded /my/hdfs/path </pre>
+      <li>Download the <a href="http://sourceforge.net/projects/insilicogenome/files/releases/HBase-Genomes-1.1.jar/download">HBase-Genomes-1.1.jar</a> file from the releases page.</li>
+      <li>Download <a href="http://sourceforge.net/projects/insilicogenome/files/Databases/normal-freq-hbase.tgz/download">normal-freq-hbase.tgz</a>. This contains the "normal" variation frequency database based on 1000Genomes and HapMap.<br>
+        Uncompress and load the directories (not single files!) into HDFS (or s3) and load into HBase:
+        <pre>hadoop dfs -copyFromLocal /path/to/normal-freq /my/hdfs/path </pre>
+        <pre>hadoop jar HBase-Genomes-1.1.jar hbaseutil -d /my/hdfs/path/to/normal-freq -c IMPORT</pre>
+
+      <li>Download FASTA files for GRCh37 (or other human reference release).  <a href="http://hgdownload.cse.ucsc.edu/">UCSC</a> provides these as separate chromosomes, ignore the chr*_random and  chrUn_* files.  Load these into HDFS (or s3):
+        <pre>hadoop dfs -copyFromLocal /path/to/FASTAfiles /my/hdfs/path </pre>
+      Then run the 'fastaload' job:
+      <pre>hadoop jar HBase-Genomes-1.1.jar fastaload -g [genome name] -f [hdfs/s3 path to FASTA file directory]</pre>
+      If you are running on AWS make sure you also run the hbaseutil EXPORT job immediately following this.
       </li>
-      <li> Run a Hadoop job to load all of the database files into HBase:
-        <pre>
-        hadoop jar HBase-Genomes-1.1.jar org.lcsb.lu.igcsa.hbase.HBaseUtility -d /my/hdfs/path/to/GRCh37-loaded -c IMPORT
-        </pre>
-      </li>
-      </p>
-      <p>
+
       <h3>Run</h3>
-      <li>Each mutate job generates one new genome. A new genome name is required each time.  This job generates mutated fragments and stores them in HBase. This can be run as many times as required.
+      <li>Each mutate job generates one new genome. A new genome name is required each time. This job generates mutated fragments and stores them in HBase. This can be run as many times as required.
         <pre>
-        hadoop jar HBase-Genomes-1.1.jar org.lcsb.lu.igcsa.MutateFragments -p GRCh37 -m MyNewGenomeName
+        hadoop jar HBase-Genomes-1.1.jar mutate -p GRCh37 -m MyNewGenomeName
         </pre>
       </li>
       <li>
-        This step generates all of the FASTA files for each chromosome in any genome identifed by name. This can be run anytime, as many times as needed, after the mutation step.  If you try to generate the same genome twice, any existing files for that genome in HDFS will be overwritten.
+        This step generates all of the FASTA files for each chromosome in any genome identifed by name. This can be run anytime, as many times as needed, after the mutation step. If you try to generate the same genome twice, any existing
+        files for that genome in HDFS will be overwritten.
         <pre>
-        hadoop jar HBase-Genomes-1.1.jar org.lcsb.lu.igcsa.GenerateFullGenome -g MyNewGenomeName -o /my/hdfs/path
+        hadoop jar HBase-Genomes-1.1.jar gennormal -g MyNewGenomeName -o /my/hdfs/path
         </pre>
       </li>
     </ol>
     <p>
-    The resulting FASTA files can be copied out of HDFS using <pre>hadoop -dfs -copyToLocal ... </pre>
+      The resulting FASTA files can be copied out of HDFS using
+    <pre>hadoop -dfs -copyToLocal ... </pre>
     </p>
 
-    <h4>Optional: Load a New Reference Genome</h4>
+    <h4>Optional: Generate your own variation frequencies</h4>
     <p>
-      There is a job available to generate your own fragmented reference genome tables (e.g. not GRCh37). This will overwrite the tables provided by the tgz file referenced above (genome, chromosome, sequences, small_mutations) so if you have generated any mutated genomes the data will be lost!  All FASTA files must be copied to a directory in HDFS. When running the "Load" step all files in the provided directory will be read, including compressed files.
-    </p>
-    <pre>
-    hadoop jar HBase-Genomes-1.1.jar org.lcsb.lu.igcsa.LoadFromFASTA SomeName /full/hdfs/path/to/FASTA
-    </pre>
-
-    <p>
-      Generating your own variation frequencies is also possible.  Please see the R directory under 'fragment-database/normal' to generate files of the appropriate format.  This is not set up as a Hadoop job, so these files can be loaded from the local file system (not HDFS) into HBase by running:
+      Please see the R directory under 'fragment-database/normal' to generate files of the appropriate format. This is not set up as a Hadoop job, so these files can be loaded from the local file system (not HDFS) into HBase by running:
       <pre>
-    java -class HBase-Genomes-1.1.jar org.lcsb.lu.igcsa.hbase.ImportVariationData -v /local/path/variation.txt -g /local/path/gc_bin.txt -s /local/path/snv_prob.txt -z /local/path/size_prob.txt -f /local/path/variation_per_bin.txt
+    java -class HBase-Genomes-1.1.jar org.lcsb.lu.igcsa.hbase.ImportVariationData \
+    -v /local/path/variation.txt \
+    -g /local/path/gc_bin.txt \
+    -s /local/path/snv_prob.txt \
+    -z /local/path/size_prob.txt \
+    -f /local/path/variation_per_bin.txt
       </pre>
     </p>
 
@@ -125,7 +126,7 @@
       <!--</dd>-->
       <dt>Does FIGG work with all genomes?</dt>
       <dd>
-        Currently this has only been tested on human GRCh37. However, the tool itself should work with any genomic data in FASTA format.
+        Currently this has only been tested on human GRCh37. However, the tool itself will work with any genomic data in FASTA format.
         The database tables will need to be generated based on your specific genome and known/hypothesized variation information and the
         scripts available in the source download will require alteration to work for your files or new ones written.
       </dd>
@@ -143,24 +144,38 @@
     <h2>Available Tools</h2>
     <dl>
       <dd>
-      <dt>Usage: hadoop jar HBase-Genomes-1.1.jar [main-class] [args]</dt>
+      <dt>Usage: hadoop jar HBase-Genomes-1.1.jar [program name] [args]</dt>
       <ul>
-        <li>org.lcsb.lu.igcsa.LoadFromFASTA [genome name] [hdfs path to FASTA file directory]</li>
-        <li>org.lcsb.lu.igcsa.hbase.HBaseUtility -d [hdfs directory for read/write] -c [IMPORT|EXPORT] -t [comma separated list of tables OPTIONAL]</li>
-        <li>org.lcsb.lu.igcsa.MutateFragments -p [reference genome, ex. GRCh37] -m [new genome name]</li>
-        <li>org.lcsb.lu.igcsa.GenerateFullGenome -g [reference genome name, ex. GRCh37] -o [hdfs output path for FASTA files]
+        <li>fastaload<br>
+          -g [genome name] -f [hdfs path to FASTA file directory]
+        </li>
+        <li>hbaseutil<br>
+          -d [hdfs directory for read/write] -c [IMPORT|EXPORT] -t [comma separated list of tables OPTIONAL]
+        </li>
+        <li>mutate<br>
+          -p [reference genome, ex. GRCh37] -m [new genome name]
+        </li>
+        <li>gennormal<br>
+          -g [genome name, ex. GRCh37] -o [hdfs output path for FASTA files]
         </li>
       </ul>
       </dd>
-      <dt>Run on Amazon Elastic MapReduce:</dt>
-      <dl>
-        <p>
-        A shell script, <i>run_mutate_aws.sh</i> which uses the Amazon Command Line tool (CLI) and <a href="https://docs.aws.amazon.com/ElasticMapReduce/latest/DeveloperGuide/emr-cli-install.html">Ruby elastic-mapreduce (EMR)</a> to submit and run the jobs.  For this it is assumed that you will upload all of the tables provided to a folder in S3.  The job specified will load all of the tables into HBase, run the Mutate jobs, export the database tables that were changed (genome,sequence,chromosome) and Generate FASTA files (in S3).  Please see Amazon Web Services documentation for information on setting up your AWS account, security, and S3.
-        </p>
-        <p>
-          This script sets up Spot Instances for less expensive runs, however please keep in mind that running these jobs is charged to the owner of the account, this is not provided by us.
-        </p>
-      </dl>
+    </dl>
+
+    <dt>Run on Amazon Elastic MapReduce:</dt>
+    <dl>
+      <p>
+        Several shell scripts are provided with the source files which use the Amazon Command Line tool (CLI) and <a href="https://docs.aws.amazon.com/ElasticMapReduce/latest/DeveloperGuide/emr-cli-install.html">Ruby elastic-mapreduce (EMR)</a> to submit
+        and run the jobs. For this it is assumed that you will upload all of the tables provided to a folder in S3. The job specified will load all of the tables into HBase, run the specified jobs, and export the database tables (genome,sequence,chromosome,small_mutations) or generate new FASTA files (in S3).
+      </p>
+      <p>
+        These scripts set up Spot Instances for less expensive runs, however please keep in mind that running these jobs is charged to the owner of the account, this is not provided by us.
+      </p>
+      <p>
+        Please see Amazon Web Services documentation for information on setting up your AWS account, security, and S3.
+      </p>
+
+    </dl>
     <h2>Software License</h2>
     <dt><a href="http://www.apache.org/licenses/LICENSE-2.0.html">Apache License 2.0</a></dt>
     <pre>

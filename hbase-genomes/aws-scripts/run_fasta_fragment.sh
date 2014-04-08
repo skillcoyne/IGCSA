@@ -38,26 +38,19 @@ INSTANCE_TYPE="m1.large"
 #fi
 
 
-echo "Running MUTATE pipeline for ${NAME} with ${CORES} core instances (${INSTANCE_TYPE}). On failure: ${TERM}"
+echo "Running LOAD pipeline for ${NAME} with ${CORES} core instances (${INSTANCE_TYPE}). On failure: ${TERM}"
 
 
 JAR="s3://${BUCKET}/HBase-Genomes-1.1.jar"
-GENOME_DATA="s3://${BUCKET}/hbase"
-VAR_DATA="s3://${BUCKET}/hbase"
-OUTPUT="s3://${BUCKET}/figg-output"
+FASTA="s3n://${BUCKET}/FASTA"
+HBOUT_DATA="s3://${BUCKET}/hbase"
+
 
 MASTER="--instance-group master --instance-type m1.large --instance-count 1 --bid-price 0.07"
 CORE="--instance-group core --instance-type ${INSTANCE_TYPE} --instance-count $CORES --bid-price 0.07"
 HBASE="--hbase --bootstrap-action s3://eu-west-1.elasticmapreduce/bootstrap-actions/configure-hbase --args -s,hbase.rpc.timeout=${TIMEOUT},-s,hbase.regionserver.lease.period=${TIMEOUT},-s,hbase.regionserver.handler.count=30"
 
-
-ruby $EMR_HOME/elastic-mapreduce --create --alive --region eu-west-1 --name "Mutate Genome" --ami-version 2.4.2  --enable-debugging --log-uri s3://${BUCKET}/logs \
+ruby $EMR_HOME/elastic-mapreduce --create --region eu-west-1 --name "Load FASTA Genome ${CORES}" --ami-version 2.4.2  --enable-debugging --log-uri s3://${BUCKET}/logs \
 --set-termination-protection false --key-pair amazonkeypair $MASTER $CORE $HBASE \
---jar $JAR --args hbaseutil,-d,$GENOME_DATA,-c,IMPORT --arg "-t" --arg "genome,chromosome,sequence,small_mutations" --step-action ${TERM} --step-name "IMPORT genome db" \
---jar $JAR --args hbaseutil,-d,$VAR_DATA,-c,IMPORT --arg "-t" --arg "gc_bin,snv_probability,variation_size_probability,variation_per_bin" --step-action ${TERM} --step-name "IMPORT variation db" \
---jar $JAR --args mutate,-m,$NAME,-p,GRCh37 --step-action ${TERM} --step-name "CREATE mutated genome" \
---jar $JAR --args hbaseutil,-d,$GENOME_DATA,-c,EXPORT --arg "-t" --arg "genome,chromosome,sequence,small_mutations" --step-action ${TERM} --step-name "EXPORT genome db" \
-
-#--jar $JAR --args gennormal,-m,$CORES,-g,$NAME,-o,${OUTPUT} --step-action TERMINATE_JOB_FLOW --step-name "Generate FASTA files and index" \
-
-
+--jar $JAR --args fastaload,${NAME},${FASTA} --step-action ${TERM} --step-name "LOAD fasta genome"
+--jar $JAR --args hbaseutil,-d,HBOUT_DATA,-c,EXPORT --arg "-t" --arg "genome,chromosome,sequence,small_mutations" --step-action ${TERM} --step-name "EXPORT genome db" \

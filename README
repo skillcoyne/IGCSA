@@ -6,12 +6,6 @@ nor has it been tested on all systems.
 
 -----------------------------------------------------------------------------------------------
 
-TBD:
 
-See hbase-genomes module.  At this time the software is developed to use HBase and Hadoop Map/Reduce. The flow is not currently automatic but should be run in this order:
 
- 1. LoadFromFASTA - Takes all FASTA files from a genome (separated by chromosome), segments and inserts the segments into HBase.
- 2. MutateFragments - This replaces FIGG. It uses the same Derby database with mutation sampling but writes new fragments to HBase instead of directly to file.
- 3. HBaseKISS - Generates a random population of karyotype definitions based on breakpoint probabilities. All definitions loaded into HBase.
- 4a. GenerateFullGenome - Outputs chromosome separated FASTA files for a given genome (not karyotype) name. This will either have been loaded in step (1) or generated through mutation in step (2).
- 4b. GenerateDerivativeChromosomes - Outputs derivative chromosomes from karyotype definitions for a given karyotype (not genome) name. This is from definitions generated in step (3).
+See hbase-genomes module.  At this time the software is developed to use HBase and Hadoop Map/Reduce. See http://insilicogenome.sourceforge.net for instructions on setup and runs.

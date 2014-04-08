@@ -21,7 +21,8 @@ json['JobFlows'].each do |e|
   end
 
   next if ignore.include? e['JobFlowId']
-  next unless date_created.to_date.month >= 3 && has_timeout
+  next unless has_timeout
+  next unless date_created.to_date.month >= 3
 
   count = e['Instances']['InstanceCount'].to_i - 1
   e['Steps'].each do |step|
@@ -33,12 +34,11 @@ json['JobFlows'].each do |e|
 
       info[count] << ((end_step - start_step)/60).round(3) if info.has_key? count
 
-      #puts count
-      #puts start_step
-      #puts end_step
+      puts "#{e['JobFlowId']}: #{count}"
+      puts start_step
+      puts end_step
     end
   end
-
 
 end
 

@@ -63,7 +63,8 @@ public abstract class IGCSAHbaseAdmin
   public void disableTables(String[] tableNames) throws IOException
     {
     for (String t : tableNames)
-      if (hbaseAdmin.tableExists(t) && hbaseAdmin.isTableEnabled(t)) hbaseAdmin.disableTable(t);
+      if (hbaseAdmin.tableExists(t) && !hbaseAdmin.isTableDisabled(t)) hbaseAdmin.disableTable(t);
+      //if (hbaseAdmin.tableExists(t) && hbaseAdmin.isTableEnabled(t)) hbaseAdmin.disableTable(t);
     }
 
   public void deleteTables(String[] tableNames) throws IOException
