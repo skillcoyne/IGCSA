@@ -52,8 +52,15 @@ public abstract class Variation
       {
       int max = (Integer) sizeVariation.roll();
       int min = 0;
-      if (sizeVariation.getRawProbabilities().lowerKey(max) != null)
-        min = (Integer) sizeVariation.getRawProbabilities().lowerKey(max);
+
+      Map.Entry<Double, Object> lastRoll = sizeVariation.getLastRoll();
+      //sizeVariation.getProbabilities().higherEntry(p.getLastRoll().getKey()).getValue()
+
+      if (sizeVariation.getProbabilities().higherEntry(lastRoll.getKey()) != null)
+        min = (Integer) sizeVariation.getProbabilities().higherEntry(lastRoll.getKey()).getValue();
+
+      //if (sizeVariation.getRawProbabilities().lowerKey(max) != null)
+        //min = (Integer) sizeVariation.getRawProbabilities().lowerKey(max);
 
       return new RandomRange(min, max).nextInt();
       }

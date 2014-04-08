@@ -35,37 +35,60 @@ public class ProbabilityTest
     nucleotides = new TreeMap<Object, Double>();
     }
 
+  @Test
+  public void testRaw() throws Exception
+    {
+    Map<Object, Double> t = new TreeMap<Object, Double>();
+    t.put("3", new Double(0.3));
+    t.put("4", new Double(0.2));
+    t.put("1", new Double(0.0));
+    t.put("2", new Double(0.5));
+
+
+    Probability p = new Probability(t, 4);
+
+    String r = "";
+    do r = (String) p.roll();
+    while (!r.equals("3"));
+    assertEquals(p.getProbabilities().higherEntry(p.getLastRoll().getKey()).getValue(), "4");
+
+    do r = (String) p.roll();
+    while (!r.equals("4"));
+    assertNull(p.getProbabilities().higherEntry(p.getLastRoll().getKey()));
+    }
+
   @Test  // Bug where sometimes a stack of probabilities are 1.0, 0, 0, 0 and the last one added ends up with a prob of 1 incorrectly.
   public void testOnlyOneProb() throws Exception
     {
     Map<Object, Double> sizes = new TreeMap<Object, Double>();
 
-    sizes.put( 100, new Double(0.0) );
-    sizes.put( 10,  new Double(1.0) );
-    for (int i=200; i<=1000; i+=100)
+    sizes.put(100, new Double(0.0));
+    sizes.put(10, new Double(1.0));
+    for (int i = 200; i <= 1000; i += 100)
       sizes.put(i, new Double(0.0));
 
     Probability p = new Probability(sizes, 4);
 
     assertEquals(p.getProbabilities().get(1.0), 10);
 
-    for (int i=0; i<100; i++)
+    for (int i = 0; i < 100; i++)
       assertEquals(p.roll(), 10);
     }
 
-  @Test /* This tests a bug I ran across where a map of sparse probabilities doesn't always result in what you expect */
+  @Test
+  /* This tests a bug I ran across where a map of sparse probabilities doesn't always result in what you expect */
   public void testSparse() throws Exception
     {
     Map<Object, Double> sizes = new TreeMap<Object, Double>();
 
-    sizes.put( 100, new Double(0.0005) );
-    sizes.put( 10,  new Double(0.9995) );
-    for (int i=200; i<=1000; i+=100)
+    sizes.put(100, new Double(0.0005));
+    sizes.put(10, new Double(0.9995));
+    for (int i = 200; i <= 1000; i += 100)
       sizes.put(i, new Double(0.0));
 
     Probability p = new Probability(sizes, 4);
 
-    for (int i=0; i<5; i++)
+    for (int i = 0; i < 5; i++)
       assertEquals(p.roll(), 10);
     }
 
@@ -157,7 +180,7 @@ public class ProbabilityTest
     nucleotides.put("X", 0.0115805620786304);
 
     HashMap<String, Double> count = new HashMap<String, Double>();
-    for (Object obj: nucleotides.keySet()) count.put((String) obj, 0.0);
+    for (Object obj : nucleotides.keySet()) count.put((String) obj, 0.0);
 
     this.probability = new Probability(nucleotides);
     for (int i = 0; i < 1000; i++)
@@ -167,12 +190,11 @@ public class ProbabilityTest
       }
     assertEquals(count.size(), 23);
 
-    int max = (int) new Max().evaluate( ArrayUtils.toPrimitive(count.values().toArray(new Double[count.size()])) );
+    int max = (int) new Max().evaluate(ArrayUtils.toPrimitive(count.values().toArray(new Double[count.size()])));
 
-    for (Map.Entry<String, Double> entry: count.entrySet())
+    for (Map.Entry<String, Double> entry : count.entrySet())
       {
-      if (entry.getValue().equals(max))
-        assertEquals(entry.getKey(), "21");
+      if (entry.getValue().equals(max)) assertEquals(entry.getKey(), "21");
       }
     }
 

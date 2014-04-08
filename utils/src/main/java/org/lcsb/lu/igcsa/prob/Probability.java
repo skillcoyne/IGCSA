@@ -20,30 +20,29 @@ public class Probability
 
   protected NavigableMap<Double, Object> objProbabilities = new TreeMap<Double, Object>();
 
-  protected NavigableMap<Object, Double> rawProbabilities = new TreeMap<Object, Double>();
+  //protected NavigableMap<Object, Double> rawProbabilities = new TreeMap<Object, Double>();
+  protected Map<Object, Double> rawProbabilities = new HashMap<Object, Double>();
+
 
   private int decimalPlaces = 2;
 
   /**
-   *
    * @param objects
    * @param probabilities
    * @throws ProbabilityException
    */
   public Probability(Object[] objects, double[] probabilities) throws ProbabilityException
     {
-    if (objects.length != probabilities.length)
-      throw new IllegalArgumentException("Arrays must match.");
+    if (objects.length != probabilities.length) throw new IllegalArgumentException("Arrays must match.");
 
     Map<Object, Double> probs = new HashMap<Object, Double>();
-    for (int i=0; i<probabilities.length; i++)
-      probs.put( objects[i], probabilities[i] );
+    for (int i = 0; i < probabilities.length; i++)
+      probs.put(objects[i], probabilities[i]);
 
     this.init(probs);
     }
 
   /**
-   *
    * @param objects
    * @param probabilities
    * @param precision
@@ -53,12 +52,11 @@ public class Probability
     {
     this.decimalPlaces = precision;
 
-    if (objects.length != probabilities.length)
-      throw new IllegalArgumentException("Arrays must match.");
+    if (objects.length != probabilities.length) throw new IllegalArgumentException("Arrays must match.");
 
     Map<Object, Double> probs = new HashMap<Object, Double>();
-    for (int i=0; i<probabilities.length; i++)
-      probs.put( objects[i], probabilities[i] );
+    for (int i = 0; i < probabilities.length; i++)
+      probs.put(objects[i], probabilities[i]);
 
     this.init(probs);
     }
@@ -95,10 +93,31 @@ public class Probability
     return objProbabilities;
     }
 
-  public NavigableMap<Object, Double> getRawProbabilities()
+  public Map<Object, Double> getRawProbabilities()
     {
-    return rawProbabilities;
+    List list = new ArrayList(rawProbabilities.entrySet());
+    // sort list based on comparator
+    Collections.sort(list, new Comparator()
+    {
+    public int compare(Object o1, Object o2)
+      {
+      return ((Comparable) ((Map.Entry<Object, Double>) (o1)).getValue()).compareTo(((Map.Entry<Object, Double>) (o2)).getValue());
+      }
+    });
+
+    LinkedHashMap<Object, Double> sortedMap = new LinkedHashMap<Object, Double>();
+    for (Iterator it = list.iterator(); it.hasNext();) {
+      {
+      Map.Entry<Object, Double> entry = (Map.Entry) it.next();
+   	  sortedMap.put(entry.getKey(), entry.getValue());
+      }
     }
+
+    return sortedMap;
+    //return rawProbabilities;
+    }
+
+  //public Object
 
   /**
    * Randomly generates a number between 0 and 1.0.  Returns the object in the probability table with the higher probability.
@@ -106,19 +125,33 @@ public class Probability
    *
    * @return
    */
+  private Map.Entry<Double, Object> lastRoll;
   public Object roll()
     {
     double p = this.generator.nextDouble();
-    if (p >= totalValue) return objProbabilities.lastEntry().getValue();
-    else return objProbabilities.higherEntry(p).getValue();
+    if (p >= totalValue)
+      {
+      lastRoll = objProbabilities.lastEntry();
+      return objProbabilities.lastEntry().getValue();
+
+      }
+    else
+      {
+      lastRoll = objProbabilities.higherEntry(p);
+      return objProbabilities.higherEntry(p).getValue();
+      }
+    }
+
+  public Map.Entry<Double, Object> getLastRoll()
+    {
+    return lastRoll;
     }
 
   private boolean isSumOne(Collection<Double> doubles)
     {
     double sum = 0;
     Iterator<Double> ip = doubles.iterator();
-    while (ip.hasNext())
-      sum += ip.next();
+    while (ip.hasNext()) sum += ip.next();
     sum = round(sum, 2);
 
     return (sum == 1.0) ? (true) : (false);
@@ -132,32 +165,29 @@ public class Probability
 
   /**
    * Initialize the tree map of probabilities.
+   *
    * @param probabilities
    * @throws ProbabilityException
    */
   private void init(Map<Object, Double> probabilities) throws ProbabilityException
     {
-    if (!isSumOne(probabilities.values()))
-      throw new ProbabilityException("Sum of probabilities did not equal 1.");
+    if (!isSumOne(probabilities.values())) throw new ProbabilityException("Sum of probabilities did not equal 1.");
     this.generator = new Random();
 
     double total = 0.0;
     for (Map.Entry<Object, Double> entry : probabilities.entrySet())
       {
-      if (String.valueOf(entry.getValue()).length() > decimalPlaces + 2 )
-        log.warn( "Provided probability value has more decimal places than precision is set for, rounding errors likely." );
+      if (String.valueOf(entry.getValue()).length() > decimalPlaces + 2)
+        log.warn("Provided probability value has more decimal places than precision is set for, rounding errors likely.");
 
       rawProbabilities.put(entry.getKey(), entry.getValue());
 
-      if (entry.getValue() <= 0.0)
-        objProbabilities.put(0.0, entry.getKey());
-      else
-        objProbabilities.put(round(entry.getValue() + total, this.decimalPlaces), entry.getKey());
+      if (entry.getValue() <= 0.0) objProbabilities.put(0.0, entry.getKey());
+      else objProbabilities.put(round(entry.getValue() + total, this.decimalPlaces), entry.getKey());
       total = round(total + entry.getValue(), this.decimalPlaces);
       }
     this.totalValue = round(total, this.decimalPlaces);
     }
-
 
 
   }

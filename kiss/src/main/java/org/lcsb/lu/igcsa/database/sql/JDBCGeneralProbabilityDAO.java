@@ -8,7 +8,8 @@
 
 package org.lcsb.lu.igcsa.database.sql;
 
-import org.apache.commons.lang.math.IntRange;
+//import org.apache.commons.lang.math.IntRange;
+import org.apache.commons.lang3.Range;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.database.GeneralKarytoypeDAO;
@@ -70,7 +71,12 @@ public class JDBCGeneralProbabilityDAO implements GeneralKarytoypeDAO
       Map<Object, Double> probs = new HashMap<Object, Double>();
 
       while (resultSet.next())
-        probs.put(new IntRange(resultSet.getInt("min_count"), resultSet.getInt("max_count")), resultSet.getDouble("prob"));
+        {
+        Range<Integer> intRange = Range.between(resultSet.getInt("min_count"), resultSet.getInt("max_count"));
+
+        probs.put(intRange, resultSet.getDouble("prob"));
+        //probs.put(new IntRange(resultSet.getInt("min_count"), resultSet.getInt("max_count")), resultSet.getDouble("prob"));
+        }
 
       return probs;
       }
