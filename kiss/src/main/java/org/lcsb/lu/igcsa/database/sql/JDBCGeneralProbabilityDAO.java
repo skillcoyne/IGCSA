@@ -8,8 +8,8 @@
 
 package org.lcsb.lu.igcsa.database.sql;
 
-//import org.apache.commons.lang.math.IntRange;
-import org.apache.commons.lang3.Range;
+import org.apache.commons.lang.math.IntRange;
+//import org.apache.commons.lang3.Range;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.database.GeneralKarytoypeDAO;
@@ -72,10 +72,10 @@ public class JDBCGeneralProbabilityDAO implements GeneralKarytoypeDAO
 
       while (resultSet.next())
         {
-        Range<Integer> intRange = Range.between(resultSet.getInt("min_count"), resultSet.getInt("max_count"));
+        //Range<Integer> intRange = Range.between(resultSet.getInt("min_count"), resultSet.getInt("max_count"));
 
-        probs.put(intRange, resultSet.getDouble("prob"));
-        //probs.put(new IntRange(resultSet.getInt("min_count"), resultSet.getInt("max_count")), resultSet.getDouble("prob"));
+        //probs.put(intRange, resultSet.getDouble("prob"));
+        probs.put(new IntRange(resultSet.getInt("min_count"), resultSet.getInt("max_count")), resultSet.getDouble("prob"));
         }
 
       return probs;
@@ -132,9 +132,11 @@ public class JDBCGeneralProbabilityDAO implements GeneralKarytoypeDAO
   public Probability getBandProbabilities(String chr) throws ProbabilityException
     {
     final String tableName = "breakpoints";
+    final String chromosome = chr;
+
     String sql = "SELECT chr, band, per_chr_prob FROM " + tableName + " WHERE chr = ? ORDER BY per_chr_prob DESC";
 
-    Map<Object, Double> probabilities = (Map<Object, Double>) jdbcTemplate.query(sql, new Object[]{chr}, new ResultSetExtractor<Object>()
+    Map<Object, Double> probabilities = (Map<Object, Double>) jdbcTemplate.query(sql, new Object[]{chromosome}, new ResultSetExtractor<Object>()
     {
     @Override
     public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
@@ -142,7 +144,10 @@ public class JDBCGeneralProbabilityDAO implements GeneralKarytoypeDAO
       Map<Object, Double> probs = new HashMap<Object, Double>();
 
       while (resultSet.next())
-        probs.put(resultSet.getString("band"), resultSet.getDouble("per_chr_prob"));
+        {
+        Band b = new Band(chromosome, resultSet.getString("band"));
+        probs.put(b, resultSet.getDouble("per_chr_prob"));
+        }
 
       return probs;
       }

@@ -23,10 +23,13 @@ public class AberrationRules
   static Logger log = Logger.getLogger(AberrationRules.class.getName());
 
   // combination sizes, not a lot of point in doing greater than pairs currently
-  static int SET_SIZE = 2;
+  public static int SET_SIZE = 2;
+
+  // allow for singletons
+  public static boolean SINGLETONS = true;
 
   // unique breakpoint pairs
-  static boolean UNIQUE_BP_PAIRS = true;
+  public static boolean UNIQUE_BP_PAIRS = true;
 
   // SequenceAberration rules
   static final AberrationTypes[] SINGLE_CENTROMERE = new AberrationTypes[]{ISOCENTRIC, DUPLICATION, DELETION};
@@ -124,10 +127,13 @@ public class AberrationRules
     List<ICombinatoricsVector<Band>> bandSets = ruleUniqueBreakpointPairs(bands, SET_SIZE);
 
     // add all of the breakpoints as singletons...
-    for (ICombinatoricsVector<Band> bvector : ruleUniqueBreakpointPairs(bands, 1))
+    if (SINGLETONS)
       {
-      if (bandSets.indexOf(bvector) < 0)
-        bandSets.add(bvector);
+      for (ICombinatoricsVector<Band> bvector : ruleUniqueBreakpointPairs(bands, 1))
+        {
+        if (bandSets.indexOf(bvector) < 0)
+          bandSets.add(bvector);
+        }
       }
     breakpointSets = bandSets;
 
