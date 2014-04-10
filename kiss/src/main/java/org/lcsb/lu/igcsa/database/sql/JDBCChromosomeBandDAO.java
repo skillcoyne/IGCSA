@@ -143,7 +143,7 @@ public class JDBCChromosomeBandDAO implements ChromosomeBandDAO
   private Band createBand(ResultSet resultSet) throws SQLException
     {
     Band band = new Band(resultSet.getString("chr"), resultSet.getString("band"));
-    band.setLocation(new Location(resultSet.getInt("start_loc"), resultSet.getInt("end_loc")));
+    band.setLocation(new Location(band.getChromosomeName(), resultSet.getInt("start_loc"), resultSet.getInt("end_loc")));
     return band;
     }
 

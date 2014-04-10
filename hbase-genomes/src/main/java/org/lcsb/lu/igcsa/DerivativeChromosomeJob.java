@@ -11,6 +11,8 @@ package org.lcsb.lu.igcsa;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
@@ -20,13 +22,17 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
+import org.lcsb.lu.igcsa.aberrations.AberrationTypes;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 import org.lcsb.lu.igcsa.mapreduce.*;
 import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAOutputFormat;
+import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil;
 
 import java.util.List;
+
+import static org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil.deleteChecksumFiles;
 
 
 public class DerivativeChromosomeJob extends JobIGCSA
@@ -76,10 +82,55 @@ public class DerivativeChromosomeJob extends JobIGCSA
     job.setOutputFormatClass(NullOutputFormat.class);
     FileOutputFormat.setOutputPath(job, output);
     FASTAOutputFormat.setLineLength(job, 70);
-    //FASTAOutputFormat.addHeader(job, new Path(output, "0"), header);
+    FASTAOutputFormat.addHeader(job, header);
     for (int order = 0; order < filterLocations.size(); order++)
       MultipleOutputs.addNamedOutput(job, Integer.toString(order), FASTAOutputFormat.class, LongWritable.class, Text.class);
 
     return (job.waitForCompletion(true) ? 0 : 1);
     }
+
+
+  // just to clean up the main method a bit
+  public void mergeOutputs(AberrationTypes abrType, Path output, int numLocs) throws Exception
+    {
+    // CRC files mess up any attempt to directly read/write from an unchanged file which means copying/moving fails too. Easiest fix right now is to dump the file.
+    deleteChecksumFiles(this.getJobFileSystem(), output);
+    /*
+  We now have output files.  In most cases the middle file(s) will be the aberration sequences.
+  In many cases they can just be concatenated as is. Exceptions:
+    - duplication: the middle file needs to be duplicated before concatenation
+    - iso: there should be only 1 file, it needs to be duplicated in reverse before concatenation
+    */
+    FileSystem jobFS = this.getJobFileSystem();
+
+    log.info(jobFS.getWorkingDirectory());
+    if (abrType.getCytogeneticDesignation().equals("dup"))
+      {
+      log.info("DUP aberration");
+      if (numLocs > 3)
+        throw new RuntimeException("This should not happen: dup has more than 3 locations");
+
+      // move subsequent files
+      for (int i = numLocs - 1; i > 1; i--)
+        {
+        // move files
+        FileUtil.copy(jobFS, new Path(output, Integer.toString(i)), jobFS, new Path(output, Integer.toString(i + 1)), true, false, jobFS.getConf());
+        }
+      //then copy the duplicated segment
+      FileUtil.copy(jobFS, new Path(output, Integer.toString(1)), jobFS, new Path(output, Integer.toString(2)), false, false, jobFS.getConf());
+      }
+    // TODO Iso is different from inv in that I take the same segment and copy it in reverse.  But right now all I do is write out one segment.  Not sure quite how to handle that.
+    if (abrType.getCytogeneticDesignation().equals("iso"))
+      {
+      log.info("ISO aberration");
+      if (numLocs > 2)
+        throw new RuntimeException("This should not happen: iso has more than 2 locations");
+      }
+
+    // create merged FASTA at chromosome level -- there is an issue here that it just concatenates the files which means at the merge points there are strings of different lengths.  This is an issue in samtools.
+    FASTAUtil.mergeFASTAFiles(jobFS, output.toString(), output.toString() + ".fa");
+    //jobFS.delete(output, true);
+    }
+
+
   }

@@ -111,6 +111,11 @@ public class AberrationRules
     return classes.toArray(new AberrationTypes[classes.size()]);
     }
 
+  public List<ICombinatoricsVector<Band>> getUniqueBreakpointSets(Band[] bands, int size)
+    {
+    return ruleUniqueBreakpointPairs(bands, size);
+    }
+
   /* -- Application of rules -- */
   public void applyRules(Band[] bands)
     {
@@ -124,12 +129,13 @@ public class AberrationRules
       }
 
     // start with the combinatorial list of breakpoints only, deal with unique rule
-    List<ICombinatoricsVector<Band>> bandSets = ruleUniqueBreakpointPairs(bands, SET_SIZE);
+//    List<ICombinatoricsVector<Band>> bandSets = ruleUniqueBreakpointPairs(bands, SET_SIZE);
+    List<ICombinatoricsVector<Band>> bandSets = getUniqueBreakpointSets(bands, SET_SIZE);
 
     // add all of the breakpoints as singletons...
     if (SINGLETONS)
       {
-      for (ICombinatoricsVector<Band> bvector : ruleUniqueBreakpointPairs(bands, 1))
+      for (ICombinatoricsVector<Band> bvector : getUniqueBreakpointSets(bands, 1)) //ruleUniqueBreakpointPairs(bands, 1)
         {
         if (bandSets.indexOf(bvector) < 0)
           bandSets.add(bvector);

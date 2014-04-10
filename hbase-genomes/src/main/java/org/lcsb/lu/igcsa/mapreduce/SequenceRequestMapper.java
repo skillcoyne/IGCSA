@@ -73,6 +73,7 @@ public class SequenceRequestMapper extends TableMapper<SegmentOrderComparator, F
     log.debug(rowId + " reverse:" + reverse);
 
     SequenceResult sr = HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().createResult(value);
+    //log.info(sr);
 
     int sectionKey = -1;
     for (Location loc: locations)
