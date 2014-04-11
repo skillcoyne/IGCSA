@@ -20,11 +20,11 @@ import java.util.List;
  */
 public class AberrationLocationFilter
   {
-  // this FilterList will contain nested filter lists that putt all of the necessary locations
+  // this FilterList will contain nested filter lists that have all of the necessary locations
   protected FilterList filterList = new FilterList(FilterList.Operator.MUST_PASS_ONE);
   protected List<Location> locationList = new ArrayList<Location>();
 
-  public FilterList getFilter(Aberration aberration, GenomeResult genome, List<ChromosomeResult> chromosomes) throws IOException
+  public FilterList getFilter(Aberration aberration, GenomeResult genome, List<ChromosomeResult> chromosomes, boolean includeFinal) throws IOException
     {
     String genomeName = genome.getName();
     List<Location> locations = new ArrayList<Location>();
@@ -42,7 +42,8 @@ public class AberrationLocationFilter
       addFilters(genomeName, loc, loc.getStart(), loc.getEnd());
       }
     // get the rest of the chromosome -- NOTE it's unclear that this is really necessary in translocaions.
-    getFinalLocationFilter(locations.get(locations.size() - 1), genome, chromosomes);
+    if (includeFinal)
+      getFinalLocationFilter(locations.get(locations.size() - 1), genome, chromosomes);
 
     return filterList;
     }

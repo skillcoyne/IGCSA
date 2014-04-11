@@ -45,7 +45,7 @@ public class SequenceFragmentReducer extends Reducer<SegmentOrderComparator, Fra
   protected void setup(Context context) throws IOException, InterruptedException
     {
     mos = new MultipleOutputs(context);
-    log.debug(mos);
+    log.info(mos);
     }
 
     @Override
@@ -56,8 +56,7 @@ public class SequenceFragmentReducer extends Reducer<SegmentOrderComparator, Fra
     // This ensures that the RecordWriter knows which file should have the header written
     context.getConfiguration().set(FASTAOutputFormat.WRITE_HEADER, ""+key.getOrder());
 
-    Iterator<FragmentWritable> fI = values.iterator();
-    while (fI.hasNext())
+    for (Iterator<FragmentWritable> fI = values.iterator(); fI.hasNext();)
       {
       FragmentWritable fw = fI.next();
       LongWritable segmentKey = new LongWritable(fw.getSegment());

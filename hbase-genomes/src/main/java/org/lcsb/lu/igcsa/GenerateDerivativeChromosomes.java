@@ -103,11 +103,11 @@ public class GenerateDerivativeChromosomes extends BWAJob
 
       // this FilterList will contain nested filter lists that putt all of the necessary locations
       AberrationLocationFilter alf = new AberrationLocationFilter();
-      FilterList filterList = alf.getFilter(aberration, parentGenome, chromosomes);
+      FilterList filterList = alf.getFilter(aberration, parentGenome, chromosomes, true);
 
       log.info(filterList);
 
-      // to create an appropriate FASTA header                        --
+      // to create an appropriate FASTA header
       List<String> abrs = new ArrayList<String>();
       for (Band band : aberration.getBands() )// aberration.getAberrationDefinitions())
         abrs.add(band.getChromosomeName() + ":" + band.getLocation().getStart() + "-" + band.getLocation().getEnd());
