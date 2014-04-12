@@ -114,7 +114,7 @@ public class SpecialGenerator
           String fastaName = "del" + chr + arm;
           List<Band> bands = new ArrayList<Band>();
           for (Band b : dao.getBandDAO().getBands(chr))
-            if (b.whichArm().equals(arm))
+            if (!b.whichArm().equals(arm))
               bands.add(b);
           createDerivativeJob(fastaName, AberrationTypes.DELETION, bands, chr);
           }
@@ -162,7 +162,7 @@ public class SpecialGenerator
     String abrDefinitions = aberration.getAberration().getCytogeneticDesignation() + ":" + StringUtils.join(abrs.iterator(), ",");
 
     log.info("*** Running DerivativeChromosomeJob for " + aberration.toString());
-    FASTAHeader header = new FASTAHeader(cellLine, fastaName, "parent=" + parentGenome.getName(), abrDefinitions);
+    FASTAHeader header = new FASTAHeader(cellLine, fastaName, "parent=" + parentGenome.getName(), aberration.toString());
     DerivativeChromosomeJob gdc = new DerivativeChromosomeJob(new Configuration(), scan, baseOutput, alf.getFilterLocationList(), aberration.getAberration().getCytogeneticDesignation(), header);
     ToolRunner.run(gdc, null);
     gdc.mergeOutputs(aberration.getAberration(), baseOutput, alf.getFilterLocationList().size());
