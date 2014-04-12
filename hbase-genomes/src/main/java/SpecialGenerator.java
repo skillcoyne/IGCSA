@@ -92,7 +92,7 @@ public class SpecialGenerator
         {
         String[] chrs = vagueAbr.substring(vagueAbr.indexOf("(") + 1, vagueAbr.indexOf(")")).split(";");
         sg.run(chrs);
-        if (sg.getCandidates().size() <= 0)
+        if (sg.getCandidates().size() >= 0)
           createDerivativeJob("der" + StringUtils.join(chrs, "-"), AberrationTypes.TRANSLOCATION, sg.getTopCandidates(1).get(0).getBands(), chrs);
         }
       else if (vagueAbr.startsWith("i")) // isochromosome NOT YET IMPLEMENTED -- doesn't require the special generator
@@ -109,7 +109,7 @@ public class SpecialGenerator
       else if (vagueAbr.equals("del(q/p)"))
         {
         // chromosome missing an arm -- doesn't require the special generator
-        for (String arm : new String[]{"p", "q"}) // p11 or q11
+        for (String arm : new String[]{"p","q"}) // p11 or q11
           {
           String fastaName = "del" + chr + arm;
           List<Band> bands = new ArrayList<Band>();
@@ -119,23 +119,36 @@ public class SpecialGenerator
           createDerivativeJob(fastaName, AberrationTypes.DELETION, bands, chr);
           }
         }
-
       }
+    }
+
+  private static AberrationLocationFilter createFilters(List<Band> bands, Aberration abr, String... chrs) throws IOException
+    {
+    List<ChromosomeResult> chromosomes = new ArrayList<ChromosomeResult>();
+    for (String c : chrs)
+      chromosomes.add(admin.getChromosomeTable().getChromosome(parentGenome.getName(), c));
+    AberrationLocationFilter alf = new AberrationLocationFilter();
+
+    switch (abr.getAberration())
+      {
+      case ISOCENTRIC:
+        alf.createFiltersFor(parentGenome.getName(), bands, true); break;
+      case DELETION:
+        alf.createFiltersFor(parentGenome.getName(), bands, true); break;
+      default:
+        alf.getFilter(abr, parentGenome, chromosomes, true); break;
+      }
+    return alf;
     }
 
 
   private static void createDerivativeJob(String fastaName, AberrationTypes type, List<Band> bands, String... chrs) throws Exception
     {
-    List<ChromosomeResult> chromosomes = new ArrayList<ChromosomeResult>();
-    for (String c : chrs)
-      chromosomes.add(admin.getChromosomeTable().getChromosome(parentGenome.getName(), c));
-
     Aberration aberration = new Aberration(bands, type);
-    AberrationLocationFilter alf = new AberrationLocationFilter();
-    FilterList filterList = alf.getFilter(aberration, parentGenome, chromosomes, !type.equals(AberrationTypes.DELETION));
 
+    AberrationLocationFilter alf = createFilters(bands, aberration, chrs);
     Scan scan = new Scan();
-    scan.setFilter(filterList);
+    scan.setFilter(alf.getFilterList());
 
     Path baseOutput = new Path("/tmp/special/" + cellLine, fastaName);
     FileSystem fs = FileSystem.get(baseOutput.toUri(), new Configuration());

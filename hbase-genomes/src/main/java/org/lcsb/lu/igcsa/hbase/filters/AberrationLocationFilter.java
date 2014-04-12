@@ -10,6 +10,8 @@ import org.lcsb.lu.igcsa.hbase.tables.genomes.GenomeResult;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -24,16 +26,47 @@ public class AberrationLocationFilter
   protected FilterList filterList = new FilterList(FilterList.Operator.MUST_PASS_ONE);
   protected List<Location> locationList = new ArrayList<Location>();
 
-  public FilterList getFilter(Aberration aberration, GenomeResult genome, List<ChromosomeResult> chromosomes, boolean includeFinal) throws IOException
+  public FilterList getFilterList()
+    {
+    return filterList;
+    }
+
+  public FilterList createFiltersFor(String genomeName, List<Band> bands, boolean sort)
+    {
+    if (sort)
+      {
+      Collections.sort(bands, new Comparator<Band>()
+      {
+      @Override
+      public int compare(Band a, Band b)
+        {
+        if (a.getBandName().equals(b.getBandName())) return 0;
+        if (!a.whichArm().equals(b.whichArm())) return a.whichArm().compareTo(b.whichArm());
+        else return a.getLocation().compareTo(b.getLocation());
+        }
+      });
+
+      List<Location> locations = new ArrayList<Location>();
+      for (Band b : bands)
+        locationList.add(b.getLocation());
+
+      for (Band b: bands)
+        addFilters(genomeName, b.getLocation(), b.getLocation().getStart(), b.getLocation().getEnd());
+
+      }
+    return filterList;
+    }
+
+  public FilterList getFilter(Aberration aberration, GenomeResult genome, List<ChromosomeResult> chromosomes,
+                              boolean includeFinal) throws IOException
     {
     String genomeName = genome.getName();
     List<Location> locations = new ArrayList<Location>();
-    for (Band b: aberration.getBands())
-        locations.add(b.getLocation());
+    for (Band b : aberration.getBands())
+      locations.add(b.getLocation());
 
     // get all segments up to first location
-    if (locations.get(0).getStart() > 1)
-      getInitialLocationFilters(locations.get(0), genomeName);
+    if (locations.get(0).getStart() > 1) getInitialLocationFilters(locations.get(0), genomeName);
 
     // get subsequent locations
     for (Location loc : locations)
@@ -42,8 +75,7 @@ public class AberrationLocationFilter
       addFilters(genomeName, loc, loc.getStart(), loc.getEnd());
       }
     // get the rest of the chromosome -- NOTE it's unclear that this is really necessary in translocaions.
-    if (includeFinal)
-      getFinalLocationFilter(locations.get(locations.size() - 1), genome, chromosomes);
+    if (includeFinal) getFinalLocationFilter(locations.get(locations.size() - 1), genome, chromosomes);
 
     return filterList;
     }
@@ -67,10 +99,13 @@ public class AberrationLocationFilter
   protected void getFinalLocationFilter(Location loc, GenomeResult genome, List<ChromosomeResult> chromosomes) throws IOException
     {
     ChromosomeResult currentChr = null;
-    for (ChromosomeResult chr: chromosomes)
+    for (ChromosomeResult chr : chromosomes)
       {
       if (chr.getChrName().equals(loc.getChromosome()))
-        { currentChr = chr; break; }
+        {
+        currentChr = chr;
+        break;
+        }
       }
     if (currentChr == null)
       throw new IOException("Chromosome list for genome " + genome.getName() + " did not include chromosome " + loc.getChromosome());
@@ -97,8 +132,7 @@ public class AberrationLocationFilter
     filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("start"), CompareFilter.CompareOp.GREATER_OR_EQUAL,
                                                  Bytes.toBytes(start)));
 
-    filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("end"), CompareFilter.CompareOp.LESS_OR_EQUAL,
-                                                 Bytes.toBytes(stop)));
+    filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("end"), CompareFilter.CompareOp.LESS_OR_EQUAL, Bytes.toBytes(stop)));
 
     filterList.addFilter(filter);
     }
