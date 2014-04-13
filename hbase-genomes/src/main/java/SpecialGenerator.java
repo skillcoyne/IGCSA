@@ -17,6 +17,7 @@ import org.lcsb.lu.igcsa.database.KaryotypeDAO;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.generator.Aberration;
 import org.lcsb.lu.igcsa.generator.BreakpointCombinatorial;
+import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 import org.lcsb.lu.igcsa.hbase.filters.AberrationLocationFilter;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.ChromosomeResult;
@@ -92,13 +93,14 @@ public class SpecialGenerator
         {
         String[] chrs = vagueAbr.substring(vagueAbr.indexOf("(") + 1, vagueAbr.indexOf(")")).split(";");
         sg.run(chrs);
-        if (sg.getCandidates().size() >= 0)
+        if (sg.getCandidates().size() > 0)
           createDerivativeJob("der" + StringUtils.join(chrs, "-"), AberrationTypes.TRANSLOCATION, sg.getTopCandidates(1).get(0).getBands(), chrs);
         }
       else if (vagueAbr.startsWith("i")) // isochromosome NOT YET IMPLEMENTED -- doesn't require the special generator
         {
         String arm = vagueAbr.replace("i(", "").substring(0, 1);
         String fastaName = "iso" + chr + arm;
+        if (arm.equals("p")) continue;
         // p11 or q 11
         List<Band> bands = new ArrayList<Band>();
         for (Band b : dao.getBandDAO().getBands(chr))
@@ -132,7 +134,8 @@ public class SpecialGenerator
     switch (abr.getAberration())
       {
       case ISOCENTRIC:
-        alf.createFiltersFor(parentGenome.getName(), bands, true); break;
+        Collections.sort(bands);
+        alf.createFiltersFor(parentGenome.getName(), new Location(chrs[0], bands.get(0).getLocation().getStart(), bands.get(bands.size()-1).getLocation().getEnd())); break;
       case DELETION:
         alf.createFiltersFor(parentGenome.getName(), bands, true); break;
       default:
@@ -159,7 +162,7 @@ public class SpecialGenerator
     List<String> abrs = new ArrayList<String>();
     for (Band band : aberration.getBands())
       abrs.add(band.getChromosomeName() + ":" + band.getLocation().getStart() + "-" + band.getLocation().getEnd());
-    String abrDefinitions = aberration.getAberration().getCytogeneticDesignation() + ":" + StringUtils.join(abrs.iterator(), ",");
+    String abrDefinitions = aberration.getAberration().getShortName() + ":" + StringUtils.join(abrs.iterator(), ",");
 
     log.info("*** Running DerivativeChromosomeJob for " + aberration.toString());
     FASTAHeader header = new FASTAHeader(cellLine, fastaName, "parent=" + parentGenome.getName(), aberration.toString());
@@ -192,7 +195,7 @@ public class SpecialGenerator
 
     if (chrs.length >= 4)
       {
-      log.warn("Too many chromosomes for breakpoint combinatorial analysis (memory).");
+      log.warn("Too many chromosomes for breakpoint combinatorial analysis (memory). " + StringUtils.join(chrs, ","));
       return;
       }
 

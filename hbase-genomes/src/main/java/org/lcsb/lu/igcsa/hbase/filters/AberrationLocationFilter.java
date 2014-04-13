@@ -31,6 +31,15 @@ public class AberrationLocationFilter
     return filterList;
     }
 
+
+  public FilterList createFiltersFor(String genomeName, Location location)
+    {
+    addFilters(genomeName, location, location.getStart(), location.getEnd());
+    locationList.add(location);
+    return filterList;
+    }
+
+
   public FilterList createFiltersFor(String genomeName, List<Band> bands, boolean sort)
     {
     if (sort)
