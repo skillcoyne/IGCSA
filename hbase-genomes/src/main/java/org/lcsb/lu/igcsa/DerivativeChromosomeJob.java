@@ -24,6 +24,7 @@ import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.lcsb.lu.igcsa.aberrations.AberrationTypes;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
+import org.lcsb.lu.igcsa.generator.Aberration;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 import org.lcsb.lu.igcsa.mapreduce.*;
@@ -42,23 +43,24 @@ public class DerivativeChromosomeJob extends JobIGCSA
   private Scan scan;
   private Path output;
   private List<Location> filterLocations;
-  private String aberrationType;
   private FASTAHeader header;
+  private Aberration aberration;
 
-  public DerivativeChromosomeJob(Configuration conf, Scan scan, Path output, List<Location> filterLocations, String aberrationType, FASTAHeader header)
+  public DerivativeChromosomeJob(Configuration conf, Scan scan, Path output, List<Location> filterLocations,
+                                 Aberration aberration, FASTAHeader header)
     {
     super(conf);
     this.scan = scan;
     this.output = output;
     this.filterLocations = filterLocations;
-    this.aberrationType = aberrationType;
     this.header = header;
+    this.aberration = aberration;
     }
 
   @Override
   public int run(String[] args) throws Exception
     {
-    Job job = new Job(getConf(), "Generate derivative FASTA");
+    Job job = new Job(getConf(), "Generate derivative FASTA: " + aberration.getAberration().getShortName());
     job.setJarByClass(GenerateDerivativeChromosomes.class);
 
     job.setSpeculativeExecution(false);
@@ -67,10 +69,10 @@ public class DerivativeChromosomeJob extends JobIGCSA
     // M/R setup
     job.setMapperClass(SequenceRequestMapper.class);
     SequenceRequestMapper.setLocations(job, filterLocations);
-    if (aberrationType.equals("inv"))
-      SequenceRequestMapper.setLocationsToReverse(job, filterLocations.get(1));
+    if (aberration.getAberration().equals(AberrationTypes.INVERSION)) SequenceRequestMapper.setLocationsToReverse(job, filterLocations.get(1));
 
-    TableMapReduceUtil.initTableMapperJob(HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().getTableName(), scan, SequenceRequestMapper.class, SegmentOrderComparator.class, FragmentWritable.class, job);
+    TableMapReduceUtil.initTableMapperJob(HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().getTableName(), scan,
+                                          SequenceRequestMapper.class, SegmentOrderComparator.class, FragmentWritable.class, job);
 
     // custom partitioner to make sure the segments go to the correct reducer sorted
     job.setPartitionerClass(FragmentPartitioner.class);
@@ -83,8 +85,21 @@ public class DerivativeChromosomeJob extends JobIGCSA
     FileOutputFormat.setOutputPath(job, output);
     FASTAOutputFormat.setLineLength(job, 70);
     FASTAOutputFormat.addHeader(job, header);
-    for (int order = 0; order < filterLocations.size(); order++)
-      MultipleOutputs.addNamedOutput(job, Integer.toString(order), FASTAOutputFormat.class, LongWritable.class, Text.class);
+
+    if (aberration.getAberration().equals(AberrationTypes.ISOCENTRIC))
+      {
+      if (aberration.getBands().get(0).whichArm().equals("q"))
+        IsoChromosomeMapper.reverseFirst(true, job);
+
+      job.setMapperClass(IsoChromosomeMapper.class);
+      for (int i=0; i<2; i++)
+        MultipleOutputs.addNamedOutput(job, Integer.toString(i), FASTAOutputFormat.class, LongWritable.class, Text.class);
+      }
+    else
+      {
+      for (int order = 0; order < filterLocations.size(); order++)
+        MultipleOutputs.addNamedOutput(job, Integer.toString(order), FASTAOutputFormat.class, LongWritable.class, Text.class);
+      }
 
     return (job.waitForCompletion(true) ? 0 : 1);
     }
@@ -93,7 +108,8 @@ public class DerivativeChromosomeJob extends JobIGCSA
   // just to clean up the main method a bit
   public void mergeOutputs(AberrationTypes abrType, Path output, int numLocs) throws Exception
     {
-    // CRC files mess up any attempt to directly read/write from an unchanged file which means copying/moving fails too. Easiest fix right now is to dump the file.
+    // CRC files mess up any attempt to directly read/write from an unchanged file which means copying/moving fails too. Easiest fix
+    // right now is to dump the file.
     deleteChecksumFiles(this.getJobFileSystem(), output);
     /*
   We now have output files.  In most cases the middle file(s) will be the aberration sequences.
@@ -107,29 +123,29 @@ public class DerivativeChromosomeJob extends JobIGCSA
     if (abrType.getCytogeneticDesignation().equals("dup"))
       {
       log.info("DUP aberration");
-      if (numLocs > 3)
-        throw new RuntimeException("This should not happen: dup has more than 3 locations");
+      if (numLocs > 3) throw new RuntimeException("This should not happen: dup has more than 3 locations");
 
       // move subsequent files
       for (int i = numLocs - 1; i > 1; i--)
         {
         // move files
-        FileUtil.copy(jobFS, new Path(output, Integer.toString(i)), jobFS, new Path(output, Integer.toString(i + 1)), true, false, jobFS.getConf());
+        FileUtil.copy(jobFS, new Path(output, Integer.toString(i)), jobFS, new Path(output, Integer.toString(i + 1)), true, false,
+                      jobFS.getConf());
         }
       //then copy the duplicated segment
-      FileUtil.copy(jobFS, new Path(output, Integer.toString(1)), jobFS, new Path(output, Integer.toString(2)), false, false, jobFS.getConf());
+      FileUtil.copy(jobFS, new Path(output, Integer.toString(1)), jobFS, new Path(output, Integer.toString(2)), false, false,
+                    jobFS.getConf());
       }
-    // TODO Iso is different from inv in that I take the same segment and copy it in reverse.  But right now all I do is write out one segment.  Not sure quite how to handle that.
+
     if (abrType.getCytogeneticDesignation().equals("iso"))
       {
       log.info("ISO aberration");
-      if (numLocs > 2)
-        throw new RuntimeException("This should not happen: iso has more than 2 locations");
+      if (numLocs > 2) throw new RuntimeException("This should not happen: iso has more than 2 locations");
       }
 
     // create merged FASTA at chromosome level -- there is an issue here that it just concatenates the files which means at the merge points there are strings of different lengths.  This is an issue in samtools.
     FASTAUtil.mergeFASTAFiles(jobFS, output.toString(), output.toString() + ".fa");
-    //jobFS.delete(output, true);
+    jobFS.delete(output, true);
     }
 
 

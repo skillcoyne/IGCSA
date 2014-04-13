@@ -15,6 +15,7 @@ import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.TableMapper;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.mapreduce.Job;
+import org.lcsb.lu.igcsa.aberrations.AberrationTypes;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.SequenceResult;
@@ -26,17 +27,20 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-
-
 public class SequenceRequestMapper extends TableMapper<SegmentOrderComparator, FragmentWritable>
   {
   private static final Log log = LogFactory.getLog(SequenceRequestMapper.class);
 
   public final static String REVERSE = "reverse.segments";
   public final static String CFG_LOC = "chr.locations";
+  public final static String ABR = "aberration.type";
 
-  private List<Location> locations = new ArrayList<Location>();
-  private Map<Location, Boolean> isReversible = new HashMap<Location, Boolean>();
+  private final static String ISO = "duplicate.in.reverse";
+
+
+  protected List<Location> locations = new ArrayList<Location>();
+  protected Map<Location, Boolean> isReversible = new HashMap<Location, Boolean>();
+
 
   @Override
   protected void setup(Context context) throws IOException, InterruptedException
@@ -45,7 +49,7 @@ public class SequenceRequestMapper extends TableMapper<SegmentOrderComparator, F
     String[] locs = context.getConfiguration().getStrings(CFG_LOC);
     Set<String> reverseLocs = new HashSet<String>(context.getConfiguration().getStringCollection(REVERSE));
 
-    for (String loc: locs)
+    for (String loc : locs)
       {
       Matcher matcher = p.matcher(loc);
       matcher.matches();
@@ -57,8 +61,7 @@ public class SequenceRequestMapper extends TableMapper<SegmentOrderComparator, F
       locations.add(locObj);
 
       isReversible.put(locObj, false);
-      if (reverseLocs.contains(loc))
-        isReversible.put(locObj, true);
+      if (reverseLocs.contains(loc)) isReversible.put(locObj, true);
       }
     log.info(locations);
     }
@@ -70,22 +73,20 @@ public class SequenceRequestMapper extends TableMapper<SegmentOrderComparator, F
 
     // is there anything to be done with this really?
     String rowId = Bytes.toString(key.get());
-    log.debug(rowId + " reverse:" + reverse);
+    //log.debug(rowId + " reverse:" + reverse);
 
     SequenceResult sr = HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().createResult(value);
-    //log.info(sr);
 
     int sectionKey = -1;
-    for (Location loc: locations)
+    for (Location loc : locations)
       {
-      if (loc.getChromosome().equals(sr.getChr()) && loc.overlapsLocation( new Location(sr.getStart(), sr.getEnd())) )
+      if (loc.getChromosome().equals(sr.getChr()) && loc.overlapsLocation(new Location(sr.getStart(), sr.getEnd())))
         {
         sectionKey = locations.indexOf(loc);
         reverse = isReversible.get(loc);
         }
       }
-    if (sectionKey < 0)
-      throw new RuntimeException("somehow I didn't match anything and that should never happen!");
+    if (sectionKey < 0) throw new RuntimeException("somehow I didn't match anything and that should never happen!");
 
     // if reverse the text sequence needs to be reversed and it needs to somehow be indicated with the key I think
     String sequence = sr.getSequence();
@@ -93,7 +94,7 @@ public class SequenceRequestMapper extends TableMapper<SegmentOrderComparator, F
     if (reverse)
       {
       sequence = new StringBuffer(sequence).reverse().toString();
-      soc = new SegmentOrderComparator(sectionKey, (-1*sr.getSegmentNum()));
+      soc = new SegmentOrderComparator(sectionKey, (-1 * sr.getSegmentNum()));
       }
     FragmentWritable fw = new FragmentWritable(sr.getChr(), sr.getStart(), sr.getEnd(), sr.getSegmentNum(), sequence);
 
@@ -104,7 +105,7 @@ public class SequenceRequestMapper extends TableMapper<SegmentOrderComparator, F
   public static void setLocations(Job job, List<Location> locList)
     {
     List<String> locations = new ArrayList<String>();
-    for (Location loc: locList)
+    for (Location loc : locList)
       locations.add(loc.toString());
 
     job.getConfiguration().setStrings(CFG_LOC, locations.toArray(new String[locations.size()]));
@@ -113,9 +114,10 @@ public class SequenceRequestMapper extends TableMapper<SegmentOrderComparator, F
   public static void setLocationsToReverse(Job job, Location... locs)
     {
     List<String> locations = new ArrayList<String>();
-    for (Location loc: locs)
+    for (Location loc : locs)
       locations.add(loc.toString());
 
     job.getConfiguration().setStrings(REVERSE, locations.toArray(new String[locations.size()]));
     }
+
   }
