@@ -38,7 +38,6 @@ public class AWSUtils
 //    GetObjectRequest req = new GetObjectRequest("insilico", "FASTA");
 //    S3Object obj = s3.getObject(req);
 
-
     Map<String, S3ObjectSummary> objects = new HashMap<String, S3ObjectSummary>();
     Pattern p = Pattern.compile("hbase\\/\\w+_\\$folder\\$$");
     for (S3ObjectSummary summary : listing.getObjectSummaries())

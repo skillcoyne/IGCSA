@@ -88,6 +88,17 @@ public class Band implements Comparable<Band>
     return "q";
     }
 
+  public int getStart()
+    {
+    return location.getStart();
+    }
+
+  public int getEnd()
+    {
+    return location.getEnd();
+    }
+
+
 
   @Override
   public boolean equals(Object o)

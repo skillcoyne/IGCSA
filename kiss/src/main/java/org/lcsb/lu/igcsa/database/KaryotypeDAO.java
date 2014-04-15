@@ -16,6 +16,16 @@ public class KaryotypeDAO
   private GeneralKarytoypeDAO generalKarytoypeDAO;
   private ChromosomeBandDAO bandDAO;
 
+  public KaryotypeDAO()
+    {}
+
+  public KaryotypeDAO(AneuploidyDAO aneuploidyDAO, GeneralKarytoypeDAO generalKarytoypeDAO, ChromosomeBandDAO bandDAO)
+    {
+    this.aneuploidyDAO = aneuploidyDAO;
+    this.generalKarytoypeDAO = generalKarytoypeDAO;
+    this.bandDAO = bandDAO;
+    }
+
   public ChromosomeBandDAO getBandDAO()
     {
     return bandDAO;

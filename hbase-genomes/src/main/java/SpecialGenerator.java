@@ -1,3 +1,4 @@
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
@@ -5,10 +6,13 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.BWAIndex;
 import org.lcsb.lu.igcsa.DerivativeChromosomeJob;
 import org.lcsb.lu.igcsa.aberrations.AberrationTypes;
+import org.lcsb.lu.igcsa.aws.AWSUtils;
 import org.lcsb.lu.igcsa.database.Band;
 import org.lcsb.lu.igcsa.database.KaryotypeDAO;
+import org.lcsb.lu.igcsa.database.util.DerbyConnection;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.generator.Aberration;
 import org.lcsb.lu.igcsa.generator.BreakpointCombinatorial;
@@ -17,6 +21,7 @@ import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 import org.lcsb.lu.igcsa.hbase.filters.AberrationLocationFilter;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.ChromosomeResult;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.GenomeResult;
+import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.paukov.combinatorics.ICombinatoricsVector;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -39,13 +44,14 @@ public class SpecialGenerator
   {
   static Logger log = Logger.getLogger(SpecialGenerator.class.getName());
 
-  private static ClassPathXmlApplicationContext context;
+  //private static ClassPathXmlApplicationContext context;
   private static KaryotypeDAO dao;
   private static HBaseGenomeAdmin admin;
 
   private static GenomeResult parentGenome;
   private static String cellLine;
-
+  private static Path baseOutput;
+  private static FileSystem fs;
 
   private Map<Band, Double> allPossibleBands;
   private String[] chromosomes;
@@ -56,11 +62,20 @@ public class SpecialGenerator
 
   public static void main(String[] args) throws Exception
     {
-    if (args.length < 2)
+    if (args.length < 3)
       {
-      System.err.println("File name and cell line name required.");
+      System.err.println("Usage: <file name>  <cell line> <output directory> required.");
       System.exit(-1);
       }
+//    context = new ClassPathXmlApplicationContext(new String[]{"classpath*:spring-config.xml"});
+//    dao = (KaryotypeDAO) context.getBean("karyotypeDAO");
+    //derby:classpath
+//    DerbyConnection conn = new DerbyConnection("org.apache.derby.jdbc.EmbeddedDriver","jdbc:derby:jar:(s3n://insilico/karyotype_probabilities.zip)karyotype_probabilities", "igcsa", "");
+
+    DerbyConnection conn = new DerbyConnection("org.apache.derby.jdbc.EmbeddedDriver","jdbc:derby:classpath:karyotype_probabilities", "igcsa", "");
+
+
+    dao = conn.getKaryotypeDAO();
 
     admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(HBaseConfiguration.create());
     parentGenome = admin.getGenomeTable().getGenome("GRCh37");
@@ -69,7 +84,16 @@ public class SpecialGenerator
     String fileName = args[0];
     cellLine = args[1];
 
-    InputStream is = new FileInputStream(new File(fileName));
+    baseOutput = new Path(args[2], cellLine);
+    fs = FileSystem.get(baseOutput.toUri(), new Configuration());
+    int i=1;
+    while (fs.exists(baseOutput))
+      {
+      baseOutput = new Path(args[2], cellLine + "." + i);
+      ++i;
+      }
+
+    InputStream is = fs.open(new Path(fileName));
     BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 
     reader.readLine(); // header
@@ -88,8 +112,7 @@ public class SpecialGenerator
         String[] chrs = vagueAbr.substring(vagueAbr.indexOf("(") + 1, vagueAbr.indexOf(")")).split(";");
         sg.run(chrs);
         if (sg.getCandidates().size() > 0)
-          createDerivativeJob("der" + StringUtils.join(chrs, "-"), AberrationTypes.TRANSLOCATION,
-                              sg.getTopCandidates(1).get(0).getBands(), chrs);
+          createDerivativeJob("der" + StringUtils.join(chrs, "-"), AberrationTypes.TRANSLOCATION, sg.getTopCandidates(1).get(0).getBands(), chrs);
         }
       else if (vagueAbr.startsWith("i")) // isochromosome
         {
@@ -101,7 +124,6 @@ public class SpecialGenerator
         for (Band b : dao.getBandDAO().getBands(chr))
           if (b.whichArm().equals(arm)) bands.add(b);
         createDerivativeJob(fastaName, AberrationTypes.ISOCENTRIC, bands, chr);
-        break;
         }
       else if (vagueAbr.equals("del(q/p)"))
         {
@@ -112,10 +134,20 @@ public class SpecialGenerator
           List<Band> bands = new ArrayList<Band>();
           for (Band b : dao.getBandDAO().getBands(chr))
             if (!b.whichArm().equals(arm)) bands.add(b);
-          createDerivativeJob(fastaName, AberrationTypes.DELETION, bands, chr);
+          //createDerivativeJob(fastaName, AberrationTypes.DELETION, bands, chr);
           }
         }
       }
+
+    //Create BWA index with ONLY the derivative chromosomes
+    final Path mergedFASTA = new Path(baseOutput, "reference.fa");
+    // Create a single merged FASTA file for use in the indexing step
+    FASTAUtil.mergeFASTAFiles(fs, baseOutput.toString(), mergedFASTA.toString());
+
+    // Run BWA
+    Path tmp = BWAIndex.writeReferencePointerFile(mergedFASTA, fs);
+    //ToolRunner.run(new BWAIndex(), (String[]) ArrayUtils.addAll(args, new String[]{"-f", tmp.toString()}));
+    //fs.delete(tmp, false);
     }
 
   private static AberrationLocationFilter createFilters(List<Band> bands, Aberration abr, String... chrs) throws IOException
@@ -125,20 +157,22 @@ public class SpecialGenerator
       chromosomes.add(admin.getChromosomeTable().getChromosome(parentGenome.getName(), c));
     AberrationLocationFilter alf = new AberrationLocationFilter();
 
-
     switch (abr.getAberration())
       {
       case ISOCENTRIC:
         Collections.sort(bands);
-        int start = bands.get(0).getLocation().getStart();
-        int end = bands.get(bands.size() - 1).getLocation().getEnd();
-        alf.createFiltersFor(parentGenome.getName(), new Location(chrs[0], start, end));
+//        int start = bands.get(0).getLocation().getStart();
+//        int end = bands.get(bands.size() - 1).getLocation().getEnd();
+//        alf.createFiltersFor(parentGenome.getName(), new Location(chrs[0], start, end));
+        alf.createFiltersFor(parentGenome.getName(), bands.get(bands.size()-1).getLocation());
+
         break;
-      case DELETION:
-        alf.createFiltersFor(parentGenome.getName(), bands, true);
-        break;
+//      case DELETION:
+//        alf.createFiltersFor(parentGenome.getName(), bands, true);
+//        break;
       default:
-        alf.getFilter(abr, parentGenome, chromosomes, true);
+        alf.createFiltersFor(parentGenome.getName(), bands, false);
+        //alf.getFilter(abr, parentGenome, chromosomes, true);
         break;
       }
     return alf;
@@ -153,9 +187,10 @@ public class SpecialGenerator
     Scan scan = new Scan();
     scan.setFilter(alf.getFilterList());
 
-    Path baseOutput = new Path("/tmp/special/" + cellLine, fastaName);
-    FileSystem fs = FileSystem.get(baseOutput.toUri(), new Configuration());
-    if (fs.exists(baseOutput)) fs.delete(baseOutput, true);
+
+
+    Path fastaOutput = new Path(baseOutput, fastaName);
+    if (fs.exists(fastaOutput)) fs.delete(fastaOutput, true);
 
     // Generate the segments for the new FASTA file
     List<String> abrs = new ArrayList<String>();
@@ -164,19 +199,26 @@ public class SpecialGenerator
     String abrDefinitions = aberration.getAberration().getShortName() + ":" + StringUtils.join(abrs.iterator(), ",");
 
     log.info("*** Running DerivativeChromosomeJob for " + aberration.toString());
-    FASTAHeader header = new FASTAHeader(cellLine, fastaName, "parent=" + parentGenome.getName(), aberration.toString());
+    String desc = aberration.getAberration().getCytogeneticDesignation() + " ";
+    switch (aberration.getAberration())
+    {
+    case DELETION: desc = fastaName; break;
+    case ISOCENTRIC: desc = desc + " " + bands.get(0).getChromosomeName() + bands.get(0).whichArm(); break;
+    default:
+      for (Band b: aberration.getBands())
+        desc = desc + b.getChromosomeName()+b.getBandName() + ";";
+      desc = desc.substring(0, desc.lastIndexOf(";")-1);
+      break;
+    }
 
-    DerivativeChromosomeJob gdc = new DerivativeChromosomeJob(new Configuration(), scan, baseOutput, alf.getFilterLocationList(),
-                                                              aberration, header);
-
+    FASTAHeader header = new FASTAHeader(cellLine, fastaName, "parent=" + parentGenome.getName(), desc);
+    DerivativeChromosomeJob gdc = new DerivativeChromosomeJob(new Configuration(), scan, fastaOutput, alf.getFilterLocationList(), aberration, header);
     ToolRunner.run(gdc, null);
-    gdc.mergeOutputs(aberration.getAberration(), baseOutput, alf.getFilterLocationList().size());
+    gdc.mergeOutputs(aberration.getAberration(), fastaOutput, alf.getFilterLocationList().size());
     }
 
   public SpecialGenerator()
     {
-    context = new ClassPathXmlApplicationContext(new String[]{"classpath*:spring-config.xml"});
-    dao = (KaryotypeDAO) context.getBean("karyotypeDAO");
     }
 
   public List<Candidate> getCandidates()

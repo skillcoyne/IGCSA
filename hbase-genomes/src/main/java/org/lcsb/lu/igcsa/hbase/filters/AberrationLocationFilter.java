@@ -1,5 +1,7 @@
 package org.lcsb.lu.igcsa.hbase.filters;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hbase.filter.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.lcsb.lu.igcsa.database.Band;
@@ -22,6 +24,9 @@ import java.util.List;
  */
 public class AberrationLocationFilter
   {
+  private static final Log log = LogFactory.getLog(AberrationLocationFilter.class);
+
+
   // this FilterList will contain nested filter lists that have all of the necessary locations
   protected FilterList filterList = new FilterList(FilterList.Operator.MUST_PASS_ONE);
   protected List<Location> locationList = new ArrayList<Location>();
@@ -49,25 +54,30 @@ public class AberrationLocationFilter
       @Override
       public int compare(Band a, Band b)
         {
-        if (a.getBandName().equals(b.getBandName())) return 0;
-        if (!a.whichArm().equals(b.whichArm())) return a.whichArm().compareTo(b.whichArm());
-        else return a.getLocation().compareTo(b.getLocation());
+        if (a.getBandName().equals(b.getBandName()))
+          return 0;
+        if (!a.whichArm().equals(b.whichArm()))
+          return a.whichArm().compareTo(b.whichArm());
+        else
+          return a.getLocation().compareTo(b.getLocation());
         }
       });
-
-      List<Location> locations = new ArrayList<Location>();
-      for (Band b : bands)
-        locationList.add(b.getLocation());
-
-      for (Band b: bands)
-        addFilters(genomeName, b.getLocation(), b.getLocation().getStart(), b.getLocation().getEnd());
-
       }
+
+    List<Location> locations = new ArrayList<Location>();
+    for (Band b : bands)
+      locationList.add(b.getLocation());
+
+    for (Band b : bands)
+      addFilters(genomeName, b.getLocation(), b.getLocation().getStart(), b.getLocation().getEnd());
+
+    log.info(locationList);
+
     return filterList;
     }
 
-  public FilterList getFilter(Aberration aberration, GenomeResult genome, List<ChromosomeResult> chromosomes,
-                              boolean includeFinal) throws IOException
+
+  public FilterList getFilter(Aberration aberration, GenomeResult genome, List<ChromosomeResult> chromosomes, boolean includeFinal) throws IOException
     {
     String genomeName = genome.getName();
     List<Location> locations = new ArrayList<Location>();
@@ -75,7 +85,7 @@ public class AberrationLocationFilter
       locations.add(b.getLocation());
 
     // get all segments up to first location
-    if (locations.get(0).getStart() > 1) getInitialLocationFilters(locations.get(0), genomeName);
+    //if (locations.get(0).getStart() > 1) getInitialLocationFilters(locations.get(0), genomeName);
 
     // get subsequent locations
     for (Location loc : locations)
@@ -84,7 +94,7 @@ public class AberrationLocationFilter
       addFilters(genomeName, loc, loc.getStart(), loc.getEnd());
       }
     // get the rest of the chromosome -- NOTE it's unclear that this is really necessary in translocaions.
-    if (includeFinal) getFinalLocationFilter(locations.get(locations.size() - 1), genome, chromosomes);
+    //if (includeFinal) getFinalLocationFilter(locations.get(locations.size() - 1), genome, chromosomes);
 
     return filterList;
     }
@@ -133,13 +143,10 @@ public class AberrationLocationFilter
   protected void addFilters(String genomeName, Location loc, long start, long stop)
     {
     FilterList filter = new FilterList(FilterList.Operator.MUST_PASS_ALL);
-    filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("info"), Bytes.toBytes("genome"), CompareFilter.CompareOp.EQUAL,
-                                                 Bytes.toBytes(genomeName)));
-    filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("chr"), CompareFilter.CompareOp.EQUAL,
-                                                 Bytes.toBytes(loc.getChromosome())));
+    filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("info"), Bytes.toBytes("genome"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(genomeName)));
+    filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("chr"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(loc.getChromosome())));
 
-    filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("start"), CompareFilter.CompareOp.GREATER_OR_EQUAL,
-                                                 Bytes.toBytes(start)));
+    filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("start"), CompareFilter.CompareOp.GREATER_OR_EQUAL, Bytes.toBytes(start)));
 
     filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("end"), CompareFilter.CompareOp.LESS_OR_EQUAL, Bytes.toBytes(stop)));
 
