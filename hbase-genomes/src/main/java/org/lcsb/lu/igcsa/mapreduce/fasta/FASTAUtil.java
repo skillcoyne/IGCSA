@@ -9,6 +9,8 @@
 package org.lcsb.lu.igcsa.mapreduce.fasta;
 
 import com.m6d.filecrush.crush.Crush;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.*;
@@ -60,7 +62,12 @@ public class FASTAUtil
   // Create a single merged FASTA file from files in the src directory.
   public static void mergeFASTAFiles(FileSystem fs, String src, String dest) throws Exception
     {
-    log.info("Merging files in " + src);
+    if (fs.getUri().toASCIIString().startsWith("s3"))
+      {
+      log.info("Cannot filecrush on s3, skipping.");
+      return;
+      }
+
     ToolRunner.run(new Crush(), new String[]{"--input-format=text", "--output-format=text", "--compress=none", src, dest});
     }
 

@@ -7,7 +7,7 @@ dir = ARGV[0]
 print print_usage("Read pair directory #{dir} does not exist or is not a directory") unless (File.exists? dir and File.directory? dir)
 read_pair = Dir.glob("#{dir}/*.fastq")
 
-ftt = FastqToTSV.new(read_pair[0], read_pair[1])
+ftt = FastqToTSV.new(read_pair[0], read_pair[1], :output => dir)
 tsv_file = ftt.write_tsv
 
 unless File.size(tsv_file) > 0

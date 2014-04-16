@@ -108,17 +108,16 @@ public class DerivativeChromosomeJob extends JobIGCSA
   // just to clean up the main method a bit
   public void mergeOutputs(AberrationTypes abrType, Path output, int numLocs) throws Exception
     {
+    FileSystem jobFS = this.getJobFileSystem(output.toUri());
     // CRC files mess up any attempt to directly read/write from an unchanged file which means copying/moving fails too. Easiest fix
     // right now is to dump the file.
-    deleteChecksumFiles(this.getJobFileSystem(), output);
+    deleteChecksumFiles(jobFS, output);
     /*
   We now have output files.  In most cases the middle file(s) will be the aberration sequences.
   In many cases they can just be concatenated as is. Exceptions:
     - duplication: the middle file needs to be duplicated before concatenation
     - iso: there should be only 1 file, it needs to be duplicated in reverse before concatenation
     */
-    FileSystem jobFS = this.getJobFileSystem();
-
     log.info(jobFS.getWorkingDirectory());
     if (abrType.getCytogeneticDesignation().equals("dup"))
       {
