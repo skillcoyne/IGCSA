@@ -2,8 +2,8 @@ package org.lcsb.lu.igcsa.watchmaker.kt;
 
 import org.apache.log4j.Logger;
 import org.jgrapht.graph.DefaultWeightedEdge;
-import org.lcsb.lu.igcsa.database.Band;
-import org.lcsb.lu.igcsa.generator.Aneuploidy;
+import org.lcsb.lu.igcsa.karyotype.database.Band;
+import org.lcsb.lu.igcsa.karyotype.generator.Aneuploidy;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.utils.CandidateUtils;
 import org.uncommons.watchmaker.framework.FitnessEvaluator;

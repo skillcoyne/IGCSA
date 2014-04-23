@@ -1,8 +1,8 @@
 package org.lcsb.lu.igcsa.genome;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.database.Breakpoint;
-import org.lcsb.lu.igcsa.database.BreakpointDAO;
+import org.lcsb.lu.igcsa.karyotype.database.Breakpoint;
+import org.lcsb.lu.igcsa.karyotype.database.BreakpointDAO;
 
 import java.util.ArrayList;
 import java.util.Random;

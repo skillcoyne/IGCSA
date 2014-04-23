@@ -10,10 +10,10 @@ package org.lcsb.lu.igcsa;
 
 import org.apache.commons.math3.distribution.PoissonDistribution;
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.database.Band;
-import org.lcsb.lu.igcsa.database.KaryotypeDAO;
-import org.lcsb.lu.igcsa.generator.Aberration;
-import org.lcsb.lu.igcsa.generator.AberrationRules;
+import org.lcsb.lu.igcsa.karyotype.database.Band;
+import org.lcsb.lu.igcsa.karyotype.database.KaryotypeDAO;
+import org.lcsb.lu.igcsa.karyotype.generator.Aberration;
+import org.lcsb.lu.igcsa.karyotype.generator.AberrationRules;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.lcsb.lu.igcsa.watchmaker.kt.*;

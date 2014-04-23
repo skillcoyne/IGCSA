@@ -8,9 +8,8 @@
 
 package org.lcsb.lu.igcsa.hbase.rows;
 
-import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.database.Band;
-import org.lcsb.lu.igcsa.generator.Aberration;
+import org.lcsb.lu.igcsa.karyotype.database.Band;
+import org.lcsb.lu.igcsa.karyotype.generator.Aberration;
 import org.lcsb.lu.igcsa.hbase.tables.Column;
 
 import java.io.IOException;

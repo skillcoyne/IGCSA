@@ -12,23 +12,23 @@
     </bean>
 
 
-    <bean id="testFragmentDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCFragmentDAO">
+    <bean id="testFragmentDAO" class="org.lcsb.lu.igcsa.karyotype.database.sql.JDBCFragmentDAO">
         <property name="dataSource" ref="testDS"/>
     </bean>
 
-    <bean id="testVariationDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCVariationDAO">
+    <bean id="testVariationDAO" class="org.lcsb.lu.igcsa.karyotype.database.sql.JDBCVariationDAO">
         <property name="dataSource" ref="testDS"/>
     </bean>
 
-    <bean id="testGCBinDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCGCBinDAO">
+    <bean id="testGCBinDAO" class="org.lcsb.lu.igcsa.karyotype.database.sql.JDBCGCBinDAO">
         <property name="dataSource" ref="testDS"/>
     </bean>
 
-    <bean id="testSizeDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCSizeDAO">
+    <bean id="testSizeDAO" class="org.lcsb.lu.igcsa.karyotype.database.sql.JDBCSizeDAO">
         <property name="dataSource" ref="testDS"/>
     </bean>
 
-    <bean id="testSNVDAO" class="org.lcsb.lu.igcsa.database.sql.JDBCSNVProbabilityDAO">
+    <bean id="testSNVDAO" class="org.lcsb.lu.igcsa.karyotype.database.sql.JDBCSNVProbabilityDAO">
         <property name="dataSource" ref="testDS"/>
     </bean>
 

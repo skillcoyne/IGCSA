@@ -9,8 +9,8 @@
 package org.lcsb.lu.igcsa.utils;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.aberrations.SequenceAberration;
-import org.lcsb.lu.igcsa.database.Band;
+import org.lcsb.lu.igcsa.karyotype.aberrations.SequenceAberration;
+import org.lcsb.lu.igcsa.karyotype.database.Band;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.DerivativeChromosome;
 import org.lcsb.lu.igcsa.genome.Karyotype;

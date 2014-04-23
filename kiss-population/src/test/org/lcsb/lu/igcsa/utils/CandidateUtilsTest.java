@@ -11,7 +11,7 @@ package org.lcsb.lu.igcsa.utils;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.lcsb.lu.igcsa.watchmaker.kt.KaryotypeCandidate;
-import org.lcsb.lu.igcsa.database.Band;
+import org.lcsb.lu.igcsa.karyotype.database.Band;
 
 import static org.junit.Assert.*;
 

@@ -13,7 +13,7 @@ import org.apache.hadoop.hbase.KeyValue;
 
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.lcsb.lu.igcsa.generator.Aberration;
+import org.lcsb.lu.igcsa.karyotype.generator.Aberration;
 import org.lcsb.lu.igcsa.hbase.rows.AberrationRow;
 import org.lcsb.lu.igcsa.hbase.tables.AbstractTable;
 import org.lcsb.lu.igcsa.hbase.tables.Column;

@@ -9,7 +9,7 @@
 package org.lcsb.lu.igcsa.utils;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.generator.Aneuploidy;
+import org.lcsb.lu.igcsa.karyotype.generator.Aneuploidy;
 import org.lcsb.lu.igcsa.watchmaker.kt.KaryotypeCandidate;
 import org.uncommons.watchmaker.framework.EvaluatedCandidate;
 

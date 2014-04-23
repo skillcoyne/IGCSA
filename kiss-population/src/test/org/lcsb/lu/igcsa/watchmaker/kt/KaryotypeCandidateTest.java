@@ -11,7 +11,7 @@ package org.lcsb.lu.igcsa.watchmaker.kt;
 import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
-import org.lcsb.lu.igcsa.database.Band;
+import org.lcsb.lu.igcsa.karyotype.database.Band;
 
 import java.util.ArrayList;
 import java.util.List;

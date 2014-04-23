@@ -8,13 +8,11 @@
 
 package org.lcsb.lu.igcsa.hbase.rows;
 
-import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.generator.Aberration;
-import org.lcsb.lu.igcsa.generator.Aneuploidy;
+import org.lcsb.lu.igcsa.karyotype.generator.Aberration;
+import org.lcsb.lu.igcsa.karyotype.generator.Aneuploidy;
 import org.lcsb.lu.igcsa.hbase.tables.Column;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

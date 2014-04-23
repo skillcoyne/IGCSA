@@ -1,7 +1,7 @@
 package org.lcsb.lu.igcsa.genome;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.aberrations.SequenceAberration;
+import org.lcsb.lu.igcsa.karyotype.aberrations.SequenceAberration;
 
 import java.util.*;
 

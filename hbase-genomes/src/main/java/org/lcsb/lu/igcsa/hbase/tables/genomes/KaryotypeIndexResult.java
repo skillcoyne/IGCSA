@@ -8,14 +8,9 @@
 
 package org.lcsb.lu.igcsa.hbase.tables.genomes;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.lcsb.lu.igcsa.aberrations.AberrationTypes;
-import org.lcsb.lu.igcsa.database.Band;
-import org.lcsb.lu.igcsa.generator.Aberration;
-import org.lcsb.lu.igcsa.generator.Aneuploidy;
-import org.lcsb.lu.igcsa.genome.Location;
+import org.lcsb.lu.igcsa.karyotype.generator.Aberration;
+import org.lcsb.lu.igcsa.karyotype.generator.Aneuploidy;
 import org.lcsb.lu.igcsa.hbase.tables.AbstractResult;
 
 import java.util.ArrayList;

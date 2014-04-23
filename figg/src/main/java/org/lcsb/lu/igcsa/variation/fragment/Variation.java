@@ -1,7 +1,7 @@
 package org.lcsb.lu.igcsa.variation.fragment;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.database.normal.Fragment;
+import org.lcsb.lu.igcsa.karyotype.database.normal.Fragment;
 import org.lcsb.lu.igcsa.dist.RandomRange;
 import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.genome.Location;

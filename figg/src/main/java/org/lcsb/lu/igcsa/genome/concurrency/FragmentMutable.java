@@ -1,7 +1,7 @@
 package org.lcsb.lu.igcsa.genome.concurrency;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.database.normal.*;
+import org.lcsb.lu.igcsa.karyotype.database.normal.*;
 import org.lcsb.lu.igcsa.fasta.Mutation;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.DNASequence;

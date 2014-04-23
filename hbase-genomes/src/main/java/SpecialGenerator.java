@@ -1,4 +1,3 @@
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
@@ -8,15 +7,13 @@ import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.BWAIndex;
 import org.lcsb.lu.igcsa.DerivativeChromosomeJob;
-import org.lcsb.lu.igcsa.aberrations.AberrationTypes;
-import org.lcsb.lu.igcsa.aws.AWSUtils;
-import org.lcsb.lu.igcsa.database.Band;
-import org.lcsb.lu.igcsa.database.KaryotypeDAO;
-import org.lcsb.lu.igcsa.database.util.DerbyConnection;
+import org.lcsb.lu.igcsa.karyotype.aberrations.AberrationTypes;
+import org.lcsb.lu.igcsa.karyotype.database.Band;
+import org.lcsb.lu.igcsa.karyotype.database.KaryotypeDAO;
+import org.lcsb.lu.igcsa.karyotype.database.util.DerbyConnection;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
-import org.lcsb.lu.igcsa.generator.Aberration;
-import org.lcsb.lu.igcsa.generator.BreakpointCombinatorial;
-import org.lcsb.lu.igcsa.genome.Location;
+import org.lcsb.lu.igcsa.karyotype.generator.Aberration;
+import org.lcsb.lu.igcsa.karyotype.generator.BreakpointCombinatorial;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 import org.lcsb.lu.igcsa.hbase.filters.AberrationLocationFilter;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.ChromosomeResult;
@@ -24,7 +21,6 @@ import org.lcsb.lu.igcsa.hbase.tables.genomes.GenomeResult;
 import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.paukov.combinatorics.ICombinatoricsVector;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.io.*;
 import java.util.*;
@@ -266,6 +262,9 @@ public class SpecialGenerator
       return;
       }
 
+    //Map<Object, Double> rawProbs = dao.getGeneralKarytoypeDAO().getOverallBandProbabilities().getRawProbabilities();
+
+    // NOTE I'm pulling probabilities for breakpoints WITHIN the chromosome, not across all chromosomes
     for (String c : chromosomes)
       {
       for (Map.Entry<Object, Double> entry : dao.getGeneralKarytoypeDAO().getBandProbabilities(c).getRawProbabilities().entrySet())
