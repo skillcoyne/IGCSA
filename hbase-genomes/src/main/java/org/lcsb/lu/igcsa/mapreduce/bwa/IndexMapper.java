@@ -5,6 +5,7 @@ import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.log4j.Logger;
 
@@ -22,8 +23,13 @@ import java.io.IOException;
 public class IndexMapper extends Mapper<LongWritable, Text, Text, Text>
   {
   static Logger log = Logger.getLogger(IndexMapper.class.getName());
-  private static final String indexArchive = "index.tgz";
+  //private static final String indexArchive = "index.tgz";
   private String bwa;
+
+  public static void setIndexArchive(String name, Job job)
+    {
+    job.getConfiguration().set(job.getJobID() + ".bwa.index", name);
+    }
 
   @Override
   protected void setup(Context context) throws IOException, InterruptedException
@@ -38,10 +44,13 @@ public class IndexMapper extends Mapper<LongWritable, Text, Text, Text>
   @Override
   protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
     {
-    FileSystem fs = FileSystem.get(context.getConfiguration());
-
     final Path refSrc = new Path(value.toString());
+
+    FileSystem fs = FileSystem.get(refSrc.toUri(), context.getConfiguration());
+
     if (!fs.exists(refSrc)) throw new IOException("Reference fasta file does not exist or is not readable: " + refSrc.toString());
+
+    String indexArchive = context.getConfiguration().get(context.getJobID() + ".bwa.index", "index.tgz");
 
     if (fs.exists(new Path(refSrc.getParent(), indexArchive)))
       log.warn("BWA index already exists at " + refSrc.getParent() + " skipping indexing step.");
@@ -65,8 +74,6 @@ public class IndexMapper extends Mapper<LongWritable, Text, Text, Text>
       // TODO need to report status periodically to keep hadoop from killing to job.
 
       int exitVal = new CommandExecution(context, errorOS, outputOS).execute(indexCmd);
-
-
 
       log.info(errorOS.toString());
       log.info(outputOS.toString());

@@ -9,6 +9,7 @@
 package org.lcsb.lu.igcsa;
 
 import org.apache.commons.cli.*;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -37,12 +38,6 @@ public class BWAIndex extends BWAJob
 
   public static void main(String[] args) throws Exception
     {
-    if (args.length < 1)
-      {
-      System.err.println("Missing argument, <path to txt file>.");
-      System.exit(-1);
-      }
-
     ToolRunner.run(new BWAIndex(), args);
     }
 
@@ -78,8 +73,12 @@ public class BWAIndex extends BWAJob
 
     setupBWA(cl.getOptionValue('b'));
 
+
     Job job = new Job(getConf(), "BWA Index for " + fastaTxt.getParent().toString());
     job.setJarByClass(BWAIndex.class);
+
+
+    IndexMapper.setIndexArchive(FilenameUtils.getBaseName(fastaTxt.getName()), job);
 
     job.setMapperClass(IndexMapper.class);
     job.setInputFormatClass(TextInputFormat.class);
