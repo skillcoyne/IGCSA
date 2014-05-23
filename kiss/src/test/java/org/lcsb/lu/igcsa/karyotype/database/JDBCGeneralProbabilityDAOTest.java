@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.lcsb.lu.igcsa.genome.Band;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;

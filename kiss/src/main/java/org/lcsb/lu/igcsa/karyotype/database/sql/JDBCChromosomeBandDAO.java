@@ -1,7 +1,7 @@
 package org.lcsb.lu.igcsa.karyotype.database.sql;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.karyotype.database.Band;
+import org.lcsb.lu.igcsa.genome.Band;
 import org.lcsb.lu.igcsa.karyotype.database.ChromosomeBandDAO;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.springframework.dao.DataAccessException;
@@ -105,6 +105,18 @@ public class JDBCChromosomeBandDAO implements ChromosomeBandDAO
       }
     });
 
+    }
+
+  public Band getFirstBand(String chrName)
+    {
+    Band[] bands = getBands(chrName);
+    return bands[0];
+    }
+
+  public Band getLastBand(String chrName)
+    {
+    Band[] bands = getBands(chrName);
+    return bands[bands.length-1];
     }
 
 

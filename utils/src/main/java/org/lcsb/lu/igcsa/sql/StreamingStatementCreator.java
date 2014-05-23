@@ -1,4 +1,4 @@
-package org.lcsb.lu.igcsa.karyotype.database;
+package org.lcsb.lu.igcsa.sql;
 
 import org.apache.log4j.Logger;
 import org.springframework.jdbc.core.PreparedStatementCreator;

@@ -8,7 +8,7 @@
 
 package org.lcsb.lu.igcsa.hbase.rows;
 
-import org.lcsb.lu.igcsa.karyotype.database.Band;
+import org.lcsb.lu.igcsa.genome.Band;
 import org.lcsb.lu.igcsa.karyotype.generator.Aberration;
 import org.lcsb.lu.igcsa.hbase.tables.Column;
 

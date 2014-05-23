@@ -2,7 +2,7 @@ package org.lcsb.lu.igcsa.karyotype.database;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.lcsb.lu.igcsa.karyotype.database.normal.SNVProbabilityDAO;
+import org.lcsb.lu.igcsa.database.normal.SNVProbabilityDAO;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;

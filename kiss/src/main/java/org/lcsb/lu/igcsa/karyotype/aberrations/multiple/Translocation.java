@@ -2,7 +2,7 @@ package org.lcsb.lu.igcsa.karyotype.aberrations.multiple;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.karyotype.aberrations.AberrationTypes;
-import org.lcsb.lu.igcsa.karyotype.database.Band;
+import org.lcsb.lu.igcsa.genome.Band;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.fasta.Mutation;
 import org.lcsb.lu.igcsa.fasta.MutationWriter;

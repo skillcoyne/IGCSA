@@ -11,7 +11,7 @@ package org.lcsb.lu.igcsa.karyotype.database.sql;
 import org.apache.commons.lang.math.IntRange;
 //import org.apache.commons.lang3.Range;
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.karyotype.database.Band;
+import org.lcsb.lu.igcsa.genome.Band;
 import org.lcsb.lu.igcsa.karyotype.database.GeneralKarytoypeDAO;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;

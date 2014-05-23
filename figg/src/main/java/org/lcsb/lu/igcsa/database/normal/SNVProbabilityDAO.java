@@ -1,4 +1,4 @@
-package org.lcsb.lu.igcsa.karyotype.database.normal;
+package org.lcsb.lu.igcsa.database.normal;
 
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
@@ -6,16 +6,16 @@ import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import java.util.Map;
 
 /**
- * org.lcsb.lu.igcsa.database.insilico
+ * org.lcsb.lu.igcsa.database.normal
  * Author: sarah.killcoyne
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public interface SizeDAO
+public interface SNVProbabilityDAO
   {
 
-  public Map<String, Probability> getAll() throws ProbabilityException;
+  public Probability getByNucleotide(String nucleotide) throws ProbabilityException;
 
-  public Probability getByVariation(String variation) throws ProbabilityException;
+  public Map<Character, Probability> getAll() throws ProbabilityException;
 
   }

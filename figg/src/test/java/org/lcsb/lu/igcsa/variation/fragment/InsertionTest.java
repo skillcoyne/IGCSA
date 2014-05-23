@@ -2,7 +2,6 @@ package org.lcsb.lu.igcsa.variation.fragment;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.lcsb.lu.igcsa.karyotype.database.normal.Fragment;
 import org.lcsb.lu.igcsa.genome.DNASequence;
 import org.lcsb.lu.igcsa.prob.Probability;
 

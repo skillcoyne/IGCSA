@@ -6,7 +6,7 @@
  */
 
 
-package org.lcsb.lu.igcsa;
+package org.lcsb.lu.igcsa.generators;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -21,9 +21,14 @@ import org.apache.hadoop.hbase.filter.*;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.BWAIndex;
+import org.lcsb.lu.igcsa.BWAJob;
+import org.lcsb.lu.igcsa.DerivativeChromosomeJob;
 import org.lcsb.lu.igcsa.karyotype.aberrations.AberrationTypes;
-import org.lcsb.lu.igcsa.karyotype.database.Band;
+import org.lcsb.lu.igcsa.genome.Band;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
+import org.lcsb.lu.igcsa.karyotype.database.KaryotypeDAO;
+import org.lcsb.lu.igcsa.karyotype.database.util.DerbyConnection;
 import org.lcsb.lu.igcsa.karyotype.generator.Aberration;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.hbase.*;
@@ -39,15 +44,21 @@ import java.util.List;
 
 import static org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil.*;
 
-public class GenerateDerivativeChromosomes extends BWAJob
+public class GenerateFullKaryotype extends BWAJob
   {
-  static Logger log = Logger.getLogger(GenerateDerivativeChromosomes.class.getName());
+  static Logger log = Logger.getLogger(GenerateFullKaryotype.class.getName());
 
-  public GenerateDerivativeChromosomes()
+  private static KaryotypeDAO dao;
+
+  public GenerateFullKaryotype()
     {
     super(new Configuration());
     Option kt = new Option("k", "karyotype", true, "Karyotype name.");
     kt.setRequired(true);
+
+    DerbyConnection conn = new DerbyConnection("org.apache.derby.jdbc.EmbeddedDriver", "jdbc:derby:classpath:karyotype_probabilities", "igcsa", "");
+    dao = conn.getKaryotypeDAO();
+
     this.addOptions(kt);
     }
 
@@ -68,7 +79,7 @@ public class GenerateDerivativeChromosomes extends BWAJob
     CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs());
     if (args.length < 1)
       {
-      System.err.println("Usage: " + GenerateDerivativeChromosomes.class.getSimpleName() + " <karyotype name>");
+      System.err.println("Usage: " + GenerateFullKaryotype.class.getSimpleName() + " <karyotype name>");
       System.exit(-1);
       }
     String karyotypeName = cl.getOptionValue("k");
@@ -89,17 +100,18 @@ public class GenerateDerivativeChromosomes extends BWAJob
 
     for (Aberration aberration : karyotypeDef.getAberrations())
       {
-            // to create an appropriate FASTA header
+      // to create an appropriate FASTA header
       List<String> abrs = new ArrayList<String>();
       for (Band band : aberration.getBands())// aberration.getAberrationDefinitions())
         abrs.add(band.getChromosomeName() + ":" + band.getLocation().getStart() + "-" + band.getLocation().getEnd());
+
       String abrDefinitions = aberration.getAberration().getCytogeneticDesignation() + ":" + StringUtils.join(abrs.iterator(), ",");
 
       AberrationLocationFilter alf = new AberrationLocationFilter();
       // this FilterList will contain nested filter lists that putt all of the necessary locations
-      FilterList filterList = alf.getFilter(aberration, parentGenome, chromosomes, true);
-      String fastaName = "der" + aberration.getBands().get(0).getChromosomeName();
+      Scan scan = JobUtils.getScanFor(JobUtils.getAllLocations(aberration.getBands(), dao), parentGenome.getName());
 
+      //String fastaName = "der" + aberration.getBands().get(0).getChromosomeName();
 
       if (aberration.getAberration().equals(AberrationTypes.ISOCENTRIC))
         {
@@ -107,24 +119,20 @@ public class GenerateDerivativeChromosomes extends BWAJob
         List<Band> bands = aberration.getBands();
         Collections.sort(bands);
         int start = bands.get(0).getLocation().getStart(); int end = bands.get(bands.size()-1).getLocation().getEnd();
-        filterList = alf.createFiltersFor(parentGenome.getName(), new Location(bands.get(0).getChromosomeName(), start, end));
+        FilterList filterList = alf.createFiltersFor(parentGenome.getName(), new Location(bands.get(0).getChromosomeName(), start, end));
+        scan.setFilter(filterList);
 
-        fastaName = "iso" + aberration.getBands().get(0).getChromosomeName() + aberration.getBands().get(0).getBandName();
+        //fastaName = "iso" + aberration.getBands().get(0).getChromosomeName() + aberration.getBands().get(0).getBandName();
         }
 
-      log.info("Writing new derivative: " + fastaName);
-      log.info(filterList);
+      log.info("Writing new derivative: " + aberration.getFASTAName());
 
-
-      Scan scan = new Scan();
-      scan.setFilter(filterList);
-
-      Path baseOutput = new Path(karyotypePath, fastaName);
+      Path baseOutput = new Path(karyotypePath, aberration.getFASTAName());
 
       // Generate the segments for the new FASTA file
       DerivativeChromosomeJob gdc = new DerivativeChromosomeJob(getConf(), scan, baseOutput, alf.getFilterLocationList(), aberration,
-                                                                new FASTAHeader(fastaName, karyotypeDef.getKaryotype(),
-                                                                                "parent=" + parentGenome.getName(), abrDefinitions));
+                                                                new FASTAHeader(aberration.getFASTAName(), karyotypeDef.getKaryotype(),
+                                                                                "parent=" + parentGenome.getName(), aberration.getDescription()));
       ToolRunner.run(gdc, null);
       fixOutputFiles(aberration.getAberration(), baseOutput, alf.getFilterLocationList().size());
       }
@@ -142,7 +150,7 @@ public class GenerateDerivativeChromosomes extends BWAJob
 
   public static void main(String[] args) throws Exception
     {
-    new GenerateDerivativeChromosomes().generationKaryotypeGenome(args);
+    new GenerateFullKaryotype().generationKaryotypeGenome(args);
     }
 
   // just to clean up the main method a bit

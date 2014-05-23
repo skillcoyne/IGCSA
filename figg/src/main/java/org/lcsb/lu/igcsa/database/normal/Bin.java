@@ -1,4 +1,4 @@
-package org.lcsb.lu.igcsa.karyotype.database.normal;
+package org.lcsb.lu.igcsa.database.normal;
 
 import org.apache.commons.lang.math.IntRange;
 import org.apache.commons.lang.math.Range;

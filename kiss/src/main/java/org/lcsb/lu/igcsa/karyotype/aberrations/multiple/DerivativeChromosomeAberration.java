@@ -2,7 +2,7 @@ package org.lcsb.lu.igcsa.karyotype.aberrations.multiple;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.karyotype.aberrations.SequenceAberration;
-import org.lcsb.lu.igcsa.karyotype.database.Band;
+import org.lcsb.lu.igcsa.genome.Band;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 
 import java.util.Collection;

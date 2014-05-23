@@ -11,7 +11,7 @@ package org.lcsb.lu.igcsa.karyotype.generator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.karyotype.aberrations.AberrationTypes;
-import org.lcsb.lu.igcsa.karyotype.database.Band;
+import org.lcsb.lu.igcsa.genome.Band;
 import org.lcsb.lu.igcsa.genome.Location;
 
 import java.util.*;
@@ -26,6 +26,15 @@ public class Aberration
 
   private List<Band> bands;
   private AberrationTypes aberration;
+
+  public Aberration(Band[] bands, AberrationTypes aberration)
+    {
+    this.bands = new ArrayList<Band>();
+    for (Band b: bands)
+      this.bands.add(b);
+
+    this.aberration = aberration;
+    }
 
   public Aberration(List<Band> bands, AberrationTypes aberration)
     {
@@ -87,6 +96,23 @@ public class Aberration
     return this.getAberration().getCytogeneticDesignation() + "(" + StringUtils.join(strs.iterator(), ",") + ")";
     }
 
+
+  public String getDescription()
+    {
+    String desc = "";
+    for (Band b: getBands())
+      desc = desc + b.getChromosomeName() + b.getBandName() + ";";
+
+    return getAberration().getCytogeneticDesignation() + " " + desc.substring(0, desc.lastIndexOf(";"));
+    }
+
+  public String getFASTAName()
+    {
+    String fastaName = "der" + getBands().get(0).getFullName() + "-" + getBands().get(getBands().size()-1).getFullName();
+    return fastaName;
+    }
+
+
   public static Aberration parseAberration(String str)
     {
     String cyto = str.substring(0, str.indexOf("("));
@@ -104,6 +130,7 @@ public class Aberration
 
     return new Aberration(bands, type);
     }
+
 
 
   @Override

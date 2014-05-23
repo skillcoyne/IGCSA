@@ -4,8 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hbase.filter.*;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.lcsb.lu.igcsa.karyotype.database.Band;
-import org.lcsb.lu.igcsa.karyotype.generator.Aberration;
+import org.lcsb.lu.igcsa.genome.Band;
 import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.ChromosomeResult;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.GenomeResult;
@@ -26,7 +25,6 @@ public class AberrationLocationFilter
   {
   private static final Log log = LogFactory.getLog(AberrationLocationFilter.class);
 
-
   // this FilterList will contain nested filter lists that have all of the necessary locations
   protected FilterList filterList = new FilterList(FilterList.Operator.MUST_PASS_ONE);
   protected List<Location> locationList = new ArrayList<Location>();
@@ -36,14 +34,12 @@ public class AberrationLocationFilter
     return filterList;
     }
 
-
   public FilterList createFiltersFor(String genomeName, Location location)
     {
-    addFilters(genomeName, location, location.getStart(), location.getEnd());
+    filterList.addFilter(createFilter(genomeName, location, location.getStart(), location.getEnd()));
     locationList.add(location);
     return filterList;
     }
-
 
   public FilterList createFiltersFor(String genomeName, List<Band> bands, boolean sort)
     {
@@ -64,37 +60,30 @@ public class AberrationLocationFilter
       });
       }
 
-    List<Location> locations = new ArrayList<Location>();
     for (Band b : bands)
+      {
       locationList.add(b.getLocation());
-
-    for (Band b : bands)
-      addFilters(genomeName, b.getLocation(), b.getLocation().getStart(), b.getLocation().getEnd());
+      filterList.addFilter(createFilter(genomeName, b.getLocation(), b.getLocation().getStart(), b.getLocation().getEnd()));
+      }
 
     log.info(locationList);
-
     return filterList;
     }
 
-
-  public FilterList getFilter(Aberration aberration, GenomeResult genome, List<ChromosomeResult> chromosomes, boolean includeFinal) throws IOException
+  public FilterList getFilter(List<Location> locations, GenomeResult genome) throws IOException
     {
-    String genomeName = genome.getName();
-    List<Location> locations = new ArrayList<Location>();
-    for (Band b : aberration.getBands())
-      locations.add(b.getLocation());
+    return getFilter(locations, genome.getName());
+    }
 
-    // get all segments up to first location
-    //if (locations.get(0).getStart() > 1) getInitialLocationFilters(locations.get(0), genomeName);
-
-    // get subsequent locations
+  // This is ONLY getting segments for the specific bands themselves
+  public FilterList getFilter(List<Location> locations, String genomeName) throws IOException
+    {
+    // Create the filter for each location
     for (Location loc : locations)
       {
       locationList.add(loc);
-      addFilters(genomeName, loc, loc.getStart(), loc.getEnd());
+      filterList.addFilter( createFilter(genomeName, loc, loc.getStart(), loc.getEnd()) );
       }
-    // get the rest of the chromosome -- NOTE it's unclear that this is really necessary in translocaions.
-    //if (includeFinal) getFinalLocationFilter(locations.get(locations.size() - 1), genome, chromosomes);
 
     return filterList;
     }
@@ -105,42 +94,42 @@ public class AberrationLocationFilter
     }
 
 
-  protected void getInitialLocationFilters(Location loc, String genomeName)
-    {
-    // get first location
-    long start = 1;
-    long stop = loc.getStart();
+//  public void getInitialLocationFilters(Location loc, String genomeName)
+//    {
+//    // get first location
+//    long start = 1;
+//    long stop = loc.getStart();
+//
+//    locationList.add(new Location(loc.getChromosome(), start, stop));
+//    addFilters(genomeName, loc, start, stop);
+//    }
 
-    locationList.add(new Location(loc.getChromosome(), start, stop));
-    addFilters(genomeName, loc, start, stop);
-    }
+//  public void getFinalLocationFilter(Location loc, String genome, List<ChromosomeResult> chromosomes) throws IOException
+//    {
+//    ChromosomeResult currentChr = null;
+//    for (ChromosomeResult chr : chromosomes)
+//      {
+//      if (chr.getChrName().equals(loc.getChromosome()))
+//        {
+//        currentChr = chr;
+//        break;
+//        }
+//      }
+//    if (currentChr == null)
+//      throw new IOException("Chromosome list for genome " + genome + " did not include chromosome " + loc.getChromosome());
+//
+//    if (loc.getEnd() < currentChr.getLength())
+//      {
+//      long start = loc.getEnd();
+//      long stop = currentChr.getLength();
+//
+//      locationList.add(new Location(loc.getChromosome(), start, stop));
+//
+//      addFilters(genome, loc, start, stop);
+//      }
+//    }
 
-  protected void getFinalLocationFilter(Location loc, GenomeResult genome, List<ChromosomeResult> chromosomes) throws IOException
-    {
-    ChromosomeResult currentChr = null;
-    for (ChromosomeResult chr : chromosomes)
-      {
-      if (chr.getChrName().equals(loc.getChromosome()))
-        {
-        currentChr = chr;
-        break;
-        }
-      }
-    if (currentChr == null)
-      throw new IOException("Chromosome list for genome " + genome.getName() + " did not include chromosome " + loc.getChromosome());
-
-    if (loc.getEnd() < currentChr.getLength())
-      {
-      long start = loc.getEnd();
-      long stop = currentChr.getLength();
-
-      locationList.add(new Location(loc.getChromosome(), start, stop));
-
-      addFilters(genome.getName(), loc, start, stop);
-      }
-    }
-
-  protected void addFilters(String genomeName, Location loc, long start, long stop)
+  protected FilterList createFilter(String genomeName, Location loc, long start, long stop)
     {
     FilterList filter = new FilterList(FilterList.Operator.MUST_PASS_ALL);
     filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("info"), Bytes.toBytes("genome"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(genomeName)));
@@ -150,7 +139,7 @@ public class AberrationLocationFilter
 
     filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("end"), CompareFilter.CompareOp.LESS_OR_EQUAL, Bytes.toBytes(stop)));
 
-    filterList.addFilter(filter);
+    return filter;
     }
 
   }

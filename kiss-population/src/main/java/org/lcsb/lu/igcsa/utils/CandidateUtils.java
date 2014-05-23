@@ -2,7 +2,7 @@ package org.lcsb.lu.igcsa.utils;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.watchmaker.kt.KaryotypeCandidate;
-import org.lcsb.lu.igcsa.karyotype.database.Band;
+import org.lcsb.lu.igcsa.genome.Band;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

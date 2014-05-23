@@ -22,6 +22,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
+import org.lcsb.lu.igcsa.generators.GenerateFullKaryotype;
 import org.lcsb.lu.igcsa.karyotype.aberrations.AberrationTypes;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.karyotype.generator.Aberration;
@@ -31,6 +32,7 @@ import org.lcsb.lu.igcsa.mapreduce.*;
 import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAOutputFormat;
 import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil;
 
+import java.io.IOException;
 import java.util.List;
 
 import static org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil.deleteChecksumFiles;
@@ -57,11 +59,11 @@ public class DerivativeChromosomeJob extends JobIGCSA
     this.aberration = aberration;
     }
 
-  @Override
-  public int run(String[] args) throws Exception
+
+  public Job createJob(String[] args) throws IOException
     {
     Job job = new Job(getConf(), "Generate derivative FASTA: " + aberration.getAberration().getShortName());
-    job.setJarByClass(GenerateDerivativeChromosomes.class);
+    job.setJarByClass(GenerateFullKaryotype.class);
 
     job.setSpeculativeExecution(false);
     job.setReduceSpeculativeExecution(false);
@@ -72,7 +74,7 @@ public class DerivativeChromosomeJob extends JobIGCSA
     if (aberration.getAberration().equals(AberrationTypes.INVERSION)) SequenceRequestMapper.setLocationsToReverse(job, filterLocations.get(1));
 
     TableMapReduceUtil.initTableMapperJob(HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().getTableName(), scan,
-                                          SequenceRequestMapper.class, SegmentOrderComparator.class, FragmentWritable.class, job);
+        SequenceRequestMapper.class, SegmentOrderComparator.class, FragmentWritable.class, job);
 
     // custom partitioner to make sure the segments go to the correct reducer sorted
     job.setPartitionerClass(FragmentPartitioner.class);
@@ -100,7 +102,13 @@ public class DerivativeChromosomeJob extends JobIGCSA
       for (int order = 0; order < filterLocations.size(); order++)
         MultipleOutputs.addNamedOutput(job, Integer.toString(order), FASTAOutputFormat.class, LongWritable.class, Text.class);
       }
+    return job;
+    }
 
+  @Override
+  public int run(String[] args) throws Exception
+    {
+    Job job = createJob(args);
     return (job.waitForCompletion(true) ? 0 : 1);
     }
 
@@ -143,8 +151,11 @@ public class DerivativeChromosomeJob extends JobIGCSA
       }
 
     // create merged FASTA at chromosome level -- there is an issue here that it just concatenates the files which means at the merge points there are strings of different lengths.  This is an issue in samtools.
-    FASTAUtil.mergeFASTAFiles(jobFS, output.toString(), output.toString() + ".fa");
-    jobFS.delete(output, true);
+    if (!jobFS.getUri().toASCIIString().startsWith("s3"))
+      {
+      FASTAUtil.mergeFASTAFiles(jobFS, output.toString(), output.toString()  + ".fa");
+      jobFS.delete(output, true);
+      }
     }
 
 

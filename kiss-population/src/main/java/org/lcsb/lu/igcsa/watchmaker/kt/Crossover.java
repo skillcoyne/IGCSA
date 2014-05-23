@@ -11,7 +11,7 @@ package org.lcsb.lu.igcsa.watchmaker.kt;
 import org.apache.commons.lang.math.DoubleRange;
 import org.apache.commons.lang.math.Range;
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.karyotype.database.Band;
+import org.lcsb.lu.igcsa.genome.Band;
 import org.lcsb.lu.igcsa.karyotype.generator.Aneuploidy;
 import org.uncommons.watchmaker.framework.EvolutionaryOperator;
 import org.uncommons.watchmaker.framework.FitnessEvaluator;

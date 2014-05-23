@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>insilico-genome</artifactId>
+        <groupId>org.lcsb.lu.igcsa</groupId>
+        <version>1.2</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>sam-reader</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>net.sf</groupId>
+            <artifactId>samtools</artifactId>
+            <version>1.112</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/sam-1.112.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>net.sf</groupId>
+            <artifactId>picard</artifactId>
+            <version>1.112</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/picard-1.112.jar</systemPath>
+        </dependency>
+
+    </dependencies>
+
+
+    <!--<repositories>-->
+    <!--<repository>-->
+    <!--<id>project.module.local</id>-->
+    <!--<name>igcsa-hbase-genomes</name>-->
+    <!--<url>file:${project.basedir}/lib</url>-->
+    <!--</repository>-->
+    <!--</repositories>-->
+
+
+</project>

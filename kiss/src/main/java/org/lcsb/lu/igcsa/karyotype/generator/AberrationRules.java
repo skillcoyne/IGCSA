@@ -10,7 +10,7 @@ package org.lcsb.lu.igcsa.karyotype.generator;
 
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.karyotype.aberrations.AberrationTypes;
-import org.lcsb.lu.igcsa.karyotype.database.Band;
+import org.lcsb.lu.igcsa.genome.Band;
 import org.paukov.combinatorics.CombinatoricsVector;
 import org.paukov.combinatorics.ICombinatoricsVector;
 

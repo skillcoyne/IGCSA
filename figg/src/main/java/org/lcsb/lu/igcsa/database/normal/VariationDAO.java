@@ -1,4 +1,4 @@
-package org.lcsb.lu.igcsa.karyotype.database.normal;
+package org.lcsb.lu.igcsa.database.normal;
 
 import java.util.Map;
 

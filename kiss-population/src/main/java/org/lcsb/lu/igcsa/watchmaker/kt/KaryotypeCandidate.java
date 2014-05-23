@@ -9,7 +9,7 @@
 package org.lcsb.lu.igcsa.watchmaker.kt;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.karyotype.database.Band;
+import org.lcsb.lu.igcsa.genome.Band;
 import org.lcsb.lu.igcsa.karyotype.generator.Aneuploidy;
 
 import java.util.*;

@@ -9,7 +9,7 @@
 package org.lcsb.lu.igcsa.karyotype.generator;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.karyotype.database.Band;
+import org.lcsb.lu.igcsa.genome.Band;
 
 import java.util.ArrayList;
 import java.util.Collection;

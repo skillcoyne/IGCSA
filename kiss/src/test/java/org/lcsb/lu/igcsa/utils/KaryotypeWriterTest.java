@@ -8,7 +8,7 @@ import org.junit.runner.RunWith;
 import org.lcsb.lu.igcsa.karyotype.aberrations.single.Deletion;
 import org.lcsb.lu.igcsa.karyotype.aberrations.single.Inversion;
 import org.lcsb.lu.igcsa.karyotype.aberrations.single.SingleChromosomeAberration;
-import org.lcsb.lu.igcsa.karyotype.database.Band;
+import org.lcsb.lu.igcsa.genome.Band;
 import org.lcsb.lu.igcsa.genome.Chromosome;
 import org.lcsb.lu.igcsa.genome.DerivativeChromosome;
 import org.lcsb.lu.igcsa.genome.Karyotype;

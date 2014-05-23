@@ -2,9 +2,6 @@ package org.lcsb.lu.igcsa.utils;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.lcsb.lu.igcsa.karyotype.database.normal.SNVProbabilityDAO;
-import org.lcsb.lu.igcsa.karyotype.database.normal.SizeDAO;
-import org.lcsb.lu.igcsa.karyotype.database.normal.VariationDAO;
 import org.lcsb.lu.igcsa.variation.fragment.Variation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;

@@ -10,7 +10,7 @@ package org.lcsb.lu.igcsa.karyotype.generator;
 
 import org.apache.commons.lang.math.IntRange;
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.karyotype.database.Band;
+import org.lcsb.lu.igcsa.genome.Band;
 import org.lcsb.lu.igcsa.karyotype.database.KaryotypeDAO;
 import org.lcsb.lu.igcsa.dist.RandomRange;
 import org.lcsb.lu.igcsa.genome.Karyotype;

@@ -1,3 +1,7 @@
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
@@ -7,8 +11,9 @@ import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.BWAIndex;
 import org.lcsb.lu.igcsa.DerivativeChromosomeJob;
+import org.lcsb.lu.igcsa.IGCSACommandLineParser;
 import org.lcsb.lu.igcsa.karyotype.aberrations.AberrationTypes;
-import org.lcsb.lu.igcsa.karyotype.database.Band;
+import org.lcsb.lu.igcsa.genome.Band;
 import org.lcsb.lu.igcsa.karyotype.database.KaryotypeDAO;
 import org.lcsb.lu.igcsa.karyotype.database.util.DerbyConnection;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
@@ -63,97 +68,148 @@ public class SpecialGenerator
 
   public static void main(String[] args) throws Exception
     {
-    if (args.length < 3)
+    IGCSACommandLineParser parser = IGCSACommandLineParser.getParser();
+    parser.addOptions(new Option("f", "file", true, "Karyotype file"), new Option("c", "cell-line", true, "cell line name"), new Option("o", "output", true, "output directory"), new Option("b", "bands", true, "generate specific bands"));
+
+    CommandLine cl = parser.parseOptions(args);
+    if (!cl.hasOption("o") || !cl.hasOption("c"))
       {
-      System.err.println("Usage: <file name>  <cell line> <output directory> required.");
+      HelpFormatter help = new HelpFormatter();
+      help.printHelp("Missing output directory or cell line name.", parser.getOptions());
       System.exit(-1);
       }
+    else if (!cl.hasOption("b") && !cl.hasOption("f") || (cl.hasOption("b") && cl.hasOption("f")))
+      {
+      HelpFormatter help = new HelpFormatter();
+      help.printHelp("Missing bands or karyotype file or attempted to use both.", parser.getOptions());
+      System.exit(-1);
+      }
+
+
+    DerbyConnection conn = new DerbyConnection("org.apache.derby.jdbc.EmbeddedDriver", "jdbc:derby:classpath:karyotype_probabilities", "igcsa", "");
+    dao = conn.getKaryotypeDAO();
+
     //    context = new ClassPathXmlApplicationContext(new String[]{"classpath*:spring-config.xml"});
     //    dao = (KaryotypeDAO) context.getBean("karyotypeDAO");
     //derby:classpath
     //    DerbyConnection conn = new DerbyConnection("org.apache.derby.jdbc.EmbeddedDriver","jdbc:derby:jar:(s3n://insilico/karyotype_probabilities.zip)karyotype_probabilities", "igcsa", "");
 
-    DerbyConnection conn = new DerbyConnection("org.apache.derby.jdbc.EmbeddedDriver", "jdbc:derby:classpath:karyotype_probabilities", "igcsa", "");
-
-
-    dao = conn.getKaryotypeDAO();
 
     admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(HBaseConfiguration.create());
     parentGenome = admin.getGenomeTable().getGenome("GRCh37");
     SpecialGenerator sg = new SpecialGenerator();
 
-    String fileName = args[0];
-    cellLine = args[1];
+    cellLine = cl.getOptionValue("c");
 
-    baseOutput = new Path(args[2], cellLine);
+    baseOutput = new Path(cl.getOptionValue("o"), cellLine);
     fs = FileSystem.get(baseOutput.toUri(), new Configuration());
     int i = 1;
     while (fs.exists(baseOutput))
       {
-      baseOutput = new Path(args[2], cellLine + "." + i);
+      baseOutput = new Path(cl.getOptionValue("o"), cellLine + "." + i);
       ++i;
       }
 
-    InputStream is = fs.open(new Path(fileName));
-    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-
-    reader.readLine(); // header
-    String line;
-    while ((line = reader.readLine()) != null)
+    if (cl.hasOption("b"))
       {
-      String[] cols = line.split("\t");
-      if (cols.length < 3)
-        continue;
-
-      String chr = cols[0];
-      String vagueAbr = cols[2];
-
-      // translocation
-      if (vagueAbr.startsWith("t"))
+      for (String bandPair : cl.getOptionValue("b").split(";"))
         {
-        String[] chrs = vagueAbr.substring(vagueAbr.indexOf("(") + 1, vagueAbr.indexOf(")")).split(";");
-        for (int n = 0; n < chrs.length - 1; n++)
-          {
-          sg.run(chrs[n], chrs[n + 1]);
-          if (sg.getCandidates().size() > 0)
-            createDerivativeJob("der" + chrs[n]+"-"+chrs[n+1], AberrationTypes.TRANSLOCATION, sg.getTopCandidates(1).get(0).getBands(), chrs);
-          }
-        }
-      else if (vagueAbr.startsWith("i")) // isochromosome
-        {
-        String arm = vagueAbr.replace("i(", "").substring(0, 1);
-        String fastaName = "iso" + chr + arm;
-        if (arm.equals("q"))
-          continue;
-        // p11 or q 11
+        String[] bandNames = bandPair.split(",");
+
+        String fastaName = StringUtils.join(bandNames, "-");
         List<Band> bands = new ArrayList<Band>();
-        for (Band b : dao.getBandDAO().getBands(chr))
-          if (b.whichArm().equals(arm))
-            bands.add(b);
-        createDerivativeJob(fastaName, AberrationTypes.ISOCENTRIC, bands, chr);
-        }
-      else if (vagueAbr.equals("del(q/p)"))
-        {
-        // chromosome missing an arm -- doesn't require the special generator
-        for (String arm : new String[]{"p", "q"}) // p11 or q11
+        List<String> chrs = new ArrayList<String>();
+        for (String b : bandNames)
           {
-          String fastaName = "del" + chr + arm;
-          List<Band> bands = new ArrayList<Band>();
-          for (Band b : dao.getBandDAO().getBands(chr))
-            if (!b.whichArm().equals(arm))
-              bands.add(b);
-          //createDerivativeJob(fastaName, AberrationTypes.DELETION, bands, chr);
+          Band band = new Band(b);
+          band.setLocation(dao.getBandDAO().getLocation(band));
+          bands.add(band);
+          chrs.add(band.getChromosomeName());
           }
+        createDerivativeJob(fastaName, AberrationTypes.TRANSLOCATION, bands, chrs.toArray(new String[chrs.size()]));
         }
       }
 
+    else if (cl.hasOption("f"))
+      {
+      String fileName = cl.getOptionValue("f");
+
+      InputStream is = fs.open(new Path(fileName));
+      BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+
+      reader.readLine(); // header
+      String line;
+      while ((line = reader.readLine()) != null)
+        {
+        String[] cols = line.split("\t");
+        if (cols.length < 3)
+          continue;
+
+        String chr = cols[0];
+        String vagueAbr = cols[2];
+
+        // translocation
+        if (vagueAbr.startsWith("t"))
+          {
+          String[] chrs = vagueAbr.substring(vagueAbr.indexOf("(") + 1, vagueAbr.indexOf(")")).split(";");
+
+          if (chrs[0].equals("1") && chrs[1].equals("10"))
+            {
+            for (int n = 0; n < chrs.length - 1; n++)
+              {
+              sg.run(chrs[n], chrs[n + 1]);
+              int maxCand = (int) (sg.getCandidates().size()*.1); // randomly generate top scoring...
+              //Collections.shuffle(sg.getCandidates());
+              //for (int j=0;j<maxCand; j++)
+              for (Candidate c : sg.getTopCandidates(maxCand))
+                {
+                //Candidate c = sg.getCandidates().get(j);
+
+                String fastaName = chrs[n] + c.getBands().get(0).getBandName() + "-" + chrs[n + 1] + c.getBands().get(1).getBandName();
+                createDerivativeJob(fastaName, AberrationTypes.TRANSLOCATION, c.getBands(), chrs);
+                }
+              //          if (sg.getCandidates().size() > 0)
+              //            createDerivativeJob("der" + chrs[n]+"-"+chrs[n+1], AberrationTypes.TRANSLOCATION, sg.getTopCandidates(1).get(0).getBands(), chrs);
+              }
+            }
+          }
+        else if (vagueAbr.startsWith("i")) // isochromosome
+          {
+          String arm = vagueAbr.replace("i(", "").substring(0, 1);
+          String fastaName = "iso" + chr + arm;
+          if (arm.equals("q"))
+            continue;
+          // p11 or q 11
+          List<Band> bands = new ArrayList<Band>();
+          for (Band b : dao.getBandDAO().getBands(chr))
+            if (b.whichArm().equals(arm))
+              bands.add(b);
+          //        createDerivativeJob(fastaName, AberrationTypes.ISOCENTRIC, bands, chr);
+          }
+        else if (vagueAbr.equals("del(q/p)"))
+          {
+          // chromosome missing an arm -- doesn't require the special generator
+          for (String arm : new String[]{"p", "q"}) // p11 or q11
+            {
+            String fastaName = "del" + chr + arm;
+            List<Band> bands = new ArrayList<Band>();
+            for (Band b : dao.getBandDAO().getBands(chr))
+              if (!b.whichArm().equals(arm))
+                bands.add(b);
+            //createDerivativeJob(fastaName, AberrationTypes.DELETION, bands, chr);
+            }
+          }
+        }
+      }
+    //System.exit(-1);
+
     //Create BWA index with ONLY the derivative chromosomes
-    final Path mergedFASTA = new Path(baseOutput, "reference.fa");
+    //final Path mergedFASTA = new Path(baseOutput, "reference.fa");
     // Create a single merged FASTA file for use in the indexing step
-    FASTAUtil.mergeFASTAFiles(fs, baseOutput.toString(), mergedFASTA.toString());
+    //FASTAUtil.mergeFASTAFiles(fs, baseOutput.toString(), mergedFASTA.toString());
 
     // Run BWA
-    Path tmp = BWAIndex.writeReferencePointerFile(mergedFASTA, fs);
+    //Path tmp = BWAIndex.writeReferencePointerFile(mergedFASTA, fs);
     //ToolRunner.run(new BWAIndex(), (String[]) ArrayUtils.addAll(args, new String[]{"-f", tmp.toString()}));
     //fs.delete(tmp, false);
     }
@@ -195,7 +251,6 @@ public class SpecialGenerator
     Scan scan = new Scan();
     scan.setFilter(alf.getFilterList());
 
-
     Path fastaOutput = new Path(baseOutput, fastaName);
     if (fs.exists(fastaOutput))
       fs.delete(fastaOutput, true);
@@ -222,6 +277,7 @@ public class SpecialGenerator
         desc = desc.substring(0, desc.lastIndexOf(";"));
         break;
       }
+    desc = desc + ",bp=" + bands.get(0).getLocation().getLength();
 
     FASTAHeader header = new FASTAHeader(cellLine, fastaName, "parent=" + parentGenome.getName(), desc);
     DerivativeChromosomeJob gdc = new DerivativeChromosomeJob(new Configuration(), scan, fastaOutput, alf.getFilterLocationList(), aberration, header);
@@ -247,6 +303,13 @@ public class SpecialGenerator
 
   public List<Candidate> getTopCandidates(int n)
     {
+    Collections.sort(candidates, new Comparator<Candidate>()
+    {
+    public int compare(Candidate a, Candidate b)
+      {
+      return Double.compare(b.getScore(), a.getScore());
+      }
+    });
     return candidates.subList(0, n);
     }
 
@@ -337,12 +400,25 @@ public class SpecialGenerator
       ICombinatoricsVector<Band> vector = bI.next();
 
       List<Band> bands = sortBands(vector.getVector());
-      // it starts with q, ends with p.  I will tend to get a lot of p11 at the start for multiple translocation chrs (>2)
-      if (!bands.get(0).whichArm().equals("q") || !bands.get(bands.size() - 1).whichArm().equals("p"))
+      // it starts with q, ends with p.  Basically right now I expect that the bands are still ordered p->q
+//      if (bands.get(0).whichArm().equals("q") && bands.get(bands.size() - 1).whichArm().equals("p"))
+//        {
+//        remove = true;
+//        bI.remove();
+//        }
+      // note: I will tend to get a lot of p11 at the start for multiple translocation chrs (>2)
+
+      // going to get rid of centromeres entirely right now, they are not gene-rich regions
+      for (Band b: bands)
         {
-        remove = true;
-        bI.remove();
+        if (b.isCentromere())
+          {
+          remove = true;
+          bI.remove();
+          break;
+          }
         }
+
 
       // get rid of vectors that involve only a single chromosome
       if (!remove)

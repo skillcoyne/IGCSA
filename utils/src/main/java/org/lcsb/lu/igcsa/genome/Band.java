@@ -1,7 +1,9 @@
-package org.lcsb.lu.igcsa.karyotype.database;
+package org.lcsb.lu.igcsa.genome;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.genome.Location;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * org.lcsb.lu.igcsa.database
@@ -20,6 +22,19 @@ public class Band implements Comparable<Band>
 
   //  public Band()
   //    {}
+
+  public Band(String bandName)
+    {
+    Pattern p = Pattern.compile("^(\\d+|X|Y)([p|q].*)$");
+    Matcher m = p.matcher(bandName);
+    if (m.matches())
+      {
+      this.chromosomeName = m.group(1);
+      this.bandName = m.group(2);
+      }
+    else
+      throw new IllegalArgumentException("Band name requires both chromosome and band. Ex: 12q34.1.  Provided: " + bandName);
+    }
 
   public Band(String chr, String band)
     {
@@ -96,6 +111,10 @@ public class Band implements Comparable<Band>
     }
 
 
+  public String getFullName()
+    {
+    return chromosomeName + bandName;
+    }
 
   @Override
   public boolean equals(Object o)

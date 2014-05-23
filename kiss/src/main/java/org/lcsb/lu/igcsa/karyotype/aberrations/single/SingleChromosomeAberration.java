@@ -3,7 +3,7 @@ package org.lcsb.lu.igcsa.karyotype.aberrations.single;
 import org.apache.log4j.Logger;
 import org.junit.runner.RunWith;
 import org.lcsb.lu.igcsa.karyotype.aberrations.SequenceAberration;
-import org.lcsb.lu.igcsa.karyotype.database.Band;
+import org.lcsb.lu.igcsa.genome.Band;
 import org.lcsb.lu.igcsa.fasta.FASTAReader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.genome.Chromosome;

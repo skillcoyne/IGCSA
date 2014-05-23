@@ -1,7 +1,7 @@
-package org.lcsb.lu.igcsa.karyotype.database.sql;
+package org.lcsb.lu.igcsa.database.normal.sql;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.karyotype.database.normal.SizeDAO;
+import org.lcsb.lu.igcsa.database.normal.SizeDAO;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.springframework.dao.DataAccessException;

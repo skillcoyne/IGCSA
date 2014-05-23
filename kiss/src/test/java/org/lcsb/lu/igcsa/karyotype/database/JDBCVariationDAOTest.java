@@ -2,8 +2,8 @@ package org.lcsb.lu.igcsa.karyotype.database;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.lcsb.lu.igcsa.karyotype.database.normal.VariationDAO;
-import org.lcsb.lu.igcsa.karyotype.database.normal.Variations;
+import org.lcsb.lu.igcsa.database.normal.VariationDAO;
+import org.lcsb.lu.igcsa.database.normal.Variations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;

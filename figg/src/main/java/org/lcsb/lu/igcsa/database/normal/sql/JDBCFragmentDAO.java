@@ -1,8 +1,8 @@
-package org.lcsb.lu.igcsa.karyotype.database.sql;
+package org.lcsb.lu.igcsa.database.normal.sql;
 
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.karyotype.database.normal.Fragment;
-import org.lcsb.lu.igcsa.karyotype.database.normal.FragmentDAO;
+import org.lcsb.lu.igcsa.database.normal.Fragment;
+import org.lcsb.lu.igcsa.database.normal.FragmentDAO;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;

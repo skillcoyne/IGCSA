@@ -10,7 +10,7 @@ package org.lcsb.lu.igcsa;
 
 import org.apache.commons.math3.distribution.PoissonDistribution;
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.karyotype.database.Band;
+import org.lcsb.lu.igcsa.genome.Band;
 import org.lcsb.lu.igcsa.karyotype.database.KaryotypeDAO;
 import org.lcsb.lu.igcsa.karyotype.generator.Aberration;
 import org.lcsb.lu.igcsa.karyotype.generator.AberrationRules;

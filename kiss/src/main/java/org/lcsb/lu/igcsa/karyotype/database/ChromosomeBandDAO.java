@@ -1,5 +1,6 @@
 package org.lcsb.lu.igcsa.karyotype.database;
 
+import org.lcsb.lu.igcsa.genome.Band;
 import org.lcsb.lu.igcsa.genome.Location;
 
 /**
@@ -16,6 +17,10 @@ public interface ChromosomeBandDAO
   public Band getBandByChromosomeAndName(String chrName, String bandName);
 
   public Band[] getBands(String chrName);
+
+  public Band getFirstBand(String chrName);
+
+  public Band getLastBand(String chrName);
 
   public Band getTerminus(String chr, String arm);
 
