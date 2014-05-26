@@ -47,6 +47,8 @@ public class MainApp
       pgd.addClass("genchr", GenerateChromosomes.class, "Generates derivative chromosomes based on the provided bands. ");
       pgd.addClass("gennormal", GenerateFullGenome.class, "Generate FASTA files for a normal genome. Args: -g [genome name, ex. GRCh37] -o [hdfs output path for FASTA files]");
 
+      pgd.addClass("index", BWAIndex.class, "Index FASTA file");
+
       pgd.driver(args);
       }
     catch (Throwable throwable)

@@ -31,11 +31,11 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
     bwa = context.getConfiguration().get("bwa.binary.path", "tools/bwa");
     reference = context.getConfiguration().get("reference.fasta.path", "reference/ref/reference.fa");
 
-    this.context = context;
+//    this.context = context;
 
-    File bwaBinary = new File(bwa);
-    if (!bwaBinary.exists())
-      throw new RuntimeException("bwa binary does not exist in the cache.");
+//    File bwaBinary = new File(bwa);
+//    if (!bwaBinary.exists())
+//      throw new RuntimeException("bwa binary does not exist in the cache.");
     }
 
   private String baseFileName(LongWritable key)

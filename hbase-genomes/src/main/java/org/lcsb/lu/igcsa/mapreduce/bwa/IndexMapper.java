@@ -36,9 +36,12 @@ public class IndexMapper extends Mapper<LongWritable, Text, Text, Text>
     {
     bwa = context.getConfiguration().get("bwa.binary.path", "tools/bwa");
 
-    File bwaBinary = new File(bwa);
-    if (!bwaBinary.exists())
-      throw new RuntimeException("bwa binary does not exist in the cache at " + bwa);
+    log.info("**** BWA: "  + bwa);
+
+//    Path bwaBinary = new Path(bwa);
+//    FileSystem fs = FileSystem.get(bwaBinary.toUri(), context.getConfiguration());
+//    if (!fs.exists(bwaBinary))
+//      throw new RuntimeException("bwa binary does not exist in the cache at " + bwa);
     }
 
   @Override
@@ -46,15 +49,18 @@ public class IndexMapper extends Mapper<LongWritable, Text, Text, Text>
     {
     final Path refSrc = new Path(value.toString());
 
+    String indexArchive =  refSrc.getName().substring(0, refSrc.getName().indexOf(".")) + ".tgz";
+
     FileSystem fs = FileSystem.get(refSrc.toUri(), context.getConfiguration());
 
-    if (!fs.exists(refSrc)) throw new IOException("Reference fasta file does not exist or is not readable: " + refSrc.toString());
+    log.info(refSrc.toString());
+    //if (!fs.exists(refSrc)) throw new IOException("Reference fasta file does not exist or is not readable: " + refSrc.toString());
 
-    String indexArchive = context.getConfiguration().get(context.getJobID() + ".bwa.index", "index.tgz");
+    //String indexArchive = context.getConfiguration().get(context.getJobID() + ".bwa.index", "index.tgz");
 
-    if (fs.exists(new Path(refSrc.getParent(), indexArchive)))
-      log.warn("BWA index already exists at " + refSrc.getParent() + " skipping indexing step.");
-    else
+//    if (fs.exists(new Path(refSrc, indexArchive)))
+//      log.warn("BWA index already exists at " + refSrc.getParent() + " skipping indexing step.");
+//    else
       {
       File tmpRefDir = new File(context.getTaskAttemptID() + "-" + key, "ref");
       tmpRefDir.mkdirs();
@@ -87,8 +93,9 @@ public class IndexMapper extends Mapper<LongWritable, Text, Text, Text>
 
       if (tmpZip.exists())
         {
-        FileUtil.copy(tmpZip, fs, refSrc.getParent(), false, context.getConfiguration());
-        fs.delete(refSrc, false);
+        Path dest = new Path(new Path(refSrc.getParent(), "index"), indexArchive);
+        FileUtil.copy(tmpZip, fs, dest, false, context.getConfiguration());
+//        fs.delete(refSrc, false);
         }
       else throw new IOException("Failed to create index archive for " + refSrc.toString());
       }

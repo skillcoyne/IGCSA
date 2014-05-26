@@ -14,13 +14,17 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
-import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.ToolRunner;
 import org.lcsb.lu.igcsa.mapreduce.bwa.IndexMapper;
+import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAFragmentInputFormat;
+import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil;
+import org.lcsb.lu.igcsa.utils.FileUtils;
 
 import java.io.*;
 
@@ -34,7 +38,7 @@ public class BWAIndex extends BWAJob
   {
   private static final Log log = LogFactory.getLog(BWAIndex.class);
 
-  private Path fastaTxt;
+  private Path fastaPath;
 
   public static void main(String[] args) throws Exception
     {
@@ -58,38 +62,65 @@ public class BWAIndex extends BWAJob
     {
     super(new Configuration());
 
-    Option genome = new Option("f", "reference", true, "Reference genome text file.");
+    Option genome = new Option("p", "path", true, "Path to FASTA files");
     genome.setRequired(true);
     this.addOptions(genome);
+    }
+
+  private void setupRefs(Path path) throws IOException
+    {
+    final FileSystem fs = FileSystem.get(path.toUri(), getConf());
+
+
+
+    FileStatus[] referencePaths = fs.listStatus(path, new PathFilter()
+    {
+    public boolean accept(Path p)
+      {
+      return p.toString().matches("^.*\\.(fa|fasta)$");
+      //dir = fs.getFileStatus(p).isDir();
+      }
+    });
+
+    if (referencePaths.length <= 0)
+      throw new IOException("No paths found under parent path: " + path.toString());
+
+
+    fastaPath = new Path(path.getParent(), "refs_to_index.txt");
+    FSDataOutputStream os = fs.create(fastaPath);
+    for (FileStatus status : referencePaths)
+      os.write( (status.getPath().toUri().getPath().toString() + "\n").getBytes());
+      //os.writeChars(status.getPath().toUri().getPath().toString() + "\n"); // strips out the hdfs:// or file://
+    os.close();
     }
 
   public int run(String[] args) throws Exception
     {
     GenericOptionsParser gop = this.parseHadoopOpts(args);
     CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs());
-    fastaTxt = new Path(cl.getOptionValue('f'));
 
-    log.info("Running BWAIndex on " + fastaTxt.getParent().toString());
+    setupRefs(new Path(cl.getOptionValue('p')));
+
+    log.info("Running BWAIndex on " + fastaPath.getParent().toString());
 
     setupBWA(cl.getOptionValue('b'));
 
+    Job job = new Job(getConf(), "BWA Index for " + fastaPath.getParent().toString());
 
-    Job job = new Job(getConf(), "BWA Index for " + fastaTxt.getParent().toString());
     job.setJarByClass(BWAIndex.class);
 
-
-    IndexMapper.setIndexArchive(FilenameUtils.getBaseName(fastaTxt.getName()), job);
+    // set the name for the archive, the "prefix" in bwa
+    IndexMapper.setIndexArchive(FilenameUtils.getBaseName(fastaPath.getName()), job);
 
     job.setMapperClass(IndexMapper.class);
     job.setInputFormatClass(TextInputFormat.class);
-    FileInputFormat.addInputPath(job, fastaTxt);
+    FileInputFormat.addInputPath(job, fastaPath);
 
     job.setNumReduceTasks(0);
     job.setOutputFormatClass(NullOutputFormat.class);
 
     return (job.waitForCompletion(true) ? 0 : 1);
     }
-
 
   }
 
