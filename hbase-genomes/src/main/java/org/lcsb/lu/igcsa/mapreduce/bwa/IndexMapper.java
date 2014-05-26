@@ -62,6 +62,9 @@ public class IndexMapper extends Mapper<LongWritable, Text, Text, Text>
 //      log.warn("BWA index already exists at " + refSrc.getParent() + " skipping indexing step.");
 //    else
       {
+      /**
+       * TODO This doesn't work on s3.  Need to try to use the filesystem object instead
+       */
       File tmpRefDir = new File(context.getTaskAttemptID() + "-" + key, "ref");
       tmpRefDir.mkdirs();
 
