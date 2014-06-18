@@ -14,6 +14,9 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.util.GenericOptionsParser;
+import org.apache.hadoop.util.ToolRunner;
+import org.lcsb.lu.igcsa.karyotype.database.KaryotypeDAO;
 import org.lcsb.lu.igcsa.karyotype.database.util.DerbyConnection;
 
 
@@ -23,30 +26,30 @@ public class MiniChromosomeJob extends JobIGCSA
 
   public static void main(String[] args) throws Exception
     {
-
-    IGCSACommandLineParser parser = IGCSACommandLineParser.getParser();
-    parser.addOptions(new Option("f", "file", true, "Karyotype file"), new Option("c", "cell-line", true, "cell line name"), new Option("o", "output", true, "output directory"), new Option("b", "bands", true, "generate specific bands"));
-
-    CommandLine cl = parser.parseOptions(args);
-    if (!cl.hasOption("o") || !cl.hasOption("c"))
-      {
-      HelpFormatter help = new HelpFormatter();
-      help.printHelp("Missing output directory or cell line name.", parser.getOptions());
-      System.exit(-1);
-      }
-    else if (!cl.hasOption("b") && !cl.hasOption("f") || (cl.hasOption("b") && cl.hasOption("f")))
-      {
-      HelpFormatter help = new HelpFormatter();
-      help.printHelp("Missing bands or karyotype file or attempted to use both.", parser.getOptions());
-      System.exit(-1);
-      }
+    ToolRunner.run(new MiniChromosomeJob(), args);
 
 
-    DerbyConnection conn = new DerbyConnection("org.apache.derby.jdbc.EmbeddedDriver", "jdbc:derby:classpath:karyotype_probabilities", "igcsa", "");
-    dao = conn.getKaryotypeDAO();
 
     }
 
+
+  public MiniChromosomeJob()
+    {
+    super(new Configuration());
+
+    Option m = new Option("b", "bands", true, "Band pairs, comma separated.");
+    m.setRequired(true);
+    this.addOptions(m);
+
+    m = new Option("o", "output", true, "output directory");
+    m.setRequired(true);
+    this.addOptions(m);
+
+    m = new Option("p", "parent", true, "Parent genome");
+    m.setRequired(true);
+    this.addOptions(m);
+
+    }
 
   public MiniChromosomeJob(Configuration conf)
     {
@@ -54,8 +57,20 @@ public class MiniChromosomeJob extends JobIGCSA
     }
 
 
-  public int run(String[] strings) throws Exception
+  public int run(String[] args) throws Exception
     {
+    GenericOptionsParser gop = this.parseHadoopOpts(args);
+    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs());
+    if (args.length < 3)
+      {
+      System.err.println("Usage: " + this.getClass().getSimpleName() + " -p <parent genome> -b <band pairs, comma sep> -o <output path>");
+      System.exit(-1);
+      }
+
+
+    DerbyConnection conn = new DerbyConnection("org.apache.derby.jdbc.EmbeddedDriver", "jdbc:derby:classpath:karyotype_probabilities", "igcsa", "");
+    KaryotypeDAO dao = conn.getKaryotypeDAO();
+
     return 0;
     }
   }
