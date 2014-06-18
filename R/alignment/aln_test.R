@@ -1,9 +1,5 @@
 
-d5 =  read.table("/tmp/HCC1954.5.stats", header=T)
-max(d5$ppairs)*100
-
-
-d = read.table("/tmp/HCC1954.6.stats", header=T)
+d = read.table("/Volumes/exHD-Killcoyne/Insilico/runs/alignments/HCC1954.6/HCC1954.6.stats", header=T)
 d = d[ order(-d$ppairs), ]
 range(d$ppairs*100)
 
@@ -13,7 +9,7 @@ rownames(counts) = d$chr
 
 # So counts has a high correlation with properly paired reads...that's what I expected
 cor.test( rowSums(counts), d$ppairs )
-# just checking
+# just checking - random
 cor.test(sample(min(counts):max(counts), nrow(d), replace=T), d$ppairs)
 
 
@@ -75,4 +71,4 @@ text(of_bar[3,], lr_ratio/1000, pos=3, labels=round(lr_ratio, 2))
 #text(of_bar[3,], d$ppairs, pos=1, labels=round(d$ppairs, 3)*100)
 
 # These don't correlate at all...which is good as the lr_ratio is already adjusted for ppairs
-cor.test(lr_ratio, d$ppairs)
+# cor.test(lr_ratio, d$ppairs)

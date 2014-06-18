@@ -12,6 +12,7 @@ import org.apache.commons.math3.distribution.PoissonDistribution;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.genome.Band;
 import org.lcsb.lu.igcsa.karyotype.database.KaryotypeDAO;
+import org.lcsb.lu.igcsa.karyotype.database.util.DerbyConnection;
 import org.lcsb.lu.igcsa.karyotype.generator.Aberration;
 import org.lcsb.lu.igcsa.karyotype.generator.AberrationRules;
 import org.lcsb.lu.igcsa.prob.Probability;
@@ -38,6 +39,7 @@ public class PopulationGenerator
   static Logger log = Logger.getLogger(PopulationGenerator.class.getName());
 
   static ApplicationContext context;
+  static KaryotypeDAO dao;
 
   public static void main(String[] args) throws Exception
     {
@@ -46,12 +48,15 @@ public class PopulationGenerator
 
   public PopulationGenerator()
     {
-    context = new ClassPathXmlApplicationContext(new String[]{"classpath*:spring-config.xml", "classpath*:/conf/genome.xml", "classpath*:/conf/database-config.xml"});
+    //context = new ClassPathXmlApplicationContext(new String[]{"classpath*:spring-config.xml", "classpath*:/conf/genome.xml", "classpath*:/conf/database-config.xml"});
+    DerbyConnection conn = new DerbyConnection("org.apache.derby.jdbc.EmbeddedDriver", "jdbc:derby:classpath:karyotype_probabilities", "igcsa", "");
+    dao = conn.getKaryotypeDAO();
+
     }
 
   public List<MinimalKaryotype> run(int maxGen) throws ProbabilityException
     {
-    KaryotypeDAO dao = (KaryotypeDAO) context.getBean("karyotypeDAO");
+    //dao = (KaryotypeDAO) context.getBean("karyotypeDAO");
 
     Probability aneuploidyProb = dao.getAneuploidyDAO().getChromosomeProbabilities();
     Probability ploidyCountProb = dao.getGeneralKarytoypeDAO().getProbabilityClass("aneuploidy");
@@ -86,6 +91,8 @@ public class PopulationGenerator
         0,
         new BreakpointCondition(allPossibleBands, 2),
         new GenerationCount(maxGen));
+
+    log.info(observer.generationCount());
 
     List<MinimalKaryotype> karyotypes = new ArrayList<MinimalKaryotype>();
     for (EvaluatedCandidate<KaryotypeCandidate> candidate : pop)

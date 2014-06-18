@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.BWAIndex;
 import org.lcsb.lu.igcsa.DerivativeChromosomeJob;
 import org.lcsb.lu.igcsa.IGCSACommandLineParser;
+import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.karyotype.aberrations.AberrationTypes;
 import org.lcsb.lu.igcsa.genome.Band;
 import org.lcsb.lu.igcsa.karyotype.database.KaryotypeDAO;
@@ -122,11 +123,23 @@ public class SpecialGenerator
         for (String b : bandNames)
           {
           Band band = new Band(b);
-          band.setLocation(dao.getBandDAO().getLocation(band));
-          bands.add(band);
-          chrs.add(band.getChromosomeName());
+          System.out.println("*** BAND: " + band);
+          //Location loc = dao.getBandDAO().getLocation(band);
+          if (dao.getBandDAO().getBandByChromosomeAndName(band.getChromosomeName(), band.getBandName()) != null)
+            {
+            band.setLocation(dao.getBandDAO().getLocation(band));
+            bands.add(band);
+            chrs.add(band.getChromosomeName());
+            }
+          else
+            {
+            log.warn("Band " + band + " doesn't exist in database.");
+            bands.clear();
+            }
+          //band.setLocation(dao.getBandDAO().getLocation(band));
           }
-        createDerivativeJob(fastaName, AberrationTypes.TRANSLOCATION, bands, chrs.toArray(new String[chrs.size()]));
+        if (bands.size() > 0)
+          createDerivativeJob(fastaName, AberrationTypes.TRANSLOCATION, bands, chrs.toArray(new String[chrs.size()]));
         }
       }
 
@@ -408,7 +421,7 @@ public class SpecialGenerator
 //        }
       // note: I will tend to get a lot of p11 at the start for multiple translocation chrs (>2)
 
-      // going to get rid of centromeres entirely right now, they are not gene-rich regions
+      // going to get rid of centromeres entirely right now, they are not gene-rich regions and they are highly probably so bias the results
       for (Band b: bands)
         {
         if (b.isCentromere())
@@ -418,7 +431,6 @@ public class SpecialGenerator
           break;
           }
         }
-
 
       // get rid of vectors that involve only a single chromosome
       if (!remove)

@@ -28,6 +28,12 @@
             <systemPath>${project.basedir}/lib/picard-1.112.jar</systemPath>
         </dependency>
 
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>hbase-genomes</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
     </dependencies>
 
 

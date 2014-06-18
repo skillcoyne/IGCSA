@@ -72,7 +72,7 @@ public class SequenceRequestMapper extends TableMapper<SegmentOrderComparator, F
 
     // is there anything to be done with this really?
     String rowId = Bytes.toString(key.get());
-    //log.debug(rowId + " reverse:" + reverse);
+    //log.info(rowId + " reverse:" + reverse);
 
     SequenceResult sr = HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().createResult(value);
 

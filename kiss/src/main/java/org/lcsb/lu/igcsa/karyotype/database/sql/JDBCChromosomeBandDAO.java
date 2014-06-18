@@ -51,6 +51,7 @@ public class JDBCChromosomeBandDAO implements ChromosomeBandDAO
   @Override
   public Band getBand(String chrBand)
     {
+    // doesn't work in Derby
     String sql = "SELECT * FROM ( SELECT *, CONCAT(chr, band) AS chrloc FROM " + this.tableName + ") a " +
         "WHERE chrloc = ?";
 
