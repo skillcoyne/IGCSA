@@ -1,5 +1,12 @@
 
-d = read.table("/Volumes/exHD-Killcoyne/Insilico/runs/alignments/HCC1954.6/HCC1954.6.stats", header=T)
+dir = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments"
+gen = "HCC1954.6"
+
+dir = paste(dir, gen, sep="/")
+d = read.table(paste(paste(dir, gen, sep="/"), ".stats", sep=""), header=T)
+
+#d = read.table("/Volumes/exHD-Killcoyne/Insilico/runs/alignments/HCC1954.6.4/HCC1954.6.4.stats", header=T)
+#x = read.table("/Volumes/exHD-Killcoyne/Insilico/runs/alignments/HCC1954.6/HCC1954.6.stats", header=T)
 d = d[ order(-d$ppairs), ]
 range(d$ppairs*100)
 
@@ -49,26 +56,30 @@ cor.test(lengths,adjcounts)
 ordered_cnts = adjcounts[ order(-rowSums(adjcounts)),]
 
 ## So, looking just at the top bands by ppair
-top=d[ which(d$ppairs >= mean(d$ppairs)), ]
-ordered_cnts = ordered_cnts[, which(colnames(ordered_cnts) %in% top$chr)]
-
-#par(mfrow=c(2,1))
-
-of_bar=barplot(ordered_cnts, beside=TRUE, ylim=c(0,0.030), 
-        legend.text=rownames(ordered_cnts), 
-        args.legend=list(x="topright", bty="n"), 
-        col=c(32,33,'green',26,30), las=2, cex.names=0.8)
+#top=d[ which(d$ppairs >= mean(d$ppairs)), ]
+#ordered_cnts = ordered_cnts[, which(colnames(ordered_cnts) %in% top$chr)]
 
 
 left=ordered_cnts[c('leftb2', 'leftb1'),]
 right=ordered_cnts[c('rightb1', 'rightb2'),]
 lr_ratio=abs(colSums(left)/colSums(right))
 
+colors=rainbow(nrow(ordered_cnts))
+of_bar=barplot(ordered_cnts, beside=TRUE, ylim=c(0,0.030), 
+        legend.text=rownames(ordered_cnts), 
+        args.legend=list(x="topright", bty="n"), 
+        col=colors, las=2, cex.names=0.8)
+
 points(of_bar[3,],lr_ratio/1000, type='o', pch=19)
 text(of_bar[3,], lr_ratio/1000, pos=3, labels=round(lr_ratio, 2))
 
-#points(of_bar[3,],d$ppairs, type='o', pch=17, col='red')
-#text(of_bar[3,], d$ppairs, pos=1, labels=round(d$ppairs, 3)*100)
+# Best match
+lr_ratio[which.min(abs(lr_ratio-1.0))]
+
+
+
+points(of_bar[3,],d$ppairs, type='o', pch=17, col='red')
+text(of_bar[3,], d$ppairs, pos=1, labels=round(d$ppairs, 3)*100)
 
 # These don't correlate at all...which is good as the lr_ratio is already adjusted for ppairs
 # cor.test(lr_ratio, d$ppairs)

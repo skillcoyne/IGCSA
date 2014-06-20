@@ -10,8 +10,8 @@ end
 
 @client = Mysql2::Client.new(:host => 'localhost', :username => 'root', :password => '', :database => 'karyotypes')
 
-dir = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/HCC1954.6"
-fout = File.open("/tmp/#{File.basename(dir)}.stats", 'w')
+dir = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/HCC1954.6.3"
+fout = File.open("#{dir}/#{File.basename(dir)}.stats", 'w')
 fout.puts ["chr", "total", "ppairs", "scores", "lengths", "side", "direction"].join("\t")
 
 

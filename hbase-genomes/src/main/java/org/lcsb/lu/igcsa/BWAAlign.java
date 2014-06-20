@@ -39,7 +39,7 @@ public class BWAAlign extends BWAJob
     {
     super(new Configuration());
 
-    Option genome = new Option("g", "reference", true, "Reference genome name.  Defaults to GRCh37.");
+    Option genome = new Option("i", "reference", true, "Reference genome name.  Defaults to GRCh37.");
     genome.setRequired(true);
     this.addOptions( genome );
 
@@ -56,10 +56,10 @@ public class BWAAlign extends BWAJob
   private void setup() throws URISyntaxException, IOException
     {
     getConf().setBoolean(SAMOutputFormat.HEADER_OUTPUT, false);
-
-    FileSystem fs = FileSystem.get(getConf());
-
     Path alignOutput = new Path(Paths.ALIGN.getPath());
+
+    FileSystem fs = FileSystem.get(alignOutput.toUri(), getConf());
+
     if (!getJobFileSystem().getUri().toASCIIString().startsWith("hdfs"))
       alignOutput = new Path("/tmp/" + alignOutput.toString());
 
@@ -75,9 +75,18 @@ public class BWAAlign extends BWAJob
       fs.delete(outputPath, true);
 
     // reference
-    Path reference = new Path(Paths.GENOMES.getPath() + "/" + refGenome, "index.tgz");
-    if (!getJobFileSystem().getUri().toASCIIString().startsWith("hdfs"))
-      reference = new Path("/tmp/" + reference.toString());
+    FileStatus[] files = fs.listStatus(refGenome, new PathFilter()
+    {
+    @Override
+    public boolean accept(Path path)
+      {
+      return (path.getName().contains(".tgz"));
+      }
+    });
+
+    Path reference = files[0].getPath();
+//    if (!getJobFileSystem().getUri().toASCIIString().startsWith("hdfs"))
+//      reference = new Path("/tmp/" + reference.toString());
 
     if (!fs.exists(reference))
       throw new IOException("Indexed reference genome does not exist: " + reference.toUri());
@@ -92,7 +101,7 @@ public class BWAAlign extends BWAJob
     {
     GenericOptionsParser gop = this.parseHadoopOpts(args);
     CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs());
-    refGenome = new Path( cl.getOptionValue('g', "GRCh37") );
+    refGenome = new Path( cl.getOptionValue('i', "GRCh37") );
     readPairTSV = new Path(cl.getOptionValue('r'));
 
     setupBWA(cl.getOptionValue('b'));
@@ -130,6 +139,8 @@ public class BWAAlign extends BWAJob
       if (status.getLen() <= 0)
         align.getJobFileSystem().delete(status.getPath(), true);
       }
+
+    log.info(align.getOutputPath());
 
     // Merge the files into a single SAM
     ToolRunner.run(new Crush(), new String[]{"--input-format=text", "--output-format=text", "--compress=none",

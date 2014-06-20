@@ -46,8 +46,10 @@ public class MainApp
       pgd.addClass("karygen", GenerateFullKaryotype.class, "Generates karyotypes for the given genome.");
       pgd.addClass("genchr", GenerateChromosomes.class, "Generates derivative chromosomes based on the provided bands. ");
       pgd.addClass("gennormal", GenerateFullGenome.class, "Generate FASTA files for a normal genome. Args: -g [genome name, ex. GRCh37] -o [hdfs output path for FASTA files]");
+      pgd.addClass("minichr", MiniChromosomeJob.class, "Generate mini FASTA files for the provided bands or chromosome locations.");
 
       pgd.addClass("index", BWAIndex.class, "Index FASTA file");
+      pgd.addClass("align", BWAAlign.class, "Align TSV reads");
 
       pgd.driver(args);
       }

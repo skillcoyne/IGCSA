@@ -166,24 +166,20 @@ public class SpecialGenerator
           {
           String[] chrs = vagueAbr.substring(vagueAbr.indexOf("(") + 1, vagueAbr.indexOf(")")).split(";");
 
-          if (chrs[0].equals("1") && chrs[1].equals("10"))
+          for (int n = 0; n < chrs.length - 1; n++)
             {
-            for (int n = 0; n < chrs.length - 1; n++)
+            sg.run(chrs[n], chrs[n + 1]);
+            int maxCand = (int) (sg.getCandidates().size() * .05); // randomly generate top scoring...
+            //Collections.shuffle(sg.getCandidates());
+            //for (int j=0;j<maxCand; j++)
+            for (Candidate c : sg.getTopCandidates(maxCand))
               {
-              sg.run(chrs[n], chrs[n + 1]);
-              int maxCand = (int) (sg.getCandidates().size()*.1); // randomly generate top scoring...
-              //Collections.shuffle(sg.getCandidates());
-              //for (int j=0;j<maxCand; j++)
-              for (Candidate c : sg.getTopCandidates(maxCand))
-                {
-                //Candidate c = sg.getCandidates().get(j);
-
-                String fastaName = chrs[n] + c.getBands().get(0).getBandName() + "-" + chrs[n + 1] + c.getBands().get(1).getBandName();
-                createDerivativeJob(fastaName, AberrationTypes.TRANSLOCATION, c.getBands(), chrs);
-                }
-              //          if (sg.getCandidates().size() > 0)
-              //            createDerivativeJob("der" + chrs[n]+"-"+chrs[n+1], AberrationTypes.TRANSLOCATION, sg.getTopCandidates(1).get(0).getBands(), chrs);
+              //Candidate c = sg.getCandidates().get(j);
+              String fastaName = chrs[n] + c.getBands().get(0).getBandName() + "-" + chrs[n + 1] + c.getBands().get(1).getBandName();
+              createDerivativeJob(fastaName, AberrationTypes.TRANSLOCATION, c.getBands(), chrs);
               }
+            //          if (sg.getCandidates().size() > 0)
+            //            createDerivativeJob("der" + chrs[n]+"-"+chrs[n+1], AberrationTypes.TRANSLOCATION, sg.getTopCandidates(1).get(0).getBands(), chrs);
             }
           }
         else if (vagueAbr.startsWith("i")) // isochromosome
@@ -405,6 +401,7 @@ public class SpecialGenerator
     return sorted;
     }
 
+  // At this point it's also looking like I should make sure I never include the same band in any two different aberrations.  So even though 10q24 scores highly, it shouldn't combine more than once with another band from the same chromosome.
   private void filterBreakpoints(List<ICombinatoricsVector<Band>> breakpoints)
     {
     for (Iterator<ICombinatoricsVector<Band>> bI = breakpoints.iterator(); bI.hasNext(); )
@@ -413,16 +410,8 @@ public class SpecialGenerator
       ICombinatoricsVector<Band> vector = bI.next();
 
       List<Band> bands = sortBands(vector.getVector());
-      // it starts with q, ends with p.  Basically right now I expect that the bands are still ordered p->q
-//      if (bands.get(0).whichArm().equals("q") && bands.get(bands.size() - 1).whichArm().equals("p"))
-//        {
-//        remove = true;
-//        bI.remove();
-//        }
-      // note: I will tend to get a lot of p11 at the start for multiple translocation chrs (>2)
-
-      // going to get rid of centromeres entirely right now, they are not gene-rich regions and they are highly probably so bias the results
-      for (Band b: bands)
+      // going to get rid of centromeres entirely right now, they are not gene-rich regions and they are highly probable so bias the results
+      for (Band b : bands)
         {
         if (b.isCentromere())
           {

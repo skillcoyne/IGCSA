@@ -77,19 +77,35 @@ public class SequenceRequestMapper extends TableMapper<SegmentOrderComparator, F
     SequenceResult sr = HBaseGenomeAdmin.getHBaseGenomeAdmin().getSequenceTable().createResult(value);
 
     int sectionKey = -1;
+    Location currentLoc = null;
     for (Location loc : locations)
       {
       if (loc.getChromosome().equals(sr.getChr()) && loc.overlapsLocation(new Location(sr.getStart(), sr.getEnd())))
         {
         sectionKey = locations.indexOf(loc);
         reverse = isReversible.get(loc);
+        currentLoc = loc;
         }
       }
     if (sectionKey < 0) throw new RuntimeException("somehow I didn't match anything and that should never happen!");
 
     // if reverse the text sequence needs to be reversed and it needs to somehow be indicated with the key I think
     String sequence = sr.getSequence();
-    SegmentOrderComparator soc = new SegmentOrderComparator(sectionKey, sr.getSegmentNum());
+    if ( (currentLoc.getStart() + sr.getSequenceLength()) >= sr.getStart() )
+      {
+      int start = (int) (sr.getStart() - currentLoc.getStart());
+      int end = (int) sr.getSequenceLength();
+      if (currentLoc.getEnd() < sr.getEnd())
+        end = (int) (sr.getEnd() - currentLoc.getEnd());
+      sequence = sr.getSequence().substring(start, end);
+      }
+
+    if (currentLoc.getEnd() < sr.getEnd())
+      {
+      log.info("ENDS!! **##$$%%");
+      }
+
+      SegmentOrderComparator soc = new SegmentOrderComparator(sectionKey, sr.getSegmentNum());
     if (reverse)
       {
       sequence = new StringBuffer(sequence).reverse().toString();

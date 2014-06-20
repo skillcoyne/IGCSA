@@ -21,8 +21,8 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
   {
   static Logger log = Logger.getLogger(ReadPairMapper.class.getName());
 
-  private Context context;
   private String bwa, reference;
+  private Context context;
 
   @Override
   protected void setup(Context context) throws IOException, InterruptedException
@@ -31,11 +31,11 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
     bwa = context.getConfiguration().get("bwa.binary.path", "tools/bwa");
     reference = context.getConfiguration().get("reference.fasta.path", "reference/ref/reference.fa");
 
-//    this.context = context;
+    //    this.context = context;
 
-//    File bwaBinary = new File(bwa);
-//    if (!bwaBinary.exists())
-//      throw new RuntimeException("bwa binary does not exist in the cache.");
+    //    File bwaBinary = new File(bwa);
+    //    if (!bwaBinary.exists())
+    //      throw new RuntimeException("bwa binary does not exist in the cache.");
     }
 
   private String baseFileName(LongWritable key)
@@ -46,6 +46,7 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
   @Override
   protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
     {
+    this.context = context;
     File[] readA = new File[]{new File(baseFileName(key) + ".1.fastq"), new File(baseFileName(key) + ".1.sai")};
     File[] readB = new File[]{new File(baseFileName(key) + ".2.fastq"), new File(baseFileName(key) + ".2.sai")};
     File sam = new File(baseFileName(key) + ".sam");
@@ -64,7 +65,8 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
     int counter = 0;
     for (String line : value.toString().split("\n"))
       {
-      if (line.equals("")) log.info("foo");
+      if (line.equals(""))
+        log.info("foo");
       ReadPairWritable read = new ReadPairWritable(line.split("\t"));
 
       String read1 = read.createRead(1);
@@ -85,16 +87,17 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
       pairedEnd(readA, readB, sam);
 
       log.info("TEMP SAM FILE: " + sam.getAbsolutePath());
-      readSam(sam, context);
+      readSam(sam);
       }
-    else log.error("ALIGN FAILED");
+    else
+      log.error("ALIGN FAILED");
     }
 
-  private void readSam(File sam, Context context) throws IOException, InterruptedException
+  private void readSam(File sam) throws IOException, InterruptedException
     {
     SAMFileHeader header = new SAMFileReader(sam).getFileHeader();
 
-    for (SAMSequenceRecord seq: header.getSequenceDictionary().getSequences())
+    for (SAMSequenceRecord seq : header.getSequenceDictionary().getSequences())
       {
       seq.getAssembly();
       seq.getSequenceName();
@@ -105,45 +108,48 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
     String line;
     while ((line = bufferedReader.readLine()) != null)
       {
-      if (line.startsWith("@")) continue;
+      if (line.startsWith("@"))
+        continue;
 
       SAMCoordinateWritable samWritable = new SAMCoordinateWritable(line);
-      context.write( new Text(samWritable.getRFName()), new Text(line + "\n"));
+      context.write(new Text(samWritable.getRFName()), new Text(line + "\n"));
       }
     bufferedReader.close();
     }
 
-private boolean runAlignment(File[] files) throws IOException, InterruptedException
-  {
-  File fastq = files[0];
-  File sai = files[1];
+  private boolean runAlignment(File[] files) throws IOException, InterruptedException
+    {
+    File fastq = files[0];
+    File sai = files[1];
 
-  String bwaAln = String.format("%s aln %s %s %s", bwa, "-q 15", reference, fastq);
+    String bwaAln = String.format("%s aln %s %s %s", bwa, "-q 15", reference, fastq);
 
-  log.info("BWA ALN: " + bwaAln);
+    log.info("BWA ALN: " + bwaAln);
 
-  ByteArrayOutputStream errorOS = new ByteArrayOutputStream();
-  int exitVal = new CommandExecution(context, errorOS, new FileOutputStream(sai)).execute(bwaAln);
+    ByteArrayOutputStream errorOS = new ByteArrayOutputStream();
+    int exitVal = new CommandExecution(context, errorOS, new FileOutputStream(sai)).execute(bwaAln);
 
-  log.info("SAI FILE SIZE: " + sai.length());
+    log.info("SAI FILE SIZE: " + sai.length());
 
-  // this isn't necessarily wrong, esp when trying to align against derivatives
-  if (exitVal > 0) throw new IOException("Alignment failed: " + errorOS.toString());
-  return (sai.length() > 64);
+    // this isn't necessarily wrong, esp when trying to align against derivatives
+    if (exitVal > 0)
+      throw new IOException("Alignment failed: " + errorOS.toString());
+    return (sai.length() > 64);
+    }
+
+  private void pairedEnd(File[] read1, File[] read2, File sam) throws IOException, InterruptedException
+    {
+    String bwaSampe = String.format("%s sampe %s %s %s %s %s %s", bwa, "", reference, read1[1], read2[1], read1[0], read2[0]);
+
+    log.info("BWA SAMPE: " + bwaSampe);
+
+    ByteArrayOutputStream errorOS = new ByteArrayOutputStream();
+    int exitVal = new CommandExecution(context, errorOS, new FileOutputStream(sam)).execute(bwaSampe);
+
+    log.info("SAM SIZE: " + sam.length());
+
+    if (exitVal > 0)
+      throw new RuntimeException("BWA sampe failed: " + errorOS.toString());
+    }
+
   }
-
-private void pairedEnd(File[] read1, File[] read2, File sam) throws IOException, InterruptedException
-  {
-  String bwaSampe = String.format("%s sampe %s %s %s %s %s %s", bwa, "", reference, read1[1], read2[1], read1[0], read2[0]);
-
-  log.info("BWA SAMPE: " + bwaSampe);
-
-  ByteArrayOutputStream errorOS = new ByteArrayOutputStream();
-  int exitVal = new CommandExecution(context, errorOS, new FileOutputStream(sam)).execute(bwaSampe);
-
-  log.info("SAM SIZE: " + sam.length());
-
-  if (exitVal > 0) throw new RuntimeException("BWA sampe failed: " + errorOS.toString());
-  }
-
-}

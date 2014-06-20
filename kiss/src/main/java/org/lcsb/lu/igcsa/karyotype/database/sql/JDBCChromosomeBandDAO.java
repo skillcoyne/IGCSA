@@ -51,11 +51,10 @@ public class JDBCChromosomeBandDAO implements ChromosomeBandDAO
   @Override
   public Band getBand(String chrBand)
     {
-    // doesn't work in Derby
-    String sql = "SELECT * FROM ( SELECT *, CONCAT(chr, band) AS chrloc FROM " + this.tableName + ") a " +
-        "WHERE chrloc = ?";
+    Band band = new Band(chrBand);
+    String sql = "SELECT * FROM " + this.tableName + " WHERE CHR = ? AND BAND = ?";
 
-    return (Band) jdbcTemplate.query(sql, new Object[]{chrBand}, new ResultSetExtractor<Object>()
+    return (Band) jdbcTemplate.query(sql, new Object[]{band.getChromosomeName(), band.getBandName()}, new ResultSetExtractor<Object>()
     {
     @Override
     public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
@@ -88,6 +87,25 @@ public class JDBCChromosomeBandDAO implements ChromosomeBandDAO
     }
 
   @Override
+  public Band[] getBands(Location location)
+    {
+    String sql = "SELECT * FROM " + this.tableName + " WHERE chr = ? AND (END_LOC >= ?  AND START_LOC <= ?)";
+
+    return (Band[]) jdbcTemplate.query(sql, new Object[]{location.getChromosome(), location.getStart(), location.getEnd()}, new ResultSetExtractor<Object>()
+    {
+    @Override
+    public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException
+      {
+      List<Band> bands = new ArrayList<Band>();
+      while (resultSet.next())
+        bands.add(createBand(resultSet));
+      return bands.toArray(new Band[bands.size()]);
+      }
+    });
+
+    }
+
+  @Override
   public Band[] getBands(String chrName)
     {
     String sql = "SELECT * FROM " + this.tableName + " WHERE chr = ?";
@@ -99,9 +117,7 @@ public class JDBCChromosomeBandDAO implements ChromosomeBandDAO
       {
       List<Band> bands = new ArrayList<Band>();
       while (resultSet.next())
-        {
         bands.add(createBand(resultSet));
-        }
       return bands.toArray(new Band[bands.size()]);
       }
     });
@@ -117,7 +133,7 @@ public class JDBCChromosomeBandDAO implements ChromosomeBandDAO
   public Band getLastBand(String chrName)
     {
     Band[] bands = getBands(chrName);
-    return bands[bands.length-1];
+    return bands[bands.length - 1];
     }
 
 

@@ -135,9 +135,9 @@
                             <appendAssemblyId>false</appendAssemblyId>
                             <attach>false</attach>
                             <archive>
-                                <!--<manifest>-->
-                                    <!--<mainClass>org.lcsb.lu.igcsa.MainApp</mainClass>-->
-                                <!--</manifest>-->
+                                <manifest>
+                                    <mainClass>org.lcsb.lu.igcsa.MainApp</mainClass>
+                                </manifest>
                             </archive>
                         </configuration>
                     </execution>

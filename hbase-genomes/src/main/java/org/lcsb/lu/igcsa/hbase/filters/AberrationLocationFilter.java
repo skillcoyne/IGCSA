@@ -93,42 +93,6 @@ public class AberrationLocationFilter
     return locationList;
     }
 
-
-//  public void getInitialLocationFilters(Location loc, String genomeName)
-//    {
-//    // get first location
-//    long start = 1;
-//    long stop = loc.getStart();
-//
-//    locationList.add(new Location(loc.getChromosome(), start, stop));
-//    addFilters(genomeName, loc, start, stop);
-//    }
-
-//  public void getFinalLocationFilter(Location loc, String genome, List<ChromosomeResult> chromosomes) throws IOException
-//    {
-//    ChromosomeResult currentChr = null;
-//    for (ChromosomeResult chr : chromosomes)
-//      {
-//      if (chr.getChrName().equals(loc.getChromosome()))
-//        {
-//        currentChr = chr;
-//        break;
-//        }
-//      }
-//    if (currentChr == null)
-//      throw new IOException("Chromosome list for genome " + genome + " did not include chromosome " + loc.getChromosome());
-//
-//    if (loc.getEnd() < currentChr.getLength())
-//      {
-//      long start = loc.getEnd();
-//      long stop = currentChr.getLength();
-//
-//      locationList.add(new Location(loc.getChromosome(), start, stop));
-//
-//      addFilters(genome, loc, start, stop);
-//      }
-//    }
-
   protected FilterList createFilter(String genomeName, Location loc, long start, long stop)
     {
     FilterList filter = new FilterList(FilterList.Operator.MUST_PASS_ALL);
