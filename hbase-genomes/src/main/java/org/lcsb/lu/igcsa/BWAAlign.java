@@ -30,18 +30,21 @@ public class BWAAlign extends BWAJob
   {
   static Logger log = Logger.getLogger(BWAAlign.class.getName());
 
-  private Path refGenome;
-  private Path outputPath;
-
-  private Path readPairTSV;
+  private String refGenome;
+  private Path outputPath, referencePath, readPairTSV;
 
   public BWAAlign()
     {
     super(new Configuration());
 
-    Option genome = new Option("i", "reference", true, "Reference genome name.  Defaults to GRCh37.");
+    Option genome = new Option("n", "name", true, "Reference genome name.");
     genome.setRequired(true);
     this.addOptions( genome );
+
+    Option ref = new Option("i", "reference", true, "Reference genome path.");
+    ref.setRequired(true);
+    this.addOptions( ref );
+
 
     Option reads = new Option("r", "reads", true, "Path to tsv file of read-pairs.");
     reads.setRequired(true);
@@ -69,13 +72,13 @@ public class BWAAlign extends BWAJob
     if (!fs.exists(readPairTSV))
       throw new IOException("Read pair TSV file does not exist: " + readPairTSV.toUri());
 
-    String readPairName = readPairTSV.getName().replace(".tsv", "");
-    outputPath = new Path(new Path(alignOutput, readPairName), refGenome.getName());
+    String readPairName = readPairTSV.getName().replace(".tsv", "");                                                          K
+    outputPath = new Path(new Path(alignOutput, readPairName), refGenome);
     if (fs.exists(outputPath))
       fs.delete(outputPath, true);
 
     // reference
-    FileStatus[] files = fs.listStatus(refGenome, new PathFilter()
+    FileStatus[] files = fs.listStatus(referencePath, new PathFilter()
     {
     @Override
     public boolean accept(Path path)
@@ -84,15 +87,15 @@ public class BWAAlign extends BWAJob
       }
     });
 
-    Path reference = files[0].getPath();
+    referencePath = files[0].getPath();
 //    if (!getJobFileSystem().getUri().toASCIIString().startsWith("hdfs"))
 //      reference = new Path("/tmp/" + reference.toString());
 
-    if (!fs.exists(reference))
-      throw new IOException("Indexed reference genome does not exist: " + reference.toUri());
-    reference = reference.makeQualified(fs);
+    if (!fs.exists(referencePath))
+      throw new IOException("Indexed reference genome does not exist: " + referencePath.toUri());
+    referencePath = referencePath.makeQualified(fs);
 
-    URI uri = new URI(reference.toUri().toASCIIString() + "#reference");
+    URI uri = new URI(referencePath.toUri().toASCIIString() + "#reference");
     addArchive(uri);
     }
 
@@ -101,28 +104,32 @@ public class BWAAlign extends BWAJob
     {
     GenericOptionsParser gop = this.parseHadoopOpts(args);
     CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs());
-    refGenome = new Path( cl.getOptionValue('i', "GRCh37") );
+
+    referencePath = new Path(cl.getOptionValue("i"));
     readPairTSV = new Path(cl.getOptionValue('r'));
+    refGenome =  cl.getOptionValue('n');
+
 
     setupBWA(cl.getOptionValue('b'));
     setup();
 
     // set up the job
-    Job job = new Job(getConf(), "Align read pairs " + readPairTSV.getName() + " with " + refGenome.getParent().getName());
+    Job job = new Job(getConf(), "Align read pairs " + readPairTSV.getName() + " with " + refGenome);
 
     job.setJarByClass(BWAAlign.class);
     job.setMapperClass(ReadPairMapper.class);
 
     job.setInputFormatClass(ReadPairTSVInputFormat.class);
     TextInputFormat.addInputPath(job, readPairTSV);
+
     job.setMapOutputKeyClass(Text.class);
     job.setMapOutputValueClass(Text.class);
 
     job.setReducerClass(SAMReducer.class);
 
+    job.setOutputFormatClass(SAMOutputFormat.class);
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(Text.class);
-    job.setOutputFormatClass(SAMOutputFormat.class);
 
     FileOutputFormat.setOutputPath(job, outputPath);
 
