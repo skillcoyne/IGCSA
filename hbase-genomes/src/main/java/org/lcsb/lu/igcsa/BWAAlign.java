@@ -72,7 +72,7 @@ public class BWAAlign extends BWAJob
     if (!fs.exists(readPairTSV))
       throw new IOException("Read pair TSV file does not exist: " + readPairTSV.toUri());
 
-    String readPairName = readPairTSV.getName().replace(".tsv", "");                                                          K
+    String readPairName = readPairTSV.getName().replace(".tsv", "");
     outputPath = new Path(new Path(alignOutput, readPairName), refGenome);
     if (fs.exists(outputPath))
       fs.delete(outputPath, true);

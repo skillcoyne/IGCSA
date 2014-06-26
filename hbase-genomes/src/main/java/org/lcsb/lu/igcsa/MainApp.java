@@ -51,6 +51,8 @@ public class MainApp
       pgd.addClass("index", BWAIndex.class, "Index FASTA file");
       pgd.addClass("align", BWAAlign.class, "Align TSV reads");
 
+      pgd.addClass("SpecialGenerator", SpecialGenerator.class, "Generate special karyotypes.");
+
       pgd.driver(args);
       }
     catch (Throwable throwable)

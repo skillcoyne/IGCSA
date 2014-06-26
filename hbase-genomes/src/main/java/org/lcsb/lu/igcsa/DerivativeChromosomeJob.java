@@ -62,7 +62,7 @@ public class DerivativeChromosomeJob extends JobIGCSA
 
   public Job createJob(String[] args) throws IOException
     {
-    Job job = new Job(getConf(), "Generate derivative FASTA: " + aberration.getAberration().getShortName());
+    Job job = new Job(getConf(), "Generate derivative FASTA: " + aberration.getFASTAName());
     job.setJarByClass(GenerateFullKaryotype.class);
 
     job.setSpeculativeExecution(false);

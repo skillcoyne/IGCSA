@@ -1,6 +1,6 @@
 
 dir = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments"
-gen = "HCC1954.6"
+gen = "HCC1954"
 
 dir = paste(dir, gen, sep="/")
 d = read.table(paste(paste(dir, gen, sep="/"), ".stats", sep=""), header=T)
@@ -21,13 +21,12 @@ cor.test(sample(min(counts):max(counts), nrow(d), replace=T), d$ppairs)
 
 
 # If I drop pairs with 0 counts in them. pairs with one or more 0 counts, interestingly these are centromeres
-row_ind=unique(which(counts <= 0, arr.ind=T)[,'row'])
-counts=counts[ -row_ind, ]
-
-d=d[which(d$chr %in% rownames(counts)),] 
-
+# This doesn't have to be run now that I'm not creating centromeres
+#row_ind=unique(which(counts <= 0, arr.ind=T)[,'row'])
+#counts=counts[ -row_ind, ]
+#d=d[which(d$chr %in% rownames(counts)),] 
 # doesn't alter the correlation
-cor.test( rowSums(counts), d$ppair )
+#cor.test( rowSums(counts), d$ppair )
 
 ## lengths
 lengths=as.data.frame(matrix(as.numeric(unlist(strsplit( as.character(d$lengths), ","))), nrow=nrow(d), byrow=T))
@@ -40,25 +39,23 @@ cor.test(rowSums(lengths), d$ppairs)
 counts=t(counts)
 lengths=t(lengths)
 
-# as expected the number of matches correlates with the length of the band
+# as expected the number of matches correlates with the length of the band - though not as highly with mixed bands
 cor.test(lengths,counts)
 
-# Adjusted for the ratio of properly paired reads, correlation doesn't change
+# Adjusted for the ratio of properly paired reads, correlation doesn't change - drops a bit with mixed bands
 adjcounts=t( (t(counts))*d$ppairs)
 cor.test(lengths,adjcounts)
-ks.test(adjcounts, pnorm, mean(adjcounts), sd(adjcounts)) # normal?
+#ks.test(adjcounts, pnorm, mean(adjcounts), sd(adjcounts)) # normal?
 
 # Adjust for length and it drops 
 adjcounts=adjcounts/lengths
 cor.test(lengths,adjcounts)
-
 
 ordered_cnts = adjcounts[ order(-rowSums(adjcounts)),]
 
 ## So, looking just at the top bands by ppair
 #top=d[ which(d$ppairs >= mean(d$ppairs)), ]
 #ordered_cnts = ordered_cnts[, which(colnames(ordered_cnts) %in% top$chr)]
-
 
 left=ordered_cnts[c('leftb2', 'leftb1'),]
 right=ordered_cnts[c('rightb1', 'rightb2'),]

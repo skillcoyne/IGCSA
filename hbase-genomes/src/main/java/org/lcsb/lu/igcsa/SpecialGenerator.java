@@ -1,3 +1,5 @@
+package org.lcsb.lu.igcsa;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
@@ -9,10 +11,6 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.BWAIndex;
-import org.lcsb.lu.igcsa.DerivativeChromosomeJob;
-import org.lcsb.lu.igcsa.IGCSACommandLineParser;
-import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.karyotype.aberrations.AberrationTypes;
 import org.lcsb.lu.igcsa.genome.Band;
 import org.lcsb.lu.igcsa.karyotype.database.KaryotypeDAO;
@@ -24,7 +22,6 @@ import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 import org.lcsb.lu.igcsa.hbase.filters.AberrationLocationFilter;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.ChromosomeResult;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.GenomeResult;
-import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.paukov.combinatorics.ICombinatoricsVector;
 
@@ -60,6 +57,8 @@ public class SpecialGenerator
   private List<Candidate> candidates;
   private double min = 1.0;
   private double max = 0.0;
+
+  private Set<Band> bandsInSet;
 
 
   /*
@@ -161,20 +160,23 @@ public class SpecialGenerator
         String chr = cols[0];
         String vagueAbr = cols[2];
 
+        log.info(vagueAbr);
+
         // translocation
         if (vagueAbr.startsWith("t"))
           {
           String[] chrs = vagueAbr.substring(vagueAbr.indexOf("(") + 1, vagueAbr.indexOf(")")).split(";");
 
+          log.info("Translocation: " + ArrayUtils.toString(chrs));
+
           for (int n = 0; n < chrs.length - 1; n++)
             {
             sg.run(chrs[n], chrs[n + 1]);
-            int maxCand = (int) (sg.getCandidates().size() * .05); // randomly generate top scoring...
+            int maxCand = (sg.getCandidates().size() <= 10) ? sg.getCandidates().size() : 10;
+            log.info("Max candidates: " + maxCand);
             //Collections.shuffle(sg.getCandidates());
-            //for (int j=0;j<maxCand; j++)
             for (Candidate c : sg.getTopCandidates(maxCand))
               {
-              //Candidate c = sg.getCandidates().get(j);
               String fastaName = chrs[n] + c.getBands().get(0).getBandName() + "-" + chrs[n + 1] + c.getBands().get(1).getBandName();
               createDerivativeJob(fastaName, AberrationTypes.TRANSLOCATION, c.getBands(), chrs);
               }
@@ -404,13 +406,15 @@ public class SpecialGenerator
   // At this point it's also looking like I should make sure I never include the same band in any two different aberrations.  So even though 10q24 scores highly, it shouldn't combine more than once with another band from the same chromosome.
   private void filterBreakpoints(List<ICombinatoricsVector<Band>> breakpoints)
     {
+    this.bandsInSet = new HashSet<Band>();
     for (Iterator<ICombinatoricsVector<Band>> bI = breakpoints.iterator(); bI.hasNext(); )
       {
       boolean remove = false;
       ICombinatoricsVector<Band> vector = bI.next();
 
-      List<Band> bands = sortBands(vector.getVector());
+      List<Band> bands = vector.getVector(); // sortBands(vector.getVector());
       // going to get rid of centromeres entirely right now, they are not gene-rich regions and they are highly probable so bias the results
+      // also filter out any that have a band already seen.  It's going to match regardless
       for (Band b : bands)
         {
         if (b.isCentromere())
@@ -446,13 +450,35 @@ public class SpecialGenerator
             ++centCnt;
 
         if (centCnt >= 2)
+          {
           bI.remove();
+          remove = true;
+          }
         }
 
-      for (int i = 0; i < bands.size(); i++)
-        vector.setValue(i, bands.get(i));
+      if (!remove)
+        {
+        if (duplicateBand(bands))
+          bI.remove();
+        else
+          this.bandsInSet.addAll(bands);
+        }
+
+//      for (int i = 0; i < bands.size(); i++)
+//        vector.setValue(i, bands.get(i));
       }
     }
+
+  private boolean duplicateBand(List<Band> bands)
+    {
+    for (Band b: bands)
+      {
+      if (this.bandsInSet.contains(b))
+        return true;
+      }
+    return false;
+    }
+
 
   static class Candidate implements Comparable<Candidate>
     {
