@@ -1,5 +1,6 @@
 package org.lcsb.lu.igcsa.mapreduce.bwa;
 
+import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
@@ -7,11 +8,13 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.util.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 
 /**
@@ -34,14 +37,17 @@ public class IndexMapper extends Mapper<LongWritable, Text, Text, Text>
   @Override
   protected void setup(Context context) throws IOException, InterruptedException
     {
-    bwa = context.getConfiguration().get("bwa.binary.path", "tools/bwa");
+    bwa = context.getConfiguration().get("bwa.binary.path", "bwa");
 
-    log.info("**** BWA: "  + bwa);
+    log.info("archive SETUP: " + Arrays.toString(DistributedCache.getCacheArchives(context.getConfiguration())));
+    log.info("file SETUP: " + Arrays.toString(DistributedCache.getCacheFiles(context.getConfiguration())));
+    log.info("BWA: " + bwa);
 
-//    Path bwaBinary = new Path(bwa);
-//    FileSystem fs = FileSystem.get(bwaBinary.toUri(), context.getConfiguration());
-//    if (!fs.exists(bwaBinary))
-//      throw new RuntimeException("bwa binary does not exist in the cache at " + bwa);
+//    if (DistributedCache.getCacheArchives(context.getConfiguration()).length < 1 )
+//      throw new IOException("Missing bwa cache archive. Indexing failed.");
+
+//    File bwaBinary = new File(bwa);
+//    if (!bwaBinary.exists()) throw new RuntimeException("bwa binary does not exist in the cache at " + bwa);
     }
 
   @Override
@@ -49,18 +55,16 @@ public class IndexMapper extends Mapper<LongWritable, Text, Text, Text>
     {
     final Path refSrc = new Path(value.toString());
 
-    String indexArchive =  refSrc.getName().substring(0, refSrc.getName().indexOf(".")) + ".tgz";
+    String indexArchive = refSrc.getName().substring(0, refSrc.getName().indexOf(".")) + ".tgz";
 
     FileSystem fs = FileSystem.get(refSrc.toUri(), context.getConfiguration());
 
-    log.info(refSrc.toString());
-    //if (!fs.exists(refSrc)) throw new IOException("Reference fasta file does not exist or is not readable: " + refSrc.toString());
+    if (!fs.exists(refSrc)) throw new IOException("Reference fasta file does not exist or is not readable: " + refSrc.toString());
 
-    //String indexArchive = context.getConfiguration().get(context.getJobID() + ".bwa.index", "index.tgz");
 
-//    if (fs.exists(new Path(refSrc, indexArchive)))
-//      log.warn("BWA index already exists at " + refSrc.getParent() + " skipping indexing step.");
-//    else
+    if (fs.exists(new Path(refSrc, indexArchive)))
+      log.warn("BWA index already exists at " + refSrc.getParent() + " skipping indexing step.");
+    else
       {
       /**
        * TODO This doesn't work on s3.  Need to try to use the filesystem object instead
@@ -98,7 +102,7 @@ public class IndexMapper extends Mapper<LongWritable, Text, Text, Text>
         {
         Path dest = new Path(new Path(refSrc.getParent(), "index"), indexArchive);
         FileUtil.copy(tmpZip, fs, dest, false, context.getConfiguration());
-//        fs.delete(refSrc, false);
+        fs.delete(refSrc, false);
         }
       else throw new IOException("Failed to create index archive for " + refSrc.toString());
       }

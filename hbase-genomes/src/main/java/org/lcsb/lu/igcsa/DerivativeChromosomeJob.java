@@ -151,7 +151,7 @@ public class DerivativeChromosomeJob extends JobIGCSA
       }
 
     // create merged FASTA at chromosome level -- there is an issue here that it just concatenates the files which means at the merge points there are strings of different lengths.  This is an issue in samtools.
-    if (!jobFS.getUri().toASCIIString().startsWith("s3"))
+    if (!jobFS.getUri().toASCIIString().startsWith("s3"))  // TODO try FileUtils.copyMerge
       {
       FASTAUtil.mergeFASTAFiles(jobFS, output.toString(), output.toString()  + ".fa");
       jobFS.delete(output, true);

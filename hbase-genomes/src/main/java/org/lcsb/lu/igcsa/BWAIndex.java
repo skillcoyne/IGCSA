@@ -14,17 +14,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.ToolRunner;
 import org.lcsb.lu.igcsa.mapreduce.bwa.IndexMapper;
-import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAFragmentInputFormat;
-import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil;
-import org.lcsb.lu.igcsa.utils.FileUtils;
 
 import java.io.*;
 
@@ -67,31 +63,32 @@ public class BWAIndex extends BWAJob
     this.addOptions(genome);
     }
 
-  private void setupRefs(Path path) throws IOException
+  private Path setupRefFile(Path path) throws IOException
     {
+    Path fastaTxt = path;
     final FileSystem fs = FileSystem.get(path.toUri(), getConf());
 
-
-
-    FileStatus[] referencePaths = fs.listStatus(path, new PathFilter()
-    {
-    public boolean accept(Path p)
+    Path tmpPath = new Path("/tmp/" + System.currentTimeMillis() + "/all.fa");
+    FileStatus[] fastaFiles = fs.globStatus(new Path(path, "*.{fa,fasta}"));
+    if (fastaFiles.length > 1)
       {
-      return p.toString().matches("^.*\\.(fa|fasta)$");
-      //dir = fs.getFileStatus(p).isDir();
+      if (FileUtil.copyMerge(fs, fastaTxt, fs, tmpPath, false, getConf(), "\n"))
+        {
+        FileUtil.copy(fs, tmpPath, fs, new Path(fastaTxt, "all.fa"), false, false, getConf());
+        fs.delete(tmpPath.getParent(), true);
+        }
+      fastaTxt = BWAIndex.writeReferencePointerFile(new Path(fastaTxt, "all.fa"), fs);
       }
-    });
+    else
+      {
+      Path all = new Path(fastaFiles[0].getPath().getParent(), "all.fa");
+      FileUtil.copy(fs, fastaFiles[0].getPath(), fs, all , false, false, getConf());
+      fastaTxt = BWAIndex.writeReferencePointerFile(all, fs);
+      }
+    fs.deleteOnExit(fastaTxt);
 
-    if (referencePaths.length <= 0)
-      throw new IOException("No paths found under parent path: " + path.toString());
 
-
-    fastaPath = new Path(path.getParent(), "refs_to_index.txt");
-    FSDataOutputStream os = fs.create(fastaPath);
-    for (FileStatus status : referencePaths)
-      os.write( (status.getPath().toUri().getPath().toString() + "\n").getBytes());
-      //os.writeChars(status.getPath().toUri().getPath().toString() + "\n"); // strips out the hdfs:// or file://
-    os.close();
+    return fastaTxt;
     }
 
   public int run(String[] args) throws Exception
@@ -99,28 +96,37 @@ public class BWAIndex extends BWAJob
     GenericOptionsParser gop = this.parseHadoopOpts(args);
     CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs());
 
-    setupRefs(new Path(cl.getOptionValue('p')));
+    Path fastaTxt = setupRefFile(new Path(cl.getOptionValue('p')));
 
-    log.info("Running BWAIndex on " + fastaPath.getParent().toString());
+    log.info("Running BWAIndex on " + fastaTxt.getParent().toString());
 
     setupBWA(cl.getOptionValue('b'));
 
-    Job job = new Job(getConf(), "BWA Index for " + fastaPath.getParent().toString());
-
+    Job job = new Job(getConf(), "BWA Index for " + fastaTxt.getParent().toString());
     job.setJarByClass(BWAIndex.class);
 
-    // set the name for the archive, the "prefix" in bwa
-    IndexMapper.setIndexArchive(FilenameUtils.getBaseName(fastaPath.getName()), job);
+
+    IndexMapper.setIndexArchive(FilenameUtils.getBaseName(fastaTxt.getName()), job);
 
     job.setMapperClass(IndexMapper.class);
     job.setInputFormatClass(TextInputFormat.class);
-    FileInputFormat.addInputPath(job, fastaPath);
+    FileInputFormat.addInputPath(job, fastaTxt);
 
     job.setNumReduceTasks(0);
     job.setOutputFormatClass(NullOutputFormat.class);
 
     return (job.waitForCompletion(true) ? 0 : 1);
     }
+
+                           //    FileStatus[] referencePaths = fs.listStatus(path, new PathFilter()
+                           //    {
+                           //    public boolean accept(Path p)
+                           //      {
+                           //      return p.toString().matches("^.*\\.(fa|fasta)$");
+                           //      //dir = fs.getFileStatus(p).isDir();
+                           //      }
+                           //    });
+                           //    if (referencePaths.length <= 0) throw new IOException("No paths found under parent path: " + path.toString());
 
   }
 

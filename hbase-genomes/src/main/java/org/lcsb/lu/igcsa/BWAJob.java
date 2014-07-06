@@ -3,6 +3,7 @@ package org.lcsb.lu.igcsa;
 import org.apache.commons.cli.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.log4j.Logger;
@@ -35,7 +36,7 @@ public abstract class BWAJob extends JobIGCSA
     parser.addOptions(bwa);
     }
 
-  protected void setupBWA(String bwaPath) throws URISyntaxException
+  protected void setupBWA(String bwaPath) throws URISyntaxException, IOException
     {
    /* WARNING: DistributedCache is not accessible on local runner (IDE) mode.
    In order to test in an IDE set the following config options using locally accessible
@@ -43,8 +44,13 @@ public abstract class BWAJob extends JobIGCSA
    -D bwa.binary.path=/usr/local/bin/bwa
    -D reference.fasta.path=/tmp/test6/ref/reference.fa
     */
-    URI uri = new URI(new Path(bwaPath).toUri().toASCIIString() + "#tools");
-    addArchive(uri);
+//    URI uri = new URI(new Path(bwaPath).toUri().toASCIIString() + "#tools");
+    URI uri = new URI(new Path(bwaPath).toUri().toASCIIString() );
+    if (bwaPath.endsWith(".tgz"))
+      addArchive(uri);
+    else
+      addFile(uri);
+
     }
 
 

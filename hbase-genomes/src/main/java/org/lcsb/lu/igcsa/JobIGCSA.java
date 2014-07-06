@@ -71,7 +71,17 @@ public abstract class JobIGCSA extends Configured implements Tool
     DistributedCache.addCacheArchive(uri, getConf());
     DistributedCache.createSymlink(getConf());
     log.info("Added to cache " + uri.toString());
+    log.info("symlink: " + DistributedCache.getSymlink(getConf()));
     }
+
+  protected void addFile(URI uri)
+    {
+    DistributedCache.addCacheFile(uri, getConf());
+    DistributedCache.createSymlink(getConf());
+    log.info("Added to cache " + uri.toString());
+    log.info("symlink: " + DistributedCache.getSymlink(getConf()));
+    }
+
 
   protected void addArchive(URI uri, boolean symlink)
     {

@@ -11,30 +11,30 @@
 
     <artifactId>sam-reader</artifactId>
 
-    <dependencies>
-        <dependency>
-            <groupId>net.sf</groupId>
-            <artifactId>samtools</artifactId>
-            <version>1.112</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/sam-1.112.jar</systemPath>
-        </dependency>
+    <!--<dependencies>-->
+        <!--<dependency>-->
+            <!--<groupId>net.sf</groupId>-->
+            <!--<artifactId>samtools</artifactId>-->
+            <!--<version>1.112</version>-->
+            <!--<scope>system</scope>-->
+            <!--<systemPath>${project.basedir}/lib/sam-1.112.jar</systemPath>-->
+        <!--</dependency>-->
 
-        <dependency>
-            <groupId>net.sf</groupId>
-            <artifactId>picard</artifactId>
-            <version>1.112</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/picard-1.112.jar</systemPath>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>net.sf</groupId>-->
+            <!--<artifactId>picard</artifactId>-->
+            <!--<version>1.112</version>-->
+            <!--<scope>system</scope>-->
+            <!--<systemPath>${project.basedir}/lib/picard-1.112.jar</systemPath>-->
+        <!--</dependency>-->
 
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>hbase-genomes</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>${project.groupId}</groupId>-->
+            <!--<artifactId>hbase-genomes</artifactId>-->
+            <!--<version>${project.version}</version>-->
+        <!--</dependency>-->
 
-    </dependencies>
+    <!--</dependencies>-->
 
 
     <!--<repositories>-->
