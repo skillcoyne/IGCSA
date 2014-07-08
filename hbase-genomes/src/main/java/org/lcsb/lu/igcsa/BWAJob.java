@@ -44,13 +44,13 @@ public abstract class BWAJob extends JobIGCSA
    -D bwa.binary.path=/usr/local/bin/bwa
    -D reference.fasta.path=/tmp/test6/ref/reference.fa
     */
-//    URI uri = new URI(new Path(bwaPath).toUri().toASCIIString() + "#tools");
-    URI uri = new URI(new Path(bwaPath).toUri().toASCIIString() );
+    URI uri = new URI(new Path(bwaPath).toUri().toASCIIString() + "#tools");
+    log.info("URI: " + uri.toASCIIString());
+
     if (bwaPath.endsWith(".tgz"))
       addArchive(uri);
     else
-      addFile(uri);
-
+      throw new IOException("Expected a tgz archive: " + bwaPath);
     }
 
 

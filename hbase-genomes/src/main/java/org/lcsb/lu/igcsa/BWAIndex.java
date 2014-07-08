@@ -66,6 +66,8 @@ public class BWAIndex extends BWAJob
   private Path setupRefFile(Path path) throws IOException
     {
     Path fastaTxt = path;
+    Path all = null;
+
     final FileSystem fs = FileSystem.get(path.toUri(), getConf());
 
     Path tmpPath = new Path("/tmp/" + System.currentTimeMillis() + "/all.fa");
@@ -77,16 +79,17 @@ public class BWAIndex extends BWAJob
         FileUtil.copy(fs, tmpPath, fs, new Path(fastaTxt, "all.fa"), false, false, getConf());
         fs.delete(tmpPath.getParent(), true);
         }
-      fastaTxt = BWAIndex.writeReferencePointerFile(new Path(fastaTxt, "all.fa"), fs);
+      all = new Path(fastaTxt, "all.fa");
+      fastaTxt = BWAIndex.writeReferencePointerFile(all, fs);
       }
     else
       {
-      Path all = new Path(fastaFiles[0].getPath().getParent(), "all.fa");
+      all = new Path(fastaFiles[0].getPath().getParent(), "all.fa");
       FileUtil.copy(fs, fastaFiles[0].getPath(), fs, all , false, false, getConf());
       fastaTxt = BWAIndex.writeReferencePointerFile(all, fs);
       }
     fs.deleteOnExit(fastaTxt);
-
+    fs.deleteOnExit(all);
 
     return fastaTxt;
     }

@@ -39,11 +39,18 @@ INSTANCE_TYPE="m1.large"
 echo "Running INDEX pipeline with ${CORES} core instances (${INSTANCE_TYPE}). On failure: ${TERM}"
 
 JAR="s3://${BUCKET}/HBase-Genomes-1.2.jar"
-MASTER="--instance-group master --instance-type m1.large --instance-count 1 --bid-price 0.07"
-CORE="--instance-group core --instance-type ${INSTANCE_TYPE} --instance-count $CORES --bid-price 0.07"
+MASTER="--instance-group master --instance-type m1.large --instance-count 1 --bid-price 0.04"
+CORE="--instance-group core --instance-type ${INSTANCE_TYPE} --instance-count $CORES --bid-price 0.04"
 
-ruby $EMR_HOME/elastic-mapreduce --create  --alive --region eu-west-1 --name "Index Genome ${CORES}" --ami-version 2.4.2  --enable-debugging --log-uri s3://${BUCKET}/logs \
+ret=`ruby $EMR_HOME/elastic-mapreduce --create  --alive --region eu-west-1 --name "Index Genome ${CORES}" --ami-version 2.4.2  --enable-debugging --log-uri s3://${BUCKET}/logs \
 --set-termination-protection false --key-pair amazonkeypair $MASTER $CORE  \
---jar $JAR --args index,-b,s3n://${BUCKET}/bwa_test/bwa,-p,s3n://${BUCKET}/bwa_test/Test --step-action ${TERM} --step-name "Index genome" \
+--jar $JAR --args index,-b,s3n://${BUCKET}/bwa_test/bwa.tgz,-p,s3n://${BUCKET}/bwa_test/Test --step-action ${TERM} --step-name "Index genome"`
 
+regex='(j-[A-Z0-9]+)'
+
+if [[ $ret =~ $regex ]]; then
+  job=$BASH_REMATCH
+  echo "Connecting to job $job"
+  $EMR_HOME/elastic-mapreduce --ssh $job
+fi
 

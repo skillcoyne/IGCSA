@@ -2,10 +2,13 @@ package org.lcsb.lu.igcsa.mapreduce.bwa;
 
 import net.sf.samtools.*;
 
+import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 
+import org.apache.hadoop.util.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.io.*;
@@ -24,18 +27,25 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
   private String bwa, reference;
   private Context context;
 
+  public static void setReferenceName(String name, Job job)
+    {
+    job.getConfiguration().set("reference.fasta.name", name);
+    }
+
   @Override
   protected void setup(Context context) throws IOException, InterruptedException
     {
     // this allows me to shortcut the cache system when debugging in the IDE, these options should never be used otherwise
     bwa = context.getConfiguration().get("bwa.binary.path", "tools/bwa");
-    reference = context.getConfiguration().get("reference.fasta.path", "reference/ref/reference.fa");
+    reference = context.getConfiguration().get("reference.fasta.path", null);
 
-    //    this.context = context;
-
-    //    File bwaBinary = new File(bwa);
-    //    if (!bwaBinary.exists())
-    //      throw new RuntimeException("bwa binary does not exist in the cache.");
+    if (reference == null)
+      {
+      String refName = context.getConfiguration().get("reference.fasta.name", "?");
+      if (!refName.equals("?"))
+        reference = "reference/ref/" + refName;
+      }
+    log.info("reference: " + reference);
     }
 
   private String baseFileName(LongWritable key)
@@ -47,17 +57,14 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
   protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
     {
     this.context = context;
-    File[] readA = new File[]{new File(baseFileName(key) + ".1.fastq"), new File(baseFileName(key) + ".1.sai")};
-    File[] readB = new File[]{new File(baseFileName(key) + ".2.fastq"), new File(baseFileName(key) + ".2.sai")};
-    File sam = new File(baseFileName(key) + ".sam");
 
-    File fastqA = readA[0];
-    File fastqB = readB[0];
+    File sam = new File(baseFileName(key) + ".sam");
+    File fastqA = new File(baseFileName(key) + ".1.fastq");
+    File fastqB = new File(baseFileName(key) + ".2.fastq");
 
     // this should never happen but just to check.
     if (fastqA.exists() || fastqB.exists() || sam.exists())
       throw new IOException("Cannot overwrite existing file: " + fastqA + ", " + fastqB + ", " + sam);
-
 
     BufferedOutputStream tmpWriter1 = new BufferedOutputStream(new FileOutputStream(fastqA));
     BufferedOutputStream tmpWriter2 = new BufferedOutputStream(new FileOutputStream(fastqB));
@@ -82,18 +89,14 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
     tmpWriter2.close();
     log.info(counter + " reads output to " + fastqA + ", " + fastqB);
 
-    if (runAlignment(readA) && runAlignment(readB))
-      {
-      pairedEnd(readA, readB, sam);
+    if (runAlignment(new File[]{fastqA, fastqB}, sam))
+      outputSAM(sam);
 
-      log.info("TEMP SAM FILE: " + sam.getAbsolutePath());
-      readSam(sam);
-      }
-    else
-      log.error("ALIGN FAILED");
+    fastqA.delete();
+    fastqB.delete();
     }
 
-  private void readSam(File sam) throws IOException, InterruptedException
+  private void outputSAM(File sam) throws IOException, InterruptedException
     {
     SAMFileHeader header = new SAMFileReader(sam).getFileHeader();
 
@@ -117,39 +120,23 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
     bufferedReader.close();
     }
 
-  private boolean runAlignment(File[] files) throws IOException, InterruptedException
+  private boolean runAlignment(File[] files, File sam) throws IOException, InterruptedException
     {
-    File fastq = files[0];
-    File sai = files[1];
+    String bwaAln = String.format("%s mem %s %s %s", bwa, "-t 12", reference, files[0] + " " + files[1]);
 
-    String bwaAln = String.format("%s aln %s %s %s", bwa, "-q 15", reference, fastq);
-
-    log.info("BWA ALN: " + bwaAln);
+    log.info("BWA MEM: " + bwaAln);
 
     ByteArrayOutputStream errorOS = new ByteArrayOutputStream();
-    int exitVal = new CommandExecution(context, errorOS, new FileOutputStream(sai)).execute(bwaAln);
+    int exitVal = new CommandExecution(context, errorOS, new FileOutputStream(sam)).execute(bwaAln);
 
-    log.info("SAI FILE SIZE: " + sai.length());
+    if (errorOS.toString().contains("fail"))
+      throw new IOException("Failed to align: " + errorOS.toString());
 
     // this isn't necessarily wrong, esp when trying to align against derivatives
     if (exitVal > 0)
-      throw new IOException("Alignment failed: " + errorOS.toString());
-    return (sai.length() > 64);
-    }
+      log.warn("BWA ALIGN failed: " + errorOS.toString() + "\t" + bwaAln);
 
-  private void pairedEnd(File[] read1, File[] read2, File sam) throws IOException, InterruptedException
-    {
-    String bwaSampe = String.format("%s sampe %s %s %s %s %s %s", bwa, "", reference, read1[1], read2[1], read1[0], read2[0]);
-
-    log.info("BWA SAMPE: " + bwaSampe);
-
-    ByteArrayOutputStream errorOS = new ByteArrayOutputStream();
-    int exitVal = new CommandExecution(context, errorOS, new FileOutputStream(sam)).execute(bwaSampe);
-
-    log.info("SAM SIZE: " + sam.length());
-
-    if (exitVal > 0)
-      throw new RuntimeException("BWA sampe failed: " + errorOS.toString());
+    return (sam.length() > 64);
     }
 
   }

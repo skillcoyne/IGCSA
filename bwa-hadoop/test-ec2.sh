@@ -12,11 +12,22 @@ CORE="--instance-group core --instance-type m1.large --instance-count 1 --bid-pr
 #--set-termination-protection false --key-pair amazonkeypair $MASTER $CORE \
 #--bootstrap-action "s3://insilico/bwa_test/ruby-bootstrap.sh"
 
-ruby $EMR_HOME/elastic-mapreduce --create --stream --region eu-west-1 --name "Streaming BWA Align test" \
+ret=`ruby $EMR_HOME/elastic-mapreduce --create --stream --region eu-west-1 --name "Streaming BWA Align test" \
 --ami-version 2.4.2  --enable-debugging --log-uri ${BUCKET}/logs \
 --set-termination-protection false --key-pair amazonkeypair $MASTER $CORE \
---bootstrap-action "s3://insilico/bwa_test/ruby-bootstrap.sh" \
+--cache s3n://insilico/bwa_test/bwa#bwa \
 --input s3n://insilico/bwa_test/mini.tsv \
 --mapper s3n://insilico/bwa_test/mapper.rb \
 --reducer aggregate \
---output s3://insilico/bwa_test/output/alg \
+--output s3://insilico/bwa_test/output/alg`
+
+regex='(j-[A-Z0-9]+)'
+
+if [[ $ret =~ $regex ]]; then
+  job=$BASH_REMATCH
+  echo "Connecting to job $job"
+	$EMR_HOME/elastic-mapreduce --ssh $job
+fi
+
+
+

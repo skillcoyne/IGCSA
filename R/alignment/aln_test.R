@@ -1,3 +1,14 @@
+rank_pp<-function(num)
+{
+  digits=0
+  r=round(num,digits)
+  while (r <= 0)
+  {
+    digits=digits+1
+    r=round(num,digits)
+  }
+  return(r)
+}
 
 dir = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments"
 gen = "HCC1954"
@@ -14,11 +25,8 @@ counts=as.data.frame(matrix(as.numeric(unlist(strsplit( as.character(d$scores), 
 colnames(counts) = c('leftb1', 'leftb2', 'bp', 'rightb1', 'rightb2')
 rownames(counts) = d$chr
 
-# So counts has a high correlation with properly paired reads...that's what I expected
+# So counts has a high correlation with properly paired reads...it really should
 cor.test( rowSums(counts), d$ppairs )
-# just checking - random
-cor.test(sample(min(counts):max(counts), nrow(d), replace=T), d$ppairs)
-
 
 # If I drop pairs with 0 counts in them. pairs with one or more 0 counts, interestingly these are centromeres
 # This doesn't have to be run now that I'm not creating centromeres
@@ -33,25 +41,23 @@ lengths=as.data.frame(matrix(as.numeric(unlist(strsplit( as.character(d$lengths)
 colnames(lengths) = colnames(counts)
 rownames(lengths) = rownames(counts)
 
-# reads and lengths do correlate as well though not as highly as counts do
+# properly paired ratio and lengths do not correlate, which is also correct
 cor.test(rowSums(lengths), d$ppairs)
 
-counts=t(counts)
-lengths=t(lengths)
-
-# as expected the number of matches correlates with the length of the band - though not as highly with mixed bands
-cor.test(lengths,counts)
+# Counts correlates, though not highly, with the band length
+cor.test(t(lengths),t(counts))
 
 # Adjusted for the ratio of properly paired reads, correlation doesn't change - drops a bit with mixed bands
-adjcounts=t( (t(counts))*d$ppairs)
-cor.test(lengths,adjcounts)
+rp = sapply(d$ppairs*100, rank_pp)
+adjcounts=t( (t(counts))*rp)
+#cor.test(lengths,adjcounts)
 #ks.test(adjcounts, pnorm, mean(adjcounts), sd(adjcounts)) # normal?
 
-# Adjust for length and it drops 
+# Adjust the counts for length and it drops 
 adjcounts=adjcounts/lengths
-cor.test(lengths,adjcounts)
+cor.test(t(lengths),t(adjcounts))
 
-ordered_cnts = adjcounts[ order(-rowSums(adjcounts)),]
+ordered_cnts = t(adjcounts[ order(-rowSums(adjcounts)),])
 
 ## So, looking just at the top bands by ppair
 #top=d[ which(d$ppairs >= mean(d$ppairs)), ]
@@ -59,10 +65,10 @@ ordered_cnts = adjcounts[ order(-rowSums(adjcounts)),]
 
 left=ordered_cnts[c('leftb2', 'leftb1'),]
 right=ordered_cnts[c('rightb1', 'rightb2'),]
-lr_ratio=abs(colSums(left)/colSums(right))
+lr_ratio=abs(log(colSums(left)/colSums(right)))
 
 colors=rainbow(nrow(ordered_cnts))
-of_bar=barplot(ordered_cnts, beside=TRUE, ylim=c(0,0.030), 
+of_bar=barplot(ordered_cnts, beside=TRUE, ylim=c(0,max(ordered_cnts)), 
         legend.text=rownames(ordered_cnts), 
         args.legend=list(x="topright", bty="n"), 
         col=colors, las=2, cex.names=0.8)

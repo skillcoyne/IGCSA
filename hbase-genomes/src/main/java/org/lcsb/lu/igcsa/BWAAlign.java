@@ -45,10 +45,13 @@ public class BWAAlign extends BWAJob
     ref.setRequired(true);
     this.addOptions( ref );
 
-
     Option reads = new Option("r", "reads", true, "Path to tsv file of read-pairs.");
     reads.setRequired(true);
     this.addOptions( reads );
+
+    Option output = new Option("o", "output", true, "Path for output");
+    output.setRequired(true);
+    this.addOptions(output);
     }
 
   public Path getOutputPath()
@@ -59,44 +62,27 @@ public class BWAAlign extends BWAJob
   private void setup() throws URISyntaxException, IOException
     {
     getConf().setBoolean(SAMOutputFormat.HEADER_OUTPUT, false);
-    Path alignOutput = new Path(Paths.ALIGN.getPath());
 
-    FileSystem fs = FileSystem.get(alignOutput.toUri(), getConf());
+    FileSystem fs = FileSystem.get(outputPath.toUri(), getConf());
 
-    if (!getJobFileSystem().getUri().toASCIIString().startsWith("hdfs"))
-      alignOutput = new Path("/tmp/" + alignOutput.toString());
-
-    if (!fs.exists(alignOutput))
-      fs.mkdirs(alignOutput);
+    if (!fs.exists(outputPath))
+      fs.mkdirs(outputPath);
 
     if (!fs.exists(readPairTSV))
       throw new IOException("Read pair TSV file does not exist: " + readPairTSV.toUri());
 
     String readPairName = readPairTSV.getName().replace(".tsv", "");
-    outputPath = new Path(new Path(alignOutput, readPairName), refGenome);
+    outputPath = new Path(new Path(outputPath, readPairName), refGenome);
     if (fs.exists(outputPath))
       fs.delete(outputPath, true);
 
     // reference
-    FileStatus[] files = fs.listStatus(referencePath, new PathFilter()
-    {
-    @Override
-    public boolean accept(Path path)
-      {
-      return (path.getName().contains(".tgz"));
-      }
-    });
-
-    referencePath = files[0].getPath();
-//    if (!getJobFileSystem().getUri().toASCIIString().startsWith("hdfs"))
-//      reference = new Path("/tmp/" + reference.toString());
-
-    if (!fs.exists(referencePath))
-      throw new IOException("Indexed reference genome does not exist: " + referencePath.toUri());
-    referencePath = referencePath.makeQualified(fs);
+//    if (!fs.isFile(referencePath))
+//      throw new IOException(referencePath + " is not a file.");
+//    referencePath = referencePath.makeQualified(fs);
 
     URI uri = new URI(referencePath.toUri().toASCIIString() + "#reference");
-    addArchive(uri);
+    addArchive(uri, true);
     }
 
   @Override
@@ -108,13 +94,21 @@ public class BWAAlign extends BWAJob
     referencePath = new Path(cl.getOptionValue("i"));
     readPairTSV = new Path(cl.getOptionValue('r'));
     refGenome =  cl.getOptionValue('n');
-
+    outputPath = new Path(cl.getOptionValue("o"));
 
     setupBWA(cl.getOptionValue('b'));
     setup();
 
+    String inputs = "Reference: " + referencePath + "\n" +
+        "Read TSV: " + readPairTSV + "\n" +
+        "Ref genome: " + refGenome + "\n" +
+        "Output path: " + outputPath + "\n";
+    log.info(inputs);
+
     // set up the job
     Job job = new Job(getConf(), "Align read pairs " + readPairTSV.getName() + " with " + refGenome);
+
+    ReadPairMapper.setReferenceName(referencePath.getName().replace(".tgz", ".fa"), job);
 
     job.setJarByClass(BWAAlign.class);
     job.setMapperClass(ReadPairMapper.class);
@@ -141,22 +135,18 @@ public class BWAAlign extends BWAJob
     BWAAlign align = new BWAAlign();
     ToolRunner.run(align, args);
 
-    for (FileStatus status : align.getJobFileSystem().listStatus(align.getOutputPath()) )
+    FileSystem fs = align.getJobFileSystem(align.getOutputPath().toUri());
+
+    for (FileStatus status : fs.listStatus(align.getOutputPath()) )
       {
       if (status.getLen() <= 0)
-        align.getJobFileSystem().delete(status.getPath(), true);
+        fs.delete(status.getPath(), true);
       }
 
-    log.info(align.getOutputPath());
-
-    // Merge the files into a single SAM
-    ToolRunner.run(new Crush(), new String[]{"--input-format=text", "--output-format=text", "--compress=none",
-        align.getOutputPath().toString(),
-        align.getOutputPath().toString() + ".sam" });
-    // drop the unmerged data
-    //align.getJobFileSystem().deleteOnExit(align.getOutputPath());
-
-    System.out.println( align.getOutputPath().toString() + ".sam" + " written.");
+    Path tmpPath = new Path("/tmp/" + System.currentTimeMillis(), "merged.sam");
+    log.info("Merge all to " + tmpPath.toString());
+    FileUtil.copyMerge(fs, align.getOutputPath(), fs, tmpPath, true, align.getConf(), "");
+    FileUtil.copy(fs, tmpPath, fs, new Path(align.getOutputPath(), "merged.sam"), true, align.getConf());
     }
 
 

@@ -14,6 +14,7 @@ import org.apache.log4j.Logger;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Arrays;
 
 
@@ -37,16 +38,14 @@ public class IndexMapper extends Mapper<LongWritable, Text, Text, Text>
   @Override
   protected void setup(Context context) throws IOException, InterruptedException
     {
-    bwa = context.getConfiguration().get("bwa.binary.path", "bwa");
+    bwa = context.getConfiguration().get("bwa.binary.path", "tools/bwa");
 
     log.info("archive SETUP: " + Arrays.toString(DistributedCache.getCacheArchives(context.getConfiguration())));
-    log.info("file SETUP: " + Arrays.toString(DistributedCache.getCacheFiles(context.getConfiguration())));
+    log.info("SYMLINK: " +  DistributedCache.getSymlink(context.getConfiguration())  );
+
     log.info("BWA: " + bwa);
 
-//    if (DistributedCache.getCacheArchives(context.getConfiguration()).length < 1 )
-//      throw new IOException("Missing bwa cache archive. Indexing failed.");
-
-//    File bwaBinary = new File(bwa);
+    //    File bwaBinary = new File(bwa);
 //    if (!bwaBinary.exists()) throw new RuntimeException("bwa binary does not exist in the cache at " + bwa);
     }
 
@@ -66,16 +65,13 @@ public class IndexMapper extends Mapper<LongWritable, Text, Text, Text>
       log.warn("BWA index already exists at " + refSrc.getParent() + " skipping indexing step.");
     else
       {
-      /**
-       * TODO This doesn't work on s3.  Need to try to use the filesystem object instead
-       */
       File tmpRefDir = new File(context.getTaskAttemptID() + "-" + key, "ref");
       tmpRefDir.mkdirs();
 
       File tmpFile = new File(tmpRefDir, refSrc.getName());
       FileUtil.copy(fs, refSrc, tmpFile, false, context.getConfiguration());
 
-      log.info(tmpFile.exists());
+      log.info(tmpFile.toString() + " exists: " + tmpFile.exists());
 
       String indexCmd = String.format("%s index %s %s", bwa, "-a bwtsw", tmpFile.getPath());
 
@@ -85,7 +81,6 @@ public class IndexMapper extends Mapper<LongWritable, Text, Text, Text>
       ByteArrayOutputStream outputOS = new ByteArrayOutputStream();
 
       // TODO need to report status periodically to keep hadoop from killing to job.
-
       int exitVal = new CommandExecution(context, errorOS, outputOS).execute(indexCmd);
 
       log.info(errorOS.toString());

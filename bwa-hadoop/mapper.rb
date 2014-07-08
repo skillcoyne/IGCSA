@@ -1,4 +1,6 @@
-require 'rubygems'
+#!/usr/bin/ruby
+
+#require 'rubygems'
 require 'fileutils'
 
 class BWAAlignment
@@ -99,7 +101,7 @@ end
 #reference = "/Users/sarah.killcoyne/Data/FASTA/tmp/GRCh37.fa"
 reference = ARGV[0]
 bwa_path = ARGV[1]
-
+#bwa_path = "/home/bin/bwa"
 
 bwaalign = BWAAlignment.new(reference, bwa_path)
 

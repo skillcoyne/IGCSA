@@ -57,3 +57,5 @@ end
 #mini_abrs(["1:3201-5800"], "/tmp/special", "PatientX")
 #bwa_index("/tmp/special", "PatientX")
 bwa_align("/tmp/special/PatientX/index", "/reads/mini.tsv")
+
+
