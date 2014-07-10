@@ -76,7 +76,7 @@ public class GenerateFullKaryotype extends BWAJob
   public void generationKaryotypeGenome(String[] args) throws Exception, ParseException
     {
     GenericOptionsParser gop = this.parseHadoopOpts(args);
-    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs());
+    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs(), this.getClass());
     if (args.length < 1)
       {
       System.err.println("Usage: " + GenerateFullKaryotype.class.getSimpleName() + " <karyotype name>");
@@ -92,7 +92,7 @@ public class GenerateFullKaryotype extends BWAJob
     GenomeResult parentGenome = admin.getGenomeTable().getGenome(karyotypeDef.getParentGenome());
     List<ChromosomeResult> chromosomes = admin.getChromosomeTable().getChromosomesFor(parentGenome.getName());
 
-    Path basePath = new Path(Paths.GENOMES.getPath()); // TODO this should probably be an arg
+    Path basePath = new Path("/karyotypes"); // TODO this should probably be an arg
     if (!getJobFileSystem().getUri().toASCIIString().startsWith("hdfs")) basePath = new Path("/tmp/" + basePath.toString());
 
     Path karyotypePath = new Path(basePath, karyotypeName);

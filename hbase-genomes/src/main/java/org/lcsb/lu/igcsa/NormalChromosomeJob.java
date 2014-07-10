@@ -3,7 +3,6 @@ package org.lcsb.lu.igcsa;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
@@ -12,15 +11,12 @@ import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.filter.*;
 import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.hadoop.hbase.util.Pair;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
-import org.lcsb.lu.igcsa.hbase.rows.SequenceRow;
-import org.lcsb.lu.igcsa.hbase.tables.Column;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.GenomeResult;
 import org.lcsb.lu.igcsa.hbase.tables.genomes.IGCSATables;
 import org.lcsb.lu.igcsa.mapreduce.FragmentPartitioner;
@@ -31,8 +27,6 @@ import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAOutputFormat;
 import org.lcsb.lu.igcsa.mapreduce.fasta.SingleChromosomeReducer;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 
 /**
@@ -76,12 +70,12 @@ public class NormalChromosomeJob extends JobIGCSA
     private Scan setup(String[] args) throws IOException, ParseException
     {
     GenericOptionsParser gop = this.parseHadoopOpts(args);
-    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs());
+    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs(), this.getClass());
 
     genomeName = cl.getOptionValue("g");
     chr = cl.getOptionValue("c");
 
-    output = new Path(new Path(new Path(cl.getOptionValue("o"), Paths.GENOMES.getPath()), genomeName), chr);
+    output = new Path(new Path(new Path(cl.getOptionValue("o"), new Path("/genomes", "normal")), genomeName), chr);
     this.checkPath(output, true);
 
     HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin(getConf());

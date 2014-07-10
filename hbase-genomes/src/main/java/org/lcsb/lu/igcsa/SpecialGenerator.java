@@ -71,7 +71,7 @@ public class SpecialGenerator
     IGCSACommandLineParser parser = IGCSACommandLineParser.getParser();
     parser.addOptions(new Option("f", "file", true, "Karyotype file"), new Option("c", "cell-line", true, "cell line name"), new Option("o", "output", true, "output directory"), new Option("b", "bands", true, "generate specific bands"));
 
-    CommandLine cl = parser.parseOptions(args);
+    CommandLine cl = parser.parseOptions(args, SpecialGenerator.class);
     if (!cl.hasOption("o") || !cl.hasOption("c"))
       {
       HelpFormatter help = new HelpFormatter();

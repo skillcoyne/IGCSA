@@ -72,7 +72,9 @@ public class BWAIndex extends BWAJob
 
     Path tmpPath = new Path("/tmp/" + System.currentTimeMillis() + "/all.fa");
     FileStatus[] fastaFiles = fs.globStatus(new Path(path, "*.{fa,fasta}"));
-    if (fastaFiles.length > 1)
+    if (fastaFiles.length <= 0)
+      throw new IOException("No fasta files in path: " + path);
+    else if (fastaFiles.length > 1)
       {
       if (FileUtil.copyMerge(fs, fastaTxt, fs, tmpPath, false, getConf(), "\n"))
         {
@@ -97,7 +99,7 @@ public class BWAIndex extends BWAJob
   public int run(String[] args) throws Exception
     {
     GenericOptionsParser gop = this.parseHadoopOpts(args);
-    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs());
+    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs(), this.getClass());
 
     Path fastaTxt = setupRefFile(new Path(cl.getOptionValue('p')));
 
@@ -107,7 +109,6 @@ public class BWAIndex extends BWAJob
 
     Job job = new Job(getConf(), "BWA Index for " + fastaTxt.getParent().toString());
     job.setJarByClass(BWAIndex.class);
-
 
     IndexMapper.setIndexArchive(FilenameUtils.getBaseName(fastaTxt.getName()), job);
 
@@ -120,16 +121,6 @@ public class BWAIndex extends BWAJob
 
     return (job.waitForCompletion(true) ? 0 : 1);
     }
-
-                           //    FileStatus[] referencePaths = fs.listStatus(path, new PathFilter()
-                           //    {
-                           //    public boolean accept(Path p)
-                           //      {
-                           //      return p.toString().matches("^.*\\.(fa|fasta)$");
-                           //      //dir = fs.getFileStatus(p).isDir();
-                           //      }
-                           //    });
-                           //    if (referencePaths.length <= 0) throw new IOException("No paths found under parent path: " + path.toString());
 
   }
 

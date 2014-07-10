@@ -1,6 +1,5 @@
 package org.lcsb.lu.igcsa;
 
-import com.m6d.filecrush.crush.Crush;
 import org.apache.commons.cli.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
@@ -25,7 +24,6 @@ import java.net.URISyntaxException;
  * Copyright University of Luxembourg, Luxembourg Centre for Systems Biomedicine 2014
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
- // NOTE: Potential problem, some runs of this have resulted in sam files that were too small, but this isn't consistent
 public class BWAAlign extends BWAJob
   {
   static Logger log = Logger.getLogger(BWAAlign.class.getName());
@@ -76,11 +74,6 @@ public class BWAAlign extends BWAJob
     if (fs.exists(outputPath))
       fs.delete(outputPath, true);
 
-    // reference
-//    if (!fs.isFile(referencePath))
-//      throw new IOException(referencePath + " is not a file.");
-//    referencePath = referencePath.makeQualified(fs);
-
     URI uri = new URI(referencePath.toUri().toASCIIString() + "#reference");
     addArchive(uri, true);
     }
@@ -89,7 +82,7 @@ public class BWAAlign extends BWAJob
   public int run(String[] args) throws Exception
     {
     GenericOptionsParser gop = this.parseHadoopOpts(args);
-    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs());
+    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs(), this.getClass());
 
     referencePath = new Path(cl.getOptionValue("i"));
     readPairTSV = new Path(cl.getOptionValue('r'));

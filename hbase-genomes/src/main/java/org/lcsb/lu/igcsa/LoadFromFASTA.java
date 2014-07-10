@@ -1,6 +1,5 @@
 package org.lcsb.lu.igcsa;
 
-import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.hadoop.conf.Configuration;
@@ -19,8 +18,6 @@ import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 
-import org.lcsb.lu.igcsa.aws.AWSProperties;
-import org.lcsb.lu.igcsa.aws.AWSUtils;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAFragmentInputFormat;
 import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAFragmentMapper;
@@ -29,9 +26,6 @@ import org.lcsb.lu.igcsa.utils.FileUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 /**
@@ -61,7 +55,7 @@ public class LoadFromFASTA extends JobIGCSA
   public int run(String[] args) throws Exception
     {
     GenericOptionsParser gop = new GenericOptionsParser(new Configuration(), args);
-    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs());
+    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs(), this.getClass());
     if (args.length < 2)
       {
       System.err.println("Usage: " + LoadFromFASTA.class.getSimpleName() + " -g <genome name> -f <directory with fasta files>");

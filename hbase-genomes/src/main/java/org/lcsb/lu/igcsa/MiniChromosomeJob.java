@@ -17,7 +17,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.ToolRunner;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
@@ -30,6 +29,7 @@ import org.lcsb.lu.igcsa.karyotype.database.util.DerbyConnection;
 import org.lcsb.lu.igcsa.karyotype.generator.Aberration;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -43,11 +43,8 @@ public class MiniChromosomeJob extends JobIGCSA
 
   public static void main(String[] args) throws Exception
     {
-    DerbyConnection conn = new DerbyConnection("org.apache.derby.jdbc.EmbeddedDriver", "jdbc:derby:classpath:karyotype_probabilities", "igcsa", "");
-    dao = conn.getKaryotypeDAO();
+    ToolRunner.run(new MiniChromosomeJob(), args);
 
-    //ToolRunner.run(new MiniChromosomeJob(), args);
-    new MiniChromosomeJob().run(args);
 
     }
 
@@ -76,6 +73,8 @@ public class MiniChromosomeJob extends JobIGCSA
     m.setRequired(true);
     this.addOptions(m);
 
+    DerbyConnection conn = new DerbyConnection("org.apache.derby.jdbc.EmbeddedDriver", "jdbc:derby:classpath:karyotype_probabilities", "igcsa", "");
+    dao = conn.getKaryotypeDAO();
     }
 
   public MiniChromosomeJob(Configuration conf)
@@ -87,7 +86,9 @@ public class MiniChromosomeJob extends JobIGCSA
   public int run(String[] args) throws Exception
     {
     GenericOptionsParser gop = this.parseHadoopOpts(args);
-    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs());
+    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs(), this.getClass());
+
+    log.info("ARGS: " + Arrays.toString(args));
 
     if (args.length < 4 || (cl.hasOption("l") && cl.hasOption("b")))
       //if (args.length < 4)
@@ -132,6 +133,11 @@ public class MiniChromosomeJob extends JobIGCSA
       {
       log.error(e);
       }
+
+
+    BWAIndex.main(new String[]{"-p", fastaOutput.getParent().toString(), "-b", cl.getOptionValue("b")});
+
+
 
     return ret;
 

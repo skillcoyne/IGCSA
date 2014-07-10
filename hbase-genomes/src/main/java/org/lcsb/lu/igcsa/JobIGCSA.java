@@ -27,25 +27,6 @@ public abstract class JobIGCSA extends Configured implements Tool
 
   public IGCSACommandLineParser parser = IGCSACommandLineParser.getParser();
 
-  public enum Paths
-    {
-      GENOMES("genomes"),
-      ALIGN("bwaalignment"),
-      TMP("tmp");
-
-    private String p;
-
-    private Paths(String p)
-      {
-      this.p = p;
-      }
-
-    public String getPath()
-      {
-      return p;
-      }
-    }
-
   public JobIGCSA(Configuration conf)
     {
     super(conf);
@@ -59,11 +40,6 @@ public abstract class JobIGCSA extends Configured implements Tool
   public FileSystem getJobFileSystem(URI uri) throws IOException
     {
     return FileSystem.get(uri, getConf());
-    }
-
-  protected Path getPath(Paths p)
-    {
-    return new Path(p.getPath());
     }
 
   protected void addArchive(URI uri)

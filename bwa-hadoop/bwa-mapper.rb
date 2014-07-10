@@ -30,11 +30,38 @@ class BWAAlignment
       end
     end
 
-    aln()
-    sampe()
+    mem()
+    # aln()
+    # sampe()
   end
 
+
+
   :private
+  def mem
+    @fastq.each_with_index do |fastq, i|
+      @sam = "#{@random}.sam"
+      cmd = "#{@bwa_path} mem -t 12 #{@ref} #{fastq} > #{@sam}"
+      $stderr.puts "Running #{cmd}"
+      #pid = fork do
+      output = `#{cmd}`
+      $stderr.puts "aln: #{output} #{$?}"
+      #end
+      #Process.waitpid(pid)
+
+      unless $?.success?
+        $stderr.puts "Failed to run alignment, error #{$?}.  #{cmd}"
+        exit(-1)
+      end
+    end
+
+    # force it to write to hdfs output
+    File.open(@sam, 'r').each_line do |line|
+      puts line
+    end
+
+  end
+
 
   def aln
     @sai = []

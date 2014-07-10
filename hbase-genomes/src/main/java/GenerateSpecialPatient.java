@@ -76,7 +76,7 @@ public class GenerateSpecialPatient
         new Option("o", "output", true, "output directory"),
         new Option("b", "bands", true, "Generate chromosome with a translocation at the given bands."));
 
-    CommandLine cl = parser.parseOptions(args);
+    CommandLine cl = parser.parseOptions(args, GenerateSpecialPatient.class);
     if (!cl.hasOption("o") || !cl.hasOption("g") || !cl.hasOption("b") || !cl.hasOption("n"))
       {
       HelpFormatter help = new HelpFormatter();

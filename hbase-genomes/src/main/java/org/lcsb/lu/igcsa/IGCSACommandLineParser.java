@@ -24,7 +24,7 @@ public class IGCSACommandLineParser extends BasicParser
 
   public static IGCSACommandLineParser getParser()
     {
-    if (clp == null)
+    //if (clp == null)
       clp = new IGCSACommandLineParser();
     return clp;
     }
@@ -48,7 +48,7 @@ public class IGCSACommandLineParser extends BasicParser
       }
     }
 
-  public CommandLine parseOptions(String[] args) throws ParseException
+  public CommandLine parseOptions(String[] args, Class currentClass) throws ParseException
     {
     CommandLine cl  = clp.parse(options, args);
 
@@ -57,7 +57,7 @@ public class IGCSACommandLineParser extends BasicParser
       {
       if (!cl.hasOption(opt.getOpt()))
         {
-        help.printHelp("Missing required option: -" + opt.getOpt() + " " + opt.getDescription(), options);
+        help.printHelp(currentClass.getSimpleName() + ":\nMissing required option: -" + opt.getOpt() + " " + opt.getDescription(), options);
         System.exit(-1);
         }
       }

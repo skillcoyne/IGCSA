@@ -16,15 +16,11 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.filter.FilterList;
 import org.lcsb.lu.igcsa.DerivativeChromosomeJob;
 import org.lcsb.lu.igcsa.IGCSACommandLineParser;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.genome.Band;
 import org.lcsb.lu.igcsa.genome.Location;
-import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
-import org.lcsb.lu.igcsa.hbase.filters.AberrationLocationFilter;
-import org.lcsb.lu.igcsa.hbase.tables.genomes.ChromosomeResult;
 import org.lcsb.lu.igcsa.karyotype.aberrations.AberrationTypes;
 import org.lcsb.lu.igcsa.karyotype.database.KaryotypeDAO;
 import org.lcsb.lu.igcsa.karyotype.database.util.DerbyConnection;
@@ -47,7 +43,7 @@ public class GenerateChromosomes
                       new Option("b", "bands", true, "comma separated band list"),
                       new Option("a", "all", false, "Include all locations before and after the provided bands. Default is false."));
 
-    CommandLine cl = parser.parseOptions(args);
+    CommandLine cl = parser.parseOptions(args, GenerateChromosomes.class);
     if (!cl.hasOption("o") || !cl.hasOption("n") || !cl.hasOption("b"))
       {
       HelpFormatter help = new HelpFormatter();

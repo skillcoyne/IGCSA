@@ -47,6 +47,7 @@
         <module>hbase-genomes</module>
         <module>hadoop-align</module>
         <module>sam-reader</module>
+        <module>pipeline</module>
     </modules>
 
     <build>

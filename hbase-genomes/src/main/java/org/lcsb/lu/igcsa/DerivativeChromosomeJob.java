@@ -34,6 +34,7 @@ import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Random;
 
 import static org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil.deleteChecksumFiles;
 
@@ -47,6 +48,7 @@ public class DerivativeChromosomeJob extends JobIGCSA
   private List<Location> filterLocations;
   private FASTAHeader header;
   private Aberration aberration;
+  private String jobId;
 
   public DerivativeChromosomeJob(Configuration conf, Scan scan, Path output, List<Location> filterLocations,
                                  Aberration aberration, FASTAHeader header)
@@ -150,12 +152,14 @@ public class DerivativeChromosomeJob extends JobIGCSA
       if (numLocs > 2) throw new RuntimeException("This should not happen: iso has more than 2 locations");
       }
 
+
     // create merged FASTA at chromosome level -- there is an issue here that it just concatenates the files which means at the merge points there are strings of different lengths.  This is an issue in samtools.
-    if (!jobFS.getUri().toASCIIString().startsWith("s3"))  // TODO try FileUtils.copyMerge
-      {
-      FASTAUtil.mergeFASTAFiles(jobFS, output.toString(), output.toString()  + ".fa");
-      jobFS.delete(output, true);
-      }
+    Path tmp = new Path("/tmp/" + String.valueOf(new Random().nextInt((int) System.currentTimeMillis())), output.toString() + ".fa");
+    if (FileUtil.copyMerge(jobFS, output, jobFS, tmp, true, getConf(), ""))
+      FileUtil.copy(jobFS, tmp, jobFS, output, true, true, getConf());
+    else
+      throw new IOException("Failed to merge files in " + output);
+    jobFS.deleteOnExit(tmp.getParent());
     }
 
 

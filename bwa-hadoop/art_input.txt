@@ -1,0 +1,1 @@
+tools/art_illumina	ref/PatientOne.fa	/genomes/kiss1/derX.fa
