@@ -6,7 +6,7 @@
  */
 
 
-package org.lcsb.lu.igcsa;
+package org.lcsb.lu.igcsa.job;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
@@ -40,12 +40,11 @@ public class MiniChromosomeJob extends JobIGCSA
 
   private List<Location> locations;
   private List<Band> bands;
+  private Path indexPath;
 
   public static void main(String[] args) throws Exception
     {
     ToolRunner.run(new MiniChromosomeJob(), args);
-
-
     }
 
 
@@ -82,6 +81,10 @@ public class MiniChromosomeJob extends JobIGCSA
     super(conf);
     }
 
+  public Path getIndexPath()
+    {
+    return indexPath;
+    }
 
   public int run(String[] args) throws Exception
     {
@@ -120,28 +123,22 @@ public class MiniChromosomeJob extends JobIGCSA
     if (fs.exists(fastaOutput))
       fs.delete(fastaOutput, true);
 
-    FASTAHeader header = new FASTAHeader(derChrName, name, "parent=" + parentGenomeName, abr.getDescription());
+    String desc = abr.getDescription() + ",bp=" + bands.get(0).getLocation().getLength();
+
+    FASTAHeader header = new FASTAHeader(derChrName, name, "parent=" + parentGenomeName, desc);
     DerivativeChromosomeJob gdc = new DerivativeChromosomeJob(new Configuration(), scan, fastaOutput, alf.getFilterLocationList(), abr, header);
-    //Job job = gdc.createJob(null);
 
     int ret = ToolRunner.run(gdc, null);
     try
       {
-      gdc.mergeOutputs(abr.getAberration(), fastaOutput, alf.getFilterLocationList().size());
+      indexPath = gdc.mergeOutputs(abr.getAberration(), fastaOutput, alf.getFilterLocationList().size());
       }
     catch (Exception e)
       {
       log.error(e);
       }
 
-
-    BWAIndex.main(new String[]{"-p", fastaOutput.getParent().toString(), "-b", cl.getOptionValue("b")});
-
-
-
     return ret;
-
-    //return (job.waitForCompletion(true) ? 0 : 1);
     }
 
   private void getLocations(CommandLine cl)

@@ -1,4 +1,4 @@
-package org.lcsb.lu.igcsa;
+package org.lcsb.lu.igcsa.job;
 
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.ParseException;

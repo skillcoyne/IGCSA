@@ -14,6 +14,8 @@ import org.apache.hadoop.util.ProgramDriver;
 import org.lcsb.lu.igcsa.generators.GenerateChromosomes;
 import org.lcsb.lu.igcsa.generators.GenerateFullGenome;
 import org.lcsb.lu.igcsa.generators.GenerateFullKaryotype;
+import org.lcsb.lu.igcsa.job.*;
+import org.lcsb.lu.igcsa.pipeline.Pipeline;
 
 
 public class MainApp
@@ -50,6 +52,8 @@ public class MainApp
 
       pgd.addClass("index", BWAIndex.class, "Index FASTA file");
       pgd.addClass("align", BWAAlign.class, "Align TSV reads");
+
+      pgd.addClass("pipeline", Pipeline.class, "Run generate/index/align/score pipeline.");
 
       pgd.addClass("SpecialGenerator", SpecialGenerator.class, "Generate special karyotypes.");
 

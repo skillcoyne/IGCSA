@@ -1,4 +1,4 @@
-package org.lcsb.lu.igcsa;
+package org.lcsb.lu.igcsa.job;
 
 import org.apache.commons.cli.*;
 import org.apache.hadoop.conf.Configuration;
@@ -11,6 +11,7 @@ import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.mapreduce.bwa.*;
+import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil;
 
 import java.io.*;
 import java.net.URI;
@@ -123,14 +124,13 @@ public class BWAAlign extends BWAJob
     return (job.waitForCompletion(true) ? 0 : 1);
     }
 
-  public static void main(String[] args) throws Exception
+  public Path mergeSAM() throws IOException
     {
-    BWAAlign align = new BWAAlign();
-    ToolRunner.run(align, args);
+    FileSystem fs = this.getJobFileSystem(this.outputPath.toUri());
 
-    FileSystem fs = align.getJobFileSystem(align.getOutputPath().toUri());
+    FASTAUtil.deleteChecksumFiles(fs, outputPath);
 
-    for (FileStatus status : fs.listStatus(align.getOutputPath()) )
+    for (FileStatus status : fs.listStatus(outputPath) )
       {
       if (status.getLen() <= 0)
         fs.delete(status.getPath(), true);
@@ -138,8 +138,21 @@ public class BWAAlign extends BWAJob
 
     Path tmpPath = new Path("/tmp/" + System.currentTimeMillis(), "merged.sam");
     log.info("Merge all to " + tmpPath.toString());
-    FileUtil.copyMerge(fs, align.getOutputPath(), fs, tmpPath, true, align.getConf(), "");
-    FileUtil.copy(fs, tmpPath, fs, new Path(align.getOutputPath(), "merged.sam"), true, align.getConf());
+
+    FileUtil.copyMerge(fs, getOutputPath(), fs, tmpPath, true, getConf(), "");
+    Path mergedSam = new Path(getOutputPath(), "merged.sam");
+    FileUtil.copy(fs, tmpPath, fs, mergedSam, true, getConf());
+    fs.delete(tmpPath.getParent(), true);
+
+    return mergedSam;
+    }
+
+
+  public static void main(String[] args) throws Exception
+    {
+    BWAAlign align = new BWAAlign();
+    ToolRunner.run(align, args);
+    align.mergeSAM();
     }
 
 

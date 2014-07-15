@@ -1,10 +1,7 @@
-package org.lcsb.lu.igcsa;
+package org.lcsb.lu.igcsa.job;
 
 import org.apache.commons.cli.*;
-import org.apache.hadoop.util.GenericOptionsParser;
-import org.apache.log4j.Logger;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 

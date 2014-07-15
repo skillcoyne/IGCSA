@@ -6,10 +6,12 @@
  */
 
 
-package org.lcsb.lu.igcsa;
+package org.lcsb.lu.igcsa.job;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.MinimalKaryotype;
+import org.lcsb.lu.igcsa.PopulationGenerator;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 
 import java.util.List;

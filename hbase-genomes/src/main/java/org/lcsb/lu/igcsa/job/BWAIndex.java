@@ -6,7 +6,7 @@
  */
 
 
-package org.lcsb.lu.igcsa;
+package org.lcsb.lu.igcsa.job;
 
 import org.apache.commons.cli.*;
 import org.apache.commons.io.FilenameUtils;
@@ -35,6 +35,7 @@ public class BWAIndex extends BWAJob
   private static final Log log = LogFactory.getLog(BWAIndex.class);
 
   private Path fastaPath;
+  private Path outputPath;
 
   public static void main(String[] args) throws Exception
     {
@@ -96,12 +97,20 @@ public class BWAIndex extends BWAJob
     return fastaTxt;
     }
 
+  public Path indexPath()
+    {
+    return new Path(outputPath, "index/all.tgz");
+    }
+
   public int run(String[] args) throws Exception
     {
     GenericOptionsParser gop = this.parseHadoopOpts(args);
     CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs(), this.getClass());
 
-    Path fastaTxt = setupRefFile(new Path(cl.getOptionValue('p')));
+    outputPath = new Path(cl.getOptionValue('p'));
+    log.info("OUTPUT PATH " + outputPath);
+
+    Path fastaTxt = setupRefFile(outputPath);
 
     log.info("Running BWAIndex on " + fastaTxt.getParent().toString());
 

@@ -6,7 +6,7 @@
  */
 
 
-package org.lcsb.lu.igcsa;
+package org.lcsb.lu.igcsa.job;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,7 +30,6 @@ import org.lcsb.lu.igcsa.genome.Location;
 import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 import org.lcsb.lu.igcsa.mapreduce.*;
 import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAOutputFormat;
-import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil;
 
 import java.io.IOException;
 import java.util.List;
@@ -116,7 +115,7 @@ public class DerivativeChromosomeJob extends JobIGCSA
 
 
   // just to clean up the main method a bit
-  public void mergeOutputs(AberrationTypes abrType, Path output, int numLocs) throws Exception
+  public Path mergeOutputs(AberrationTypes abrType, Path output, int numLocs) throws Exception
     {
     FileSystem jobFS = this.getJobFileSystem(output.toUri());
     // CRC files mess up any attempt to directly read/write from an unchanged file which means copying/moving fails too. Easiest fix
@@ -154,12 +153,17 @@ public class DerivativeChromosomeJob extends JobIGCSA
 
 
     // create merged FASTA at chromosome level -- there is an issue here that it just concatenates the files which means at the merge points there are strings of different lengths.  This is an issue in samtools.
-    Path tmp = new Path("/tmp/" + String.valueOf(new Random().nextInt((int) System.currentTimeMillis())), output.toString() + ".fa");
+    Path tmp = new Path("/tmp/" + String.valueOf(new Random().nextInt((int) System.currentTimeMillis())), output.getName() + ".fa");
+    log.info("Temp path " + tmp.toString());
+    Path newOutput = new Path(output, tmp.getName());
+    log.info("New path " + newOutput.toString());
     if (FileUtil.copyMerge(jobFS, output, jobFS, tmp, true, getConf(), ""))
-      FileUtil.copy(jobFS, tmp, jobFS, output, true, true, getConf());
+      FileUtil.copy(jobFS, tmp, jobFS, newOutput, true, true, getConf());
     else
       throw new IOException("Failed to merge files in " + output);
-    jobFS.deleteOnExit(tmp.getParent());
+    jobFS.delete(tmp.getParent(), true);
+
+    return newOutput;
     }
 
 

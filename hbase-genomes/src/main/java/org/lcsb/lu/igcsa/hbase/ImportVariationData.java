@@ -13,14 +13,12 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.IntRange;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.util.GenericOptionsParser;
-import org.lcsb.lu.igcsa.IGCSACommandLineParser;
+import org.lcsb.lu.igcsa.job.IGCSACommandLineParser;
 import org.lcsb.lu.igcsa.hbase.tables.variation.*;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;

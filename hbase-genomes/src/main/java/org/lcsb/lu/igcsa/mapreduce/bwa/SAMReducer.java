@@ -47,7 +47,7 @@ public class SAMReducer extends Reducer<Text, Text, Text, Text>
         if (!context.getConfiguration().getBoolean(SAMOutputFormat.HEADER_OUTPUT, false))
           {
           context.getConfiguration().setBoolean(SAMOutputFormat.HEADER_OUTPUT, true);
-          mos.write(key, key, "AAA");
+          mos.write(key, key, "0");
           }
         }
       else
