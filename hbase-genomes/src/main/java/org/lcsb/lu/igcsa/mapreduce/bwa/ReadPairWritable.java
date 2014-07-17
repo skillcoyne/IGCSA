@@ -19,7 +19,7 @@ public class ReadPairWritable implements WritableComparable<ReadPairWritable>
   {
   static Logger log = Logger.getLogger(ReadPairWritable.class.getName());
 
-  private long key;
+  //private long key;
 
   private String readName;
 
@@ -43,13 +43,13 @@ public class ReadPairWritable implements WritableComparable<ReadPairWritable>
     this.readSeqB = data[3];
     this.qualB = data[4];
 
-    getReadKey();
+    //getReadKey();
     }
 
   public ReadPairWritable(String readName)
     {
     this.readName = readName;
-    getReadKey();
+    //getReadKey();
     }
 
   public ReadPairWritable(String readName, String readSeqA, String readSeqB, String qualA, String qualB)
@@ -59,7 +59,7 @@ public class ReadPairWritable implements WritableComparable<ReadPairWritable>
     this.readSeqB = readSeqB;
     this.qualA = qualA;
     this.qualB = qualB;
-    getReadKey();
+    //getReadKey();
     }
 
   public void setRead(String seq, String qual, int read)
@@ -79,7 +79,7 @@ public class ReadPairWritable implements WritableComparable<ReadPairWritable>
   @Override
   public int compareTo(ReadPairWritable rpw)
     {
-    return new Long(this.key).compareTo(new Long(rpw.key));
+    return this.readName.compareTo(rpw.readName);
     }
 
   @Override
@@ -100,7 +100,7 @@ public class ReadPairWritable implements WritableComparable<ReadPairWritable>
     qualA = Text.readString(dataInput);
     readSeqB = Text.readString(dataInput);
     qualB = Text.readString(dataInput);
-    getReadKey();
+    //getReadKey();
     }
 
 
@@ -115,8 +115,8 @@ public class ReadPairWritable implements WritableComparable<ReadPairWritable>
     return str;
     }
 
-  private void getReadKey()
-    {
-    this.key = Long.parseLong(readName.substring(readName.indexOf(".")+1, readName.indexOf(" ")) );
-    }
+//  private void getReadKey()
+//    {
+//    //this.key = Long.parseLong(readName.substring(readName.indexOf(".")+1, readName.indexOf(" ")) );
+//    }
   }

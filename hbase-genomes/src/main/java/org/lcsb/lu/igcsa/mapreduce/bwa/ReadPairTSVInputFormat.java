@@ -6,6 +6,7 @@ import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.input.LineRecordReader;
 import org.apache.log4j.Logger;
 
@@ -29,6 +30,7 @@ public class ReadPairTSVInputFormat extends FileInputFormat<LongWritable, Text>
   @Override
   public RecordReader<LongWritable, Text> createRecordReader(InputSplit split, TaskAttemptContext context) throws IOException
     {
+    log.info("READING: " + ((FileSplit)split).getPath().toString() );
     return new ReadPairRecordReader();
     }
 

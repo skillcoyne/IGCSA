@@ -27,37 +27,42 @@ import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.lcsb.lu.igcsa.job.ScoreSAMJob;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 
 public class SAMScoreMapper extends Mapper<LongWritable, SAMRecordWritable, Text, IntWritable>
   {
   private static final Log log = LogFactory.getLog(SAMScoreMapper.class);
 
-  private String name;
-  private List<IntRange> alignmentLocations = new ArrayList<IntRange>();
+  private String seqName;
+  private Map<IntRange, String> alignmentLocations = new HashMap<IntRange, String>();
 
   @Override
   protected void setup(Context context) throws IOException, InterruptedException
     {
-    name = ((FileSplit)context.getInputSplit()).getPath().getName();
+    String name = ((FileSplit)context.getInputSplit()).getPath().toString();
 
-    int sequenceLength = context.getConfiguration().getInt(name + "." + ScoreSAMJob.SEQ_LEN, 0);
-    int bpLocation = context.getConfiguration().getInt(name + "." + ScoreSAMJob.BP_LOC, 0);
+    int index = -1;
+    String[] allInputs = context.getConfiguration().getStrings(ScoreSAMJob.INPUT_NAMES);
+    for (int i=0; i<allInputs.length; i++)
+      {
+      if (allInputs[i].equals(name))
+        { index = i; break; }
+      }
+    if (index < 0)
+      throw new IOException(name + " is not in the list of inputs: " + Arrays.toString(allInputs));
+
+    seqName = context.getConfiguration().get(index + "." + ScoreSAMJob.SEQ_NAME);
+    int sequenceLength = context.getConfiguration().getInt(index + "." + ScoreSAMJob.SEQ_LEN, 0);
+    int bpLocation = context.getConfiguration().getInt(index + "." + ScoreSAMJob.BP_LOC, 0);
 
     if (sequenceLength <= 0 || bpLocation <= 0)
       throw new IOException("Missing sequence length or bp location in SAM file.");
 
-    int leftSide = bpLocation/2;
-    int rightSide = (sequenceLength - bpLocation)/2;
     int mid = sequenceLength/5;
-
-    alignmentLocations.add(new IntRange(1, leftSide));
-    alignmentLocations.add(new IntRange(1 + leftSide, bpLocation));
-    alignmentLocations.add(new IntRange((bpLocation - mid), (bpLocation + mid)));
-    alignmentLocations.add(new IntRange(bpLocation, (bpLocation + rightSide)));
-    alignmentLocations.add(new IntRange((bpLocation + rightSide + 1), sequenceLength));
+    alignmentLocations.put(new IntRange(1, bpLocation), "left");
+    alignmentLocations.put(new IntRange((bpLocation - mid), (bpLocation + mid)), "mid");
+    alignmentLocations.put(new IntRange(bpLocation + 1, sequenceLength), "right");
    }
 
   @Override
@@ -66,35 +71,27 @@ public class SAMScoreMapper extends Mapper<LongWritable, SAMRecordWritable, Text
     SAMRecord record = value.getSamRecord();
 
     IntWritable count = new IntWritable(1);
+    IntWritable zero = new IntWritable(0);
 
     // total reads
-    context.getCounter(ScoreSAMJob.SAM_COUNTERS.TOTAL).increment(1);
-
+    context.write(new Text(seqName + "\tTOTAL"), count);
     // properly paired
     if (record.getProperPairFlag())
-      context.getCounter(ScoreSAMJob.SAM_COUNTERS.PROPER_PAIRS).increment(1);
+      {
+      context.write(new Text(seqName + "\tPP"), count);
+      }
+    else
+      context.write(new Text(seqName+"\tPP"), zero);
+
 
     // If paired and not a duplicate count it. Ignores MapQ
     if (record.getProperPairFlag() && record.getAlignmentStart() > 0 && !record.getDuplicateReadFlag())
       {
-      for (IntRange ir: alignmentLocations)
+      for (IntRange ir: alignmentLocations.keySet())
         {
         if (ir.containsInteger(record.getAlignmentStart()))
-          {
-          switch (alignmentLocations.indexOf(ir))
-            {
-            case 0:
-              context.write(new Text(name + ".leftb1"), count);
-            case 1:
-              context.write(new Text(name + ".leftb2"), count);
-            case 2:
-              context.write(new Text(name + ".bp"), count);
-            case 3:
-              context.write(new Text(name + ".rightb1"), count);
-            case 4:
-              context.write(new Text(name + ".rightb2"), count);
-            }
-          }
+          context.write(new Text(seqName + "\t" + alignmentLocations.get(ir)), count);
+
         }
       }
     }

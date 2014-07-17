@@ -73,8 +73,13 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
     for (String line : value.toString().split("\n"))
       {
       if (line.equals(""))
-        log.info("foo");
-      ReadPairWritable read = new ReadPairWritable(line.split("\t"));
+        continue;
+
+      String[] readInfo = line.split("\t");
+      if (readInfo.length < 5)
+        throw new IOException("Read line is missing information: " + line);
+
+      ReadPairWritable read = new ReadPairWritable(readInfo);
 
       String read1 = read.createRead(1);
       String read2 = read.createRead(2);

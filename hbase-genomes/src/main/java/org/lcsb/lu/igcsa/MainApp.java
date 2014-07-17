@@ -57,6 +57,8 @@ public class MainApp
 
       pgd.addClass("SpecialGenerator", SpecialGenerator.class, "Generate special karyotypes.");
 
+      pgd.addClass("score", ScoreSAMChain.class, "");
+
       pgd.driver(args);
       }
     catch (Throwable throwable)

@@ -11,6 +11,7 @@ package org.lcsb.lu.igcsa.mapreduce.sam;
 import net.sf.samtools.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.compress.CompressionCodec;
@@ -20,53 +21,77 @@ import org.apache.hadoop.mapreduce.*;
 
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.jruby.ext.posix.FileStat;
 import org.lcsb.lu.igcsa.job.ScoreSAMJob;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 public class SAMInputFormat extends FileInputFormat<LongWritable, SAMRecordWritable>
   {
   private static final Log log = LogFactory.getLog(SAMInputFormat.class);
 
-  public static void getSAMHeaderInformation(Job job, Path path) throws IOException
+  public static String[] addSAMInputs(Job job, Path path) throws IOException
     {
     final FileSystem fs = FileSystem.get(path.toUri(), job.getConfiguration());
 
-    List<String> samFiles = new ArrayList<String>();
-    for (FileStatus status: fs.listStatus(path, new PathFilter()
+    FileStatus[] statuses = fs.globStatus(new Path(path, "*/*"), new PathFilter()
     {
     @Override
     public boolean accept(Path path)
       {
-      if ( path.getName().endsWith(".sam") || path.getName().endsWith(".bam") )
+      if (path.getName().toString().endsWith(".sam") || path.getName().toString().endsWith("bam"))
+        {
         return true;
-
+        }
       return false;
       }
-    }))
+    });
+    if (statuses.length <=0)
+      throw new IOException("No bam/sam files in " + path.toString());
+
+    Set<String> sequenceNames = new HashSet<String>();
+    Configuration conf = job.getConfiguration();
+    List<String> samFiles = new ArrayList<String>();
+    for (int i=0; i<statuses.length; i++)
       {
-      samFiles.add(status.getPath().getName());
+      FileStatus status = statuses[i];
 
       SAMFileReader reader = new SAMFileReader(fs.open(status.getPath()));
       SAMFileHeader header = reader.getFileHeader();
 
       SAMSequenceRecord sqInfo = header.getSequenceDictionary().getSequence(0);
       int sequenceLength = sqInfo.getSequenceLength();
+
+      if (!sqInfo.getSequenceName().contains("bp="))
+        throw new IOException("No breakpoint information in the sequence name. Band scores cannot be calculated: " + sqInfo.getSequenceName());
+
       int bpLocation = Integer.parseInt(sqInfo.getSequenceName().split("bp=")[1]);
+      String name = sqInfo.getSequenceName();
 
-      job.getConfiguration().setInt( status.getPath().getName() + "." + ScoreSAMJob.SEQ_LEN, sequenceLength);
-      job.getConfiguration().setInt( status.getPath().getName() + "." + ScoreSAMJob.BP_LOC, bpLocation);
+      if (sequenceNames.contains(name))
+        log.error("A bam/sam file already exists with this sequence name, skipping: " + status.getPath());
 
-      job.getConfiguration().setInt( status.getPath().getName() + "." +  ScoreSAMJob.LEFT, bpLocation); //left
-      job.getConfiguration().setInt( status.getPath().getName() + "." + ScoreSAMJob.RIGHT, sequenceLength-bpLocation); //right
+      samFiles.add(status.getPath().toString());
+
+      conf.setInt(i + "." + ScoreSAMJob.SEQ_LEN, sequenceLength);
+      conf.setInt(i + "." + ScoreSAMJob.BP_LOC, bpLocation);
+
+      conf.setInt(i + "." + ScoreSAMJob.LEFT, bpLocation); //left
+      conf.setInt(i + "." + ScoreSAMJob.RIGHT, sequenceLength - bpLocation); //right
+
+      conf.set(i + "." + ScoreSAMJob.SEQ_NAME, name);
 
       reader.close();
+      FileInputFormat.addInputPath(job, status.getPath());
       }
 
-    job.getConfiguration().setStrings(ScoreSAMJob.INPUT_NAMES, samFiles.toArray(new String[samFiles.size()]));
+    conf.setStrings(ScoreSAMJob.INPUT_NAMES, samFiles.toArray(new String[samFiles.size()]));
+    return samFiles.toArray(new String[samFiles.size()]);
     }
 
   @Override
@@ -98,6 +123,8 @@ public class SAMInputFormat extends FileInputFormat<LongWritable, SAMRecordWrita
       {
       FileSplit split = (FileSplit) inputSplit;
       Path path = split.getPath();
+
+      log.info("Reading " + path.toString());
 
       splitEnd = split.getStart() + split.getLength();
 
@@ -152,7 +179,7 @@ public class SAMInputFormat extends FileInputFormat<LongWritable, SAMRecordWrita
       float progress = 0.0f;
       if (inputStream.getPos() > 0)
         {
-        progress = Math.min(1.0f, (float)inputStream.getPos()/splitEnd);
+        progress = Math.min(1.0f, (float) inputStream.getPos() / splitEnd);
         }
       return progress;
       }
