@@ -35,6 +35,7 @@ import org.lcsb.lu.igcsa.mapreduce.sam.SAMScoreMapper;
 import org.lcsb.lu.igcsa.mapreduce.sam.ScoreReadsReducer;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -75,6 +76,7 @@ public class ScoreSAMJob extends JobIGCSA
 
   public Path getOutputPath()
     {
+    log.info(outputPath.toString());
     return outputPath;
     }
 
@@ -89,6 +91,8 @@ public class ScoreSAMJob extends JobIGCSA
     {
     GenericOptionsParser gop = this.parseHadoopOpts(args);
     CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs(), this.getClass());
+
+    log.info(Arrays.toString(gop.getRemainingArgs()));
 
     inputPath = new Path(cl.getOptionValue("p"));
     outputPath = new Path(cl.getOptionValue("o"));
@@ -105,6 +109,7 @@ public class ScoreSAMJob extends JobIGCSA
 
     job.setInputFormatClass(SAMInputFormat.class);
     String[] samFiles = SAMInputFormat.addSAMInputs(job, inputPath);
+    log.info("Added sam files: " + Arrays.toString(samFiles));
 
     job.setReducerClass(ScoreReadsReducer.class);
 

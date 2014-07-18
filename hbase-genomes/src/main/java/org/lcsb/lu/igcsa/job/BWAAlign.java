@@ -62,7 +62,7 @@ public class BWAAlign extends BWAJob
     {
     getConf().setBoolean(SAMOutputFormat.HEADER_OUTPUT, false);
 
-    FileSystem fs = FileSystem.get(outputPath.toUri(), getConf());
+    FileSystem fs = FileSystem.get(readPairTSV.toUri(), getConf());
 
     if (!fs.exists(outputPath))
       fs.mkdirs(outputPath);
@@ -71,7 +71,7 @@ public class BWAAlign extends BWAJob
       throw new IOException("Read pair TSV file does not exist: " + readPairTSV.toUri());
 
     String readPairName = readPairTSV.getName().replace(".tsv", "");
-    outputPath = new Path(new Path(outputPath, readPairName), refGenome);
+    //outputPath = new Path(new Path(outputPath, refGenome), readPairName);
     if (fs.exists(outputPath))
       fs.delete(outputPath, true);
 
@@ -93,7 +93,7 @@ public class BWAAlign extends BWAJob
     setupBWA(cl.getOptionValue('b'));
     setup();
 
-    String inputs = "Reference: " + referencePath + "\n" +
+    String inputs = "\nReference: " + referencePath + "\n" +
         "Read TSV: " + readPairTSV + "\n" +
         "Ref genome: " + refGenome + "\n" +
         "Output path: " + outputPath + "\n";
