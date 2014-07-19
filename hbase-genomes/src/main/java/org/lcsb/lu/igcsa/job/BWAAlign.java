@@ -12,6 +12,8 @@ import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.mapreduce.bwa.*;
 import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAUtil;
+import org.lcsb.lu.igcsa.mapreduce.sam.SAMOutputFormat;
+import org.lcsb.lu.igcsa.mapreduce.sam.SAMReducer;
 
 import java.io.*;
 import java.net.URI;

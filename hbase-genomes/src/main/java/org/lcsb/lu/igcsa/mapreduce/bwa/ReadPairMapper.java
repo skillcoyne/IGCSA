@@ -2,14 +2,14 @@ package org.lcsb.lu.igcsa.mapreduce.bwa;
 
 import net.sf.samtools.*;
 
-import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 
-import org.apache.hadoop.util.StringUtils;
+import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.log4j.Logger;
+import org.lcsb.lu.igcsa.mapreduce.sam.SAMCoordinateWritable;
 
 import java.io.*;
 
@@ -24,7 +24,7 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
   {
   static Logger log = Logger.getLogger(ReadPairMapper.class.getName());
 
-  private String bwa, reference;
+  private String bwa, reference, inputFileName;
   private Context context;
 
   public static void setReferenceName(String name, Job job)
@@ -42,8 +42,7 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
     if (reference == null)
       {
       String refName = context.getConfiguration().get("reference.fasta.name", "?");
-      if (!refName.equals("?"))
-        reference = "reference/ref/" + refName;
+      if (!refName.equals("?")) reference = "reference/ref/" + refName;
       }
     log.info("reference: " + reference);
     }
@@ -57,6 +56,7 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
   protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
     {
     this.context = context;
+    inputFileName = ((FileSplit) context.getInputSplit()).getPath().toString();
 
     File sam = new File(baseFileName(key) + ".sam");
     File fastqA = new File(baseFileName(key) + ".1.fastq");
@@ -72,12 +72,10 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
     int counter = 0;
     for (String line : value.toString().split("\n"))
       {
-      if (line.equals(""))
-        continue;
+      if (line.equals("")) continue;
 
       String[] readInfo = line.split("\t");
-      if (readInfo.length < 5)
-        throw new IOException("Read line is missing information: " + line);
+      if (readInfo.length < 5) throw new IOException("Read line is missing information: " + line);
 
       ReadPairWritable read = new ReadPairWritable(readInfo);
 
@@ -94,8 +92,8 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
     tmpWriter2.close();
     log.info(counter + " reads output to " + fastqA + ", " + fastqB);
 
-    if (runAlignment(new File[]{fastqA, fastqB}, sam))
-      outputSAM(sam);
+
+    if (runAlignment(new File[]{fastqA, fastqB}, sam)) outputSAM(sam);
 
     fastqA.delete();
     fastqB.delete();
@@ -116,11 +114,17 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
     String line;
     while ((line = bufferedReader.readLine()) != null)
       {
-      if (line.startsWith("@"))
-        continue;
+      if (line.startsWith("@")) continue;
 
-      SAMCoordinateWritable samWritable = new SAMCoordinateWritable(line);
-      context.write(new Text(samWritable.getRFName()), new Text(line + "\n"));
+      try
+        {
+        SAMCoordinateWritable samWritable = new SAMCoordinateWritable(line);
+        context.write(new Text(samWritable.getRFName()), new Text(line + "\n"));
+        }
+      catch (IOException ioe)
+        {
+        log.error(inputFileName + " " + ioe.getMessage());
+        }
       }
     bufferedReader.close();
     }
@@ -134,12 +138,10 @@ public class ReadPairMapper extends Mapper<LongWritable, Text, Text, Text>
     ByteArrayOutputStream errorOS = new ByteArrayOutputStream();
     int exitVal = new CommandExecution(context, errorOS, new FileOutputStream(sam)).execute(bwaAln);
 
-    if (errorOS.toString().contains("fail"))
-      throw new IOException("Failed to align: " + errorOS.toString());
+    if (errorOS.toString().contains("fail")) throw new IOException("Failed to align: " + errorOS.toString());
 
     // this isn't necessarily wrong, esp when trying to align against derivatives
-    if (exitVal > 0)
-      log.warn("BWA ALIGN failed: " + errorOS.toString() + "\t" + bwaAln);
+    if (exitVal > 0) log.warn("BWA ALIGN failed: " + errorOS.toString() + "\t" + bwaAln);
 
     return (sam.length() > 64);
     }

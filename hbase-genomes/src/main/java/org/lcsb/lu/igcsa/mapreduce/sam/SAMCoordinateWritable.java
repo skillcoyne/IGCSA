@@ -1,7 +1,6 @@
-package org.lcsb.lu.igcsa.mapreduce.bwa;
+package org.lcsb.lu.igcsa.mapreduce.sam;
 
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.WritableComparable;
 import org.apache.log4j.Logger;
 
 import java.io.DataInput;
@@ -29,11 +28,11 @@ public class SAMCoordinateWritable extends SAMWritable
     this.section = Section.RECORD;
     }
 
-  public SAMCoordinateWritable(String toParse)
+  public SAMCoordinateWritable(String toParse) throws IOException
     {
     String[] cols = toParse.split("\t");
     if (cols.length < 11)
-      throw new RuntimeException("Missing columns in SAM record: " + toParse);
+      throw new IOException("Missing columns in SAM record: " + toParse);
 
     this.leftCoordinate = Long.parseLong(cols[3]);
     this.rfname = cols[2].trim();

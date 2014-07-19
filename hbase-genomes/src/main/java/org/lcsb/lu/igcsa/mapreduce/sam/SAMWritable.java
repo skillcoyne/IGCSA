@@ -1,4 +1,4 @@
-package org.lcsb.lu.igcsa.mapreduce.bwa;
+package org.lcsb.lu.igcsa.mapreduce.sam;
 
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.log4j.Logger;
