@@ -66,9 +66,6 @@ public class BWAAlign extends BWAJob
 
     FileSystem fs = FileSystem.get(readPairTSV.toUri(), getConf());
 
-    if (!fs.exists(outputPath))
-      fs.mkdirs(outputPath);
-
     if (!fs.exists(readPairTSV))
       throw new IOException("Read pair TSV file does not exist: " + readPairTSV.toUri());
 
@@ -130,13 +127,15 @@ public class BWAAlign extends BWAJob
     {
     FileSystem fs = this.getJobFileSystem(this.outputPath.toUri());
 
-    FASTAUtil.deleteChecksumFiles(fs, outputPath);
+    log.info("FILESYSTEM URI: " + fs.getUri().toString());
 
-    for (FileStatus status : fs.listStatus(outputPath) )
-      {
-      if (status.getLen() <= 0)
-        fs.delete(status.getPath(), true);
-      }
+//    FASTAUtil.deleteChecksumFiles(fs, outputPath);
+//
+//    for (FileStatus status : fs.listStatus(outputPath) )
+//      {
+//      if (status.getLen() <= 0)
+//        fs.delete(status.getPath(), true);
+//      }
 
     Path tmpPath = new Path("/tmp/" + System.currentTimeMillis(), "merged.sam");
     log.info("Merge all to " + tmpPath.toString());

@@ -61,27 +61,28 @@ public class Pipeline
       //String fastaPath = "/output/minichrs/" + genomeName + "/" + bands.replace(",","-") + "/index/all.tgz";
       log.info("FASTA index file at " + fastaPath);
 
-      aligned = alignReads(bwaPath, fastaPath, readPath, genomeName, "/output/aligned/" + genomeName + "/" + bands.replace(',', '-') );
+      aligned = alignReads(bwaPath, fastaPath, readPath, genomeName, "s3n://insilico/output/aligned/" + genomeName + "/" + bands.replace(',', '-') );
       log.info("Aligned reads written to " + aligned);
       }
     if (aligned != null)
       {
-      String scores = scoreReads("/output/aligned/" + genomeName, "/scoring/" + genomeName);
+      String scores = scoreReads("s3n://output/aligned/" + genomeName, "s3n://scoring/" + genomeName);
       log.info("Scores in " + scores);
       }
     }
 
   private static List<BandGenerator.Candidate> selectBands(String... chrs) throws ProbabilityException, IOException
     {
+    int max = 2;
     BandGenerator bg = new BandGenerator();
     bg.run(chrs[0], chrs[1]);
     log.info(bg.getCandidates().size());
 
     List<BandGenerator.Candidate> candidateList;
-    if (bg.getCandidates().size() <= 2)
+    if (bg.getCandidates().size() <= max)
       candidateList = bg.getCandidates();
     else
-      candidateList = bg.getTopCandidates(2);
+      candidateList = bg.getTopCandidates(max);
 
       return candidateList;
 //    List<String> bandList = new ArrayList<String>();

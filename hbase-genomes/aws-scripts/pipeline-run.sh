@@ -57,8 +57,8 @@ HBASE="--hbase --bootstrap-action s3://eu-west-1.elasticmapreduce/bootstrap-acti
 ruby $EMR_HOME/elastic-mapreduce --create --region eu-west-1 --name "Score pipeline" --ami-version 2.4.2  --enable-debugging --log-uri s3://${BUCKET}/logs \
 --set-termination-protection false --key-pair amazonkeypair $MASTER $CORE $TASK $HBASE \
 --jar $JAR --args hbaseutil,-d,s3n://${BUCKET}/hbase,-c,IMPORT --arg "-t" --arg "genome,chromosome,sequence,small_mutations" --step-action TERMINATE_JOB_FLOW --step-name "IMPORT genome db" \
---jar $JAR --args pipeline,Run1,"1p36,10p12;1p36,10p13;1p36,10p15",s3n://${BUCKET}/tools/bwa.tgz,s3n://${BUCKET}/output/pipeline,s3n://${BUCKET}/reads/HCC1954 \
---step-action CANCEL_AND_WAIT --step-name "Run pipeline"
+--jar $JAR --arg pipeline --arg Run1 --arg "17,21" --args s3n://${BUCKET}/tools/bwa.tgz,s3n://${BUCKET}/output/pipeline,s3n://${BUCKET}/reads/HCC1954 \
+--step-action TERMINATE_JOB_FLOW --step-name "Run pipeline"
 
 
 #regex='(j-[A-Z0-9]+)'

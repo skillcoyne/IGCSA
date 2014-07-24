@@ -12,38 +12,72 @@
     <artifactId>sam-reader</artifactId>
 
     <dependencies>
-        <dependency>
-            <groupId>net.sf</groupId>
-            <artifactId>samtools</artifactId>
-            <version>1.112</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/sam-1.112.jar</systemPath>
-        </dependency>
-
-        <dependency>
-            <groupId>net.sf</groupId>
-            <artifactId>picard</artifactId>
-            <version>1.112</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/picard-1.112.jar</systemPath>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>net.sf</groupId>-->
+            <!--<artifactId>samtools</artifactId>-->
+            <!--<version>1.112</version>-->
+            <!--<scope>system</scope>-->
+            <!--<systemPath>${project.basedir}/lib/sam-1.112.jar</systemPath>-->
+        <!--</dependency>-->
 
         <!--<dependency>-->
-            <!--<groupId>${project.groupId}</groupId>-->
-            <!--<artifactId>hbase-genomes</artifactId>-->
-            <!--<version>${project.version}</version>-->
+            <!--<groupId>net.sf</groupId>-->
+            <!--<artifactId>picard</artifactId>-->
+            <!--<version>1.112</version>-->
+            <!--<scope>system</scope>-->
+            <!--<systemPath>${project.basedir}/lib/picard-1.112.jar</systemPath>-->
         <!--</dependency>-->
+
+        <dependency>
+            <groupId>org.utgenome.thirdparty</groupId>
+            <artifactId>picard</artifactId>
+            <version>1.86.0</version>
+        </dependency>
+
 
     </dependencies>
 
+    <build>
+        <finalName>samfilter</finalName>
 
-    <!--<repositories>-->
-        <!--<repository>-->
-            <!--<id>project.module.local</id>-->
-            <!--<name>sam-reader-lib</name>-->
-            <!--<url>file:${project.basedir}/lib</url>-->
-        <!--</repository>-->
-    <!--</repositories>-->
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>create-executable-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <finalName>${project.build.finalName}</finalName>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <attach>false</attach>
+                            <archive>
+                                <manifest>
+                                    <mainClass>SAMFilter</mainClass>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+
+
+    <repositories>
+        <repository>
+            <id>project.module.local</id>
+            <name>sam-reader-lib</name>
+            <url>file:${project.basedir}/lib</url>
+        </repository>
+    </repositories>
 
 
 </project>

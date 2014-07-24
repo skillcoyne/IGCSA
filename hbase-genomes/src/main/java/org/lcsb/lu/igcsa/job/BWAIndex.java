@@ -110,6 +110,13 @@ public class BWAIndex extends BWAJob
     outputPath = new Path(cl.getOptionValue('p'));
     log.info("OUTPUT PATH " + outputPath);
 
+    FileSystem fs = FileSystem.get(outputPath.toUri(), getConf());
+    if (fs.exists(new Path(outputPath, "index/all.tgz")))
+      {
+      log.info("Index exists for " + outputPath.toString() + " skipping.");
+      return 1;
+      }
+
     Path fastaTxt = setupRefFile(outputPath);
 
     log.info("Running BWAIndex on " + fastaTxt.getParent().toString());

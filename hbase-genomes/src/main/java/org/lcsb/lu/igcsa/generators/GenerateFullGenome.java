@@ -99,7 +99,7 @@ public class GenerateFullGenome extends JobIGCSA
     if (cl.hasOption("b"))
       {
       Path tmp = BWAIndex.writeReferencePointerFile(mergedFasta, getJobFileSystem(mergedFasta.toUri()));
-      ToolRunner.run(new BWAIndex(), (String[]) ArrayUtils.addAll(args, new String[]{"-f", tmp.toString()}));
+      ToolRunner.run(new BWAIndex(), (String[]) ArrayUtils.addAll(args, new String[]{"-p", tmp.toString()}));
       getJobFileSystem(tmp.toUri()).delete(tmp, true);
       }
 

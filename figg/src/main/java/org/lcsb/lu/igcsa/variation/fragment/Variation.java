@@ -57,7 +57,12 @@ public abstract class Variation
 
       if (sizeVariation.getProbabilities().higherEntry(lastRoll.getKey()) != null)
         min = (Integer) sizeVariation.getProbabilities().higherEntry(lastRoll.getKey()).getValue();
-
+      if (min < 0)
+        {
+        log.info(min);
+        log.info(sizeVariation);
+        min = 0;
+        }
       //if (sizeVariation.getRawProbabilities().lowerKey(max) != null)
         //min = (Integer) sizeVariation.getRawProbabilities().lowerKey(max);
 

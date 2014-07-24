@@ -120,8 +120,13 @@ public class MiniChromosomeJob extends JobIGCSA
     FileSystem fs = FileSystem.get(outputDir.toUri(), new Configuration());
     Path outputPath = new Path(outputDir, name);
     Path fastaOutput = new Path(outputPath, derChrName);
-    if (fs.exists(fastaOutput))
-      fs.delete(fastaOutput, true);
+    if (fs.exists(fastaOutput) && fs.exists(new Path(fastaOutput, fastaOutput.getName() + ".fa")))
+      {
+      log.info(fastaOutput + " exists, skipping.");
+      indexPath = new Path(fastaOutput, fastaOutput.getName() + ".fa");
+      return 1;
+      //fs.delete(fastaOutput, true);
+      }
 
     String desc = abr.getDescription() + ",bp=" + bands.get(0).getLocation().getLength();
 
