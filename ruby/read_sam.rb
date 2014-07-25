@@ -65,6 +65,11 @@ class Alignment
   attr_reader :read_name, :flag, :ref_name, :read_pos, :mapq, :cigar, :mate_ref, :mate_pos, :tlen, :seq, :phred, :tags
 
   def initialize(line)
+    if line.split("\t").length < 12
+      $stderr.puts "This may not be a SAM record: #{line}"
+      return nil
+    end
+
     (@read_name, flag, @ref_name, read_pos, mapq, @cigar, @mate_ref, mate_pos, tlen, @seq, @phred, @tags) = line.split("\t")
 
     @flag = flag.to_i
@@ -109,28 +114,25 @@ class Alignment
 end
 
 
-#sam="/Volumes/exHD-Killcoyne/TCGA/sequence/cell-line/HCC1954.G31860/disc-only.sam"
+outdir = "#{ARGV[0]}/depth"
+puts outdir
 
-dir = "#{File.dirname(sam)}/disc_depth"
-if Dir.exists? dir
-  FileUtils.rmtree(dir)
-  FileUtils.mkpath(dir)
-end
-
-seqs = Hash.new
-
-
-file = ARGV[0]
-file = sam
+FileUtils.rmtree(outdir) if Dir.exists? outdir
+FileUtils.mkpath(outdir)
 
 count = 0
-reader = SimpleSAMReader.new(file)
-while algn = reader.read
-  unless algn.is_same_chromosome?
-    File.open("#{dir}/#{algn.ref_name}.reads", 'a') { |f|
+
+$stdin.each do |line|
+  print "." if count%10000 == 0
+  print "\n" if count%1000000 == 0
+
+  algn = Alignment.new(line.chomp)
+  unless !algn.nil? and algn.is_same_chromosome?
+    File.open("#{outdir}/chr#{algn.ref_name}.reads", 'a') { |f|
       f.puts [algn.read_name, algn.ref_name, algn.read_pos, algn.mate_ref, algn.mate_pos].join("\t")
     }
   end
+  count += 1
 end
 puts count
 
