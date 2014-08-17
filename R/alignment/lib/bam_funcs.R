@@ -17,30 +17,34 @@ read_alignment<-function(brg)  # takes bamRange
 {
   rewind(brg)
   pp = vector(mode="integer")
-  dc = vector(mode="integer")
+  ic = vector(mode="integer")
+  dc = vector(mode="character")
   
   align <- getNextAlign(brg)
   while(!is.null(align))
   {
-    if (!unmapped(align) & !mateUnmapped(align) & insertSize(align) != 0) 
-    {
+    if (!unmapped(align) & !mateUnmapped(align) ) 
+      {
       #message( paste(name(align), position(align), sep=" ") )
       
       if ( paired(align) & !failedQC(align) & !pcrORopt_duplicate(align) )
-      {
+        {
         if (properPair(align) & !secondaryAlign(align))  
           pp = append( pp, abs(insertSize(align)) )
-        else if ( refID(align) == mateRefID(align) ) 
-          dc = append( dc, abs(insertSize(align)) ) # inter-chr
+        else if ( refID(align) == mateRefID(align) && insertSize(align) != 0) 
+          ic = append( ic, abs(insertSize(align)) ) # inter-chr
+        else if ( refID(align) != mateRefID(align) )
+          dc = append( dc, mateRefID(align) ) # inter-chr
+        }
       }
-    }
     align = getNextAlign(brg)
+    }
+  return( list("ppair" = pp, "disc" = dc, "inter" = ic)  )
   }
-  return( list("ppair" = pp, "disc" = dc)  )
-}
 
 sample_alignments<-function(rdr, coords, window=5000)
 {
+  if (is.list(coords)) coords = unlist(coords)
   start = sample( c(coords[2]:coords[3]), 1)
   end = start+window
   range = bamRange(rdr, c(coords[1], start, end) )
@@ -76,8 +80,8 @@ run_test<-function(iters=10, reader, coords, window=5000)
       extremes = c(extremes, outliers)
     }
     
-    counts[i,] = c( length(na.omit(aln$ppair)), length(na.omit(aln$disc)) )
-    means[i,] = c(mean(aln$ppair), sd(aln$ppair), mean(extremes), sd(extremes), mean(aln$disc), sd(aln$disc)   )  
+    counts[i,] = c( length(na.omit(aln$ppair)), length(na.omit(aln$inter)) )
+    means[i,] = c(mean(aln$ppair), sd(aln$ppair), mean(extremes), sd(extremes), mean(aln$inter), sd(aln$inter)   )  
     #print(means)
   }
   return( list("means" = means, "counts" = counts) )
