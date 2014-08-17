@@ -23,7 +23,7 @@ load_files<-function(files, dir)
 args <- commandArgs(trailingOnly = TRUE)
 print(args)
 
-args = c("/Volumes/exHD-Killcoyne/TCGA/sequence/patients/0a2475da-42bb-4adb-b86c-5492511e09f1/foo.bam")
+#args = c("/Volumes/exHD-Killcoyne/TCGA/sequence/patients/0a2475da-42bb-4adb-b86c-5492511e09f1/foo.bam")
 
 print(getwd())
 
@@ -48,11 +48,9 @@ for (bam in args)
   rdata_dirs = append(rdata_dirs, current_dir)
   
   referenceData = referenceData[ grep("^(chr)?(\\d+|Y|X)$", as.vector(referenceData$SN), perl=T ), ]
-  print(referenceData)
-
-  chr_id =  grep("^(chr)?1$", referenceData$SN)
-
-  print( referenceData[chr_id,] )
+  for (i in 1:nrow(referenceData))
+    {
+    chr_id = referenceData[i,]
 
   print("Centromeres")
   cm = range(get_band_range(bands, referenceData[chr_id,'SN'], c('p11','q11'))[,c('start','end')])
@@ -75,10 +73,12 @@ for (bam in args)
     
     print(nrow(means))
     }
-  save(means, file=paste(current_dir, "band_means.RData", sep="/"))
+  
+  filename = paste(chr_id$SN, "band_means.RData", sep=".")
+  save(means, file=paste(current_dir, filename, sep="/"))
 
   rm(means, counts)
-  
+  }
   bamClose(reader)
   }
 
