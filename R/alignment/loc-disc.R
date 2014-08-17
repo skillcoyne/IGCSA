@@ -7,18 +7,24 @@ get_sampling_range<-function(rdr, coords, window=5000)
   if (class(rdr)[1] != "bamReader")
     stop("First argument should be a bamReader object")
   
+#  rg = bamRange(rdr, coords ) 
+#  print(rg)
+#  print(size(rg))
+#  stop("")
+  
   start = as.integer(sample( c(coords[2]:coords[3]), 1))
   end = as.integer(start+window)
   range = bamRange(rdr, c(as.numeric(coords[1]), start, end) )
   
-  iters = 1;
-  while (size(range) <= 500) #probably that's even too small
-    {
-    start = sample( c(coords[2]:coords[3]), 1)
-    end = start+window
-    range = bamRange(rdr, c(coords[1], start, end) )
-    iters = iters+1
-    }
+#  iters = 1;
+#  while (size(range) <= 100) #probably that's even too small
+#    {
+#    start = sample( c(coords[2]:coords[3]), 1)
+#    end = start+window
+#    range = bamRange(rdr, c(coords[1], start, end) )
+#    iters = iters+1
+#print(paste("range size ", size(range), sep="  "))
+#  }
 
   return(range)
   }
@@ -29,12 +35,17 @@ disc_locations<-function(rng)
     stop("First argument should be a bamRange object")
   
 	dlocs = matrix(ncol=4,nrow=0, dimnames=list(c(), c('start','mate.refid','mate.pos','length')))
+  if (size(rng) <= 0) return(dlocs)
+  
+  
   rewind(rng)
   if (size(rv) > 0) 
     {
 	  align = getNextAlign(rng)
     while(!is.null(align))
-		  {
+		  {  			    
+      message( align )
+
 		  if (!unmapped(align) & !mateUnmapped(align) & insertSize(align) != 0)
 			  {
 		  	#message( paste(name(align), position(align), sep=" ") )
@@ -43,6 +54,7 @@ disc_locations<-function(rng)
 				  {
 				  if (!properPair(align) )
 				    {
+				    message( paste(name(align), position(align), sep=" ") )
             dlocs = rbind(dlocs, c(position(align), mateRefID(align), matePosition(align),insertSize(align)))
 				    }
 				  }
@@ -80,6 +92,16 @@ load.index(reader, bai)
 rfd = getRefData(reader)
 chr = rfd[1,]
 
+## test range
+#chr 1 128900001-142600000
+
+#rv = bamRange(reader, c(chr$ID, 128900001, 142600000))
+#print(rv)
+#dl = disc_locations(rv)
+#print(dl)
+
+arms = arms[arms$band == 'q12',]
+
 coords_l = sapply(arms$band, function(b){
   coords = c(chr$ID, range(get_band_range(bands, chr$SN, b)[c('start','end')]))
   range_iters = round(((coords[3]-coords[2])/5000)/100)
@@ -93,15 +115,18 @@ for (i in 1:length(coords_l))
   coords = xic[2:4]
 
   print( paste("chr", rfd[rfd$ID == coords[1], 'SN'], paste(coords[2], coords[3], sep="-"),sep=" ") )
-  
+
   range_vector = vector(mode="complex")
   # avoid reusing range
   for (j in 1:iters)
     {
+    print(j)
     range = get_sampling_range(reader, coords, 10000)
-  
     if (length(range_vector) > 0)
       {
+      print(range)
+      print(range_vector)
+      
       while ( (length(range_vector[sapply( range_vector, function(x) getAlignRange(range)[1]>=getAlignRange(x)[1] & getAlignRange(range)[1]<=getAlignRange(x)[2] )]) +
              length(range_vector[sapply( range_vector, function(x) getAlignRange(range)[2]>=getAlignRange(x)[1] & getAlignRange(range)[2]<=getAlignRange(x)[2] )])) > 0 )
         { range = get_sampling_range(reader, coords, 10000) }
