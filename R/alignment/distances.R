@@ -84,7 +84,7 @@ for (bam in args)
     print("Centromeres")
     cm = range(get_band_range(bands, chr_id['SN'], c('p11','q11'))[,c('start','end')])
     centromere = c(chr_id['ID'],cm)
-    
+    range = bamRange(reader, unlist(centromere))
     filename = paste("centromere_dist", chr_id['SN'], "txt", sep=".")
     distances = read_disc_alignment(range)
     

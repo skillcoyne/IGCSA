@@ -111,14 +111,23 @@ class Alignment
     (@flag & 1024) == 1024
   end
 
+  def is_secondary?
+    (@flag & 256) == 256
+  end
+
 end
 
 
-outdir = "#{ARGV[0]}/depth"
+outdir = "#{ARGV[0]}/dist"
 puts outdir
 
 FileUtils.rmtree(outdir) if Dir.exists? outdir
 FileUtils.mkpath(outdir)
+
+File.open("#{outdir}/disc.reads", 'a') {|f|
+  f.puts ["ref", "pos", "mate", "mate.pos"].join('\t')
+}
+
 
 count = 0
 
@@ -127,11 +136,25 @@ $stdin.each do |line|
   print "\n" if count%1000000 == 0
 
   algn = Alignment.new(line.chomp)
-  unless !algn.nil? and algn.is_same_chromosome?
-    File.open("#{outdir}/chr#{algn.ref_name}.reads", 'a') { |f|
-      f.puts [algn.read_name, algn.ref_name, algn.read_pos, algn.mate_ref, algn.mate_pos].join("\t")
-    }
+
+  unless align.nil?
+
+    if align.read_paired? and !align.is_dup?
+
+      if algn.is_same_chromosome?
+        File.open("#{outdir}/chr#{algn.ref_name}.reads", 'a') {|f|
+          f.puts tlen.abs
+        }
+      else
+        File.open("#{outdir}/disc.reads", 'a') {|f|
+          f.puts [algn.ref_name, algn.read_pos,  algn.mate_ref, algn.mate_pos].join("\t")
+        }
+      end
+
+    end
+
   end
+
   count += 1
 end
 puts count
