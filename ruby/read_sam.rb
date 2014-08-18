@@ -123,15 +123,55 @@ class Alignment
 
 end
 
+class Bands
 
-if ARGV.length <=0
-  $stderr.puts "Output directory missing."
-  exit(1)
+  def initialize(file)
+    @chr_hash = Hash.new
+
+    File.open(file, 'r').each_line do |line|
+      line.chomp!
+
+      next if line.start_with?'chr'
+
+      (chr, band, pstart, pend)  = line.split("\t")[0..3]
+
+      @chr_hash[chr] = Hash.new unless @chr_hash.has_key?chr
+
+      @chr_hash[chr][band] = Range.new( pstart.to_i, pend.to_i )
+
+    end
+
+    def get_band(chr, loc)
+      chrms = @chr_hash[chr]
+
+      chrms.each_pair do |band, range|
+        return band if range.include?(loc)
+      end
+    end
+
+    def in_centromere?(chr, loc)
+      band = get_band(chr, loc)
+      return band =~ /(p|q)(11|12)/
+    end
+
+  end
 end
+
+
+# if ARGV.length <=0
+#   $stderr.puts "Usage: #{$0} <output dir> <band text file>"
+#   exit(1)
+# end
+
+
+band_file = ARGV[1]
+#band_file = "/Users/sarah.killcoyne/workspace/IGCSA/R/alignment/band_genes.txt"
+bands = Bands.new(band_file)
 
 
 outdir = "#{ARGV[0]}/dist"
 puts outdir
+
 
 FileUtils.rmtree(outdir) if Dir.exists? outdir
 FileUtils.mkpath(outdir)
@@ -156,8 +196,10 @@ $stdin.each do |line|
     if align.read_paired? and !align.is_dup? and !align.proper_pair?
 
       if align.is_same_chromosome?
+        ca = (bands.in_centromere?(align.ref_name, align.read_pos))? "centromere": "arm"
+
         File.open("#{outdir}/chr#{align.ref_name}.reads", 'a') {|f|
-          f.puts align.tlen.abs
+          f.puts [align.tlen.abs, ca].join("\t")
         }
       else
         File.open("#{outdir}/disc.reads", 'a') {|f|
