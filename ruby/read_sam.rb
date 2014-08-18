@@ -149,19 +149,19 @@ $stdin.each do |line|
 
   next if line.start_with? "@"
 
-  algn = Alignment.new(line.chomp)
+  align = Alignment.new(line.chomp)
 
   unless align.nil?
 
     if align.read_paired? and !align.is_dup? and !align.proper_pair?
 
-      if algn.is_same_chromosome?
-        File.open("#{outdir}/chr#{algn.ref_name}.reads", 'a') {|f|
-          f.puts tlen.abs
+      if align.is_same_chromosome?
+        File.open("#{outdir}/chr#{align.ref_name}.reads", 'a') {|f|
+          f.puts align.tlen.abs
         }
       else
         File.open("#{outdir}/disc.reads", 'a') {|f|
-          f.puts [algn.ref_name, algn.read_pos,  algn.mate_ref, algn.mate_pos].join("\t")
+          f.puts [align.ref_name, align.read_pos,  align.mate_ref, align.mate_pos].join("\t")
         }
       end
 
