@@ -194,15 +194,15 @@ $stdin.each do |line|
   unless align.nil?
 
     if align.read_paired? and !align.is_dup? and !align.proper_pair?
+      ca = (bands.in_centromere?(align.ref_name, align.read_pos))? "cent": "arm"
 
       if align.is_same_chromosome?
-        ca = (bands.in_centromere?(align.ref_name, align.read_pos))? "centromere": "arm"
 
-        File.open("#{outdir}/chr#{align.ref_name}.reads", 'a') {|f|
-          f.puts [align.tlen.abs, ca].join("\t")
+        File.open("#{outdir}/chr#{align.ref_name}.#{ca}.reads", 'a') {|f|
+          f.puts align.tlen.abs
         }
       else
-        File.open("#{outdir}/disc.reads", 'a') {|f|
+        File.open("#{outdir}/disc.#{ca}.reads", 'a') {|f|
           f.puts [align.ref_name, align.read_pos,  align.mate_ref, align.mate_pos].join("\t")
         }
       end

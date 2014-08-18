@@ -52,6 +52,7 @@ args <- commandArgs(trailingOnly = TRUE)
 print(args)
 
 #args = c('/Volumes/Spark/Data/TCGA/sequence/HCC1954.G31860/chr17.bam')
+args = c('/Volumes/exHD-Killcoyne/TCGA/sequence/cell_lines/HCC1954.G31860/G31860.HCC1954.6.bam')
 
 print(getwd())
 
@@ -105,7 +106,7 @@ for (bam in args)
       }
   
     }
-    bamClose(reader)
-    }
+  bamClose(reader)
+  }
 
 
