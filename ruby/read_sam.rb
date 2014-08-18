@@ -153,7 +153,7 @@ $stdin.each do |line|
 
   unless align.nil?
 
-    if align.read_paired? and !align.is_dup?
+    if align.read_paired? and !align.is_dup? and !align.proper_pair?
 
       if algn.is_same_chromosome?
         File.open("#{outdir}/chr#{algn.ref_name}.reads", 'a') {|f|
