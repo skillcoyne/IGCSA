@@ -77,6 +77,8 @@ class Alignment
     @mapq = mapq.to_i
     @mate_pos = mate_pos.to_i
     @tlen = tlen.to_i
+
+    @mate_ref = @ref_name if @mate_ref.eql? "="
   end
 
   def is_same_chromosome?
@@ -111,10 +113,20 @@ class Alignment
     (@flag & 1024) == 1024
   end
 
+  def orientation
+    return {:read => (read_reversed?) ? "F" : "R", :mate => (mate_reversed?) ? "F" : "R"}
+  end
+
   def is_secondary?
     (@flag & 256) == 256
   end
 
+end
+
+
+if ARGV.length <=0
+  $stderr.puts "Output directory missing."
+  exit(1)
 end
 
 
@@ -125,7 +137,7 @@ FileUtils.rmtree(outdir) if Dir.exists? outdir
 FileUtils.mkpath(outdir)
 
 File.open("#{outdir}/disc.reads", 'a') {|f|
-  f.puts ["ref", "pos", "mate", "mate.pos"].join('\t')
+  f.puts ["ref", "pos", "mate", "mate.pos"].join("\t")
 }
 
 
@@ -134,6 +146,8 @@ count = 0
 $stdin.each do |line|
   print "." if count%10000 == 0
   print "\n" if count%1000000 == 0
+
+  next if line.start_with? "@"
 
   algn = Alignment.new(line.chomp)
 
