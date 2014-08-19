@@ -80,9 +80,9 @@ class Alignment
 
     @cigar_totals = Hash.new
     codes = @cigar.split(/[0-9]+/).reject(&:empty?)
-    size =  @cigar.split(/[MIDNSHPX=]/)
+    size = @cigar.split(/[MIDNSHPX=]/)
     codes.each_with_index do |c, i|
-      @cigar_totals[c] = 0 unless @cigar_totals.has_key?c
+      @cigar_totals[c] = 0 unless @cigar_totals.has_key? c
 
       @cigar_totals[c] += size[i].to_i
     end
@@ -106,7 +106,7 @@ class Alignment
 
   def cigar_to_s
     codes = @cigar.split(/[0-9]+/).reject(&:empty?)
-    size =  @cigar.split(/[MIDNSHPX=]/)
+    size = @cigar.split(/[MIDNSHPX=]/)
 
     tuples = Array.new
     codes.each_with_index do |c, i|
@@ -178,8 +178,8 @@ class Bands
 
   def initialize(file)
     unless File.exists? file and File.readable? file
-	$stderr.puts "Band file #{file} doesn't exist or isn't readable."
-	exit 2
+      $stderr.puts "Band file #{file} doesn't exist or isn't readable."
+      exit 2
     end
 
     @chr_hash = Hash.new
@@ -198,16 +198,13 @@ class Bands
     end
 
     def has_chr?(chr)
-	@chr_hash.has_key?chr
+      chr.sub!("chr", "")
+      @chr_hash.has_key? chr
     end
 
     def get_band(chr, loc)
-      puts "Chr #{chr}"
-
       chr.sub!("chr", "")
-
       chrms = @chr_hash[chr]
-
       chrms.each_pair do |band, range|
         return band if range.include?(loc)
       end
@@ -220,23 +217,6 @@ class Bands
 
   end
 end
-
-
-# codes = "53S17M1D31M".split(/[0-9]+/).reject(&:empty?)
-#
-# size = "53S17M1D31M".split(/[MIDNSHPX=]/)
-#
-# tuples = Array.new
-# codes.each_with_index do |c, i|
-#   tuples << "#{size[i]}:#{c}"
-# end
-#
-# puts tuples
-#
-#
-# #
-#
-# exit
 
 
 if ARGV.length <=0
@@ -268,7 +248,7 @@ $stdin.each do |line|
   align = Alignment.new(line.chomp)
 
   unless align.nil?
-    next unless bands.has_chr?align.ref_name
+    next unless bands.has_chr? align.ref_name
 
     ca = (bands.in_centromere?(align.ref_name, align.read_pos)) ? "cent" : "arm"
 
@@ -304,4 +284,5 @@ $stdin.each do |line|
   count += 1
 end
 puts count
+
 
