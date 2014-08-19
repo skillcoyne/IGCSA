@@ -177,6 +177,11 @@ end
 class Bands
 
   def initialize(file)
+    unless File.exists? file and File.readable? file
+	$stderr.puts "Band file #{file} doesn't exist or isn't readable."
+	exit 2
+    end
+
     @chr_hash = Hash.new
 
     File.open(file, 'r').each_line do |line|
@@ -192,7 +197,15 @@ class Bands
 
     end
 
+    def has_chr?(chr)
+	@chr_hash.has_key?chr
+    end
+
     def get_band(chr, loc)
+      puts "Chr #{chr}"
+
+      chr.sub!("chr", "")
+
       chrms = @chr_hash[chr]
 
       chrms.each_pair do |band, range|
@@ -247,14 +260,16 @@ FileUtils.mkpath(outdir)
 count = 0
 
 $stdin.each do |line|
-  print "." if count%10000 == 0
-  print "\n" if count%1000000 == 0
+  #print "." if count%10000 == 0
+  #print "\n" if count%1000000 == 0
 
   next if line.start_with? "@"
 
   align = Alignment.new(line.chomp)
 
   unless align.nil?
+    next unless bands.has_chr?align.ref_name
+
     ca = (bands.in_centromere?(align.ref_name, align.read_pos)) ? "cent" : "arm"
 
     # create files
