@@ -124,7 +124,7 @@ for (i in 1:length(coords_l))
     range = get_sampling_range(reader, coords, 10000)
     if (length(range_vector) > 0)
       {
-      print(range)
+      #print(range)
       print(range_vector)
       
       while ( (length(range_vector[sapply( range_vector, function(x) getAlignRange(range)[1]>=getAlignRange(x)[1] & getAlignRange(range)[1]<=getAlignRange(x)[2] )]) +

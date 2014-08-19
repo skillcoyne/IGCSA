@@ -20,12 +20,12 @@ load_files<-function(files, dir)
 }
 
 
-read_disc_alignment<-function(brg)  # takes bamRange
+read_disc_alignment<-function(brg, inter=NULL, disc=NULL)  # takes bamRange
   {
+  if (is.null(inter) | is.null(disc))
+    stop("File names required")
+
   rewind(brg)
-  ic = vector(mode="integer")
-  dc = vector(mode="character")
-  
   align <- getNextAlign(brg)
   while(!is.null(align))
     {
@@ -36,17 +36,21 @@ read_disc_alignment<-function(brg)  # takes bamRange
         if (!properPair(align) || insertSize(align) > 650)
           {
           if ( refID(align) == mateRefID(align) && insertSize(align) != 0) 
-            ic = append( ic, abs(insertSize(align)) ) # inter-chr
+            write.table( paste(position(align), matePosition(align), abs(insertSize(align)), sep="\t"), quote=F, append=T, col.names=F, row.names=F, file=inter)
            if ( refID(align) != mateRefID(align) )
-            dc = append( dc, mateRefID(align) ) # inter-chr
+             write.table( paste(refID(align), position(align), mateRefID(align), matePosition(align), sep="\t"), quote=F, append=T, col.names=F, row.names=F, file=disc)
           }
         }
       }
     align = getNextAlign(brg)
     }
-  return( list("disc" = dc, "inter" = ic)  )
   }
 
+create_file<-function(filename, cols, remove=F)
+  {
+  file.create(filename, overwrite=remove)
+  write.table(cols, file=filename, quote=F, col.names=F, row.names=F)
+  }
 
 args <- commandArgs(trailingOnly = TRUE)
 print(args)
@@ -62,7 +66,6 @@ bands=read.table("band_genes.txt", header=T)
 if (is.null(bands))
   stop("band_genes.txt file not found")
 
-rdata_dirs = vector(mode="character", length=length(args))
 for (bam in args)
   {
   bai = paste(bam, "bai", sep=".")
@@ -74,8 +77,13 @@ for (bam in args)
   
   print(isOpen(reader))
   
-  current_dir = dirname(bam)
-  rdata_dirs = append(rdata_dirs, current_dir)
+  out_dir = paste(dirname(bam), "dist", sep="/")
+  if (file.exists(out_dir))
+    file.remove(out_dir, recursive=T)
+  dir.create(out_dir)
+  
+  disc_file = paste(out_dir, paste("discordant", "txt", sep="."), sep="/")
+  create_file(disc_file, paste("ref.chr", "ref.pos", "mate.ref", "mate.pos", sep="\t"), remove=T)
   
   referenceData = referenceData[ grep("^(chr)?(\\d+|Y|X)$", as.vector(referenceData$SN), perl=T ), ]
   for (i in 1:nrow(referenceData))
@@ -86,23 +94,22 @@ for (bam in args)
     cm = range(get_band_range(bands, chr_id['SN'], c('p11','q11'))[,c('start','end')])
     centromere = c(chr_id['ID'],cm)
     range = bamRange(reader, unlist(centromere))
-    filename = paste("centromere_dist", chr_id['SN'], "txt", sep=".")
-    distances = read_disc_alignment(range)
     
-    write.table(distances$inter, file=paste(current_dir, filename, sep="/")
-                
+    inter_file = paste(out_dir, paste("centromere_dist", chr_id['SN'], "txt", sep="."), sep="/")
+    create_file(inter_file, paste("pos", "mate.pos", "length", sep="\t") )
+    
+    read_disc_alignment(range, inter=inter_file, disc=disc_file)
+    
     arms = bands[ which(bands$chr == chr_id$SN & bands$band %nin% c('p11','q11')), ]
-    filename = paste("arm_dist",chr_id['SN'], "txt", sep=".")          
-    if ( file.exists(paste(current_dir, filename, sep="/")) ) 
-      file.remove(paste(current_dir, filename, sep="/"))
+    inter_file = paste("arm_dist",chr_id['SN'], "txt", sep=".")          
+    create_file(inter_file, paste("pos", "mate.pos", "length", sep="\t") )
     
     for (band in arms$band)
       {
       print( paste("Band", band, sep=" "))
       cm = range(get_band_range(bands, chr_id['SN'], c(band))[,c('start','end')])
       
-      distances = read_disc_alignment(range)
-      write.table( distances$inter, file=paste(current_dir, filename, sep="/"), append=T)
+      read_disc_alignment(range, inter=inter_file, disc=disc_file)
       }
   
     }
