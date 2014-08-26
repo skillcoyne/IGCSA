@@ -2,65 +2,6 @@ require 'yaml'
 require 'fileutils'
 
 
-class SimpleSAMReader
-
-  attr_reader :sam, :header
-
-
-  def initialize(file)
-    unless File.exists? file and File.readable? file
-      $stderr.puts "#{file} does not exist or is not readable."
-      exit(1)
-    end
-
-    @sam = file
-    if File.extname(@sam).eql? ".bam"
-      $stderr.puts "Script cannot currently read bam."
-      exit(1)
-    else
-      @fin = File.open(@sam, 'r')
-    end
-
-    @header = Array.new
-    @header_read = false
-  end
-
-  def read
-    return nil if @fin.eof?
-
-    unless @header_read
-      while (line = read_line).start_with? "@"
-        @header << line.chomp
-        @header_read = true
-      end
-      return parse_alignment(line)
-    end
-    return parse_alignment(@fin.readline)
-  end
-
-
-  :private
-
-  def read_line
-    return @fin.readline unless @fin.binmode?
-    # no work, dunno don't care
-    # chars = Array.new
-    # b = nil
-    # while (b == @fin.readbyte)
-    #   c = b.chr
-    #   chars << c
-    #   break if c =~ /\n|\r|\f/
-    # end
-    #
-    # return chars.join('')
-  end
-
-  def parse_alignment(line)
-    return Alignment.new(line.chomp)
-  end
-
-end
-
 class Alignment
   attr_reader :read_name, :flag, :ref_name, :read_pos, :mapq, :cigar, :mate_ref, :mate_pos, :tlen, :seq, :phred, :tags, :cigar_totals
 
@@ -197,6 +138,11 @@ class Bands
 
     end
 
+    def get_bands(chr)
+      chr.sub!("chr", "")
+      @chr_hash[chr]
+    end
+
     def has_chr?(chr)
       chr.sub!("chr", "")
       @chr_hash.has_key? chr
@@ -239,6 +185,23 @@ FileUtils.mkpath(outdir)
 
 count = 0
 
+files = Hash.new
+## set up files
+Array(1..22).push("X").push("Y").each do |chr|
+  ["arm", "cent"].each do |e|
+    f = File.open("#{outdir}/chr#{chr}.#{e}.reads", 'w')
+    f.puts ['pos', 'mate.pos', 'length'].join("\t")
+
+    files["#{chr}.#{e}"] = f
+
+  end
+    f = File.open("#{outdir}/disc.#{chr}.reads", 'w')
+    f.puts ["ref", "pos", "mate", "mate.pos"].join("\t")
+
+    files["disc.#{chr}"] = f
+end
+
+
 $stdin.each do |line|
   #print "." if count%10000 == 0
   #print "\n" if count%1000000 == 0
@@ -250,34 +213,27 @@ $stdin.each do |line|
   unless align.nil?
     next unless bands.has_chr? align.ref_name
 
-    ca = (bands.in_centromere?(align.ref_name, align.read_pos)) ? "cent" : "arm"
-
-    # create files
-    unless File.exists? "#{outdir}/chr#{align.ref_name}.#{ca}.reads"
-      File.open("#{outdir}/chr#{align.ref_name}.#{ca}.reads", 'w') { |f|
-        f.puts ['pos', 'mate.pos', 'length'].join("\t")
-      }
-    end
-    unless File.exists? "#{outdir}/disc.#{ca}.reads"
-      File.open("#{outdir}/disc.reads", 'w') { |f|
-        f.puts ["ref", "pos", "mate", "mate.pos"].join("\t")
-      }
-    end
-
-
     next if align.failed? or align.is_dup? or align.proper_pair? or !align.mapped?
 
     # filter reads
     if align.read_paired?
       if align.is_same_chromosome?
-        File.open("#{outdir}/chr#{align.ref_name}.#{ca}.reads", 'a') { |f|
-          f.puts [align.read_pos, align.mate_pos, align.tlen.abs].join("\t")
-        }
+        if bands.has_chr? align.ref_name and bands.has_chr? align.mate_ref
+
+          # either in centromere
+          if (bands.in_centromere?(align.ref_name, align.read_pos) or bands.in_centromere?(align.mate_ref, align.mate_pos))
+            files["#{align.ref_name}.cent"].puts [align.read_pos, align.mate_pos, align.tlen.abs].join("\t")
+          end
+
+          # either is in arm
+          if  !bands.in_centromere?(align.ref_name, align.read_pos) or !bands.in_centromere?(align.mate_ref, align.mate_pos)
+            files["#{align.ref_name}.arm"].puts [align.read_pos, align.mate_pos, align.tlen.abs].join("\t")
+          end
+        end
       else
-        File.open("#{outdir}/disc.#{ca}.reads", 'a') { |f|
-          f.puts [align.ref_name, align.read_pos, align.mate_ref, align.mate_pos].join("\t")
-        }
+        files["disc.#{align.ref_name}"].puts [align.ref_name, align.read_pos, align.mate_ref, align.mate_pos].join("\t")
       end
+
     end
   end
 
