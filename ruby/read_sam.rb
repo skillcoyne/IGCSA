@@ -222,12 +222,16 @@ $stdin.each do |line|
 
           # either in centromere
           if (bands.in_centromere?(align.ref_name, align.read_pos) or bands.in_centromere?(align.mate_ref, align.mate_pos))
-            files["#{align.ref_name}.cent"].puts [align.read_pos, align.mate_pos, align.tlen.abs].join("\t")
+print YAML::dump align
+exit
+	    files["#{align.ref_name}.cent"].puts [align.read_pos, align.mate_pos, align.tlen.abs].join("\t")
           end
 
           # either is in arm
           if  !bands.in_centromere?(align.ref_name, align.read_pos) or !bands.in_centromere?(align.mate_ref, align.mate_pos)
-            files["#{align.ref_name}.arm"].puts [align.read_pos, align.mate_pos, align.tlen.abs].join("\t")
+print YAML::dump align
+exit
+	    files["#{align.ref_name}.arm"].puts [align.read_pos, align.mate_pos, align.tlen.abs].join("\t")
           end
         end
       else
