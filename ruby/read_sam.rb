@@ -57,6 +57,12 @@ class Alignment
     return tuples
   end
 
+  def phred_score
+    @phred.split("").inject(0){|sum, e| sum + (e.ord - 33)  }
+    return(sum)
+  end
+
+
   def is_same_chromosome?
     return (@mate_ref.eql? "=" or @mate_ref.eql? @ref_name)
   end
@@ -205,7 +211,6 @@ end
 $stdin.each do |line|
   #print "." if count%10000 == 0
   #print "\n" if count%1000000 == 0
-
   next if line.start_with? "@"
 
   align = Alignment.new(line.chomp)
