@@ -32,7 +32,7 @@ class Alignment
     @mate_ref = @ref_name if @mate_ref.eql? "="
   end
 
-  def length
+  def cigar_length
     len = (@read_pos - @mate_pos).abs
     @cigar_totals.each_pair do |c, s|
       len += s if c.match(/[MI=]/)
@@ -58,8 +58,7 @@ class Alignment
   end
 
   def phred_score
-    @phred.split("").inject(0){|sum, e| sum + (e.ord - 33)  }
-    return(sum)
+    return(@phred.split("").inject(0){|sum, e| sum + (e.ord - 33)  })
   end
 
 
@@ -196,13 +195,13 @@ files = Hash.new
 Array(1..22).push("X").push("Y").each do |chr|
   ["arm", "cent"].each do |e|
     f = File.open("#{outdir}/chr#{chr}.#{e}.reads", 'w')
-    f.puts ['pos', 'mate.pos', 'length'].join("\t")
+    f.puts ['pos', 'mate.pos', 'length', 'phred', 'cigar_len'].join("\t")
 
     files["#{chr}.#{e}"] = f
 
   end
     f = File.open("#{outdir}/disc.#{chr}.reads", 'w')
-    f.puts ["ref", "pos", "mate", "mate.pos"].join("\t")
+    f.puts ["ref", "pos", "mate", "mate.pos", 'phred', 'cigar_len'].join("\t")
 
     files["disc.#{chr}"] = f
 end
@@ -224,23 +223,19 @@ $stdin.each do |line|
     if align.read_paired?
       if align.is_same_chromosome?
         if bands.has_chr? align.ref_name and bands.has_chr? align.mate_ref
-
+          out_str = [align.read_pos, align.mate_pos, align.tlen.abs, align.phred_score, align.cigar_length]
           # either in centromere
           if (bands.in_centromere?(align.ref_name, align.read_pos) or bands.in_centromere?(align.mate_ref, align.mate_pos))
-print YAML::dump align
-exit
-	    files["#{align.ref_name}.cent"].puts [align.read_pos, align.mate_pos, align.tlen.abs].join("\t")
+	          files["#{align.ref_name}.cent"].puts out_str.join("\t")
           end
 
           # either is in arm
           if  !bands.in_centromere?(align.ref_name, align.read_pos) or !bands.in_centromere?(align.mate_ref, align.mate_pos)
-print YAML::dump align
-exit
-	    files["#{align.ref_name}.arm"].puts [align.read_pos, align.mate_pos, align.tlen.abs].join("\t")
+	          files["#{align.ref_name}.arm"].puts out_str.join("\t")
           end
         end
       else
-        files["disc.#{align.ref_name}"].puts [align.ref_name, align.read_pos, align.mate_ref, align.mate_pos].join("\t")
+        files["disc.#{align.ref_name}"].puts [align.ref_name, align.read_pos, align.mate_ref, align.mate_pos, align.phred_score, align.cigar_length].join("\t")
       end
 
     end
