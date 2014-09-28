@@ -23,12 +23,11 @@ load_files<-function(files, dir)
 args <- commandArgs(trailingOnly = TRUE)
 print(args)
 
-args = c("/Volumes/exHD-Killcoyne/Insilico/runs/alignments/HCC1954.7/5q35-8q24")
+#args = c("/Volumes/exHD-Killcoyne/Insilico/runs/alignments/HCC1954.7/5q35-8q24")
 bam_files = list.files(path=args[1], recursive=T, pattern="bam$", full.names=T)
 
 `%nin%` <- Negate(`%in%`) 
 
-bands=read.table("~/Analysis/band_genes.txt", header=T)
 
 for (bam in bam_files)
   {
@@ -43,39 +42,32 @@ for (bam in bam_files)
 
   chrRef = referenceData[1,]
   
-  #startPos = sample(1:(chrRef$LN-kb), 1)
   range = bamRange(reader, c(chrRef$ID, 1, chrRef$LN) )
   rewind(range)
   
-  cols = c('dist','pos', 'mate.pos', 'phred', 'mapq', 'pp')
-  is = matrix(ncol=length(cols),nrow=0,dimnames=list(c(), cols))
-  
   current_dir = dirname(bam)
-  sink(paste(current_dir, "paired_reads.txt", sep="/"))
-  cat(paste(c('pos','mate.pos','len','phred','mapq','cigar','orientation','ppair'), collapse="\t"))
-  cat("\n")
-  
+  cols = c('pos','mate.pos','len','phred','mapq','cigar','orientation','ppair')
+
+  write(cols, file=paste(current_dir, "paired_reads.txt", sep="/"), append=F, sep="\t", ncolumns=length(cols)) 
+  nreads = 1
   align = getNextAlign(range)
   while(!is.null(align))
     {
+    if (nreads %% 10000 == 0) print(paste(nreads, "reads"))
     if ( !unmapped(align) & !mateUnmapped(align) & insertSize(align) > 0)
       {
       cd = cigarData(align)
-      cat( paste(
-          c(  position(align), 
+      write( c( position(align), 
               matePosition(align), 
               abs(insertSize(align)),
               sum(alignQualVal(align)), 
               mapQuality(align),
               paste(paste(cd$Length, cd$Type, sep=":"), collapse=','),
               paste(ifelse(reverseStrand(align), 'R','F'), ifelse(mateReverseStrand(align), 'R','F'), sep=":"),
-              ifelse(properPair(align), '1','0') ) 
-          , collapse = "\t") )
-      cat("\n")
-      
+              ifelse(properPair(align), '1','0') ), file=paste(current_dir, "paired_reads.txt", sep="/"), append=T, sep="\t", ncolumns=length(cols))
       }
     align = getNextAlign(range)
+    nreads = nreads + 1
     }
+  print(paste("Total reads:", nreads))
   }
-sink()
-
