@@ -19,15 +19,14 @@ load_files<-function(files, dir)
   return(means_var)
 }
 
-
 args <- commandArgs(trailingOnly = TRUE)
 print(args)
 
-#args = c("/Volumes/exHD-Killcoyne/Insilico/runs/alignments/HCC1954.7/5q35-8q24")
 bam_files = list.files(path=args[1], recursive=T, pattern="bam$", full.names=T)
+if (length(bam_files) <= 0)
+  stop(paste("No bam files found in path:", args[1]))
 
 `%nin%` <- Negate(`%in%`) 
-
 
 for (bam in bam_files)
   {
@@ -46,7 +45,7 @@ for (bam in bam_files)
   rewind(range)
   
   current_dir = dirname(bam)
-  cols = c('pos','mate.pos','len','phred','mapq','cigar','orientation','ppair')
+  cols = c('readID', 'pos','mate.pos','len','phred','mapq','cigar','orientation','ppair')
 
   write(cols, file=paste(current_dir, "paired_reads.txt", sep="/"), append=F, sep="\t", ncolumns=length(cols)) 
   nreads = 1
@@ -57,14 +56,16 @@ for (bam in bam_files)
     if ( !unmapped(align) & !mateUnmapped(align) & insertSize(align) > 0)
       {
       cd = cigarData(align)
-      write( c( position(align), 
-              matePosition(align), 
-              abs(insertSize(align)),
-              sum(alignQualVal(align)), 
-              mapQuality(align),
-              paste(paste(cd$Length, cd$Type, sep=":"), collapse=','),
-              paste(ifelse(reverseStrand(align), 'R','F'), ifelse(mateReverseStrand(align), 'R','F'), sep=":"),
-              ifelse(properPair(align), '1','0') ), file=paste(current_dir, "paired_reads.txt", sep="/"), append=T, sep="\t", ncolumns=length(cols))
+      write( c( name(align), 
+                position(align), 
+                matePosition(align), 
+                abs(insertSize(align)),
+                sum(alignQualVal(align)), 
+                mapQuality(align),
+                paste(paste(cd$Length, cd$Type, sep=":"), collapse=','),
+                paste(ifelse(reverseStrand(align), 'R','F'), ifelse(mateReverseStrand(align), 'R','F'), sep=":"),
+                ifelse(properPair(align), '1','0') ), 
+             file=paste(current_dir, "paired_reads.txt", sep="/"), append=T, sep="\t", ncolumns=length(cols))
       }
     align = getNextAlign(range)
     nreads = nreads + 1
