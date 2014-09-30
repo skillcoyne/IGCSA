@@ -48,16 +48,28 @@ cigar.len<-function(cv)
   }
 
 
+args <- commandArgs(trailingOnly = TRUE)
+
+#args[1] = "~/Analysis/band_genes.txt"
+#args[2] = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/LUAD-NB"
+
+
+if (length(args) < 2)
+  stop("Missing required arguments: <band_genes file> <directory to read in>")
+
 savePlot = T
 
-#setwd("/Volumes/Spark/Insilico/runs")
-setwd("~/Analysis/Insilico/runs")
-bands = read.table("Analysis/band_genes.txt", header=T)
+bands = read.table(args[1], header=T)
 bands$length = bands$end - bands$start
 
-setwd(paste(getwd(), "alignments/HCC1954", sep="/"))
+setwd(args[2])
+print(getwd())
+#setwd(paste(getwd(), "alignments/HCC1954", sep="/"))
 
 read_files = list.files(pattern="*paired_reads.txt", recursive=T)
+
+if (length(read_files) <= 0)
+  stop(paste("No paired_reads.txt files found in directory:", getwd()))
 
 cols = c('nreads', 'mean.dist', 'sd.dist', 'mean.phred', 'sd.phred', 'mean.mapq','sd.mapq', 'pp.ratio', 'FF','FR','RR','RF')
 rAll = as.data.frame(matrix(ncol=length(cols),nrow=length(read_files),data=0,
@@ -66,18 +78,14 @@ rLeft = rAll
 rRight = rAll
 rSpan = rAll
 
-#cols = c('em.mean.1','em.mean.2') #, 'em.var.1', 'em.var.2')
-#emmodel = as.data.frame(matrix(ncol=length(cols),nrow=length(read_files), data=0,
-#                               dimnames=list(dirname(read_files), cols)))
 emmodel = list()
 
-if (savePlot) pdf(file="Rplots.pdf", onefile=T)
 for (file in read_files)
 	{
   print(file)
   name = dirname(file)
   result = tryCatch({
-    reads = read.table(file, header=T, sep="\t")
+    reads = read.table(file, header=T, sep="\t", comment.char="")
   
     reads$cigar = as.character(reads$cigar)
     reads$cigar.total = cigar.len(reads$cigar)
@@ -94,7 +102,7 @@ for (file in read_files)
     model = getMixtures(log(reads$len), "V")
     emmodel[[name]] = model
 
-    png_file=paste(getwd(), name, "log-counts.png", sep="/")
+    png_file=paste(getwd(), name, "read_pair_distance.png", sep="/")
     png(filename=png_file, width=800, height=600)
     counts = log(reads$len)
     hist(counts, breaks=100, col="lightblue", border=F, prob=T, xlim=c(3,18), xlab="log(read-pair distance)", main=name)
@@ -148,7 +156,6 @@ for (file in read_files)
     cat(paste(err, collapse="\n"), file="errors.txt", append=T)
   })
   }
-dev.off()
 
 
 # inverse correlation between ratio and mean length
@@ -179,19 +186,19 @@ right = unlist(lapply(emmodel, right.dist))
 
 km = kmeans(right, 4)
 
+# top cluster
+top_cluster = which(km$centers == max(km$centers))
+top_pairs = sort(right[which(km$cluster == top_cluster)], decreasing=T)
+
 png(filename="scores.png", width=1200, height=800)
 par(mfrow=c(2,1))
 hist(right, breaks=30,
      main="Scores for 'right' distribution", xlab="EM scores per pair", col='blue', border='grey')
 
-right=sort(right)
-plot(right, col=km$cluster[names(right)], pch=19, ylab='scores',xlab='reference pairs')
+plot(sort(right), col=km$cluster[names(sort(right))], pch=19, ylab='scores',xlab='reference pairs')
 points(km$centers, col = 1:4, pch=8)
 text(km$center, labels=round(km$centers, 3), pos=4)
 dev.off()
-
-# top cluster
-top_pairs = sort(right[ right >= max(km$centers) ], decreasing=T)
 
 write.table(top_pairs, quote=F, sep="\t", col.name=F, file="top_pair_scores.txt")
 top = rSpan[names(top_pairs),]
