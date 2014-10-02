@@ -21,6 +21,7 @@ load_files<-function(files, dir)
 
 args <- commandArgs(trailingOnly = TRUE)
 print(args)
+args[1] = "/Users/skillcoyne/Analysis/5q13-8q24"
 
 bam_files = list.files(path=args[1], recursive=T, pattern="bam$", full.names=T)
 if (length(bam_files) <= 0)
@@ -66,8 +67,10 @@ for (bam in bam_files)
                 paste(ifelse(reverseStrand(align), 'R','F'), ifelse(mateReverseStrand(align), 'R','F'), sep=":"),
                 ifelse(properPair(align), '1','0') ), 
              file=paste(current_dir, "paired_reads.txt", sep="/"), append=T, sep="\t", ncolumns=length(cols))
+      break;
       }
     align = getNextAlign(range)
+    align
     nreads = nreads + 1
     }
   print(paste("Total reads:", nreads))

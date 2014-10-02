@@ -12,7 +12,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -20,10 +19,6 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.ToolRunner;
-import org.lcsb.lu.igcsa.mapreduce.sam.SAMInputFormat;
-import org.lcsb.lu.igcsa.mapreduce.sam.SAMScoreMapper;
-import org.lcsb.lu.igcsa.mapreduce.sam.ScoreReadsReducer;
-import sun.dc.pr.PathFiller;
 
 import java.io.BufferedReader;
 import java.io.IOException;

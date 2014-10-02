@@ -43,19 +43,22 @@ public class SAMRecordWritable implements Writable
   public void write(DataOutput out) throws IOException
     {
     // boolean flags
-    out.writeBoolean(samRecord.getDuplicateReadFlag());
-    out.writeBoolean(samRecord.getProperPairFlag());
-    out.writeBoolean(samRecord.getFirstOfPairFlag());
-    out.writeBoolean(samRecord.getMateNegativeStrandFlag());
-    out.writeBoolean(samRecord.getMateUnmappedFlag());
-    out.writeBoolean(samRecord.getNotPrimaryAlignmentFlag());
-    out.writeBoolean(samRecord.getReadFailsVendorQualityCheckFlag());
-    out.writeBoolean(samRecord.getSecondOfPairFlag());
+//    out.writeBoolean(samRecord.getDuplicateReadFlag());
+//    out.writeBoolean(samRecord.getProperPairFlag());
+//    out.writeBoolean(samRecord.getFirstOfPairFlag());
+//    out.writeBoolean(samRecord.getMateNegativeStrandFlag());
+//    out.writeBoolean(samRecord.getMateUnmappedFlag());
+//    out.writeBoolean(samRecord.getNotPrimaryAlignmentFlag());
+//    out.writeBoolean(samRecord.getReadFailsVendorQualityCheckFlag());
+//    out.writeBoolean(samRecord.getSecondOfPairFlag());
 
     // ints
+    out.writeInt(samRecord.getFlags());
     out.writeInt(samRecord.getAlignmentStart());
+    out.writeInt(samRecord.getMateAlignmentStart());
     out.writeInt(samRecord.getReferenceIndex());
     out.writeInt(samRecord.getMappingQuality());
+    out.writeInt(samRecord.getInferredInsertSize());
 
     // Strings
     Text.writeString(out, samRecord.getReferenceName());
@@ -72,26 +75,28 @@ public class SAMRecordWritable implements Writable
     {
     samRecord = new SAMRecord(null);
     // boolean flags
-    samRecord.setDuplicateReadFlag(in.readBoolean());
-    samRecord.setProperPairFlag(in.readBoolean());
-    samRecord.setFirstOfPairFlag(in.readBoolean());
-    samRecord.setMateNegativeStrandFlag(in.readBoolean());
-    samRecord.setMateUnmappedFlag(in.readBoolean());
-    samRecord.setNotPrimaryAlignmentFlag(in.readBoolean());
-    samRecord.setReadFailsVendorQualityCheckFlag(in.readBoolean());
-    samRecord.setSecondOfPairFlag(in.readBoolean());
+//    samRecord.setDuplicateReadFlag(in.readBoolean());
+//    samRecord.setProperPairFlag(in.readBoolean());
+//    samRecord.setFirstOfPairFlag(in.readBoolean());
+//    samRecord.setMateNegativeStrandFlag(in.readBoolean());
+//    samRecord.setMateUnmappedFlag(in.readBoolean());
+//    samRecord.setNotPrimaryAlignmentFlag(in.readBoolean());
+//    samRecord.setReadFailsVendorQualityCheckFlag(in.readBoolean());
+//    samRecord.setSecondOfPairFlag(in.readBoolean());
 
     // ints
+    samRecord.setFlags(in.readInt());
     samRecord.setAlignmentStart(in.readInt());
+    samRecord.setMateAlignmentStart(in.readInt());
     samRecord.setReferenceIndex(in.readInt());
     samRecord.setMappingQuality(in.readInt());
+    samRecord.setInferredInsertSize(in.readInt());
 
     // Strings
     samRecord.setReferenceName(Text.readString(in));
     samRecord.setMateReferenceName(Text.readString(in));
     samRecord.setReadName(Text.readString(in));
     samRecord.setCigarString(Text.readString(in));
-
     samRecord.setBaseQualityString(Text.readString(in));
     samRecord.setReadBases( Text.readString(in).getBytes() );
     samRecord.setOriginalBaseQualities( Text.readString(in).getBytes() );
