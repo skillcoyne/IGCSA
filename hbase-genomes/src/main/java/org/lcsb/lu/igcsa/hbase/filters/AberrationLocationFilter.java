@@ -99,27 +99,34 @@ public class AberrationLocationFilter
     filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("info"), Bytes.toBytes("genome"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(genomeName)));
     filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("chr"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(loc.getChromosome())));
 
-    FilterList locFilter = new FilterList(FilterList.Operator.MUST_PASS_ONE);
-    locFilter.addFilter( getLocationFilter(start) );
-    locFilter.addFilter( getLocationFilter(stop) );
-
-    filter.addFilter(locFilter);
+    filter.addFilter(getLocationFilter(start, stop));
 //    filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("start"), CompareFilter.CompareOp.GREATER_OR_EQUAL, Bytes.toBytes(start)));
 //
 //    filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("end"), CompareFilter.CompareOp.LESS_OR_EQUAL, Bytes.toBytes(stop)));
-
     return filter;
     }
 
-  private Filter getLocationFilter(long l)
+  private Filter getLocationFilter(long start, long stop)
     {
-    // AND( (START_LOC <= 12200100 AND END_LOC >= 12200100) OR ( START_LOC <= 29606001 AND END_LOC >= 29606001) )
+    FilterList andFilter = new FilterList(FilterList.Operator.MUST_PASS_ALL);
+    //AND ( (START_LOC <= 18400112 OR START_LOC <= 42788921) AND (END_LOC >= 18400112 OR END_LOC >= 42788921)  )
 
-    FilterList filter = new FilterList(FilterList.Operator.MUST_PASS_ALL);
-    filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("start"), CompareFilter.CompareOp.LESS_OR_EQUAL, Bytes.toBytes(l)));
-    filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("end"), CompareFilter.CompareOp.GREATER_OR_EQUAL, Bytes.toBytes(l)));
+    FilterList orFilter = new FilterList(FilterList.Operator.MUST_PASS_ONE);
+    orFilter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("start"),
+                                                 CompareFilter.CompareOp.LESS_OR_EQUAL, Bytes.toBytes(start)));
+    orFilter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("start"),
+                                                 CompareFilter.CompareOp.LESS_OR_EQUAL, Bytes.toBytes(stop)));
 
-    return filter;
+    andFilter.addFilter(orFilter);
+    orFilter = new FilterList(FilterList.Operator.MUST_PASS_ONE);
+    orFilter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("end"),
+                                                 CompareFilter.CompareOp.GREATER_OR_EQUAL, Bytes.toBytes(start)));
+    orFilter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("end"),
+                                                 CompareFilter.CompareOp.GREATER_OR_EQUAL, Bytes.toBytes(stop)));
+
+    andFilter.addFilter(orFilter);
+
+    return andFilter;
     }
 
   }
