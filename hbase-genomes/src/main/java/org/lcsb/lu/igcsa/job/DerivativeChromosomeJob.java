@@ -153,10 +153,12 @@ public class DerivativeChromosomeJob extends JobIGCSA
 
 
     // create merged FASTA at chromosome level -- there is an issue here that it just concatenates the files which means at the merge points there are strings of different lengths.  This is an issue in samtools.
-    Path tmp = new Path("/tmp/" + String.valueOf(new Random().nextInt((int) System.currentTimeMillis())), output.getName() + ".fa");
+
+    Path tmp = new Path("/tmp/" + String.valueOf(new Random(System.currentTimeMillis()).nextLong()), output.getName() + ".fa");
     log.info("Temp path " + tmp.toString());
     Path newOutput = new Path(output, tmp.getName());
     log.info("New path " + newOutput.toString());
+
     if (FileUtil.copyMerge(jobFS, output, jobFS, tmp, true, getConf(), ""))
       FileUtil.copy(jobFS, tmp, jobFS, newOutput, true, true, getConf());
     else

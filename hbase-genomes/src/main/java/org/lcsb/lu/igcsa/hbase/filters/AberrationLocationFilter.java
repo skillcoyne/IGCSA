@@ -99,9 +99,25 @@ public class AberrationLocationFilter
     filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("info"), Bytes.toBytes("genome"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(genomeName)));
     filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("chr"), CompareFilter.CompareOp.EQUAL, Bytes.toBytes(loc.getChromosome())));
 
-    filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("start"), CompareFilter.CompareOp.GREATER_OR_EQUAL, Bytes.toBytes(start)));
+    FilterList locFilter = new FilterList(FilterList.Operator.MUST_PASS_ONE);
+    locFilter.addFilter( getLocationFilter(start) );
+    locFilter.addFilter( getLocationFilter(stop) );
 
-    filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("end"), CompareFilter.CompareOp.LESS_OR_EQUAL, Bytes.toBytes(stop)));
+    filter.addFilter(locFilter);
+//    filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("start"), CompareFilter.CompareOp.GREATER_OR_EQUAL, Bytes.toBytes(start)));
+//
+//    filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("end"), CompareFilter.CompareOp.LESS_OR_EQUAL, Bytes.toBytes(stop)));
+
+    return filter;
+    }
+
+  private Filter getLocationFilter(long l)
+    {
+    // AND( (START_LOC <= 12200100 AND END_LOC >= 12200100) OR ( START_LOC <= 29606001 AND END_LOC >= 29606001) )
+
+    FilterList filter = new FilterList(FilterList.Operator.MUST_PASS_ALL);
+    filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("start"), CompareFilter.CompareOp.LESS_OR_EQUAL, Bytes.toBytes(l)));
+    filter.addFilter(new SingleColumnValueFilter(Bytes.toBytes("loc"), Bytes.toBytes("end"), CompareFilter.CompareOp.GREATER_OR_EQUAL, Bytes.toBytes(l)));
 
     return filter;
     }

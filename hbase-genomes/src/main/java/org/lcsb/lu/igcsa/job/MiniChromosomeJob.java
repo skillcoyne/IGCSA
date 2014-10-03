@@ -162,7 +162,10 @@ public class MiniChromosomeJob extends JobIGCSA
         locations.add(location);
 
         for (Band b : dao.getBandDAO().getBands(location))
+          {
+          b.setLocation(location);
           bands.add(b);
+          }
         }
       }
     else

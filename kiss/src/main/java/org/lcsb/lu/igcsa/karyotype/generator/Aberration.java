@@ -101,7 +101,7 @@ public class Aberration
     {
     String desc = "";
     for (Band b: getBands())
-      desc = desc + b.getChromosomeName() + b.getBandName() + ";";
+      desc = desc + b.getChromosomeName() + b.getBandName() + "(" + b.getLocation().getStart() + "-" + b.getLocation().getEnd() +");";
 
     return getAberration().getCytogeneticDesignation() + " " + desc.substring(0, desc.lastIndexOf(";"));
     }

@@ -33,6 +33,8 @@ public class SequenceFragmentReducer extends Reducer<SegmentOrderComparator, Fra
   private static final Log log = LogFactory.getLog(SequenceFragmentReducer.class);
 
   private MultipleOutputs mos;
+  protected List<Location> locations = new ArrayList<Location>();
+
 
   // NEED THIS - if you fail to close the MultipleOutputs record writers you lose data silently
   @Override
@@ -46,6 +48,20 @@ public class SequenceFragmentReducer extends Reducer<SegmentOrderComparator, Fra
     {
     mos = new MultipleOutputs(context);
     log.info(mos);
+
+    Pattern p = Pattern.compile("^.*<(\\d+|X|Y)\\s(\\d+)-(\\d+)>$");
+    String[] locs = context.getConfiguration().getStrings(SequenceRequestMapper.CFG_LOC);
+    for (String loc : locs)
+      {
+      Matcher matcher = p.matcher(loc);
+      matcher.matches();
+      String chr = matcher.group(1);
+      int start = Integer.parseInt(matcher.group(2));
+      int end = Integer.parseInt(matcher.group(3));
+
+      Location locObj = new Location(chr, start, end);
+      locations.add(locObj);
+      }
     }
 
     @Override

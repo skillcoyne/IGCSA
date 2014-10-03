@@ -50,9 +50,9 @@ cigar.len<-function(cv)
 
 args <- commandArgs(trailingOnly = TRUE)
 
-args[1] = "~/Analysis/band_genes.txt"
+#args[1] = "~/Analysis/band_genes.txt"
 #args[2] = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/LUAD-NB"
-args[2] = "/Volumes/Spark/Insilico/runs/alignments/LUAD-NB"
+#args[2] = "/Volumes/Spark/Insilico/runs/alignments/LUAD-NB"
 
 
 if (length(args) < 2)

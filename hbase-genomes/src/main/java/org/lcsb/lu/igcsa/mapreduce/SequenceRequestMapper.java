@@ -40,7 +40,6 @@ public class SequenceRequestMapper extends TableMapper<SegmentOrderComparator, F
   protected List<Location> locations = new ArrayList<Location>();
   protected Map<Location, Boolean> isReversible = new HashMap<Location, Boolean>();
 
-
   @Override
   protected void setup(Context context) throws IOException, InterruptedException
     {
@@ -89,24 +88,24 @@ public class SequenceRequestMapper extends TableMapper<SegmentOrderComparator, F
       }
     if (sectionKey < 0) throw new RuntimeException("somehow I didn't match anything and that should never happen!");
 
-    // if reverse the text sequence needs to be reversed and it needs to somehow be indicated with the key I think
+
     String sequence = sr.getSequence();
-    if ( (currentLoc.getStart() + sr.getSequenceLength()) >= sr.getStart() )
+    if (sr.getStart() < currentLoc.getStart())
       {
-      int start = (int) (sr.getStart() - currentLoc.getStart());
-      int end = (int) sr.getSequenceLength();
-      if (currentLoc.getEnd() < sr.getEnd())
-        end = (int) (sr.getEnd() - currentLoc.getEnd());
-      sequence = sr.getSequence().substring(start, end);
+      int offset = (int)(currentLoc.getStart() - sr.getStart());
+      sequence = sequence.substring(offset);
       }
 
-    if (currentLoc.getEnd() < sr.getEnd())
+    // means I shouldn't output the entire segment...
+    if (sr.getEnd() > currentLoc.getEnd())
       {
-      log.info("ENDS!! **##$$%%");
+      int length =  sequence.length() - (int) (sr.getEnd() - currentLoc.getEnd());
+      sequence = sequence.substring(0, length+1);
       }
 
-      SegmentOrderComparator soc = new SegmentOrderComparator(sectionKey, sr.getSegmentNum());
-    if (reverse)
+
+    SegmentOrderComparator soc = new SegmentOrderComparator(sectionKey, sr.getSegmentNum());
+    if (reverse)           // reverse the sequence
       {
       sequence = new StringBuffer(sequence).reverse().toString();
       soc = new SegmentOrderComparator(sectionKey, (-1 * sr.getSegmentNum()));
