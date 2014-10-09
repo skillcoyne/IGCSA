@@ -1,51 +1,5 @@
-library('mclust')
-
-row.gen<-function(df)
-  {
-	row = cbind(nrow(df), 
-	  mean(log(df$len)), 
-	  sd(log(df$len)),
-	  mean(df$phred),
-	  sd(df$phred),
-	  mean(df$mapq),
-	  sd(df$mapq),
-	  nrow( df[df$ppair == TRUE,] )/nrow(df),
-	  length(which(df$orientation == 'F:F')),
-	  length(which(df$orientation == 'F:R')),
-	  length(which(df$orientation == 'R:R')),
-	  length(which(df$orientation == 'R:F'))
-    )
-  
-  
-	return(row)
-  }
-
-sort.by<-function(df, col)
-	{
-	df = df[order(-df[[col]]),]
-	return(df)
-	}
-
-getMixtures<-function(vv, modelName="E")
-  {
-  cutoff = (max(vv)-min(vv))/2
-  z = matrix(0,length(vv),2) 
-  z[,1] = as.numeric(vv >= cutoff)
-  z[,2] = as.numeric(vv < cutoff)
-  msEst = mstep(modelName, vv, z)
-  modelName = msEst$modelName
-  parameters = msEst$parameters
-  em(modelName, vv, parameters)
-  }
-
-cigar.len<-function(cv)
-  {
-  totals = lapply(cv, function(xs) sum( unlist(
-    lapply(strsplit(unlist(strsplit(xs, ",")), ":"), 
-           function(x) ifelse ( grepl("S|D", x[2]), as.integer(x[1])*-1, as.integer(x[1]))))
-  ))
-  return(unlist(totals))
-  }
+setwd("~/workspace/IGCSA/R/alignment")
+source("lib/read_eval.R")
 
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -156,6 +110,8 @@ for (file in read_files)
     cat(paste("Failed to read file", file), file="errors.txt", sep="\n", append=T)
     cat(paste(err, collapse="\n"), file="errors.txt", append=T)
   })
+  
+  save(rAll[name,], rLeft[name,], rRight[name,], rSpan[name,], model, file=paste(paste(dirname(file), basename(dirname(file)), sep="/"), "Rdata", sep="."))
   }
 
 
