@@ -1,12 +1,10 @@
 setwd("~/workspace/IGCSA/R/alignment")
 source("lib/read_eval.R")
 
-
 args <- commandArgs(trailingOnly = TRUE)
 
-#args[1] = "~/Analysis/band_genes.txt"
-#args[2] = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/LUAD-NB"
-#args[2] = "/Volumes/Spark/Insilico/runs/alignments/LUAD-NB"
+args[1] = "~/Analysis/band_genes.txt"
+args[2] = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/BRCA-NB"
 
 
 if (length(args) < 2)
@@ -111,7 +109,7 @@ for (file in read_files)
     cat(paste(err, collapse="\n"), file="errors.txt", append=T)
   })
   
-  save(rAll[name,], rLeft[name,], rRight[name,], rSpan[name,], model, file=paste(paste(dirname(file), basename(dirname(file)), sep="/"), "Rdata", sep="."))
+  #save(rAll[name,], rLeft[name,], rRight[name,], rSpan[name,], model, file=paste(paste(dirname(file), basename(dirname(file)), sep="/"), "Rdata", sep="."))
   }
 
 

@@ -11,6 +11,7 @@ package org.lcsb.lu.igcsa.job;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -56,7 +57,7 @@ public class MiniChromosomeJob extends JobIGCSA
     m.setRequired(false);
     this.addOptions(m);
 
-    m = new Option("b", "bands", true, "Bands comma separated.  Ex: 1q32,5p11.");
+    m = new Option("d", "bands", true, "Bands comma separated.  Ex: 1q32,5p11.");
     m.setRequired(false);
     this.addOptions(m);
 
@@ -64,13 +65,17 @@ public class MiniChromosomeJob extends JobIGCSA
     m.setRequired(true);
     this.addOptions(m);
 
-    m = new Option("p", "parent", true, "Parent genome");
+    m = new Option("g", "genome", true, "Parent genome");
     m.setRequired(true);
     this.addOptions(m);
 
     m = new Option("n", "name", true, "Directory name for mini chromosomes.");
     m.setRequired(true);
     this.addOptions(m);
+
+    Option bwa = new Option("b", "bwa", true, "Path to bwa.tgz, optional.");
+    bwa.setRequired(false);
+    this.addOptions(bwa);
 
     DerbyConnection conn = new DerbyConnection("org.apache.derby.jdbc.EmbeddedDriver", "jdbc:derby:classpath:karyotype_probabilities", "igcsa", "");
     dao = conn.getKaryotypeDAO();
@@ -93,17 +98,17 @@ public class MiniChromosomeJob extends JobIGCSA
 
     log.info("ARGS: " + Arrays.toString(args));
 
-    if (args.length < 4 || (cl.hasOption("l") && cl.hasOption("b")))
+    if (args.length < 4 || (cl.hasOption("l") && cl.hasOption("d")))
       //if (args.length < 4)
       {
       HelpFormatter hf = new HelpFormatter();
-      hf.printHelp("Usage: " + this.getClass().getSimpleName() + "-l OR -b", this.parser.getOptions());
+      hf.printHelp(this.getClass().getSimpleName() + "-l OR -d", this.parser.getOptions());
       System.exit(-1);
       }
     getLocations(cl);
 
     String name = cl.getOptionValue("n");
-    String parentGenomeName = cl.getOptionValue("p");
+    String parentGenomeName = cl.getOptionValue("g");
     Path outputDir = new Path(cl.getOptionValue("o"));
 
     Aberration abr = new Aberration(bands, AberrationTypes.TRANSLOCATION);
@@ -120,12 +125,14 @@ public class MiniChromosomeJob extends JobIGCSA
     FileSystem fs = FileSystem.get(outputDir.toUri(), new Configuration());
     Path outputPath = new Path(outputDir, name);
     Path fastaOutput = new Path(outputPath, derChrName);
-    if (fs.exists(fastaOutput) && fs.exists(new Path(fastaOutput, fastaOutput.getName() + ".fa")))
+
+    int i = 1;
+    while (fs.exists(fastaOutput))
       {
-      log.info(fastaOutput + " exists, skipping.");
+      log.info(fastaOutput + " exists, trying " + i);
+      fastaOutput = new Path(outputPath, derChrName + "_" + i);
       indexPath = new Path(fastaOutput, fastaOutput.getName() + ".fa");
-      return 1;
-      //fs.delete(fastaOutput, true);
+      i++;
       }
 
     String desc = abr.getDescription() + ",bp=" + bands.get(0).getLocation().getLength();
@@ -142,6 +149,10 @@ public class MiniChromosomeJob extends JobIGCSA
       {
       log.error(e);
       }
+
+    // Run BWA index
+    if (cl.hasOption("b"))
+      ToolRunner.run(new BWAIndex(getConf()), (String[]) ArrayUtils.addAll(new String[]{"-b", cl.getOptionValue("b")}, new String[]{"-p", indexPath.toString()}));
 
     return ret;
     }

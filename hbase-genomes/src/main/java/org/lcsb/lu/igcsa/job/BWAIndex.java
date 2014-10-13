@@ -55,6 +55,15 @@ public class BWAIndex extends BWAJob
     return tmp;
     }
 
+  public BWAIndex(Configuration conf)
+    {
+    super(conf);
+    Option genome = new Option("p", "path", true, "Path to FASTA files");
+    genome.setRequired(true);
+    this.addOptions(genome);
+    }
+
+
   public BWAIndex()
     {
     super(new Configuration());
