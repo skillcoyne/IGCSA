@@ -116,17 +116,19 @@ public class BWAIndex extends BWAJob
     GenericOptionsParser gop = this.parseHadoopOpts(args);
     CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs(), this.getClass());
 
-    outputPath = new Path(cl.getOptionValue('p'));
+    Path fastaInput = new Path(cl.getOptionValue('p'));
+
+    Path fastaTxt = setupRefFile(fastaInput);
+
+    outputPath = fastaInput.getParent();
     log.info("OUTPUT PATH " + outputPath);
 
     FileSystem fs = FileSystem.get(outputPath.toUri(), getConf());
-    if (fs.exists(new Path(outputPath, "index/all.tgz")))
+    if (fs.exists(new Path(outputPath.getParent(), "index/all.tgz")))
       {
       log.info("Index exists for " + outputPath.toString() + " skipping.");
       return 1;
       }
-
-    Path fastaTxt = setupRefFile(outputPath);
 
     log.info("Running BWAIndex on " + fastaTxt.getParent().toString());
 

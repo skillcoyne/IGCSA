@@ -1,7 +1,5 @@
 library('rbamtools')
 
-#source("lib/bam_funcs.R")
-
 load_files<-function(files, dir)
 {
   for (f in files)

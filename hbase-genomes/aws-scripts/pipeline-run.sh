@@ -1,7 +1,5 @@
 #!/bin/sh
 
-
-
 if [ ! -f "$EMR_HOME/elastic-mapreduce" ]; then
   echo "EMR_HOME not set."
   exit
@@ -33,32 +31,41 @@ if [ $CORES -le 5 ]; then
 	TIMEOUT="3600000"
 fi
 
-INSTANCE_TYPE="m3.xlarge"
-#if [ $CORES -gt 10 ]; then
-#  INSTANCE_TYPE="m2.xlarge"
-#fi
+INSTANCE_TYPE="m2.xlarge"
 
-PRICE="0.05"
+PRICE="0.03"
 
 
 GENOME_DATA="s3://${BUCKET}/hbase/$4"
 
 
-echo "Running ALIGN pipeline with ${CORES} core instances (${INSTANCE_TYPE}). On failure: ${TERM}"
+echo "Running IGCSA pipeline with ${CORES} core instances (${INSTANCE_TYPE}). On failure: ${TERM}"
 
 JAR="s3://${BUCKET}/HBase-Genomes-1.2.jar"
 MASTER="--instance-group master --instance-type ${INSTANCE_TYPE} --instance-count 1 --bid-price $PRICE"
 CORE="--instance-group core --instance-type ${INSTANCE_TYPE} --instance-count $CORES --bid-price $PRICE"
-TASK="--instance-group task --instance-type ${INSTANCE_TYPE} --instance-count $CORES --bid-price $PRICE"
+#TASK="--instance-group task --instance-type ${INSTANCE_TYPE} --instance-count $CORES --bid-price $PRICE"
 HBASE="--hbase --bootstrap-action s3://eu-west-1.elasticmapreduce/bootstrap-actions/configure-hbase --args -s,hbase.rpc.timeout=${TIMEOUT},-s,hbase.regionserver.lease.period=${TIMEOUT},-s,hbase.regionserver.handler.count=30"
 
+BWA="-b,s3n://${BUCKET}/tools/bwa.tgz"
+MINI_ARGS="${BWA},-o,s3n://${BUCKET}/HCC1954,-g,GRCh37,-n,mini,-r,s3n://${BUCKET}/reads/HCC1954/discordant.tsv"
 
 
-ruby $EMR_HOME/elastic-mapreduce --create --region eu-west-1 --name "Score pipeline" --ami-version 2.4.2  --enable-debugging --log-uri s3://${BUCKET}/logs \
---set-termination-protection false --key-pair amazonkeypair $MASTER $CORE $TASK $HBASE \
---jar $JAR --args hbaseutil,-d,s3n://${BUCKET}/hbase,-c,IMPORT --arg "-t" --arg "genome,chromosome,sequence,small_mutations" --step-action TERMINATE_JOB_FLOW --step-name "IMPORT genome db" \
---jar $JAR --arg pipeline --arg Run1 --arg "17,21" --args s3n://${BUCKET}/tools/bwa.tgz,s3n://${BUCKET}/output/pipeline,s3n://${BUCKET}/reads/HCC1954 \
---step-action TERMINATE_JOB_FLOW --step-name "Run pipeline"
+aws emr create-cluster --plain-output --region eu-west-1 --name 'IGCSA pipeline v0.1' --ami-version 2.4.2  --enable-debugging --log-uri s3://${BUCKET}/logs \
+--set-termination-protection false --key-pair amazonkeypair $MASTER $CORE $HBASE \
+--jar $JAR --args hbaseutil,-d,s3n://${BUCKET}/hbase,-c,IMPORT --arg '-t' --arg 'genome,chromosome,sequence,small_mutations' --step-action TERMINATE_JOB_FLOW --step-name 'IMPORT genome db' \
+--jar $JAR --arg localsearch --arg -l --arg 5:66700001-71800001,8:117700001-132032011 --args ${MINI_ARGS} \
+--step-action TERMINATE_JOB_FLOW --step-name '5q13-8q24 A/C' \
+
+--jar $JAR --args align,${BWA},-i,s3n://${BUCKET}/HCC1954/mini/5q13-8q24/index/all.tgz ,-n,Test,-r,$READS,-o,s3n://${BUCKET}/HCC1954/mini/5q13-8q24/align --step-action ${TERM} --step-name 'Align A/C' \
+
+--jar
+
+#ruby $EMR_HOME/elastic-mapreduce --create --region eu-west-1 --name "IGCSA pipeline v0.1" --ami-version 2.4.2  --enable-debugging --log-uri s3://${BUCKET}/logs \
+#--set-termination-protection false --key-pair amazonkeypair $MASTER $CORE $HBASE \
+#--jar $JAR --args hbaseutil,-d,s3n://${BUCKET}/hbase,-c,IMPORT --arg "-t" --arg "genome,chromosome,sequence,small_mutations" --step-action TERMINATE_JOB_FLOW --step-name "IMPORT genome db" \
+#--jar $JAR --arg pipeline --arg Run1 --arg "17,21" --args s3n://${BUCKET}/tools/bwa.tgz,s3n://${BUCKET}/output/pipeline,s3n://${BUCKET}/reads/HCC1954 \
+#--step-action TERMINATE_JOB_FLOW --step-name "Run pipeline"
 
 
 #regex='(j-[A-Z0-9]+)'

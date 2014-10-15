@@ -45,7 +45,9 @@ public class MiniChromosomeJob extends JobIGCSA
 
   public static void main(String[] args) throws Exception
     {
-    ToolRunner.run(new MiniChromosomeJob(), args);
+    MiniChromosomeJob mcj = new MiniChromosomeJob();
+    ToolRunner.run(mcj, args);
+    //System.out.println(mcj.getIndexPath().toString());
     }
 
 
@@ -152,7 +154,12 @@ public class MiniChromosomeJob extends JobIGCSA
 
     // Run BWA index
     if (cl.hasOption("b"))
-      ToolRunner.run(new BWAIndex(getConf()), (String[]) ArrayUtils.addAll(new String[]{"-b", cl.getOptionValue("b")}, new String[]{"-p", indexPath.toString()}));
+      {
+      log.info("Running index on " + indexPath.toString());
+      BWAIndex bi = new BWAIndex(getConf());
+      ToolRunner.run(bi, (String[]) ArrayUtils.addAll(new String[]{"-b", cl.getOptionValue("b")}, new String[]{"-p", indexPath.toString()}));
+      indexPath = bi.indexPath();
+      }
 
     return ret;
     }

@@ -11,10 +11,12 @@ package org.lcsb.lu.igcsa;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.util.ProgramDriver;
+import org.apache.tools.ant.taskdefs.Local;
 import org.lcsb.lu.igcsa.generators.GenerateChromosomes;
 import org.lcsb.lu.igcsa.generators.GenerateFullGenome;
 import org.lcsb.lu.igcsa.generators.GenerateFullKaryotype;
 import org.lcsb.lu.igcsa.job.*;
+import org.lcsb.lu.igcsa.pipeline.LocalSearchPipeline;
 import org.lcsb.lu.igcsa.pipeline.Pipeline;
 
 
@@ -53,11 +55,11 @@ public class MainApp
       pgd.addClass("index", BWAIndex.class, "Index FASTA file");
       pgd.addClass("align", BWAAlign.class, "Align TSV reads");
 
-      pgd.addClass("pipeline", Pipeline.class, "Run generate/index/align/score pipeline.");
+      //pgd.addClass("pipeline", Pipeline.class, "Run generate/index/align/score pipeline.");
+      pgd.addClass("localsearch", LocalSearchPipeline.class, "Run generate/index/align/score pipeline.");
 
-      pgd.addClass("SpecialGenerator", SpecialGenerator.class, "Generate special karyotypes.");
-
-      pgd.addClass("score", ScoreSAMChain.class, "");
+      //pgd.addClass("SpecialGenerator", SpecialGenerator.class, "Generate special karyotypes.");
+      //pgd.addClass("score", ScoreSAMChain.class, "");
 
       pgd.driver(args);
       }

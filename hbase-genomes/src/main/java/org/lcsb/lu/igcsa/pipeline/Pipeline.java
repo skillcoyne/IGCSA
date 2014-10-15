@@ -8,6 +8,7 @@
 
 package org.lcsb.lu.igcsa.pipeline;
 
+import org.apache.commons.cli.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -22,9 +23,15 @@ import java.util.Arrays;
 import java.util.List;
 
 
+//** Need to update this to be a pipeline that starts from random selection
 public class Pipeline
   {
   private static final Log log = LogFactory.getLog(Pipeline.class);
+
+  public Pipeline()
+    {
+
+    }
 
   //  # 1. Generate mini aberrations
   //  # 2. Index & Align
@@ -32,14 +39,37 @@ public class Pipeline
   //  # 4. Generate neighboring aberrations & ...?
   //  # 5. Repeat 2-4 until??
 
+  public static CommandLine parseCommandLine(String[] args) throws ParseException
+    {
+    Options options = new Options();
+    options.addOption(new Option("l", "location", true, "chromosome location ex. 5:29199-394421"));
+    options.addOption(new Option("b", "bwa", true, "bwa archive location"));
+    options.addOption(new Option("o", "output", true, "output path"));
+    options.addOption(new Option("g", "genome", true, "parent genome name for sequence generation"));
+    options.addOption(new Option("r", "reads", true, "read path for tsv"));
+
+
+    CommandLine cl = new BasicParser().parse(options, args);
+
+    HelpFormatter help = new HelpFormatter();
+    for (Option opt: cl.getOptions())
+      {
+      if (!cl.hasOption(opt.getOpt()) & opt.isRequired())
+        {
+        help.printHelp(Pipeline.class.getSimpleName() + ":\nMissing required option: -" + opt.getOpt() + " " + opt.getDescription(), options);
+        System.exit(-1);
+        }
+      }
+
+    return cl;
+    }
+
+
   public static void main(String[] args) throws Exception
     {
-    if (args.length < 4)
-      {
-      System.err.println("Usage: Pipeline <new mini genonme name> <csv chr list> <bwa archive path> <output path> <read tsv path>");
-      System.exit(2);
-      }
-    String genomeName = args[0]; //genomeName = "SomeName";
+    CommandLine cl = parseCommandLine(args);
+
+    String genomeName = cl.getOptionValue("g");
     String chrList = args[1]; //bands = "21p13,19p11";
     String bwaPath = args[2]; //bwaPath = "/tmp/tools/bwa.tgz";
     String outputPath = args[3]; //outputPath = "/tmp/output/minichrs";
