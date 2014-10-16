@@ -9,7 +9,7 @@
         <constructor-arg ref="testFragmentDAO" />
     </bean>
 
-    <bean id="testVariantUtil" class="org.lcsb.lu.igcsa.utils.VariantUtils">
+    <bean id="testVariantUtil" class="org.lcsb.lu.igcsa.population.utils.VariantUtils">
         <constructor-arg ref="testVariationDAO" />
         <constructor-arg ref="testSizeDAO" />
         <constructor-arg ref="testSNVDAO"/>

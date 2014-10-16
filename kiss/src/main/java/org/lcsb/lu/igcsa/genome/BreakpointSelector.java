@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 /**
- * org.lcsb.lu.igcsa.utils
+ * org.lcsb.lu.igcsa.population.utils
  * Author: sarah.killcoyne
  * Copyright Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html

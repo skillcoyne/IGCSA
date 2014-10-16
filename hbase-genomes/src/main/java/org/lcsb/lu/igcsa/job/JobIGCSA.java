@@ -1,6 +1,7 @@
 package org.lcsb.lu.igcsa.job;
 
 import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -66,6 +67,11 @@ public abstract class JobIGCSA extends Configured implements Tool
     else
       DistributedCache.addCacheArchive(uri, getConf());
     }
+
+//    protected void addOptions(OptionGroup... ogs)
+//      {
+//      this.parser.addOptions(ogs);
+//      }
 
   protected void addOptions(Option... opts)
     {

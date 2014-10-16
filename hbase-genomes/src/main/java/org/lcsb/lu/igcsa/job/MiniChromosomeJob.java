@@ -11,6 +11,7 @@ package org.lcsb.lu.igcsa.job;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -55,11 +56,11 @@ public class MiniChromosomeJob extends JobIGCSA
     {
     super(new Configuration());
 
-    Option m = new Option("l", "locs", true, "Locations comma separated.  Ex: 1:32-10000,4:3990-50298");
+    Option m = new Option("l", "location", true, "Locations, at least two are necessary.  Ex: -l 1:32-10000  -l 4:3990-50298");
     m.setRequired(false);
     this.addOptions(m);
 
-    m = new Option("d", "bands", true, "Bands comma separated.  Ex: 1q32,5p11.");
+    m = new Option("d", "band", true, "Bands, at least two are required.  Ex: -band 1q32 -band 5p11");
     m.setRequired(false);
     this.addOptions(m);
 
@@ -93,6 +94,13 @@ public class MiniChromosomeJob extends JobIGCSA
     return indexPath;
     }
 
+  private void usage()
+    {
+    HelpFormatter hf = new HelpFormatter();
+    hf.printHelp(this.getClass().getSimpleName() + "-l OR -d", this.parser.getOptions());
+    System.exit(-1);
+    }
+
   public int run(String[] args) throws Exception
     {
     GenericOptionsParser gop = this.parseHadoopOpts(args);
@@ -100,13 +108,8 @@ public class MiniChromosomeJob extends JobIGCSA
 
     log.info("ARGS: " + Arrays.toString(args));
 
-    if (args.length < 4 || (cl.hasOption("l") && cl.hasOption("d")))
-      //if (args.length < 4)
-      {
-      HelpFormatter hf = new HelpFormatter();
-      hf.printHelp(this.getClass().getSimpleName() + "-l OR -d", this.parser.getOptions());
-      System.exit(-1);
-      }
+    if ((cl.hasOption("location") && cl.hasOption("band")) ) usage();
+
     getLocations(cl);
 
     String name = cl.getOptionValue("n");
@@ -171,7 +174,9 @@ public class MiniChromosomeJob extends JobIGCSA
 
     if (cl.hasOption("l"))
       {
-      for (String lop : cl.getOptionValue("l").split(","))
+      if (cl.getOptionValues("l").length < 2) usage();
+
+      for (String lop: cl.getOptionValues("l"))
         {
         String[] cloc = lop.split(":");
         String[] seloc = cloc[1].split("-");
@@ -188,7 +193,8 @@ public class MiniChromosomeJob extends JobIGCSA
       }
     else
       {
-      for (String b : cl.getOptionValue("b").split(","))
+      if (cl.getOptionValues("band").length < 2) usage();
+      for (String b: cl.getOptionValues("band"))
         {
         Band band = new Band(b);
         if (dao.getBandDAO().getBand(b) == null)

@@ -12,7 +12,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.lcsb.lu.igcsa.MinimalKaryotype;
+import org.lcsb.lu.igcsa.population.MinimalKaryotype;
 import org.lcsb.lu.igcsa.hbase.rows.KaryotypeIndexRow;
 import org.lcsb.lu.igcsa.hbase.tables.AbstractTable;
 import org.lcsb.lu.igcsa.hbase.tables.Column;

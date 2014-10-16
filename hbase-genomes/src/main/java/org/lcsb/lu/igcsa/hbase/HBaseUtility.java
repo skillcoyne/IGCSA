@@ -37,12 +37,15 @@ public class HBaseUtility
     Options options = new Options();
     options.addOption(new Option("d", "dir", true, "Directory to import/export hbase tables."));
     options.addOption(new Option("c", "command", true,"IMPORT or EXPORT tables to the directory."));
-    options.addOption(new Option("t", "tables", true, "Comma separated list of tables. Default is all in hbase or in the import directory. If using s3 a list of tables is required!"));
+
+    Option tb = new Option("t", "tables", true, "Table to import. Default is all in hbase or in the import directory. If using s3 a list of tables is required!");
+    tb.setRequired(true);
+    options.addOption(tb);
 
     Configuration conf = HBaseConfiguration.create();
 
     String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
-    CommandLine cl = new BasicParser().parse(options, otherArgs);
+    CommandLine cl = new GnuParser().parse(options, otherArgs);
 
     if (!cl.hasOption("d") || !cl.hasOption("c"))
       usage("Missing required option 'd' or 'c'", options);
@@ -60,7 +63,7 @@ public class HBaseUtility
 
     String[] tables = new String[0];
     if (cl.hasOption("t"))
-      tables = cl.getOptionValue("t").split(",");
+      tables = cl.getOptionValues("t");
 
     if (cmd.equalsIgnoreCase("export")) exportData(path, tables, conf);
     else if (cmd.equalsIgnoreCase("import")) importData(path, tables, conf);

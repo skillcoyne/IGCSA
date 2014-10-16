@@ -10,11 +10,14 @@ package org.lcsb.lu.igcsa.job;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.lcsb.lu.igcsa.MinimalKaryotype;
-import org.lcsb.lu.igcsa.PopulationGenerator;
-import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
+import org.lcsb.lu.igcsa.population.MinimalKaryotype;
+import org.lcsb.lu.igcsa.population.PopulationGenerator;
+import org.lcsb.lu.igcsa.karyotype.aberrations.AberrationTypes;
+import org.lcsb.lu.igcsa.karyotype.generator.Aberration;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class CreateKaryotypes
   {
@@ -29,22 +32,36 @@ public class CreateKaryotypes
       }
     String parentGenome = args[0];
 
-    HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin();
-    if (admin.getGenomeTable().getGenome(parentGenome) == null && !parentGenome.equalsIgnoreCase("test"))
-      throw new Exception("Genome " + parentGenome + " does not exist. Exiting.");
-    admin.deleteKaryotypes(parentGenome);
+//    HBaseGenomeAdmin admin = HBaseGenomeAdmin.getHBaseGenomeAdmin();
+//    if (admin.getGenomeTable().getGenome(parentGenome) == null && !parentGenome.equalsIgnoreCase("test"))
+//      throw new Exception("Genome " + parentGenome + " does not exist. Exiting.");
+//    admin.deleteKaryotypes(parentGenome);
 
     String karyotypePrefix = StringUtils.join(args, '-');
-    List<MinimalKaryotype> pop = new PopulationGenerator().run(1000);
+    List<MinimalKaryotype> pop = new PopulationGenerator().run(1000, 75);
 
     int i = 1;
+    Set<Aberration> aberrationSet = new HashSet<Aberration>();
     for (MinimalKaryotype mk : pop)
       {
-      log.info(mk);
-      String karyotypeRowId = admin.getKaryotypeIndexTable().addKaryotype(karyotypePrefix + i, parentGenome, mk);
-      admin.getKaryotypeTable().addAberrations(karyotypeRowId, mk.getAberrations());
+      //log.info(mk);
+      for (Aberration abr: mk.getAberrations())
+        {
+        if (abr.getAberration().equals(AberrationTypes.TRANSLOCATION))
+          {
+          //log.info(abr.getBands());
+          aberrationSet.add(abr);
+          }
+        }
+//      String karyotypeRowId = admin.getKaryotypeIndexTable().addKaryotype(karyotypePrefix + i, parentGenome, mk);
+//      admin.getKaryotypeTable().addAberrations(karyotypeRowId, mk.getAberrations());
       ++i;
       }
+    //log.info(bandSet.toString());
+    Aberration abr = aberrationSet.iterator().next();
+    String bands = abr.getBands().get(0).getFullName() + "," + abr.getBands().get(1).getFullName();
+    log.info(bands);
+    log.info("Total band pairs " + aberrationSet.size());
     }
 
 

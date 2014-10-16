@@ -22,7 +22,7 @@ import org.lcsb.lu.igcsa.hbase.HBaseGenomeAdmin;
 import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAFragmentInputFormat;
 import org.lcsb.lu.igcsa.mapreduce.fasta.FASTAFragmentMapper;
 import org.lcsb.lu.igcsa.mapreduce.FragmentWritable;
-import org.lcsb.lu.igcsa.utils.FileUtils;
+import org.lcsb.lu.igcsa.population.utils.FileUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;

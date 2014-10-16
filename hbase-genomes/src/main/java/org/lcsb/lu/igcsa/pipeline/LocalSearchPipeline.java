@@ -9,13 +9,17 @@
 package org.lcsb.lu.igcsa.pipeline;
 
 import org.apache.commons.cli.*;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.util.ToolRunner;
+import org.lcsb.lu.igcsa.genome.Band;
 import org.lcsb.lu.igcsa.job.BWAAlign;
 import org.lcsb.lu.igcsa.job.MiniChromosomeJob;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 
 public class LocalSearchPipeline
@@ -30,7 +34,6 @@ public class LocalSearchPipeline
     options.addOption(new Option("o", "output", true, "output path"));
     options.addOption(new Option("g", "genome", true, "parent genome name for sequence generation"));
     options.addOption(new Option("r", "reads", true, "read path for tsv"));
-
 
     CommandLine cl = new BasicParser().parse(options, args);
 
@@ -60,9 +63,20 @@ public class LocalSearchPipeline
 
   private static String generateMiniAbrs(CommandLine cl) throws Exception
     {
+    List<String> locs = new ArrayList<String>();
+    for (String loc: cl.getOptionValues("l"))
+      {
+      locs.add("-l");
+      locs.add(loc);
+      }
+
     log.info("*********** MINI CHR JOB *************");
     MiniChromosomeJob mcj = new MiniChromosomeJob();
-    ToolRunner.run(mcj, new String[]{"-b", cl.getOptionValue("b"), "-g", cl.getOptionValue("g"), "-n", "mini", "-o", cl.getOptionValue("o"), "-l", cl.getOptionValue("l")});
+    ToolRunner.run(mcj, (String[]) ArrayUtils.addAll(new String[]{
+        "-b", cl.getOptionValue("b"),
+        "-g", cl.getOptionValue("g"),
+        "-n", "mini", "-o", cl.getOptionValue("o") },
+        locs.toArray(new String[locs.size()])));
     return mcj.getIndexPath().toString();
     }
 
@@ -71,7 +85,12 @@ public class LocalSearchPipeline
     log.info("*********** ALIGN CHR JOB *************");
     String output = indexPath.substring(0, indexPath.indexOf("/index"));
     BWAAlign ba = new BWAAlign();
-    ToolRunner.run(ba, new String[]{"--bwa-path", cl.getOptionValue("b"), "-n", "mini", "-i", indexPath, "-r", cl.getOptionValue("r"), "-o", output});
+    ToolRunner.run(ba, new String[]{
+        "--bwa-path", cl.getOptionValue("b"),
+        "-n", "mini",
+        "-i", indexPath,
+        "-r", cl.getOptionValue("r"),
+        "-o", output});
     ba.mergeSAM();
     return ba.getOutputPath().toString();
     }

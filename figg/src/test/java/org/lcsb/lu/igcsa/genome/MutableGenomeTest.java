@@ -8,7 +8,7 @@ import org.junit.runner.RunWith;
 import org.lcsb.lu.igcsa.fasta.FASTAHeader;
 import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 import org.lcsb.lu.igcsa.genome.concurrency.Mutable;
-import org.lcsb.lu.igcsa.utils.VariantUtils;
+import org.lcsb.lu.igcsa.population.utils.VariantUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;

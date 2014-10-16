@@ -12,7 +12,7 @@ import java.util.Set;
  * Copyright University of Luxembourg, Luxembourg Centre for Systems Biomedicine 2014
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class IGCSACommandLineParser extends BasicParser
+public class IGCSACommandLineParser extends GnuParser
   {
   private static IGCSACommandLineParser clp;
 
@@ -32,6 +32,14 @@ public class IGCSACommandLineParser extends BasicParser
     requiredOpts = new HashSet<Option>();
     }
 
+//  public void addOptions(OptionGroup... ogs)
+//    {
+//    for (OptionGroup og: ogs)
+//      {
+//      options.addOptionGroup(og);
+//      }
+//    }
+
   public void addOptions(Option... opts)
     {
     for (Option o: opts)
@@ -47,7 +55,7 @@ public class IGCSACommandLineParser extends BasicParser
 
   public CommandLine parseOptions(String[] args, Class currentClass) throws ParseException
     {
-    CommandLine cl  = clp.parse(options, args);
+    CommandLine cl  = clp.parse(options, args, false);
 
     HelpFormatter help = new HelpFormatter();
     for (Option opt: requiredOpts)

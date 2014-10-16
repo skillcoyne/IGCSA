@@ -1,12 +1,12 @@
 /**
- * org.lcsb.lu.igcsa.watchmaker.kt
+ * org.lcsb.lu.igcsa.population.watchmaker.kt
  * Author: sarah.killcoyne
  * Copyright University of Luxembourg and Luxembourg Centre for Systems Biomedicine 2013
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
 
 
-package org.lcsb.lu.igcsa.watchmaker.kt;
+package org.lcsb.lu.igcsa.population.watchmaker.kt;
 
 import org.apache.log4j.Logger;
 import org.junit.Before;

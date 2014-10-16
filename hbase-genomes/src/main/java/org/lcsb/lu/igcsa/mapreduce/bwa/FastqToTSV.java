@@ -10,7 +10,7 @@ import org.apache.hadoop.fs.FileSystem;
 
 
 /**
- * org.lcsb.lu.igcsa.utils
+ * org.lcsb.lu.igcsa.population.utils
  * Author: Sarah Killcoyne
  * Copyright University of Luxembourg, Luxembourg Centre for Systems Biomedicine 2014
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html

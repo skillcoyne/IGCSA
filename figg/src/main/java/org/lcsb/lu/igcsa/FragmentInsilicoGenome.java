@@ -8,9 +8,9 @@
 //import org.lcsb.lu.igcsa.fasta.FASTAWriter;
 //import org.lcsb.lu.igcsa.genome.*;
 //import org.lcsb.lu.igcsa.prob.ProbabilityException;
-//import org.lcsb.lu.igcsa.utils.FileUtils;
+//import org.lcsb.lu.igcsa.population.utils.FileUtils;
 //
-//import org.lcsb.lu.igcsa.utils.VariantUtils;
+//import org.lcsb.lu.igcsa.population.utils.VariantUtils;
 //import org.springframework.context.ApplicationContext;
 //
 //import java.io.File;
@@ -19,7 +19,7 @@
 //import java.util.*;
 //import java.util.concurrent.*;
 //
-//import static org.lcsb.lu.igcsa.utils.GenomeUtils.*;
+//import static org.lcsb.lu.igcsa.population.utils.GenomeUtils.*;
 //
 //
 ///**

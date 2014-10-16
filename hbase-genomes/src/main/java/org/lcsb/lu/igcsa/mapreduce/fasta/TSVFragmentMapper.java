@@ -9,7 +9,7 @@ import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.log4j.Logger;
 import org.lcsb.lu.igcsa.hbase.rows.SequenceRow;
 import org.lcsb.lu.igcsa.mapreduce.FragmentWritable;
-import org.lcsb.lu.igcsa.utils.FileUtils;
+import org.lcsb.lu.igcsa.population.utils.FileUtils;
 
 import java.io.IOException;
 

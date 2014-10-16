@@ -8,13 +8,11 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.util.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.Arrays;
 
 
@@ -89,7 +87,7 @@ public class IndexMapper extends Mapper<LongWritable, Text, Text, Text>
       if (exitVal > 0) throw new RuntimeException("BWA error: " + errorOS.toString());
 
       File tmpZip = new File(tmpRefDir.getParentFile(), indexArchive);
-      org.lcsb.lu.igcsa.utils.FileUtils.compressFiles(tmpRefDir.listFiles(), tmpZip.getAbsolutePath(), "ref");
+      org.lcsb.lu.igcsa.population.utils.FileUtils.compressFiles(tmpRefDir.listFiles(), tmpZip.getAbsolutePath(), "ref");
 
       log.info(tmpZip.exists());
 
