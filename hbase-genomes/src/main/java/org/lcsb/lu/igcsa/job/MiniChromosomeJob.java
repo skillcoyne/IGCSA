@@ -43,6 +43,7 @@ public class MiniChromosomeJob extends JobIGCSA
   private List<Location> locations;
   private List<Band> bands;
   private Path indexPath;
+  private String name;
 
   public static void main(String[] args) throws Exception
     {
@@ -55,7 +56,17 @@ public class MiniChromosomeJob extends JobIGCSA
   public MiniChromosomeJob()
     {
     super(new Configuration());
+    setOpts();
+    }
 
+  public MiniChromosomeJob(Configuration conf)
+    {
+    super(conf);
+    setOpts();
+    }
+
+  private void setOpts()
+    {
     Option m = new Option("l", "location", true, "Locations, at least two are necessary.  Ex: -l 1:32-10000  -l 4:3990-50298");
     m.setRequired(false);
     this.addOptions(m);
@@ -84,9 +95,11 @@ public class MiniChromosomeJob extends JobIGCSA
     dao = conn.getKaryotypeDAO();
     }
 
-  public MiniChromosomeJob(Configuration conf)
+  private void usage()
     {
-    super(conf);
+    HelpFormatter hf = new HelpFormatter();
+    hf.printHelp(this.getClass().getSimpleName() + "-l OR -d", this.parser.getOptions());
+    System.exit(-1);
     }
 
   public Path getIndexPath()
@@ -94,11 +107,9 @@ public class MiniChromosomeJob extends JobIGCSA
     return indexPath;
     }
 
-  private void usage()
+  public String getName()
     {
-    HelpFormatter hf = new HelpFormatter();
-    hf.printHelp(this.getClass().getSimpleName() + "-l OR -d", this.parser.getOptions());
-    System.exit(-1);
+    return name;
     }
 
   public int run(String[] args) throws Exception
@@ -131,6 +142,8 @@ public class MiniChromosomeJob extends JobIGCSA
     Path outputPath = new Path(outputDir, name);
     Path fastaOutput = new Path(outputPath, derChrName);
 
+    this.name = derChrName;
+
     int i = 1;
     while (fs.exists(fastaOutput))
       {
@@ -143,6 +156,7 @@ public class MiniChromosomeJob extends JobIGCSA
     String desc = abr.getDescription() + ",bp=" + bands.get(0).getLocation().getLength();
 
     FASTAHeader header = new FASTAHeader(derChrName, name, "parent=" + parentGenomeName, desc);
+
     DerivativeChromosomeJob gdc = new DerivativeChromosomeJob(new Configuration(), scan, fastaOutput, alf.getFilterLocationList(), abr, header);
 
     int ret = ToolRunner.run(gdc, null);

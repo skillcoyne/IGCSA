@@ -53,7 +53,7 @@ HBASE="Path=s3://eu-west-1.elasticmapreduce/bootstrap-actions/configure-hbase,Ar
 STEPS="Name=LoadHBASE,Jar=$JAR,Type=CUSTOM_JAR,ActionOnFailure=TERMINATE_CLUSTER,Args=[hbaseutil,-d,s3n://${BUCKET}/hbase,-c,IMPORT,-t,genome,-t,chromosome,-t,sequence,-t,small_mutations]"
 
 random_search_args="-b,s3n://${BUCKET}/tools/bwa.tgz,-o,s3n://${BUCKET}/Random,-g,GRCh37,-r,s3n://${BUCKET}/reads/HCC1954/discordant.tsv"
-  STEPS="${STEPS} Name=RandomSearch,Jar=$JAR,Type=CUSTOM_JAR,ActionOnFailure=CANCEL_AND_WAIT,Args=[randomsearch,${random_search_args}]"
+  STEPS="${STEPS} Name=RandomSearch,Jar=$JAR,Type=CUSTOM_JAR,ActionOnFailure=CONTINUE,Args=[randomsearch,${random_search_args}]"
 
 aws emr create-cluster --name 'IGCSA randomsearch v0.01' --applications Name=HBase --ami-version 2.4.8 --auto-terminate --enable-debugging --log-uri s3://${BUCKET}/logs \
 --ec2-attributes KeyName=amazonkeypair \

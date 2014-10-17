@@ -57,7 +57,7 @@ public class KaryotypeCandidateFactory extends AbstractCandidateFactory<Karyotyp
   @Override
   public List<KaryotypeCandidate> generateInitialPopulation(int populationSize, Collection<KaryotypeCandidate> seedCandidates, Random rng)
     {
-    log.info("******* generateInitialPopulation **********");
+    log.info("generateInitialPopulation");
     List<KaryotypeCandidate> population = super.generateInitialPopulation(populationSize, seedCandidates, rng);
 
     for(KaryotypeCandidate cand: population)

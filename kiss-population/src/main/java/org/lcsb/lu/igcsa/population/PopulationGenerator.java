@@ -40,6 +40,8 @@ public class PopulationGenerator
   static ApplicationContext context;
   static KaryotypeDAO dao;
 
+  private Observer observer;
+
   public static void main(String[] args) throws Exception
     {
     new PopulationGenerator().run(1000, 200);
@@ -50,7 +52,11 @@ public class PopulationGenerator
     //context = new ClassPathXmlApplicationContext(new String[]{"classpath*:spring-config.xml", "classpath*:/conf/genome.xml", "classpath*:/conf/database-config.xml"});
     DerbyConnection conn = new DerbyConnection("org.apache.derby.jdbc.EmbeddedDriver", "jdbc:derby:classpath:karyotype_probabilities", "igcsa", "");
     dao = conn.getKaryotypeDAO();
+    }
 
+  public Observer getObserver()
+    {
+    return observer;
     }
 
   public List<MinimalKaryotype> run(int maxGen, int maxPop) throws ProbabilityException
@@ -82,7 +88,7 @@ public class PopulationGenerator
         new MersenneTwisterRNG(),
         maxPop);
 
-    Observer observer = new Observer();
+    observer = new Observer();
     engine.addEvolutionObserver(observer);
 
     List<EvaluatedCandidate<KaryotypeCandidate>> pop = engine.evolvePopulation(
@@ -91,12 +97,12 @@ public class PopulationGenerator
         new BreakpointCondition(allPossibleBands, 2),
         new GenerationCount(maxGen));
 
-    log.info(observer.generationCount());
+    //log.info(observer.generationCount());
 
     List<MinimalKaryotype> karyotypes = new ArrayList<MinimalKaryotype>();
     for (EvaluatedCandidate<KaryotypeCandidate> candidate : pop)
       {
-      log.info(candidate.getFitness() + " " + candidate.getCandidate());
+      log.debug(candidate.getFitness() + " " + candidate.getCandidate());
       karyotypes.add( createKaryotype(candidate.getCandidate()) );
       }
 

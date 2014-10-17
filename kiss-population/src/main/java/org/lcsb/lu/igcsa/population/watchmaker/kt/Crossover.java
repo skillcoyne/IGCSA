@@ -89,7 +89,7 @@ public class Crossover implements EvolutionaryOperator<KaryotypeCandidate>
       CandidateGraph.getGraph().removeNode(xr3);
 
       karyotypeCandidates.add(trial);
-      log.info("adding XO individual");
+      log.debug("adding XO individual");
       }
     else
       CandidateGraph.getGraph().removeNode(trial);

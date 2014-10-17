@@ -50,7 +50,7 @@ public class BreakpointCondition implements TerminationCondition
     if (populationData.getGenerationNumber() > 40)
       {
       int zeros = Collections.frequency(possibleBreakpoints.values(), 0);
-      log.info("---> Zero frequency: " + zeros);
+      log.debug("---> Zero frequency: " + zeros);
       if (zeros <= this.maxZeros)
         return true;
       }

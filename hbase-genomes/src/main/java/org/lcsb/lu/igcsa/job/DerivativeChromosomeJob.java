@@ -49,8 +49,7 @@ public class DerivativeChromosomeJob extends JobIGCSA
   private Aberration aberration;
   private String jobId;
 
-  public DerivativeChromosomeJob(Configuration conf, Scan scan, Path output, List<Location> filterLocations,
-                                 Aberration aberration, FASTAHeader header)
+  public DerivativeChromosomeJob(Configuration conf, Scan scan, Path output, List<Location> filterLocations, Aberration aberration, FASTAHeader header)
     {
     super(conf);
     this.scan = scan;

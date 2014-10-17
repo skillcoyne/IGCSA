@@ -152,9 +152,21 @@ public class Band implements Comparable<Band>
   @Override
   public int compareTo(Band b)
     {
-    if (this.getBandName().equals(b.getBandName())) return 0;
-    if (!this.whichArm().equals(b.whichArm())) return this.whichArm().compareTo(b.whichArm());
-    else return this.getLocation().compareTo(b.getLocation());
+    if (this.getFullName().equals(b.getFullName())) return 0;
+    if (this.getChromosomeName().equals(b.getChromosomeName()))
+      return this.getLocation().compareTo(b.getLocation());
+    else
+      {
+      String regex = "^(X|Y)";
+      if (this.getChromosomeName().matches(regex) && !b.getChromosomeName().matches(regex) ) return -1;
+      if (!this.getChromosomeName().matches(regex) && b.getChromosomeName().matches(regex) ) return 1;
+      if (this.getChromosomeName().matches(regex) && b.getChromosomeName().matches(regex)) return this.getChromosomeName().compareTo(b.getChromosomeName());
+
+      return new Integer(Integer.parseInt(this.getChromosomeName())).compareTo(new Integer(Integer.parseInt(b.getChromosomeName())));
+      }
+//      return this.getChromosomeName().compareTo(b.getChromosomeName());
+//    if (!this.whichArm().equals(b.whichArm())) return this.whichArm().compareTo(b.whichArm());
+//    else return this.getLocation().compareTo(b.getLocation());
     }
 
   }

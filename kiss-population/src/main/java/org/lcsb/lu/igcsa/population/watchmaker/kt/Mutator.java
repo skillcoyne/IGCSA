@@ -70,14 +70,14 @@ public class Mutator implements EvolutionaryOperator<KaryotypeCandidate>
         Collections.shuffle(candidates, random); // ensures a random selection of individuals
         }
       }
-    log.info("Mutated " + mutatedIndividuals.size());
+    log.debug("Mutated " + mutatedIndividuals.size());
 
     candidates.addAll(mutatedIndividuals);
 
     long start = System.currentTimeMillis();
     for (KaryotypeCandidate mut : mutatedIndividuals)
       CandidateGraph.updateGraph(mut, candidates);
-    log.info("graph update took : " + (System.currentTimeMillis() - start) + " ms");
+    log.debug("graph update took : " + (System.currentTimeMillis() - start) + " ms");
 
     return candidates;
     }

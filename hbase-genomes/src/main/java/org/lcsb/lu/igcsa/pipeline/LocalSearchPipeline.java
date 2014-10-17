@@ -12,56 +12,59 @@ import org.apache.commons.cli.*;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.util.ToolRunner;
-import org.lcsb.lu.igcsa.genome.Band;
-import org.lcsb.lu.igcsa.job.BWAAlign;
 import org.lcsb.lu.igcsa.job.MiniChromosomeJob;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 
-public class LocalSearchPipeline
+
+public class LocalSearchPipeline extends SearchPipeline
   {
   private static final Log log = LogFactory.getLog(LocalSearchPipeline.class);
 
-  public static CommandLine parseCommandLine(String[] args) throws ParseException
+  @Override
+  public void setOptions()
     {
-    Options options = new Options();
+    options = new Options();
     options.addOption(new Option("l", "location", true, "chromosome location ex. 5:29199-394421"));
     options.addOption(new Option("b", "bwa", true, "bwa archive location"));
     options.addOption(new Option("o", "output", true, "output path"));
     options.addOption(new Option("g", "genome", true, "parent genome name for sequence generation"));
     options.addOption(new Option("r", "reads", true, "read path for tsv"));
+    }
 
-    CommandLine cl = new BasicParser().parse(options, args);
-
+  @Override
+  protected void usage()
+    {
     HelpFormatter help = new HelpFormatter();
-    if (!cl.hasOption("l") | !cl.hasOption("b") | !cl.hasOption("o") | !cl.hasOption("g") | !cl.hasOption("r"))
+    if (!commandLine.hasOption("l") | !commandLine.hasOption("b") | !commandLine.hasOption("o") | !commandLine.hasOption("g") | !commandLine.hasOption("r"))
       {
-      help.printHelp(LocalSearchPipeline.class.getSimpleName() + ":\nMissing required option. ", options);
+      help.printHelp(this.getClass().getSimpleName() + ":\nMissing required option. ", this.getOptions());
       System.exit(-1);
       }
 
-    return cl;
     }
 
   public static void main(String[] args) throws Exception
     {
-    CommandLine cl = parseCommandLine(args);
+    SearchPipeline pipeline = new LocalSearchPipeline();
+    CommandLine cl = pipeline.parseCommandLine(args);
 
-    String indexPath = generateMiniAbrs(cl);
-    System.out.println(indexPath);
+    MiniChromosomeJob mcj = generateMiniAbrs(cl, pipeline.getConfiguration());
+    System.out.println(mcj.getIndexPath().toString());
 
-    String alignedReads = alignReads(cl, indexPath);
+    String alignedReads = pipeline.alignReads(mcj.getIndexPath().toString(), mcj.getName());
     System.out.println(alignedReads);
 
     // score with streaming job
 
     }
 
-  private static String generateMiniAbrs(CommandLine cl) throws Exception
+
+  protected static MiniChromosomeJob generateMiniAbrs(CommandLine cl, Configuration conf) throws Exception
     {
     List<String> locs = new ArrayList<String>();
     for (String loc: cl.getOptionValues("l"))
@@ -71,28 +74,9 @@ public class LocalSearchPipeline
       }
 
     log.info("*********** MINI CHR JOB *************");
-    MiniChromosomeJob mcj = new MiniChromosomeJob();
-    ToolRunner.run(mcj, (String[]) ArrayUtils.addAll(new String[]{
-        "-b", cl.getOptionValue("b"),
-        "-g", cl.getOptionValue("g"),
-        "-n", "mini", "-o", cl.getOptionValue("o") },
-        locs.toArray(new String[locs.size()])));
-    return mcj.getIndexPath().toString();
-    }
-
-  private static String alignReads(CommandLine cl, String indexPath) throws Exception
-    {
-    log.info("*********** ALIGN CHR JOB *************");
-    String output = indexPath.substring(0, indexPath.indexOf("/index"));
-    BWAAlign ba = new BWAAlign();
-    ToolRunner.run(ba, new String[]{
-        "--bwa-path", cl.getOptionValue("b"),
-        "-n", "mini",
-        "-i", indexPath,
-        "-r", cl.getOptionValue("r"),
-        "-o", output});
-    ba.mergeSAM();
-    return ba.getOutputPath().toString();
+    MiniChromosomeJob mcj = new MiniChromosomeJob(conf);
+    ToolRunner.run(mcj, (String[]) ArrayUtils.addAll(new String[]{"-b", cl.getOptionValue("b"), "-g", cl.getOptionValue("g"), "-n", "mini", "-o", cl.getOptionValue("o")}, locs.toArray(new String[locs.size()])));
+    return mcj;
     }
 
 

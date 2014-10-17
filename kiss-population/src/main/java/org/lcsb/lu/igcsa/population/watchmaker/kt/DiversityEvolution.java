@@ -41,8 +41,8 @@ public class DiversityEvolution<T extends KaryotypeCandidate> extends AbstractEv
     {
     // Select candidates to evolve
     List<T> population = selectionStrategy.select(evaluatedPopulation, fitnessEvaluator.isNatural(), evaluatedPopulation.size(), rng);
-    log.info(population.size() + " selected for next step. Adding " + (maxPopulationSize - population.size() + " random individuals into the population."));
-    log.info("Graph: " + CandidateGraph.getGraph().nodeCount() + " " + CandidateGraph.getGraph().edgeCount());
+    log.debug(population.size() + " selected for next step. Adding " + (maxPopulationSize - population.size() + " random individuals into the population."));
+    log.debug("Graph: " + CandidateGraph.getGraph().nodeCount() + " " + CandidateGraph.getGraph().edgeCount());
 
     while (population.size() < maxPopulationSize)
       {
