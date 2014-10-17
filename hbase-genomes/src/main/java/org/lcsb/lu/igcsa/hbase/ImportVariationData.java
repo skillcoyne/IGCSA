@@ -51,7 +51,7 @@ public class ImportVariationData
         {
         if (!cl.hasOption(opt))
           {
-          help.printHelp("Missing required options", IGCSACommandLineParser.getParser().getOptions());
+          help.printHelp("Missing required options", options);
           System.exit(-1);
           }
         }

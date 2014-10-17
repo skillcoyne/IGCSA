@@ -52,7 +52,6 @@ public class MiniChromosomeJob extends JobIGCSA
     //System.out.println(mcj.getIndexPath().toString());
     }
 
-
   public MiniChromosomeJob()
     {
     super(new Configuration());
@@ -98,7 +97,7 @@ public class MiniChromosomeJob extends JobIGCSA
   private void usage()
     {
     HelpFormatter hf = new HelpFormatter();
-    hf.printHelp(this.getClass().getSimpleName() + "-l OR -d", this.parser.getOptions());
+    hf.printHelp(this.getClass().getSimpleName() + "-l OR -d", this.options);
     System.exit(-1);
     }
 
@@ -115,7 +114,10 @@ public class MiniChromosomeJob extends JobIGCSA
   public int run(String[] args) throws Exception
     {
     GenericOptionsParser gop = this.parseHadoopOpts(args);
-    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs(), this.getClass());
+    CommandLine cl = this.parseOptions(args, this.getClass());
+    //CommandLine cl = this.parser.parse(this.options, gop.getRemainingArgs(), false);
+    //CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs(), this.options, this.getClass());
+    //CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs(), this.getClass());
 
     log.info("ARGS: " + Arrays.toString(args));
 

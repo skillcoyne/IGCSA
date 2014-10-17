@@ -29,7 +29,9 @@ public class LocalSearchPipeline extends SearchPipeline
   public void setOptions()
     {
     options = new Options();
-    options.addOption(new Option("l", "location", true, "chromosome location ex. 5:29199-394421"));
+    Option opt = new Option("l", "location", true, "chromosome location ex. 5:29199-394421");
+    opt.setRequired(true);
+    options.addOption(opt);
     options.addOption(new Option("b", "bwa", true, "bwa archive location"));
     options.addOption(new Option("o", "output", true, "output path"));
     options.addOption(new Option("g", "genome", true, "parent genome name for sequence generation"));
@@ -50,22 +52,15 @@ public class LocalSearchPipeline extends SearchPipeline
 
   public static void main(String[] args) throws Exception
     {
-    SearchPipeline pipeline = new LocalSearchPipeline();
-    CommandLine cl = pipeline.parseCommandLine(args);
-
-    MiniChromosomeJob mcj = generateMiniAbrs(cl, pipeline.getConfiguration());
-    System.out.println(mcj.getIndexPath().toString());
-
-    String alignedReads = pipeline.alignReads(mcj.getIndexPath().toString(), mcj.getName());
-    System.out.println(alignedReads);
-
-    // score with streaming job
-
+    new LocalSearchPipeline().runSearch(args);
     }
 
 
-  protected static MiniChromosomeJob generateMiniAbrs(CommandLine cl, Configuration conf) throws Exception
+  @Override
+  public void runSearch(String[] args) throws Exception
     {
+    CommandLine cl = parseCommandLine(args);
+
     List<String> locs = new ArrayList<String>();
     for (String loc: cl.getOptionValues("l"))
       {
@@ -73,11 +68,10 @@ public class LocalSearchPipeline extends SearchPipeline
       locs.add(loc);
       }
 
-    log.info("*********** MINI CHR JOB *************");
-    MiniChromosomeJob mcj = new MiniChromosomeJob(conf);
-    ToolRunner.run(mcj, (String[]) ArrayUtils.addAll(new String[]{"-b", cl.getOptionValue("b"), "-g", cl.getOptionValue("g"), "-n", "mini", "-o", cl.getOptionValue("o")}, locs.toArray(new String[locs.size()])));
-    return mcj;
+    MiniChromosomeJob mcj = generateMiniAbrs((String[]) ArrayUtils.addAll(new String[]{"-b", cl.getOptionValue("b"), "-g", cl.getOptionValue("g"), "-n", "mini", "-o", cl.getOptionValue("o")}, locs.toArray(new String[locs.size()])));
+    System.out.println(mcj.getIndexPath().toString());
+
+    String alignedReads = alignReads(mcj.getIndexPath().toString(), mcj.getName());
+    System.out.println(alignedReads);
     }
-
-
   }

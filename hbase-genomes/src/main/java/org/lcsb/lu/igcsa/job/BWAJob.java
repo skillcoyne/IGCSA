@@ -27,7 +27,7 @@ public abstract class BWAJob extends JobIGCSA
     Option bwa = new Option("b", "bwa-path", true, "Path to archive with bwa.");
     bwa.setRequired(true);
 
-    parser.addOptions(bwa);
+    this.addOptions(bwa);
     }
 
   protected void setupBWA(String bwaPath) throws URISyntaxException, IOException

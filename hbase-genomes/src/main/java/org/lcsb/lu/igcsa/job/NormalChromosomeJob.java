@@ -70,7 +70,7 @@ public class NormalChromosomeJob extends JobIGCSA
     private Scan setup(String[] args) throws IOException, ParseException
     {
     GenericOptionsParser gop = this.parseHadoopOpts(args);
-    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs(), this.getClass());
+    CommandLine cl = this.parseOptions(gop.getRemainingArgs(), this.getClass());
 
     genomeName = cl.getOptionValue("g");
     chr = cl.getOptionValue("c");

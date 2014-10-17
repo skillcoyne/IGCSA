@@ -1,8 +1,11 @@
 package org.lcsb.lu.igcsa.job;
 
 import org.apache.commons.cli.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.util.HashSet;
+import java.util.ListIterator;
 import java.util.Set;
 
 
@@ -12,66 +15,34 @@ import java.util.Set;
  * Copyright University of Luxembourg, Luxembourg Centre for Systems Biomedicine 2014
  * Open Source License Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
  */
-public class IGCSACommandLineParser extends GnuParser
+public class IGCSACommandLineParser extends BasicParser
   {
+  private static final Log log = LogFactory.getLog(IGCSACommandLineParser.class);
+
   private static IGCSACommandLineParser clp;
 
-  private Options options;
-  private Set<Option> requiredOpts;
+  private boolean ignoredUnrecognized;
+
+  public IGCSACommandLineParser(boolean ignoredUnrecognized)
+    {
+    this.ignoredUnrecognized = ignoredUnrecognized;
+    }
+
+  @Override
+  protected void processOption(String arg, ListIterator iter) throws ParseException
+    {
+    boolean hasOption = getOptions().hasOption(arg);
+
+    if (hasOption || !ignoredUnrecognized)
+      super.processOption(arg, iter);
+    else
+      log.warn("Ignoring option '" + arg + "'");
+    }
 
   public static IGCSACommandLineParser getParser()
     {
-    //if (clp == null)
-      clp = new IGCSACommandLineParser();
+    clp = new IGCSACommandLineParser(true);
     return clp;
     }
 
-  private IGCSACommandLineParser()
-    {
-    options = new Options();
-    requiredOpts = new HashSet<Option>();
-    }
-
-//  public void addOptions(OptionGroup... ogs)
-//    {
-//    for (OptionGroup og: ogs)
-//      {
-//      options.addOptionGroup(og);
-//      }
-//    }
-
-  public void addOptions(Option... opts)
-    {
-    for (Option o: opts)
-      {
-      if (o.isRequired())
-        {
-        requiredOpts.add(o);
-        o.setRequired(false);
-        }
-      options.addOption(o);
-      }
-    }
-
-  public CommandLine parseOptions(String[] args, Class currentClass) throws ParseException
-    {
-    CommandLine cl  = clp.parse(options, args, false);
-
-    HelpFormatter help = new HelpFormatter();
-    for (Option opt: requiredOpts)
-      {
-      if (!cl.hasOption(opt.getOpt()))
-        {
-        help.printHelp(currentClass.getSimpleName() + ":\nMissing required option: -" + opt.getOpt() + " " + opt.getDescription(), options);
-        System.exit(-1);
-        }
-      }
-
-    return cl;
-    }
-
-  public Options getOptions()
-    {
-    return options;
-    }
   }

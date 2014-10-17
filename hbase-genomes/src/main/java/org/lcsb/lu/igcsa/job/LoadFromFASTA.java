@@ -55,7 +55,7 @@ public class LoadFromFASTA extends JobIGCSA
   public int run(String[] args) throws Exception
     {
     GenericOptionsParser gop = new GenericOptionsParser(new Configuration(), args);
-    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs(), this.getClass());
+    CommandLine cl = this.parseOptions(gop.getRemainingArgs(), this.getClass());
     if (args.length < 2)
       {
       System.err.println("Usage: " + LoadFromFASTA.class.getSimpleName() + " -g <genome name> -f <directory with fasta files>");

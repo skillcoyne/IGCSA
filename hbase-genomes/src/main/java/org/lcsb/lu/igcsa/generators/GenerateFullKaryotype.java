@@ -76,7 +76,7 @@ public class GenerateFullKaryotype extends BWAJob
   public void generationKaryotypeGenome(String[] args) throws Exception, ParseException
     {
     GenericOptionsParser gop = this.parseHadoopOpts(args);
-    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs(), this.getClass());
+    CommandLine cl = this.parseOptions(gop.getRemainingArgs(), this.getClass());
     if (args.length < 1)
       {
       System.err.println("Usage: " + GenerateFullKaryotype.class.getSimpleName() + " <karyotype name>");

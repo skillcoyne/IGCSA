@@ -55,7 +55,7 @@ public class MutateFragments extends JobIGCSA
   public int run(String[] args) throws Exception
     {
     GenericOptionsParser gop = this.parseHadoopOpts(args);
-    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs(), this.getClass());
+    CommandLine cl = this.parseOptions(gop.getRemainingArgs(), this.getClass());
     if (args.length < 1)
       {
       System.err.println("Usage: " + MutateFragments.class.getSimpleName() + " -p <parent genome> -m <new genome name>");

@@ -82,7 +82,7 @@ public class ScoreSAMJob extends JobIGCSA
   public Job createJob(String[] args) throws ParseException, IOException
     {
     GenericOptionsParser gop = this.parseHadoopOpts(args);
-    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs(), this.getClass());
+    CommandLine cl = this.parseOptions(gop.getRemainingArgs(), this.getClass());
 
     log.info(Arrays.toString(gop.getRemainingArgs()));
 

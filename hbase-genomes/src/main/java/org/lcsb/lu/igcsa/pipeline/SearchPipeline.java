@@ -9,6 +9,7 @@
 package org.lcsb.lu.igcsa.pipeline;
 
 import org.apache.commons.cli.*;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -16,6 +17,9 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.ToolRunner;
 import org.lcsb.lu.igcsa.job.BWAAlign;
+import org.lcsb.lu.igcsa.job.IGCSACommandLineParser;
+import org.lcsb.lu.igcsa.job.MiniChromosomeJob;
+import org.lcsb.lu.igcsa.karyotype.generator.Aberration;
 
 import java.io.IOException;
 
@@ -23,14 +27,18 @@ import java.io.IOException;
 public abstract class SearchPipeline
   {
   private static final Log log = LogFactory.getLog(SearchPipeline.class);
+
   protected GenericOptionsParser gop;
 
   protected Options options;
   protected CommandLine commandLine;
+  private IGCSACommandLineParser parser;
 
   protected SearchPipeline()
     {
     this.setOptions();
+    parser = new IGCSACommandLineParser(true);
+
     }
 
   public Options getOptions()
@@ -42,8 +50,6 @@ public abstract class SearchPipeline
     {
     return gop.getConfiguration();
     }
-
-  public abstract void setOptions();
 
   private void getHadoopOpts(String[] args)
     {
@@ -63,13 +69,19 @@ public abstract class SearchPipeline
   public CommandLine parseCommandLine(String[] args) throws ParseException
     {
     getHadoopOpts(args);
-    commandLine = new GnuParser().parse(this.getOptions(), gop.getRemainingArgs(), false);
-
+    commandLine = parser.parse(this.getOptions(), gop.getRemainingArgs());
     usage();
 
     return commandLine;
     }
 
+  protected MiniChromosomeJob generateMiniAbrs(String[] generateArgs) throws Exception
+    {
+    log.info("*********** MINI CHR JOB *************");
+    MiniChromosomeJob mcj = new MiniChromosomeJob(getConfiguration());
+    ToolRunner.run(mcj, generateArgs);
+    return mcj;
+    }
 
   protected String alignReads(String indexPath, String name) throws Exception
     {
@@ -80,6 +92,10 @@ public abstract class SearchPipeline
     ba.mergeSAM();
     return ba.getOutputPath().toString();
     }
+
+  /* To override */
+  public abstract void setOptions();
+  public abstract void runSearch(String[] args) throws Exception;
 
 
   }

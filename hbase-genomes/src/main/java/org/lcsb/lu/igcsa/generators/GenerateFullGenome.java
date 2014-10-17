@@ -67,7 +67,7 @@ public class GenerateFullGenome extends JobIGCSA
   public int run(String[] args) throws Exception
     {
     GenericOptionsParser gop = this.parseHadoopOpts(args);
-    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs(),this.getClass());
+    CommandLine cl = this.parseOptions(gop.getRemainingArgs(),this.getClass());
 
     genomeName = cl.getOptionValue("g");
     output = new Path(new Path(cl.getOptionValue("o"), new Path("/genomes")), genomeName);

@@ -114,7 +114,7 @@ public class BWAIndex extends BWAJob
   public int run(String[] args) throws Exception
     {
     GenericOptionsParser gop = this.parseHadoopOpts(args);
-    CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs(), this.getClass());
+    CommandLine cl = this.parseOptions(gop.getRemainingArgs(), this.getClass());
 
     Path fastaInput = new Path(cl.getOptionValue('p'));
 

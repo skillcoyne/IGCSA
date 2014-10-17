@@ -1,8 +1,6 @@
 package org.lcsb.lu.igcsa.job;
 
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionGroup;
-import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.filecache.DistributedCache;
@@ -14,6 +12,7 @@ import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Iterator;
 
 
 /**
@@ -26,7 +25,9 @@ public abstract class JobIGCSA extends Configured implements Tool
   {
   static Logger log = Logger.getLogger(JobIGCSA.class.getName());
 
-  public IGCSACommandLineParser parser = IGCSACommandLineParser.getParser();
+  protected Options options = new Options();
+  protected IGCSACommandLineParser parser = IGCSACommandLineParser.getParser();
+
 
   public JobIGCSA(Configuration conf)
     {
@@ -59,23 +60,19 @@ public abstract class JobIGCSA extends Configured implements Tool
     log.info("symlink: " + DistributedCache.getSymlink(getConf()));
     }
 
-
   protected void addArchive(URI uri, boolean symlink)
     {
+    log.info("Adding archive " + uri.toString());
     if (symlink)
       addArchive(uri);
     else
       DistributedCache.addCacheArchive(uri, getConf());
     }
 
-//    protected void addOptions(OptionGroup... ogs)
-//      {
-//      this.parser.addOptions(ogs);
-//      }
-
-  protected void addOptions(Option... opts)
+  protected void addOptions(Option opt)
     {
-    this.parser.addOptions(opts);
+     this.options.addOption(opt);
+    //this.parser.addOptions(opts);
     }
 
   protected GenericOptionsParser parseHadoopOpts(String[] args) throws ParseException
@@ -89,8 +86,27 @@ public abstract class JobIGCSA extends Configured implements Tool
       {
       log.error(e);
       }
-
     return gop;
+    }
+
+  public CommandLine parseOptions(String[] args, Class currentClass) throws ParseException
+    {
+    //parser.setOptions(options);
+    CommandLine cl = parser.parse(options, args, false);
+
+    HelpFormatter help = new HelpFormatter();
+
+    Iterator<Option> oI = options.getOptions().iterator();
+    while(oI.hasNext())
+      {
+      Option opt = oI.next();
+      if (opt.isRequired() && !cl.hasOption(opt.getOpt()))
+        {
+        help.printHelp(currentClass.getSimpleName() + ":\nMissing required option: -" + opt.getOpt() + " " + opt.getDescription(), options);
+        System.exit(-1);
+        }
+      }
+    return cl;
     }
 
   protected void checkPath(Path path, boolean overwrite) throws IOException

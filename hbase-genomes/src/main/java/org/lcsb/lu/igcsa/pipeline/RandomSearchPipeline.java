@@ -36,6 +36,8 @@ public class RandomSearchPipeline extends SearchPipeline
     options.addOption(new Option("o", "output", true, "output path"));
     options.addOption(new Option("g", "genome", true, "parent genome name for sequence generation"));
     options.addOption(new Option("r", "reads", true, "read path for tsv"));
+    options.addOption(new Option("s", "size", true, "population size, no less than 10 DEFAULT: 75"));
+    options.addOption(new Option("t", "generations", true, "number of generations DEFAULT: 1000"));
     }
 
   @Override
@@ -62,11 +64,20 @@ public class RandomSearchPipeline extends SearchPipeline
 
   public static void main(String[] args) throws Exception
     {
-    SearchPipeline pipeline = new RandomSearchPipeline();
-    CommandLine cl = pipeline.parseCommandLine(args);
+    new RandomSearchPipeline().runSearch(args);
+    }
+
+  @Override
+  public void runSearch(String[] args) throws Exception
+    {
+    CommandLine cl = parseCommandLine(args);
+
+    int popSize = (cl.hasOption("size"))? Integer.parseInt(cl.getOptionValue("size")): 75;
+    if (popSize < 10) popSize = 10;
+    int generations = (cl.hasOption("generations"))? Integer.parseInt(cl.getOptionValue("generations")): 1000;
 
     PopulationGenerator pg = new PopulationGenerator();
-    List<MinimalKaryotype> pop = pg.run(1000, 75);
+    List<MinimalKaryotype> pop = pg.run(generations, popSize);
 
     pg.getObserver().finalUpdate();
 
@@ -82,34 +93,22 @@ public class RandomSearchPipeline extends SearchPipeline
 
     for (Aberration abr: randomBandPairSet)
       {
-      MiniChromosomeJob mcj = generateMiniAbrs(cl, abr);
-      String alignPath = pipeline.alignReads(mcj.getIndexPath().getParent().toString(), mcj.getName());
+      List<String> bands = new ArrayList<String>();
+      for (Band band: abr.getBands())
+        {
+        bands.add("-band");
+        bands.add(band.getFullName());
+        }
+
+      MiniChromosomeJob mcj = generateMiniAbrs((String[]) ArrayUtils.addAll(new String[]{
+              "-b", cl.getOptionValue("b"),
+              "-g", cl.getOptionValue("g"),
+              "-n", "mini",
+              "-o", cl.getOptionValue("o")},
+          bands.toArray(new String[bands.size()])));
+      String alignPath = alignReads(mcj.getIndexPath().getParent().toString(), mcj.getName());
       log.info(alignPath);
       break;
       }
-
     }
-
-  private static MiniChromosomeJob generateMiniAbrs(CommandLine cl, Aberration abr) throws Exception
-    {
-    List<String> bands = new ArrayList<String>();
-    for (Band band: abr.getBands())
-      {
-      bands.add("-band");
-      bands.add(band.getFullName());
-      }
-
-    log.info("*********** MINI CHR JOB " + bands + " *************");
-
-    MiniChromosomeJob mcj = new MiniChromosomeJob();
-    ToolRunner.run(mcj, (String[]) ArrayUtils.addAll(new String[]{
-        "-b", cl.getOptionValue("b"),
-        "-g", cl.getOptionValue("g"),
-        "-n", "mini",
-        "-o", cl.getOptionValue("o")},
-        bands.toArray(new String[bands.size()])));
-
-    return mcj;
-    }
-
   }
