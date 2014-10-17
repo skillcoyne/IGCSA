@@ -68,7 +68,7 @@ do
 
 done
 
-aws emr add-steps --cluster-id j-25WYSW47DB99N --steps $STEPS
+aws emr add-steps --cluster-id j-36QD160DZ2MPX --steps $STEPS
 
 
 #aws emr create-cluster --name 'IGCSA localsearch v0.01' --applications Name=HBase --ami-version 3.2.1 --auto-terminate --enable-debugging --log-uri s3://${BUCKET}/logs \

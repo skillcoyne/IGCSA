@@ -51,17 +51,11 @@ public class RandomSearchPipeline extends SearchPipeline
       }
     }
 
-  public RandomSearchPipeline()
-    {
-
-    }
-
   //  # 1. Generate mini aberrations
   //  # 2. Index & Align
   //  # 3. Score
   //  # 4. Generate neighboring aberrations & ...?
   //  # 5. Repeat 2-4 until??
-
   public static void main(String[] args) throws Exception
     {
     new RandomSearchPipeline().runSearch(args);
@@ -106,9 +100,10 @@ public class RandomSearchPipeline extends SearchPipeline
               "-n", "mini",
               "-o", cl.getOptionValue("o")},
           bands.toArray(new String[bands.size()])));
-      String alignPath = alignReads(mcj.getIndexPath().getParent().toString(), mcj.getName());
+      log.info(mcj.getIndexPath().toString());
+
+      String alignPath = alignReads(mcj.getIndexPath().toString(), mcj.getName());
       log.info(alignPath);
-      break;
       }
     }
   }

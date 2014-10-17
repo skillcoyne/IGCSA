@@ -32,10 +32,20 @@ public class LocalSearchPipeline extends SearchPipeline
     Option opt = new Option("l", "location", true, "chromosome location ex. 5:29199-394421");
     opt.setRequired(true);
     options.addOption(opt);
+
+    opt = new Option("o", "output", true, "output path");
+    opt.setRequired(true);
+    options.addOption(opt);
+
+    opt = new Option("g", "genome", true, "parent genome name for sequence generation");
+    opt.setRequired(true);
+    options.addOption(opt);
+
+    opt = new Option("r", "reads", true, "read path for tsv");
+    opt.setRequired(true);
+    options.addOption(opt);
+
     options.addOption(new Option("b", "bwa", true, "bwa archive location"));
-    options.addOption(new Option("o", "output", true, "output path"));
-    options.addOption(new Option("g", "genome", true, "parent genome name for sequence generation"));
-    options.addOption(new Option("r", "reads", true, "read path for tsv"));
     }
 
   @Override
