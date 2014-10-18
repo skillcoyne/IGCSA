@@ -32,6 +32,8 @@ import org.uncommons.watchmaker.framework.termination.GenerationCount;
 
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PopulationGenerator
   {
@@ -41,17 +43,30 @@ public class PopulationGenerator
   static KaryotypeDAO dao;
 
   private Observer observer;
+  private Evaluator evaluator;
+  private List<Band> allPossibleBands;
 
   public static void main(String[] args) throws Exception
     {
     new PopulationGenerator().run(1000, 200);
     }
 
+
   public PopulationGenerator()
     {
     //context = new ClassPathXmlApplicationContext(new String[]{"classpath*:spring-config.xml", "classpath*:/conf/genome.xml", "classpath*:/conf/database-config.xml"});
     DerbyConnection conn = new DerbyConnection("org.apache.derby.jdbc.EmbeddedDriver", "jdbc:derby:classpath:karyotype_probabilities", "igcsa", "");
     dao = conn.getKaryotypeDAO();
+
+    try
+      {
+      setup();
+      }
+    catch (ProbabilityException e)
+      {
+      log.error(e);
+      }
+
     }
 
   public Observer getObserver()
@@ -59,22 +74,41 @@ public class PopulationGenerator
     return observer;
     }
 
-  public List<MinimalKaryotype> run(int maxGen, int maxPop) throws ProbabilityException
-    {
-    //dao = (KaryotypeDAO) context.getBean("karyotypeDAO");
 
+  public void removeMatchingBands(Pattern pattern)
+    {
+    ListIterator<Band> bI = allPossibleBands.listIterator();
+    while (bI.hasNext())
+      {
+      String name = bI.next().getFullName();
+      Matcher m = pattern.matcher(name);
+      if (m.matches())
+        {
+        bI.remove();
+        log.info("Removing " + name);
+        }
+      }
+
+    }
+
+  private void setup() throws ProbabilityException
+    {
     Probability aneuploidyProb = dao.getAneuploidyDAO().getChromosomeProbabilities();
     Probability ploidyCountProb = dao.getGeneralKarytoypeDAO().getProbabilityClass("aneuploidy");
     Probability bpCountProb = dao.getGeneralKarytoypeDAO().getProbabilityClass("aberration"); // not really used right now
     Probability bandProbability = dao.getGeneralKarytoypeDAO().getOverallBandProbabilities();
 
-    Collection<Band> allPossibleBands = new ArrayList<Band>();
+    allPossibleBands = new ArrayList<Band>();
     for (Object b : bandProbability.getRawProbabilities().keySet())
       allPossibleBands.add((Band) b);
 
+    evaluator = new Evaluator(bandProbability, bpCountProb, aneuploidyProb, ploidyCountProb, false);
+    }
+
+  public List<MinimalKaryotype> run(int maxGen, int maxPop) throws ProbabilityException
+    {
     CandidateFactory<KaryotypeCandidate> factory = new KaryotypeCandidateFactory(dao, new PoissonDistribution(5), false);
 
-    Evaluator evaluator = new Evaluator(bandProbability, bpCountProb, aneuploidyProb, ploidyCountProb, false);
     List<EvolutionaryOperator<KaryotypeCandidate>> operators = new LinkedList<EvolutionaryOperator<KaryotypeCandidate>>();
     operators.add(new Crossover(0.7, 0.9, evaluator));
     operators.add(new Mutator(0.2, 0.05, factory, evaluator));

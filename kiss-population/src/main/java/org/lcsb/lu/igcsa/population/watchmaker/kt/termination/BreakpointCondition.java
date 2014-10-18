@@ -43,7 +43,10 @@ public class BreakpointCondition implements TerminationCondition
       {
       KaryotypeCandidate kc = (KaryotypeCandidate) candidate.getCandidate();
       for (Band bp : kc.getBreakpoints())
-        possibleBreakpoints.put(bp, possibleBreakpoints.get(bp) + 1);
+        {
+        if (possibleBreakpoints.containsKey(bp))
+          possibleBreakpoints.put(bp, possibleBreakpoints.get(bp) + 1);
+        }
       }
 
 

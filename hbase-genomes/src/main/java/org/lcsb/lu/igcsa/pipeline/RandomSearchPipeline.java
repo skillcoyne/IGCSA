@@ -19,8 +19,10 @@ import org.lcsb.lu.igcsa.population.PopulationGenerator;
 import org.lcsb.lu.igcsa.job.*;
 import org.lcsb.lu.igcsa.karyotype.aberrations.AberrationTypes;
 import org.lcsb.lu.igcsa.karyotype.generator.Aberration;
+import org.lcsb.lu.igcsa.prob.ProbabilityException;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 
 //** Need to update this to be a pipeline that starts from random selection
@@ -62,7 +64,7 @@ public class RandomSearchPipeline extends SearchPipeline
     }
 
   @Override
-  public void runSearch(String[] args) throws Exception
+  public void runSearch(String[] args) throws ProbabilityException, ParseException
     {
     CommandLine cl = parseCommandLine(args);
 
@@ -71,9 +73,15 @@ public class RandomSearchPipeline extends SearchPipeline
     int generations = (cl.hasOption("generations"))? Integer.parseInt(cl.getOptionValue("generations")): 1000;
 
     PopulationGenerator pg = new PopulationGenerator();
+    pg.removeMatchingBands(Pattern.compile(".*(p|q)(11)"));
     List<MinimalKaryotype> pop = pg.run(generations, popSize);
 
     pg.getObserver().finalUpdate();
+
+    /* TODO
+    For DELETETION events the two adjacent bands could be combined as a TRANS
+    For INVERSION events you'd made two aberrations with the bands that are adjacent to the INV
+     */
 
     Set<Aberration> randomBandPairSet = new HashSet<Aberration>();
     for (MinimalKaryotype mk : pop)
@@ -94,16 +102,21 @@ public class RandomSearchPipeline extends SearchPipeline
         bands.add(band.getFullName());
         }
 
-      MiniChromosomeJob mcj = generateMiniAbrs((String[]) ArrayUtils.addAll(new String[]{
-              "-b", cl.getOptionValue("b"),
-              "-g", cl.getOptionValue("g"),
-              "-n", "mini",
-              "-o", cl.getOptionValue("o")},
-          bands.toArray(new String[bands.size()])));
-      log.info(mcj.getIndexPath().toString());
+      MiniChromosomeJob mcj = null;
+      try
+        {
+        mcj = generateMiniAbrs((String[]) ArrayUtils.addAll(new String[]{"-b", cl.getOptionValue("b"), "-g", cl.getOptionValue("g"),
+            "-n", "mini", "-o", cl.getOptionValue("o")}, bands.toArray(new String[bands.size()])));
+        log.info(mcj.getIndexPath().toString());
 
-      String alignPath = alignReads(mcj.getIndexPath().toString(), mcj.getName());
-      log.info(alignPath);
+        String alignPath = alignReads(mcj.getIndexPath().toString(), mcj.getName());
+        log.info(alignPath);
+        }
+      catch (Exception e)
+        {
+        log.error("Failed to finish generate or align for " + abr.getBands() + e);
+        }
+
       }
     }
   }
