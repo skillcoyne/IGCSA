@@ -33,7 +33,7 @@ fi
 
 INSTANCE_TYPE="m2.xlarge"
 
-PRICE="0.03"
+PRICE="BidPrice=0.03"
 
 
 GENOME_DATA="s3://${BUCKET}/hbase/$4"
@@ -44,13 +44,13 @@ echo "Running IGCSA pipeline with ${CORES} core instances (${INSTANCE_TYPE}). On
 JAR="s3://${BUCKET}/HBase-Genomes-1.2.jar"
 
 
-MASTER="InstanceGroupType=MASTER,InstanceCount=1,InstanceType=${INSTANCE_TYPE},BidPrice=${PRICE}"
-CORE="InstanceGroupType=CORE,InstanceCount=${CORES},InstanceType=${INSTANCE_TYPE},BidPrice=${PRICE}"
+MASTER="InstanceGroupType=MASTER,InstanceCount=1,InstanceType=${INSTANCE_TYPE}"
+CORE="InstanceGroupType=CORE,InstanceCount=${CORES},InstanceType=${INSTANCE_TYPE}"
 
 HBASE="Path=s3://eu-west-1.elasticmapreduce/bootstrap-actions/configure-hbase,Args=[-s,hbase.rpc.timeout=${TIMEOUT},-s,hbase.regionserver.lease.period=${TIMEOUT},-s,hbase.regionserver.handler.count=30]"
 
 
-#STEPS="Name=LoadHBASE,Jar=$JAR,Type=CUSTOM_JAR,ActionOnFailure=TERMINATE_JOB_FLOW,Args=[hbaseutil,-d,s3n://${BUCKET}/hbase,-c,IMPORT,-t,genome,-t,chromosome,-t,sequence,-t,small_mutations]"
+STEPS="Name=LoadHBASE,Jar=$JAR,Type=CUSTOM_JAR,ActionOnFailure=TERMINATE_JOB_FLOW,Args=[hbaseutil,-d,s3n://${BUCKET}/hbase,-c,IMPORT,-t,genome,-t,chromosome,-t,sequence,-t,small_mutations]"
 
 localsearch_args="-b,s3n://${BUCKET}/tools/bwa.tgz,-o,s3n://${BUCKET}/HCC1954,-g,GRCh37,-r,s3n://${BUCKET}/reads/HCC1954/discordant.tsv"
 i=0
@@ -60,21 +60,21 @@ do
   p=""
   if [ $i -gt 0 ]; then p="_$i"; fi
 
-  STEPS="${STEPS} Name=LocalSearch,Jar=$JAR,Type=CUSTOM_JAR,ActionOnFailure=TERMINATE_JOB_FLOW,Args=[localsearch,${localsearch_args},-l,${loc}]"
-#  STEPS="${STEPS} Name=Score,Type=STREAMING,ActionOnFailure=CONTINUE,Args=[-D,mapred.reduce.tasks=1,\"--files=s3://${BUCKET}/tools/read_sam_map.rb,s3://${BUCKET}/tools/evaluation_reducer.R\",-mapper,read_sam_map.rb,-reducer,evaluation_reducer.R,-input,s3://${BUCKET}/HCC1954/5q13-8q24${p}/aligned/merged.sam,-output,s3://insilico/HCC1954/mini/5q13-8q24${p}/score]"
+  STEPS="${STEPS} Name=LocalSearch,Jar=$JAR,Type=CUSTOM_JAR,ActionOnFailure=TERMINATE_JOB_FLOW,Args=[localsearch,${localsearch_args},${loc}]"
+  #STEPS="${STEPS} Name=Score,Type=STREAMING,ActionOnFailure=CONTINUE,Args=[-D,mapred.reduce.tasks=1,\"--files=s3://${BUCKET}/tools/read_sam_map.rb,s3://${BUCKET}/tools/evaluation_reducer.R\",-mapper,read_sam_map.rb,-reducer,evaluation_reducer.R,-input,s3://${BUCKET}/HCC1954/5q13-8q24${p}/aligned/merged.sam,-output,s3://insilico/HCC1954/mini/5q13-8q24${p}/score]"
 
 
     ((i=i+1))
 
 done
 
-aws emr add-steps --cluster-id j-36QD160DZ2MPX --steps $STEPS
+#aws emr add-steps --cluster-id j-36QD160DZ2MPX --steps $STEPS
 
 
-#aws emr create-cluster --name 'IGCSA localsearch v0.01' --applications Name=HBase --ami-version 3.2.1 --auto-terminate --enable-debugging --log-uri s3://${BUCKET}/logs \
-#--ec2-attributes KeyName=amazonkeypair \
-#--bootstrap-actions $HBASE Path=s3://insilico/tools/bootstrap_R.sh \
-#--instance-groups $MASTER $CORE --steps $STEPS
+aws emr create-cluster --name 'IGCSA localsearch v0.01' --applications Name=HBase --ami-version 3.2.1 --auto-terminate --enable-debugging --log-uri s3://${BUCKET}/logs \
+--ec2-attributes KeyName=amazonkeypair \
+--bootstrap-actions $HBASE \
+--instance-groups $MASTER $CORE --steps $STEPS
 
 
 # [

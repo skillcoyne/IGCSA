@@ -15,6 +15,7 @@ import org.lcsb.lu.igcsa.karyotype.database.KaryotypeDAO;
 import org.lcsb.lu.igcsa.karyotype.database.util.DerbyConnection;
 import org.lcsb.lu.igcsa.karyotype.generator.Aberration;
 import org.lcsb.lu.igcsa.karyotype.generator.AberrationRules;
+import org.lcsb.lu.igcsa.population.watchmaker.kt.statistics.BreakpointRepresentation;
 import org.lcsb.lu.igcsa.prob.Probability;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.lcsb.lu.igcsa.population.watchmaker.kt.*;
@@ -69,14 +70,16 @@ public class PopulationGenerator
 
     }
 
-  public Observer getObserver()
+  public void setObserver(Observer obv)
     {
-    return observer;
+    observer = obv;
     }
 
 
   public void removeMatchingBands(Pattern pattern)
     {
+    KaryotypeCandidateFactory.rerollFor(pattern);
+
     ListIterator<Band> bI = allPossibleBands.listIterator();
     while (bI.hasNext())
       {
@@ -85,7 +88,7 @@ public class PopulationGenerator
       if (m.matches())
         {
         bI.remove();
-        log.info("Removing " + name);
+        log.debug("Removing " + name);
         }
       }
 
@@ -109,6 +112,7 @@ public class PopulationGenerator
     {
     CandidateFactory<KaryotypeCandidate> factory = new KaryotypeCandidateFactory(dao, new PoissonDistribution(5), false);
 
+
     List<EvolutionaryOperator<KaryotypeCandidate>> operators = new LinkedList<EvolutionaryOperator<KaryotypeCandidate>>();
     operators.add(new Crossover(0.7, 0.9, evaluator));
     operators.add(new Mutator(0.2, 0.05, factory, evaluator));
@@ -122,8 +126,8 @@ public class PopulationGenerator
         new MersenneTwisterRNG(),
         maxPop);
 
-    observer = new Observer();
-    engine.addEvolutionObserver(observer);
+    if (observer != null)
+      engine.addEvolutionObserver(observer);
 
     List<EvaluatedCandidate<KaryotypeCandidate>> pop = engine.evolvePopulation(
         maxPop,

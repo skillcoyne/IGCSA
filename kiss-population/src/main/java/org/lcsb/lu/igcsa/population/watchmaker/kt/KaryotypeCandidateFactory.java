@@ -18,6 +18,7 @@ import org.lcsb.lu.igcsa.prob.ProbabilityException;
 import org.uncommons.watchmaker.framework.factories.AbstractCandidateFactory;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 public class KaryotypeCandidateFactory extends AbstractCandidateFactory<KaryotypeCandidate>
   {
@@ -26,12 +27,18 @@ public class KaryotypeCandidateFactory extends AbstractCandidateFactory<Karyotyp
   private KaryotypeDAO dao;
   private IntegerDistribution breakpointDist;
   private boolean aneuploidy = false;
+  private static Pattern bandsToAvoid;
 
   public KaryotypeCandidateFactory(KaryotypeDAO dao, IntegerDistribution breakpointDist, boolean generateAneuploidy)
     {
     this.dao = dao;
     this.breakpointDist = breakpointDist;
     this.aneuploidy = generateAneuploidy;
+    }
+
+  public static void rerollFor(Pattern bandPattern)
+    {
+    bandsToAvoid = bandPattern;
     }
 
   @Override
@@ -91,6 +98,9 @@ public class KaryotypeCandidateFactory extends AbstractCandidateFactory<Karyotyp
     for (int i = 0; i < maxBands; i++)
       {
       Band band = (Band) dao.getGeneralKarytoypeDAO().getOverallBandProbabilities().roll();
+      while(bandsToAvoid.matcher(band.getFullName()).matches())
+        band = (Band) dao.getGeneralKarytoypeDAO().getOverallBandProbabilities().roll();
+
       band.setLocation(dao.getBandDAO().getLocation(band));
       candidate.addBreakpoint(band);
       }

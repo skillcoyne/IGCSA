@@ -19,8 +19,12 @@ import org.lcsb.lu.igcsa.population.PopulationGenerator;
 import org.lcsb.lu.igcsa.job.*;
 import org.lcsb.lu.igcsa.karyotype.aberrations.AberrationTypes;
 import org.lcsb.lu.igcsa.karyotype.generator.Aberration;
+import org.lcsb.lu.igcsa.population.watchmaker.kt.*;
+import org.lcsb.lu.igcsa.population.watchmaker.kt.Observer;
+import org.lcsb.lu.igcsa.population.watchmaker.kt.statistics.CandidateBreakpoints;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -38,7 +42,7 @@ public class RandomSearchPipeline extends SearchPipeline
     options.addOption(new Option("o", "output", true, "output path"));
     options.addOption(new Option("g", "genome", true, "parent genome name for sequence generation"));
     options.addOption(new Option("r", "reads", true, "read path for tsv"));
-    options.addOption(new Option("s", "size", true, "population size, no less than 10 DEFAULT: 75"));
+    options.addOption(new Option("s", "size", true, "population size, no less than 10 DEFAULT: 50"));
     options.addOption(new Option("t", "generations", true, "number of generations DEFAULT: 1000"));
     }
 
@@ -64,34 +68,38 @@ public class RandomSearchPipeline extends SearchPipeline
     }
 
   @Override
-  public void runSearch(String[] args) throws ProbabilityException, ParseException
+  public void runSearch(String[] args) throws ProbabilityException, ParseException, IOException
     {
     CommandLine cl = parseCommandLine(args);
 
-    int popSize = (cl.hasOption("size"))? Integer.parseInt(cl.getOptionValue("size")): 75;
+    int popSize = (cl.hasOption("size"))? Integer.parseInt(cl.getOptionValue("size")): 50;
     if (popSize < 10) popSize = 10;
     int generations = (cl.hasOption("generations"))? Integer.parseInt(cl.getOptionValue("generations")): 1000;
 
     PopulationGenerator pg = new PopulationGenerator();
-    pg.removeMatchingBands(Pattern.compile(".*(p|q)(11)"));
+    Observer.QUIET = true;
+    Observer ob = new Observer(new CandidateBreakpoints());
+    pg.setObserver(ob);
+    pg.removeMatchingBands(Pattern.compile("^.*(p|q)(11|12)$"));
     List<MinimalKaryotype> pop = pg.run(generations, popSize);
 
-    pg.getObserver().finalUpdate();
+    for (MinimalKaryotype kt: pop)
+      {
+      for (Aberration abr: kt.getAberrations())
+        {
+        for (Band band: abr.getBands())
+          if (band.isCentromere())
+            log.info(kt);
+        }
+      }
+    ob.finalUpdate();
 
     /* TODO
     For DELETETION events the two adjacent bands could be combined as a TRANS
     For INVERSION events you'd made two aberrations with the bands that are adjacent to the INV
      */
-
-    Set<Aberration> randomBandPairSet = new HashSet<Aberration>();
-    for (MinimalKaryotype mk : pop)
-      {
-      for (Aberration abr : mk.getAberrations())
-        {
-        if (abr.getAberration().equals(AberrationTypes.TRANSLOCATION))
-          randomBandPairSet.add(abr);
-        }
-      }
+    Collection<Aberration> randomBandPairSet = this.filterBands(pop);
+    log.info("Total bands to generate: " + randomBandPairSet.size());
 
     for (Aberration abr: randomBandPairSet)
       {
@@ -109,14 +117,49 @@ public class RandomSearchPipeline extends SearchPipeline
             "-n", "mini", "-o", cl.getOptionValue("o")}, bands.toArray(new String[bands.size()])));
         log.info(mcj.getIndexPath().toString());
 
-        String alignPath = alignReads(mcj.getIndexPath().toString(), mcj.getName());
-        log.info(alignPath);
+        if (mcj != null)
+          {
+          String alignPath = alignReads(mcj.getIndexPath().toString(), mcj.getName());
+          log.info(alignPath);
+          }
+        else
+          {
+          log.info("ERROR: Failed to generate mini chromosome \" + abr.getBands())");
+          log.error("Failed to generate mini chromosome " + abr.getBands());
+          }
         }
       catch (Exception e)
         {
+        log.info("ERROR: Failed to finish generate or align for " + abr.getBands() + e);
         log.error("Failed to finish generate or align for " + abr.getBands() + e);
         }
 
       }
     }
+
+  // avoid duplicating a band
+  private Collection<Aberration> filterBands(List<MinimalKaryotype> population)
+    {
+    Set<Band> bandSet = new HashSet<Band>();
+    Set<Aberration> randomBandPairSet = new HashSet<Aberration>();
+    for (MinimalKaryotype mk : population)
+      {
+      for (Aberration abr : mk.getAberrations())
+        {
+        if (abr.getAberration().equals(AberrationTypes.TRANSLOCATION))
+          {
+          for (Band band: abr.getBands())
+            {
+            if (bandSet.contains(band))
+              continue;
+            else
+              bandSet.add(band);
+            }
+          randomBandPairSet.add(abr);
+          }
+        }
+      }
+    return randomBandPairSet;
+    }
+
   }

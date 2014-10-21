@@ -62,12 +62,13 @@ public class SequenceFragmentReducer extends Reducer<SegmentOrderComparator, Fra
       Location locObj = new Location(chr, start, end);
       locations.add(locObj);
       }
+    log.info(locations);
     }
 
     @Override
   protected void reduce(SegmentOrderComparator key, Iterable<FragmentWritable> values, Context context) throws IOException, InterruptedException
     {
-    log.info("Order " + key.getOrder() + ":" + key.getSegment());
+    log.debug("Order " + key.getOrder() + ":" + key.getSegment());
 
     // This ensures that the RecordWriter knows which file should have the header written
     context.getConfiguration().set(FASTAOutputFormat.WRITE_HEADER, ""+key.getOrder());

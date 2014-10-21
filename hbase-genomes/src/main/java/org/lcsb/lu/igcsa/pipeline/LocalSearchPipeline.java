@@ -80,8 +80,11 @@ public class LocalSearchPipeline extends SearchPipeline
 
     MiniChromosomeJob mcj = generateMiniAbrs((String[]) ArrayUtils.addAll(new String[]{"-b", cl.getOptionValue("b"), "-g", cl.getOptionValue("g"), "-n", "mini", "-o", cl.getOptionValue("o")}, locs.toArray(new String[locs.size()])));
     System.out.println(mcj.getIndexPath().toString());
-
-    String alignedReads = alignReads(mcj.getIndexPath().toString(), mcj.getName());
-    System.out.println(alignedReads);
+    if (mcj != null)
+      {
+      String alignedReads = alignReads(mcj.getIndexPath().toString(), mcj.getName());
+      System.out.println(alignedReads);
+      }
+    else log.error("Failed to generate or index " + locs);
     }
   }

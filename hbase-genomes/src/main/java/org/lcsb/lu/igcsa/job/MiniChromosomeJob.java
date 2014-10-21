@@ -176,7 +176,7 @@ public class MiniChromosomeJob extends JobIGCSA
       {
       log.info("Running index on " + indexPath.toString());
       BWAIndex bi = new BWAIndex(getConf());
-      ToolRunner.run(bi, (String[]) ArrayUtils.addAll(new String[]{"-b", cl.getOptionValue("b")}, new String[]{"-p", indexPath.toString()}));
+      ret = ToolRunner.run(bi, (String[]) ArrayUtils.addAll(new String[]{"-b", cl.getOptionValue("b")}, new String[]{"-p", indexPath.toString()}));
       indexPath = bi.indexPath();
       }
 

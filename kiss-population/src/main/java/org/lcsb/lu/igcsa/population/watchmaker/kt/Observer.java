@@ -19,6 +19,8 @@ public class Observer implements EvolutionObserver<KaryotypeCandidate>
   {
   static Logger log = Logger.getLogger(Observer.class.getName());
 
+  public static boolean QUIET = false;
+
   private static int generations = 0;
 
   private static PopulationData lastData;
@@ -45,7 +47,10 @@ public class Observer implements EvolutionObserver<KaryotypeCandidate>
       buffer.append("\tSD: " + stats.getStandardDeviation() + "\n");
       }
 
-    log.info("\n" + buffer.toString());
+    if (!QUIET)
+      log.info("\n" + buffer.toString());
+    else
+      log.debug("\n" + buffer.toString());
 
     generations = populationData.getGenerationNumber();
     lastData = populationData;
@@ -58,6 +63,7 @@ public class Observer implements EvolutionObserver<KaryotypeCandidate>
 
   public void finalUpdate()
     {
+    QUIET = false;
     this.populationUpdate(lastData);
     }
 

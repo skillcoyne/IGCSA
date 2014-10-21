@@ -31,14 +31,12 @@ public class BreakpointRepresentation extends AbstractPopulationStatistic
     this.possibleBreakpoints = bands;
     }
 
-
   @Override
   public DataSet getStatistics(List<EvaluatedCandidate<KaryotypeCandidate>> candidates)
     {
     Map<Band, Integer> breakpoints = new HashMap<Band, Integer>();
     for (Band band : this.possibleBreakpoints)
       breakpoints.put(band, 0);
-
 
     DataSet bpStats = new DataSet(breakpoints.size());
 

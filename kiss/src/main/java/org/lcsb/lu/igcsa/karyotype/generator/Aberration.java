@@ -133,6 +133,26 @@ public class Aberration
 
 
 
+    @Override
+  public boolean equals(Object object)
+    {
+    Aberration ab = (Aberration) object;
+    List<Band> currBands = this.getBands();
+
+    if (super.equals(object))
+      return true;
+    else
+      {
+      if (ab.getAberration().equals(this.getAberration()))
+        {
+        Collections.sort(ab.getBands());
+        Collections.sort(currBands);
+        return ab.getBands().equals(currBands);
+        }
+      }
+    return false;
+    }
+
   @Override
   public String toString()
     {
