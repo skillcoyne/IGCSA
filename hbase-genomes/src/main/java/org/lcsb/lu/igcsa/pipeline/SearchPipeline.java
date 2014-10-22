@@ -10,6 +10,7 @@ package org.lcsb.lu.igcsa.pipeline;
 
 import org.apache.commons.cli.*;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -79,11 +80,10 @@ public abstract class SearchPipeline
     {
     log.info("*********** MINI CHR JOB *************");
     MiniChromosomeJob mcj = new MiniChromosomeJob(getConfiguration());
+    log.info(StringUtils.join(generateArgs, " "));
+
     if (ToolRunner.run(mcj, generateArgs) > 0)
-      {
-      log.error("Failed to generate/index mini chr " + generateArgs);
-      return null;
-      }
+      throw new Exception("Failed to generate/index mini chr " + generateArgs);
 
     log.info("Generated and indexed mini chr " + generateArgs);
     return mcj;
@@ -94,11 +94,10 @@ public abstract class SearchPipeline
     log.info("*********** ALIGN CHR JOB *************");
     String output = new Path(indexPath.substring(0, indexPath.indexOf("/index")), "aligned").toString();
     BWAAlign ba = new BWAAlign(gop.getConfiguration());
+    log.info(new String[]{"--bwa-path", commandLine.getOptionValue("b"), "-n", name, "-i", indexPath, "-r", commandLine.getOptionValue("r"), "-o", output});
+
     if (ToolRunner.run(ba, new String[]{"--bwa-path", commandLine.getOptionValue("b"), "-n", name, "-i", indexPath, "-r", commandLine.getOptionValue("r"), "-o", output}) > 0)
-      {
-      log.error("Failed to align " + name );
-      return null;
-      }
+      throw new Exception("Failed to align " + name );
 
     log.info("Aligned to " + ba.getOutputPath().toString());
     ba.mergeSAM();
