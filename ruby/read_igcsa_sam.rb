@@ -125,23 +125,36 @@ class Alignment
 end
 
 
+class Array
+  def sum
+    inject(0.0) { |result, el| result + el }
+  end
 
-if ARGV.length <=0
-  $stderr.puts "Usage: #{$0} <output dir>"
-  exit(1)
+  def mean
+    sum / size
+  end
+
+  def sample_variance
+    m = self.mean
+    sum = self.inject(0){|accum, i| accum +(i-m)**2 }
+    sum/(self.length - 1).to_f
+  end
+
+  def standard_deviation
+    return Math.sqrt(self.sample_variance)
+  end
+
 end
 
-outdir = ARGV[0]
 
-#FileUtils.rmtree(outdir) if Dir.exists? outdir
-#FileUtils.mkpath(outdir)
 
-fout = File.open("paired-reads.txt", 'w')
-fout.puts ['pos','mate.pos','len','phred','mapq','cigar', 'cigar_len', 'orientation'].join("\t")
+distances = Array.new
+
+
 
 count = 0
 $stdin.each do |line|
-  print "#{count} reads" if count > 0 and count%100000 == 0
+
   next if line.start_with? "@"
 
   align = Alignment.new(line.chomp)
@@ -149,17 +162,20 @@ $stdin.each do |line|
   unless align.nil?
     next if align.failed? or align.is_dup? or !align.mapped?
 
-    puts align.orientation_to_s
-    exit if count > 3
-
     # filter reads
-    if align.read_paired? and align.tlen.abs > 0
-      fout.puts[align.read_pos, align.mate_pos, align.tlen.abs, align.phred_score, align.mapq, align.cigar_to_s.join(","), align.cigar_length, align.orientation_to_s].join("\t")
+    if align.proper_pair? and
+      distances << align.tlen.abs
     end
   end
   count += 1
+
+  break if count >= 100000
 end
 
+puts distances
 puts "Total #{count} reads"
+puts "Mean: #{distances.mean} SD: #{distances.standard_deviation}"
+puts "Range: #{distances.min} - #{distances.max}"
+
 
 

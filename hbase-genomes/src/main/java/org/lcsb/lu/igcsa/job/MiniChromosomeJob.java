@@ -97,7 +97,7 @@ public class MiniChromosomeJob extends JobIGCSA
   private void usage()
     {
     HelpFormatter hf = new HelpFormatter();
-    hf.printHelp(this.getClass().getSimpleName() + "-l OR -d", this.options);
+    hf.printHelp(this.getClass().getSimpleName() + " -l OR -d", this.options);
     System.exit(-1);
     }
 
@@ -121,7 +121,7 @@ public class MiniChromosomeJob extends JobIGCSA
 
     log.info("ARGS: " + Arrays.toString(args));
 
-    if ((cl.hasOption("location") && cl.hasOption("band")) ) usage();
+    if ((cl.hasOption("location") && cl.hasOption("band")) || (!cl.hasOption("location") && !cl.hasOption("band"))) usage();
 
     getLocations(cl);
 
@@ -165,25 +165,25 @@ public class MiniChromosomeJob extends JobIGCSA
     try
       {
       indexPath = gdc.mergeOutputs(abr.getAberration(), fastaOutput, alf.getFilterLocationList().size());
+
+      // Run BWA index
+      if (cl.hasOption("b"))
+        {
+        log.info("Running index on " + indexPath.toString());
+        BWAIndex bi = new BWAIndex(getConf());
+        ret = ToolRunner.run(bi, (String[]) ArrayUtils.addAll(new String[]{"-b", cl.getOptionValue("b")}, new String[]{"-p", indexPath.toString()}));
+        indexPath = bi.indexPath();
+        }
       }
     catch (Exception e)
       {
       log.error(e);
       }
 
-    // Run BWA index
-    if (cl.hasOption("b"))
-      {
-      log.info("Running index on " + indexPath.toString());
-      BWAIndex bi = new BWAIndex(getConf());
-      ret = ToolRunner.run(bi, (String[]) ArrayUtils.addAll(new String[]{"-b", cl.getOptionValue("b")}, new String[]{"-p", indexPath.toString()}));
-      indexPath = bi.indexPath();
-      }
-
     return ret;
     }
 
-  private void getLocations(CommandLine cl)
+  private void getLocations(CommandLine cl) throws Exception
     {
     locations = new ArrayList<Location>();
     bands = new ArrayList<Band>();
@@ -221,6 +221,9 @@ public class MiniChromosomeJob extends JobIGCSA
         locations.add(band.getLocation());
         }
       }
+
+    if (bands.size() != locations.size())
+      throw new Exception("I have the wrong number of bands!");
 
     }
 

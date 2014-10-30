@@ -14,6 +14,7 @@ import org.apache.hadoop.util.ProgramDriver;
 import org.lcsb.lu.igcsa.generators.GenerateFullGenome;
 import org.lcsb.lu.igcsa.generators.GenerateFullKaryotype;
 import org.lcsb.lu.igcsa.job.*;
+import org.lcsb.lu.igcsa.pipeline.ChromosomePairs;
 import org.lcsb.lu.igcsa.pipeline.LocalSearchPipeline;
 import org.lcsb.lu.igcsa.pipeline.RandomSearchPipeline;
 
@@ -45,16 +46,19 @@ public class MainApp
       pgd.addClass("mutate", MutateFragments.class, "Generate genome with small-scale mutations. Args: -p [reference genome, ex. GRCh37] -m [new genome name]");
       pgd.addClass("hbaseutil", org.lcsb.lu.igcsa.hbase.HBaseUtility.class, "Import/Export HBase tables from/to hdfs or s3. Args: -d [hdfs directory for read/write] -c [IMPORT|EXPORT] -t [comma separated list of tables OPTIONAL]");
 
-      pgd.addClass("karygen", GenerateFullKaryotype.class, "Generates karyotypes for the given genome.");
+      //pgd.addClass("karygen", GenerateFullKaryotype.class, "Generates karyotypes for the given genome.");
       //pgd.addClass("genchr", GenerateChromosomes.class, "Generates derivative chromosomes based on the provided bands. ");
       pgd.addClass("gennormal", GenerateFullGenome.class, "Generate FASTA files for a normal genome. Args: -g [genome name, ex. GRCh37] -o [hdfs output path for FASTA files]");
       pgd.addClass("minichr", MiniChromosomeJob.class, "Generate mini FASTA files for the provided bands or chromosome locations.");
+
 
       pgd.addClass("index", BWAIndex.class, "Index FASTA file");
       pgd.addClass("align", BWAAlign.class, "Align TSV reads");
 
       pgd.addClass("randomsearch", RandomSearchPipeline.class, "Run random generate/index/align/score pipeline.");
       pgd.addClass("localsearch", LocalSearchPipeline.class, "Run generate/index/align/score pipeline.");
+
+      pgd.addClass("chrpair", ChromosomePairs.class, "Generate/index bands for the given pair of chromosomes.");
 
       pgd.driver(args);
       }

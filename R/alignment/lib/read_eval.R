@@ -1,7 +1,11 @@
 library('mclust')
+library('rbamtools')
 
 row.gen<-function(df)
   {
+  if (nrow(df) <= 0)
+    return(matrix(nrow=1,ncol=12,data=NA))
+  
   row = cbind(nrow(df), 
               mean(log(df$len)), 
               sd(log(df$len)),
@@ -22,6 +26,13 @@ right.dist<-function(model)
   {
   rightside = as.integer(which(model$parameters$mean == max(model$parameters$mean)))
   mean(model$z[, rightside]) 
+  }
+
+sub.dist.means<-function(model)
+  {
+  v = sort(model$parameters$mean)
+  names(v) = c('left','right')
+  return(v)
   }
 
 right.param<-function(model)
@@ -60,5 +71,43 @@ clipped.end<-function(xs)
   return(end)
   }
 
+sampleReadLengths<-function(bam, sample_size=10000)
+  {
+  bai = paste(bam, "bai", sep=".")
+  print(paste("Reading bam ", bam, sep=""))
+  reader = bamReader(bam)
+  load.index(reader, bai)
+  
+  referenceData = getRefData(reader)
+  referenceData = referenceData[ referenceData$SN %in% c(1:22,'X','Y'),]
+  
+  phred = vector(length=0,mode='numeric')
+  distances = vector(length=0, mode='numeric')
+  mapq = vector(length=0, mode='numeric')
+  n = 0
+  while (n < sample_size)
+    {
+    chr = referenceData[referenceData$ID == sample( referenceData$ID, 1),]
+    start = sample( c(1:chr$LN), 1 )
+    
+    range = bamRange(reader, c(chr$ID, start, start+1000)) 
+    #print(range)
+    align = getNextAlign(range)
+    while(!is.null(align))
+      {
+      if ( properPair(align) & !failedQC(align) & !mateUnmapped(align) & !unmapped(align) & !secondaryAlign(align) & mapQuality(align) >= 20)
+        {
+        distances = c(distances, abs(insertSize(align)))
+        phred = c(phred, sum(alignQualVal(align)))
+        mapq = c(mapq, mapQuality(align))
+        }
+      align = getNextAlign(range)
+      n = n+1  
+      }
+    }
+  bamClose(reader)
+  
+  return(list("dist"=distances, "phred"=phred, "mapq"=mapq))
+  }
 
 

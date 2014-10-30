@@ -28,8 +28,6 @@ public class BandGenerator
   private static final Log log = LogFactory.getLog(BandGenerator.class);
 
   private static KaryotypeDAO dao;
-  private static HBaseGenomeAdmin admin;
-
 
   private ArrayList<Candidate> candidates;
   private HashMap<Band, Double> allPossibleBands;
@@ -40,6 +38,9 @@ public class BandGenerator
   private double min = 1.0;
   private double max = 0.0;
 
+  public static boolean FILTER_CENT = true;
+
+
 
   public BandGenerator() throws IOException
     {
@@ -48,9 +49,6 @@ public class BandGenerator
       DerbyConnection conn = new DerbyConnection("org.apache.derby.jdbc.EmbeddedDriver", "jdbc:derby:classpath:karyotype_probabilities", "igcsa", "");
       dao = conn.getKaryotypeDAO();
       }
-
-    admin = HBaseGenomeAdmin.getHBaseGenomeAdmin();
-
     }
 
   public List<Candidate> getCandidates()
@@ -60,6 +58,8 @@ public class BandGenerator
 
   public List<Candidate> getTopCandidates(int n)
     {
+    if (candidates.size() < n) return candidates;
+
     Collections.sort(candidates, new Comparator<Candidate>()
     {
     public int compare(Candidate a, Candidate b)
@@ -117,7 +117,6 @@ public class BandGenerator
 
   private void scoreBreakpoints(List<ICombinatoricsVector<Band>> breakpoints)
     {
-
     for (Iterator<ICombinatoricsVector<Band>> bI = breakpoints.iterator(); bI.hasNext(); )
       {
       Candidate cand = new Candidate();
@@ -133,20 +132,6 @@ public class BandGenerator
     Collections.reverse(candidates);
     }
 
-  // order matters, I only want sets that are in the order I provided for the chrs
-  private List<Band> sortBands(List<Band> bands)
-    {
-    // order them to chr order
-    List<Band> sorted = new ArrayList<Band>();
-    for (int i = 0; i < chromosomes.length; i++)
-      {
-      for (Band b : bands)
-        if (b.getChromosomeName().equals(chromosomes[i]))
-          sorted.add(b);
-      }
-    return sorted;
-    }
-
   // At this point it's also looking like I should make sure I never include the same band in any two different aberrations.  So even though 10q24 scores highly, it shouldn't combine more than once with another band from the same chromosome.
   private void filterBreakpoints(List<ICombinatoricsVector<Band>> breakpoints)
     {
@@ -156,12 +141,12 @@ public class BandGenerator
       boolean remove = false;
       ICombinatoricsVector<Band> vector = bI.next();
 
-      List<Band> bands = vector.getVector(); // sortBands(vector.getVector());
+      List<Band> bands = vector.getVector();
       // going to get rid of centromeres entirely right now, they are not gene-rich regions and they are highly probable so bias the results
       // also filter out any that have a band already seen.  It's going to match regardless
       for (Band b : bands)
         {
-        if (b.isCentromere())
+        if (FILTER_CENT && b.isCentromere())
           {
           remove = true;
           bI.remove();
@@ -207,9 +192,6 @@ public class BandGenerator
         else
           this.bandsInSet.addAll(bands);
         }
-
-      //      for (int i = 0; i < bands.size(); i++)
-      //        vector.setValue(i, bands.get(i));
       }
     }
 

@@ -10,6 +10,7 @@ package org.lcsb.lu.igcsa.pipeline;
 
 import org.apache.commons.cli.*;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -78,14 +79,11 @@ public abstract class SearchPipeline
   protected MiniChromosomeJob generateMiniAbrs(String[] generateArgs) throws Exception
     {
     log.info("*********** MINI CHR JOB *************");
+    log.info( StringUtils.join(generateArgs, " ") );
     MiniChromosomeJob mcj = new MiniChromosomeJob(getConfiguration());
     if (ToolRunner.run(mcj, generateArgs) > 0)
-      {
-      log.error("Failed to generate/index mini chr " + generateArgs);
-      return null;
-      }
+      throw new Exception("Failed to generate/index mini chr " + generateArgs);
 
-    log.info("Generated and indexed mini chr " + generateArgs);
     return mcj;
     }
 

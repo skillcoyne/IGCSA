@@ -10,6 +10,7 @@ package org.lcsb.lu.igcsa.pipeline;
 
 import org.apache.commons.cli.*;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.util.ToolRunner;

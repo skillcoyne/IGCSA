@@ -4,11 +4,24 @@ source("lib/read_eval.R")
 args <- commandArgs(trailingOnly = TRUE)
 
 args[1] = "~/Analysis/band_genes.txt"
-args[2] = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/BRCA-NB"
+args[2] = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/HCC1954.G31860"
 
+args[3] = c("/Volumes/exHD-Killcoyne/TCGA/sequence/cell_lines/HCC1954.G31860/G31860.HCC1954.6.bam")
 
 if (length(args) < 2)
-  stop("Missing required arguments: <band_genes file> <directory to read in>")
+  stop("Missing required arguments: <band_genes file> <directory to read in> <original aligned bam: OPTIONAL>")
+
+
+if (!is.null(args[3]))
+  {
+  orig = sampleReadLengths(args[3])
+  distances = orig$dist
+  phred = orig$phred
+  mapq = orig$mapq
+  
+  print(summary(distances))
+  print(summary(phred))
+  }
 
 savePlot = T
 
@@ -29,10 +42,9 @@ rAll = as.data.frame(matrix(ncol=length(cols),nrow=length(read_files),data=0,
                             dimnames=list(dirname(read_files), cols)))
 rLeft = rAll
 rRight = rAll
-rSpan = rAll
+#rSpan = rAll
 
 emmodel = list()
-
 for (file in read_files)
 	{
   print(file)
@@ -49,7 +61,7 @@ for (file in read_files)
     reads = reads[reads$cigar.total > 0,]
 
     # percentage of paired reads with > 0 read distance that are 'proper pairs'
-    print(nrow( reads[reads$ppair == TRUE,] )/nrow(reads))
+    nrow( reads[reads$ppair == TRUE,] )/nrow(reads))
     summary(reads$len)
 
     model = getMixtures(log(reads$len), "V")
@@ -58,14 +70,21 @@ for (file in read_files)
     png_file=paste(getwd(), name, "read_pair_distance.png", sep="/")
     png(filename=png_file, width=800, height=600)
     counts = log(reads$len)
-    hist(counts, breaks=100, col="lightblue", border=F, prob=T, xlim=c(3,18), xlab="log(read-pair distance)", main=name)
-    lines(density(counts, kernel="gaussian"), col="blue")
+    hist(counts, breaks=100, col="lightblue", border=F, prob=T, xlim=c(min(counts),max(counts)), xlab="log(read-pair distance)", main=name)
+    lines(density(counts, kernel="gaussian"), col="blue", lwd=2)
 
+    if (!is.null(original_norm_mn))
+      {
+      m = log(original_norm_mn)
+      abline(0,0,v=m, col='red',lwd=2)
+      text(m, 0.5, labels=paste("Sampled normal mean:",round(m,2)), pos=4)
+      }
+    
     for (i in 1:ncol(model$z))
       { 
       m = model$parameters$mean[i]
       v = model$parameters$variance$sigmasq[i] 
-      abline(0,0,v=m)
+      abline(0,0,v=m,lwd=2)
       text(m, 0.1, labels=paste("mean:",round(m,2)), pos=2)
       text(m, 0.05, labels=paste("score:", round( mean(model$z[,i]),3 )), pos=2)
       }
@@ -73,35 +92,40 @@ for (file in read_files)
 
   rt = as.integer(which(model$parameters$mean == max(model$parameters$mean)))
   lt =  as.integer(which(model$parameters$mean != max(model$parameters$mean)))
+  
+  png_file=paste(getwd(), name, "sub-dist-read-length.png", sep="/")
+  png(filename=png_file, width=800, height=600)
+  par(mfrow=(c(2,1)))
 
   m = model$parameters$mean[lt]
   v = model$parameters$variance$sigmasq[lt] 
   leftD = reads[ counts >= (m-v) & counts <= (m+v) ,]
-  #hist(leftD$cigar.total)
+  hist(leftD$len, breaks=20, main=paste("Left sub-distribution mean=", round(mean(leftD$len), 2), sep=""), xlab="Read insert-distance", col="lightgreen", border=F,)
 
   m = model$parameters$mean[rt]
   v = model$parameters$variance$sigmasq[rt] 
   rightD = reads[ counts >= (m-v) & counts <= (m+v) ,]
-  #hist(rightD$cigar.total)
-
-  #plot(sort(rightD$cigar.total), col='red', type='l', ylab='cigar total')
-  #lines(sort(leftD$cigar.total), col='blue', type='l')
-
+  hist(rightD$len, breaks=20, main=paste("Right sub-distribution mean=", round(mean(rightD$len), 2), sep=""), xlab="Read insert-distance", col="lightgreen", border=F,)
+  dev.off()
+  
   breakpoint = bands[ which(paste(bands$chr,bands$band,sep="") %in% unlist(strsplit(basename(name), "-"))), 'length'][1]
 
-  left = reads[reads$pos <= breakpoint & reads$mate.pos <= breakpoint,]
-  nrow(left)
-  right = reads[reads$pos >= breakpoint & reads$mate.pos >= breakpoint,]
-  nrow(right)
-
-  crossing = reads[reads$pos <= breakpoint & reads$mate.pos >= breakpoint,]
-  nrow(crossing)
+  cleft = leftD[leftD$pos <= breakpoint & leftD$mate.pos >= breakpoint,]
+  cright =rightD[rightD$pos <= breakpoint & rightD$mate.pos >= breakpoint,]
+  
+  #left = reads[reads$pos <= breakpoint & reads$mate.pos <= breakpoint,]
+  #nrow(left)
+  #right = reads[reads$pos >= breakpoint & reads$mate.pos >= breakpoint,]
+  #nrow(right)
+  #crossing = reads[reads$pos <= breakpoint & reads$mate.pos >= breakpoint,]
+  #nrow(crossing)
 
   rAll[name,] = row.gen(reads)
-  rLeft[name,] = row.gen(left)
-  rRight[name,] = row.gen(right)
-  rSpan[name,] = row.gen(crossing)
+  rLeft[name,] = row.gen(cleft)
+  rRight[name,] = row.gen(cright)
+  #rSpan[name,] = row.gen(crossing)
   
+  save(cleft,cright, emmodel, file=paste(getwd(), name, "reads.Rdata", sep="/"))
   }, error = function(err) {
     print(paste("Failed to read file", file))
     warning(err)
@@ -109,41 +133,38 @@ for (file in read_files)
     cat(paste(err, collapse="\n"), file="errors.txt", append=T)
   })
   
-  #save(rAll[name,], rLeft[name,], rRight[name,], rSpan[name,], model, file=paste(paste(dirname(file), basename(dirname(file)), sep="/"), "Rdata", sep="."))
   }
-
-
-# inverse correlation between ratio and mean length
-#cor.test(rAll$pp.ratio, rAll$mean.dist)
-#cor.test(rLeft$pp.ratio, rLeft$mean.dist)
-#cor.test(rRight$pp.ratio, rRight$mean.dist)
-# but not in the reads spanning the breakpoint which is actually good, these reads should have a really poor pp.ratio to begin with 
-#cor.test(rSpan$pp.ratio, rSpan$mean.dist)
-
 save(rAll, rLeft, rRight, rSpan, emmodel, file='reads.Rdata')
+
+subdist_means = as.data.frame(t(sapply(emmodel, sub.dist.means)))
+
+png_file=paste(getwd(), "subdist-read-length.png", sep="/")
+png(filename=png_file, width=800, height=600)
+par(mfrow=c(2,1))
+hist(subdist_means$left, breaks=30,  col="lightblue", main="Left subdistribution means", xlab="log(insert size)")
+m = log(median(distances))
+abline(0,0,v=m, lwd=2, col='red')
+text(m, 20, labels=paste("normal mean:",round(m,2)), pos=3)
+
+m = log(median(distances) + sd(distances)*2)
+abline(0,0,v=m, lwd=2, col='red')
+text(m, 20, labels=paste("normal mean + 2sd:",round(m,2)), pos=3)
+
+hist(subdist_means$right, breaks=30,  col="lightblue", main="Right subdistribution means", xlab="log(insert size)")
+dev.off()
 
 # these would seem to be those that don't have a distinct 2nd distribution and likely don't have very high
 # likelihood of being breakpoints this also fits with the pp ratio for all reads
-right.dist<-function(model)
-  {
-  rightside = as.integer(which(model$parameters$mean == max(model$parameters$mean)))
-  mean(model$z[, rightside]) 
-  }
 right = unlist(lapply(emmodel, right.dist))
-
-#plot(sort(unlist(lapply(emmodel, function(x) x$parameters$mean))))
-
-# perfect inverse correlation between a high pp ratio and a low mean for the right distribution
-#cor.test(right, rAll$'pp.ratio')
-#summary(right)
-#summary(right[right < 0.3])
-#rSpan[names(right[right >= 0.5]),]
-
 km = kmeans(right, 4)
 
 # top cluster
 top_cluster = which(km$centers == max(km$centers))
 top_pairs = sort(right[which(km$cluster == top_cluster)], decreasing=T)
+
+## Any of the left side of the top greatder than the normal mean?  Apparently not...
+subdist_means[names(top_pairs), 'left'][which(subdist_means[names(top_pairs), 'left'] >= mean(distances))]
+
 
 png(filename="scores.png", width=1200, height=800)
 par(mfrow=c(2,1))
@@ -158,3 +179,7 @@ dev.off()
 write.table(top_pairs, quote=F, sep="\t", col.name=F, file="top_pair_scores.txt")
 top = rSpan[names(top_pairs),]
 print(top_pairs)
+
+## Only shows up in the lowest clusters so can be safely ignored
+km$cluster[rownames(subdist_means[which(subdist_means$left >= log(mean(distances))),])]
+

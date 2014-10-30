@@ -127,4 +127,20 @@ for (i in 1:ncol(cscore))
 clusters = clusters[rownames(scores),]
 
 
+tops = list()
+for (col in 1:ncol(scores))
+  {
+  k = kmeans(scores[,col], num_clusters)
+  tops[[colnames(scores)[col]]] = scores[,col][k$cluster == which(k$centers == max(k$centers))]
+  }
 
+tops = lapply(tops, names)
+unlist(lapply(tops, length))
+
+
+a = intersect(tops[[1]], tops[[2]])
+b =  intersect(a, tops[[3]])
+c = intersect(b, tops[[4]])
+d = intersect(c, tops[[5]])
+e = intersect(d, tops[[6]])
+f = intersect(a, tops[[7]])
