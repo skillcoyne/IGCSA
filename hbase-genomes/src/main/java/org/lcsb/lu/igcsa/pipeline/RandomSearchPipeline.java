@@ -51,7 +51,7 @@ public class RandomSearchPipeline extends SearchPipeline
   protected void usage()
     {
     HelpFormatter help = new HelpFormatter();
-    if ( !commandLine.hasOption("b") | !commandLine.hasOption("o") | !commandLine.hasOption("g") | !commandLine.hasOption("r"))
+    if (!commandLine.hasOption("b") | !commandLine.hasOption("o") | !commandLine.hasOption("g") | !commandLine.hasOption("r"))
       {
       help.printHelp(this.getClass().getSimpleName() + ":\nMissing required option. ", this.getOptions());
       System.exit(-1);
@@ -73,9 +73,9 @@ public class RandomSearchPipeline extends SearchPipeline
     {
     CommandLine cl = parseCommandLine(args);
 
-    int popSize = (cl.hasOption("size"))? Integer.parseInt(cl.getOptionValue("size")): 50;
+    int popSize = (cl.hasOption("size")) ? Integer.parseInt(cl.getOptionValue("size")) : 50;
     if (popSize < 10) popSize = 10;
-    int generations = (cl.hasOption("generations"))? Integer.parseInt(cl.getOptionValue("generations")): 1000;
+    int generations = (cl.hasOption("generations")) ? Integer.parseInt(cl.getOptionValue("generations")) : 1000;
 
     PopulationGenerator pg = new PopulationGenerator();
     Observer.QUIET = true;
@@ -84,28 +84,27 @@ public class RandomSearchPipeline extends SearchPipeline
     pg.removeMatchingBands(Pattern.compile("^.*(p|q)(11|12)$"));
     List<MinimalKaryotype> pop = pg.run(generations, popSize);
 
-    for (MinimalKaryotype kt: pop)
+    for (MinimalKaryotype kt : pop)
       {
-      for (Aberration abr: kt.getAberrations())
+      for (Aberration abr : kt.getAberrations())
         {
-        for (Band band: abr.getBands())
-          if (band.isCentromere())
-            log.info(kt);
+        for (Band band : abr.getBands())
+          if (band.isCentromere()) log.info(kt);
         }
       }
     ob.finalUpdate();
 
     /* TODO
-    For DELETETION events the two adjacent bands could be combined as a TRANS
+    For DELETION events the two adjacent bands could be combined as a TRANS
     For INVERSION events you'd made two aberrations with the bands that are adjacent to the INV
      */
     Collection<Aberration> randomBandPairSet = this.filterBands(pop);
     log.info("Total bands to generate: " + randomBandPairSet.size());
 
-    for (Aberration abr: randomBandPairSet)
+    for (Aberration abr : randomBandPairSet)
       {
       List<String> bands = new ArrayList<String>();
-      for (Band band: abr.getBands())
+      for (Band band : abr.getBands())
         {
         bands.add("-band");
         bands.add(band.getFullName());
@@ -118,21 +117,13 @@ public class RandomSearchPipeline extends SearchPipeline
             "-n", "mini", "-o", cl.getOptionValue("o")}, bands.toArray(new String[bands.size()])));
         log.info(mcj.getIndexPath().toString());
 
-        if (mcj != null)
-          {
-          String alignPath = alignReads(mcj.getIndexPath().toString(), mcj.getName());
-          log.info(alignPath);
-          }
-        else
-          {
-          log.info("ERROR: Failed to generate mini chromosome \" + abr.getBands())");
-          log.error("Failed to generate mini chromosome " + abr.getBands());
-          }
+        String alignPath = alignReads(mcj.getIndexPath().toString(), mcj.getName());
+        log.info(alignPath);
         }
       catch (Exception e)
         {
-        log.info("ERROR: Failed to finish generate or align for " + abr.getBands() + e);
-        log.error("Failed to finish generate or align for " + abr.getBands() + e);
+        log.info("ERROR: Failed to finish generate/index/align for " + abr.getBands() + e);
+        log.error("Failed to finish generate/index/align for " + abr.getBands() + e);
         }
 
       }
@@ -149,12 +140,10 @@ public class RandomSearchPipeline extends SearchPipeline
         {
         if (abr.getAberration().equals(AberrationTypes.TRANSLOCATION))
           {
-          for (Band band: abr.getBands())
+          for (Band band : abr.getBands())
             {
-            if (bandSet.contains(band))
-              continue;
-            else
-              bandSet.add(band);
+            if (bandSet.contains(band)) continue;
+            else bandSet.add(band);
             }
           randomBandPairSet.add(abr);
           }

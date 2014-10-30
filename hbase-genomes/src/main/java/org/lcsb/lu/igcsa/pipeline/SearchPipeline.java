@@ -81,6 +81,8 @@ public abstract class SearchPipeline
     log.info("*********** MINI CHR JOB *************");
     log.info( StringUtils.join(generateArgs, " ") );
     MiniChromosomeJob mcj = new MiniChromosomeJob(getConfiguration());
+    log.info(StringUtils.join(generateArgs, " "));
+
     if (ToolRunner.run(mcj, generateArgs) > 0)
       throw new Exception("Failed to generate/index mini chr " + generateArgs);
 
@@ -92,11 +94,10 @@ public abstract class SearchPipeline
     log.info("*********** ALIGN CHR JOB *************");
     String output = new Path(indexPath.substring(0, indexPath.indexOf("/index")), "aligned").toString();
     BWAAlign ba = new BWAAlign(gop.getConfiguration());
+    log.info(new String[]{"--bwa-path", commandLine.getOptionValue("b"), "-n", name, "-i", indexPath, "-r", commandLine.getOptionValue("r"), "-o", output});
+
     if (ToolRunner.run(ba, new String[]{"--bwa-path", commandLine.getOptionValue("b"), "-n", name, "-i", indexPath, "-r", commandLine.getOptionValue("r"), "-o", output}) > 0)
-      {
-      log.error("Failed to align " + name );
-      return null;
-      }
+      throw new Exception("Failed to align " + name );
 
     log.info("Aligned to " + ba.getOutputPath().toString());
     ba.mergeSAM();
