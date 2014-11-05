@@ -50,7 +50,7 @@
                             <attach>false</attach>
                             <archive>
                                 <manifest>
-                                    <mainClass>org.lcsb.lu.igcsa.pipeline.RandomSearchPipeline</mainClass>
+                                    <mainClass>org.lcsb.lu.igcsa.pipeline.GASearchPipeline</mainClass>
                                 </manifest>
                             </archive>
                         </configuration>

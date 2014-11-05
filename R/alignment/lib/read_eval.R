@@ -84,6 +84,7 @@ sampleReadLengths<-function(bam, sample_size=10000)
   phred = vector(length=0,mode='numeric')
   distances = vector(length=0, mode='numeric')
   mapq = vector(length=0, mode='numeric')
+  cigar = vector(length=0, mode='numeric')
   n = 0
   while (n < sample_size)
     {
@@ -91,7 +92,6 @@ sampleReadLengths<-function(bam, sample_size=10000)
     start = sample( c(1:chr$LN), 1 )
     
     range = bamRange(reader, c(chr$ID, start, start+1000)) 
-    #print(range)
     align = getNextAlign(range)
     while(!is.null(align))
       {
@@ -100,6 +100,8 @@ sampleReadLengths<-function(bam, sample_size=10000)
         distances = c(distances, abs(insertSize(align)))
         phred = c(phred, sum(alignQualVal(align)))
         mapq = c(mapq, mapQuality(align))
+        cd = cigarData(align)
+        cigar = c(cigar, cigar.len(paste(paste(cd$Length, cd$Type, sep=":"), collapse=',')))
         }
       align = getNextAlign(range)
       n = n+1  
@@ -107,7 +109,7 @@ sampleReadLengths<-function(bam, sample_size=10000)
     }
   bamClose(reader)
   
-  return(list("dist"=distances, "phred"=phred, "mapq"=mapq))
+  return(list("dist"=distances, "phred"=phred, "mapq"=mapq, "cigar"=cigar))
   }
 
 

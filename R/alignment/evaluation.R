@@ -4,7 +4,7 @@ source("lib/read_eval.R")
 args <- commandArgs(trailingOnly = TRUE)
 
 args[1] = "~/Analysis/band_genes.txt"
-args[2] = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/HCC1954.G31860"
+args[2] = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/Random/HCC1954.G31860"
 
 args[3] = c("/Volumes/exHD-Killcoyne/TCGA/sequence/cell_lines/HCC1954.G31860/G31860.HCC1954.6.bam")
 
@@ -18,12 +18,13 @@ if (!is.null(args[3]))
   distances = orig$dist
   phred = orig$phred
   mapq = orig$mapq
+  cigar = orig$cigar
   
   print(summary(distances))
   print(summary(phred))
   }
 
-savePlot = T
+savePlot = F
 
 bands = read.table(args[1], header=T)
 bands$length = bands$end - bands$start
@@ -61,9 +62,10 @@ for (file in read_files)
     reads = reads[reads$cigar.total > 0,]
 
     # percentage of paired reads with > 0 read distance that are 'proper pairs'
-    nrow( reads[reads$ppair == TRUE,] )/nrow(reads))
+    #nrow( reads[reads$ppair == TRUE,] )/nrow(reads))
     summary(reads$len)
-
+    #reads = reads[reads$cigar.total >= mean(reads$cigar.total)+sd(reads$cigar.total),] ## not sure about this
+    
     model = getMixtures(log(reads$len), "V")
     emmodel[[name]] = model
 
@@ -73,9 +75,9 @@ for (file in read_files)
     hist(counts, breaks=100, col="lightblue", border=F, prob=T, xlim=c(min(counts),max(counts)), xlab="log(read-pair distance)", main=name)
     lines(density(counts, kernel="gaussian"), col="blue", lwd=2)
 
-    if (!is.null(original_norm_mn))
+    if (!is.null(distances))
       {
-      m = log(original_norm_mn)
+      m = mean(log(distances))
       abline(0,0,v=m, col='red',lwd=2)
       text(m, 0.5, labels=paste("Sampled normal mean:",round(m,2)), pos=4)
       }

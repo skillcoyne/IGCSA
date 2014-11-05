@@ -57,7 +57,7 @@ class Alignment
   end
 
   def phred_score
-    return(@phred.split("").inject(0){|sum, e| sum + (e.ord - 33)  })
+    return(@phred.split("").inject(0) { |sum, e| sum + (e.ord - 33) })
   end
 
 
@@ -102,8 +102,8 @@ class Alignment
   end
 
   def orientation
-    str = (read_reversed?)? "F": "R"
-    str += (mate_reversed?)? "F": "R"
+    str = (read_reversed?) ? "F" : "R"
+    str += (mate_reversed?) ? "F" : "R"
     return str
     #return {:read => (read_reversed?) ? "F" : "R", :mate => (mate_reversed?) ? "F" : "R"}
   end
@@ -122,13 +122,27 @@ class Alignment
 
 end
 
-$stdin.each do |line|
-  next if line.start_with? "@"
-  line.chomp!
 
-  align = Alignment.new(line.chomp)
-  if ( align.mapped? and align.mate_mapped? and align.tlen.abs > 0)
-    puts align.tlen.abs
-    #puts [align.read_name, align.read_pos, align.mate_pos, align.tlen.abs, align.phred_score, align.mapq, align.cigar_to_s, align.orientation].join("\t")
+files = Dir["/Volumes/exHD-Killcoyne/Insilico/runs/alignments/Random/HCC1954.G31860/*/*.bam"]
+
+
+#bam = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/Random/HCC1954.G31860/10q24-2q22/FASTQ.bam"
+files.sample(10).each do |bam|
+  puts bam
+  fout = File.open("#{File.dirname(bam)}/paired_reads.txt", 'w')
+  fout.puts ['readID', 'pos','mate.pos','len','phred','mapq','cigar','orientation','ppair'].join("\t")
+  count = 0
+#$stdin.each do |line|
+  `samtools view -F 12 #{bam}`.each_line do |line|
+    next if line.start_with? "@"
+    line.chomp!
+
+    align = Alignment.new(line.chomp)
+    if (align.mapped? and align.mate_mapped? and align.tlen.abs > 0)
+      count += 1
+      #puts align.tlen.abs
+      fout.puts [align.read_name, align.read_pos, align.mate_pos, align.tlen.abs, align.phred_score, align.mapq, align.cigar_to_s, align.orientation, ((align.proper_pair?) ? 1 : 0)].join("\t")
+    end
   end
+  $stderr.puts count
 end

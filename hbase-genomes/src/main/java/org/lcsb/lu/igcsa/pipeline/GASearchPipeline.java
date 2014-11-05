@@ -10,17 +10,14 @@ package org.lcsb.lu.igcsa.pipeline;
 
 import org.apache.commons.cli.*;
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.util.ToolRunner;
 import org.lcsb.lu.igcsa.genome.Band;
 import org.lcsb.lu.igcsa.population.MinimalKaryotype;
 import org.lcsb.lu.igcsa.population.PopulationGenerator;
 import org.lcsb.lu.igcsa.job.*;
 import org.lcsb.lu.igcsa.karyotype.aberrations.AberrationTypes;
 import org.lcsb.lu.igcsa.karyotype.generator.Aberration;
-import org.lcsb.lu.igcsa.population.watchmaker.kt.*;
 import org.lcsb.lu.igcsa.population.watchmaker.kt.Observer;
 import org.lcsb.lu.igcsa.population.watchmaker.kt.statistics.CandidateBreakpoints;
 import org.lcsb.lu.igcsa.prob.ProbabilityException;
@@ -31,9 +28,9 @@ import java.util.regex.Pattern;
 
 
 //** Need to update this to be a pipeline that starts from random selection
-public class RandomSearchPipeline extends SearchPipeline
+public class GASearchPipeline extends SearchPipeline
   {
-  private static final Log log = LogFactory.getLog(RandomSearchPipeline.class);
+  private static final Log log = LogFactory.getLog(GASearchPipeline.class);
 
   @Override
   public void setOptions()
@@ -65,7 +62,7 @@ public class RandomSearchPipeline extends SearchPipeline
   //  # 5. Repeat 2-4 until??
   public static void main(String[] args) throws Exception
     {
-    new RandomSearchPipeline().runSearch(args);
+    new GASearchPipeline().runSearch(args);
     }
 
   @Override
