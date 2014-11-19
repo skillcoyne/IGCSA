@@ -1,6 +1,116 @@
 library('mclust')
 library('rbamtools')
 
+analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, plots=T)
+  {
+  if (is.null(normal.mean) | is.null(normal.sd))
+    stop("A normal mean and stdev is required for read-pair distance analysis")
+  
+  path = dirname(file)
+  name = basename(path)
+  print(path)
+  
+  summary = list()
+  reads = NULL
+  tryCatch({
+  reads = read.table(file, header=T, sep="\t", comment.char="")
+  }, error = function(err) {
+    print(paste("Failed to read file", file))
+    warning(err)
+    cat(paste("Failed to read file", file), file="errors.txt", sep="\n", append=T)
+    cat(paste(err, collapse="\n"), file="errors.txt", append=T)
+  })
+  
+  reads$cigar = as.character(reads$cigar)
+  reads$cigar.total = cigar.len(reads$cigar)
+  reads$orientation = as.character(reads$orientation)
+  
+  summary[['total.reads']] = nrow(reads)
+  
+  summary[['cigar']] = summary(reads$cigar.total)
+  reads = reads[reads$cigar.total > 0,]
+  #reads = reads[reads$cigar.total >= mean(reads$cigar.total)+sd(reads$cigar.total),] ## not sure about this
+  
+  
+  summary[['distance']] = summary(reads$len)
+  summary[['phred']] = summary(reads$phred)
+  reads = reads[reads$phred >= normal.phred,] ## from the original 'good' reads
+
+  summary[['filtered.reads']] = nrow(reads)
+  
+  counts = log(reads$len)
+  model = getMixtures(log(reads$len), "V")
+
+  model$parameters$mean
+  
+  rt = as.integer(which(model$parameters$mean == max(model$parameters$mean)))
+  lt =  as.integer(which(model$parameters$mean != max(model$parameters$mean)))
+  
+  left_mean = model$parameters$mean[lt]
+  ## Left mean should be near the mean of the normal distance
+  score_dist = TRUE
+  ## STOP RIGHT HERE
+  if (left_mean > log(normal.mean+normal.sd*4)) score_dist = FALSE
+  
+  v = model$parameters$variance$sigmasq[lt] 
+  leftD = reads[ counts >= (left_mean-v) & counts <= (left_mean+v) ,]
+  
+  right_mean = model$parameters$mean[rt]
+  v = model$parameters$variance$sigmasq[rt] 
+  rightD = reads[ counts >= (right_mean-v) & counts <= (right_mean+v) ,]
+
+  if (score_dist)
+    {
+    summary[['n.left.reads']] = nrow(leftD)
+    summary[['n.right.reads']] = nrow(rightD)
+    }
+  
+  if (plots)
+    {
+    png_file=paste(path, "read_pair_distance.png", sep="/")
+    print(png_file)
+    png(filename=png_file, width=800, height=600)
+    
+    hist(counts, breaks=100, col="lightblue", border=F, prob=T, xlim=c(min(counts),max(counts)), xlab="log(read-pair distance)", main=name, sub=paste("Score?", score_dist))
+    d = density(counts, kernel="gaussian")
+    lines(d, col="blue", lwd=2)
+
+    abline(0,0,v=log(normal.mean), col='red',lwd=2)
+    text(log(normal.mean), max(d$y)/2+sd(d$y), labels=paste("Sampled normal mean:",round(log(normal.mean),2)), pos=4)
+  
+    for (i in 1:ncol(model$z))
+      { 
+      m = model$parameters$mean[i]
+      v = model$parameters$variance$sigmasq[i] 
+      abline(0,0,v=m,lwd=2)
+      text(m, sd(d$y)+mean(d$y), labels=paste("mean:",round(m,2)), pos=2)
+      if (score_dist) text(m, mean(d$y), labels=paste("score:", round( mean(model$z[,i]),3 )), pos=2)
+      }
+    dev.off()
+
+    if (score_dist)
+      {
+      png_file=paste(path, "sub-dist-read-length.png", sep="/")
+      png(filename=png_file, width=800, height=600)
+      par(mfrow=(c(2,1)))
+    
+      hist(leftD$len, breaks=20, main=paste("Left sub-distribution mean=", round(mean(leftD$len), 2), sep=""), xlab="Read insert-distance", col="lightgreen", border=F,sub=name)
+      hist(rightD$len, breaks=20, main=paste("Right sub-distribution mean=", round(mean(rightD$len), 2), sep=""), xlab="Read insert-distance", col="lightgreen", border=F,sub=name)
+      dev.off()
+      }
+    }
+  
+  summary[['score']] = ifelse (score_dist, round(mean(model$z[,rt]),4 ), 0) 
+  summary[['scored']] = score_dist
+  
+  write.table(summary[['score']], file=paste(path, "score.txt", sep="/"), quote=F, col.name=F, row.name=F)
+  save(model, summary, file=paste(path, "summary.Rdata", sep="/"))
+  
+  print(summary[['score']])
+  return(summary)
+  }
+
+
 row.gen<-function(df)
   {
   if (nrow(df) <= 0)
