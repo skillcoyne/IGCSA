@@ -122,6 +122,7 @@ class Alignment
 
 end
 
+#fout = File.open("paired_reads.txt", 'w')
 $stdin.each do |line|
   next if line.start_with? "@"
   line.chomp!
@@ -129,6 +130,7 @@ $stdin.each do |line|
   align = Alignment.new(line.chomp)
   if ( align.mapped? and align.mate_mapped? and align.tlen.abs > 0)
     puts align.tlen.abs
-    #puts [align.read_name, align.read_pos, align.mate_pos, align.tlen.abs, align.phred_score, align.mapq, align.cigar_to_s, align.orientation].join("\t")
+#    fout.puts [align.read_name, align.read_pos, align.mate_pos, align.tlen.abs, align.phred_score, align.mapq, align.cigar_to_s, align.orientation].join("\t")
   end
 end
+#fout.close()
