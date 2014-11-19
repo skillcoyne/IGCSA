@@ -1,6 +1,5 @@
-#! /usr/bin/env Rscript
 
-library('mclust')
+library(mclust, quietly=T)
 
 right.dist.score<-function(model)
   {

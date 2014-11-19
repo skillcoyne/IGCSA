@@ -19,9 +19,11 @@ load_files<-function(files, dir)
 
 args <- commandArgs(trailingOnly = TRUE)
 print(args)
-args[1] = "/Users/skillcoyne/Analysis/5q13-8q24"
+args[1] = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/Random/HCC1954.G31860"
 
 bam_files = list.files(path=args[1], recursive=T, pattern="bam$", full.names=T)
+bam_files = sample(bam_files, 10)
+
 if (length(bam_files) <= 0)
   stop(paste("No bam files found in path:", args[1]))
 
@@ -52,7 +54,7 @@ for (bam in bam_files)
   while(!is.null(align))
     {
     if (nreads %% 10000 == 0) print(paste(nreads, "reads"))
-    if ( !unmapped(align) & !mateUnmapped(align) & insertSize(align) > 0)
+    if ( !unmapped(align) & !mateUnmapped(align) & abs(insertSize(align)) > 0)
       {
       cd = cigarData(align)
       write( c( name(align), 
@@ -65,10 +67,8 @@ for (bam in bam_files)
                 paste(ifelse(reverseStrand(align), 'R','F'), ifelse(mateReverseStrand(align), 'R','F'), sep=":"),
                 ifelse(properPair(align), '1','0') ), 
              file=paste(current_dir, "paired_reads.txt", sep="/"), append=T, sep="\t", ncolumns=length(cols))
-      break;
       }
     align = getNextAlign(range)
-    align
     nreads = nreads + 1
     }
   print(paste("Total reads:", nreads))

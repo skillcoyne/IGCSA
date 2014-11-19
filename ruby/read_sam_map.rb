@@ -57,7 +57,7 @@ class Alignment
   end
 
   def phred_score
-    return(@phred.split("").inject(0){|sum, e| sum + (e.ord - 33)  })
+    return(@phred.split("").inject(0) { |sum, e| sum + (e.ord - 33) })
   end
 
 
@@ -102,8 +102,8 @@ class Alignment
   end
 
   def orientation
-    str = (read_reversed?)? "F": "R"
-    str += (mate_reversed?)? "F": "R"
+    str = (read_reversed?) ? "F" : "R"
+    str += (mate_reversed?) ? "F" : "R"
     return str
     #return {:read => (read_reversed?) ? "F" : "R", :mate => (mate_reversed?) ? "F" : "R"}
   end
