@@ -52,12 +52,12 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
   ## STOP RIGHT HERE
   if (left_mean > log(normal.mean+normal.sd*4)) score_dist = FALSE
   
-  v = model$parameters$variance$sigmasq[lt] 
-  leftD = reads[ counts >= (left_mean-v) & counts <= (left_mean+v) ,]
+  lv = model$parameters$variance$sigmasq[lt] 
+  leftD = reads[ counts >= (left_mean-lv) & counts <= (left_mean+lv) ,]
   
   right_mean = model$parameters$mean[rt]
-  v = model$parameters$variance$sigmasq[rt] 
-  rightD = reads[ counts >= (right_mean-v) & counts <= (right_mean+v) ,]
+  rv = model$parameters$variance$sigmasq[rt] 
+  rightD = reads[ counts >= (right_mean-rv) & counts <= (right_mean+rv) ,]
 
   if (score_dist)
     {
@@ -100,8 +100,17 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
       }
     }
   
+  d = density(counts, kernel="gaussian")
+  leftD = d$x[ d$x >= (left_mean-lv) & d$x <= (left_mean+lv) ]
+  summary[['l.shapiro']] = shapiro.test(leftD)
+
+  rightD = d$x[ d$x >= (right_mean-rv) & d$x <= (right_mean+rv) ]
+  summary[['r.shapiro']] = shapiro.test(rightD)
+  
   summary[['score']] = ifelse (score_dist, round(mean(model$z[,rt]),4 ), 0) 
   summary[['scored']] = score_dist
+  #summary[['model']] = model
+  #summary[['reads']] = reads
   
   write.table(summary[['score']], file=paste(path, "score.txt", sep="/"), quote=F, col.name=F, row.name=F)
   save(model, summary, file=paste(path, "summary.Rdata", sep="/"))
