@@ -19,10 +19,10 @@ load_files<-function(files, dir)
 
 args <- commandArgs(trailingOnly = TRUE)
 print(args)
-args[1] = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/Random/HCC1954.G31860"
+#args[1] = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/Random/HCC1954.G31860"
 
 bam_files = list.files(path=args[1], recursive=T, pattern="bam$", full.names=T)
-bam_files = sample(bam_files, 10)
+
 
 if (length(bam_files) <= 0)
   stop(paste("No bam files found in path:", args[1]))
