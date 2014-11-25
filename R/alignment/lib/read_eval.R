@@ -1,7 +1,8 @@
 library('mclust')
 library('rbamtools')
+library('e1071')
 
-analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, plots=T)
+analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, savePlots=T, addToSummary = NULL)
   {
   if (is.null(normal.mean) | is.null(normal.sd))
     stop("A normal mean and stdev is required for read-pair distance analysis")
@@ -53,24 +54,28 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
   if (left_mean > log(normal.mean+normal.sd*4)) score_dist = FALSE
   
   lv = model$parameters$variance$sigmasq[lt] 
-  leftD = reads[ counts >= (left_mean-lv) & counts <= (left_mean+lv) ,]
+  leftD = reads[ counts >= (left_mean-lv*2) & counts <= (left_mean+lv*2) ,]
   
   right_mean = model$parameters$mean[rt]
   rv = model$parameters$variance$sigmasq[rt] 
-  rightD = reads[ counts >= (right_mean-rv) & counts <= (right_mean+rv) ,]
+  rightD = reads[ counts >= (right_mean-rv*3),]
 
+  summary[['l.kurtosis']] = kurtosis(log(leftD$len))
+  summary[['r.kurtosis']] = kurtosis(log(rightD$len))
+  
   if (score_dist)
     {
     summary[['n.left.reads']] = nrow(leftD)
     summary[['n.right.reads']] = nrow(rightD)
     }
   
-  if (plots)
+  if (savePlots)
     {
     png_file=paste(path, "read_pair_distance.png", sep="/")
     print(png_file)
     png(filename=png_file, width=800, height=600)
-    
+    }
+  
     hist(counts, breaks=100, col="lightblue", border=F, prob=T, xlim=c(min(counts),max(counts)), xlab="log(read-pair distance)", main=name, sub=paste("Score?", score_dist))
     d = density(counts, kernel="gaussian")
     lines(d, col="blue", lwd=2)
@@ -84,21 +89,27 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
       v = model$parameters$variance$sigmasq[i] 
       abline(0,0,v=m,lwd=2)
       text(m, sd(d$y)+mean(d$y), labels=paste("mean:",round(m,2)), pos=2)
+
+      kt = ifelse (i == lt, kurtosis(log(leftD$len)), kurtosis(log(rightD$len)) )
+      text(m, (sd(d$y)/2)+mean(d$y), labels=paste("kurtosis:",round(kt, 3)), pos=2  )
+      
+      
       if (score_dist) text(m, mean(d$y), labels=paste("score:", round( mean(model$z[,i]),3 )), pos=2)
       }
-    dev.off()
-
-    if (score_dist)
-      {
-      png_file=paste(path, "sub-dist-read-length.png", sep="/")
-      png(filename=png_file, width=800, height=600)
-      par(mfrow=(c(2,1)))
     
-      hist(leftD$len, breaks=20, main=paste("Left sub-distribution mean=", round(mean(leftD$len), 2), sep=""), xlab="Read insert-distance", col="lightgreen", border=F,sub=name)
-      hist(rightD$len, breaks=20, main=paste("Right sub-distribution mean=", round(mean(rightD$len), 2), sep=""), xlab="Read insert-distance", col="lightgreen", border=F,sub=name)
-      dev.off()
-      }
-    }
+    if (savePlots) dev.off()
+
+    #if (score_dist)
+      #{
+      #png_file=paste(path, "sub-dist-read-length.png", sep="/")
+      #png(filename=png_file, width=800, height=600)
+      #par(mfrow=(c(2,1)))
+    
+      #hist(leftD$len, breaks=20, main=paste("Left sub-distribution mean=", round(mean(leftD$len), 2), sep=""), xlab="Read insert-distance", col="lightgreen", border=F,sub=name)
+      #hist(rightD$len, breaks=20, main=paste("Right sub-distribution mean=", round(mean(rightD$len), 2), sep=""), xlab="Read insert-distance", col="lightgreen", border=F,sub=name)
+      #dev.off()
+      #}
+    #}
   
   d = density(counts, kernel="gaussian")
   leftD = d$x[ d$x >= (left_mean-lv) & d$x <= (left_mean+lv) ]
@@ -109,8 +120,12 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
   
   summary[['score']] = ifelse (score_dist, round(mean(model$z[,rt]),4 ), 0) 
   summary[['scored']] = score_dist
-  #summary[['model']] = model
-  #summary[['reads']] = reads
+  
+  if ( !is.null(addToSummary) )
+    {
+    if ( length(grep('model', addToSummary)) > 0) summary[['model']] = model
+    if ( length(grep('reads', addToSummary)) > 0) summary[['reads']] = reads
+    }
   
   write.table(summary[['score']], file=paste(path, "score.txt", sep="/"), quote=F, col.name=F, row.name=F)
   save(model, summary, file=paste(path, "summary.Rdata", sep="/"))
