@@ -93,7 +93,6 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
       kt = ifelse (i == lt, kurtosis(log(leftD$len)), kurtosis(log(rightD$len)) )
       text(m, (sd(d$y)/2)+mean(d$y), labels=paste("kurtosis:",round(kt, 3)), pos=2  )
       
-      
       if (score_dist) text(m, mean(d$y), labels=paste("score:", round( mean(model$z[,i]),3 )), pos=2)
       }
     
@@ -112,11 +111,13 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
     #}
   
   d = density(counts, kernel="gaussian")
-  leftD = d$x[ d$x >= (left_mean-lv) & d$x <= (left_mean+lv) ]
-  summary[['l.shapiro']] = shapiro.test(leftD)
+  lrows = which(d$x >= (left_mean-lv) & d$x <= (left_mean+lv))
+  summary[['l.dens']] = max(d$y[lrows])
+  summary[['l.shapiro']] = shapiro.test(d$x[lrows])
 
-  rightD = d$x[ d$x >= (right_mean-rv) & d$x <= (right_mean+rv) ]
-  summary[['r.shapiro']] = shapiro.test(rightD)
+  rrows = which(d$x >= (right_mean-rv) & d$x <= (right_mean+rv))
+  summary[['r.dens']] = max(d$y[rrows])
+  summary[['r.shapiro']] = shapiro.test(d$x[rrows])
   
   summary[['score']] = ifelse (score_dist, round(mean(model$z[,rt]),4 ), 0) 
   summary[['scored']] = score_dist
