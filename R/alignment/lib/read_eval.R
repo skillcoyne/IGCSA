@@ -222,6 +222,8 @@ sampleReadLengths<-function(bam, sample_size=10000)
   distances = vector(length=0, mode='numeric')
   mapq = vector(length=0, mode='numeric')
   cigar = vector(length=0, mode='numeric')
+  orientation = vector(length=4,mode='numeric')
+  names(orientation) = c('F:F','F:R','R:F','R:R')
   n = 0
   while (n < sample_size)
     {
@@ -239,6 +241,13 @@ sampleReadLengths<-function(bam, sample_size=10000)
         mapq = c(mapq, mapQuality(align))
         cd = cigarData(align)
         cigar = c(cigar, cigar.len(paste(paste(cd$Length, cd$Type, sep=":"), collapse=',')))
+        
+        ## F:R is the expected orientation, but proper pairs are still correct with R:F so long as the position of F < position of R
+        orient = paste(ifelse(reverseStrand(align), 'R','F'), ifelse(mateReverseStrand(align), 'R','F'), sep=":") 
+        if (reverseStrand(align) & !mateReverseStrand(align))
+          orient = ifelse( matePosition(align) < position(align), 'F:R', 'R:F') 
+
+        orientation[orient] = orientation[orient] + 1 
         }
       align = getNextAlign(range)
       n = n+1  
@@ -246,7 +255,7 @@ sampleReadLengths<-function(bam, sample_size=10000)
     }
   bamClose(reader)
   
-  return(list("dist"=distances, "phred"=phred, "mapq"=mapq, "cigar"=cigar))
+  return(list("dist"=distances, "phred"=phred, "mapq"=mapq, "cigar"=cigar, "orientation"=orientation))
   }
 
 
