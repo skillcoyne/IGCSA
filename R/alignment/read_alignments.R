@@ -57,6 +57,10 @@ for (bam in bam_files)
     if ( !unmapped(align) & !mateUnmapped(align) & abs(insertSize(align)) > 0)
       {
       cd = cigarData(align)
+      orient = paste(ifelse(reverseStrand(align), 'R','F'), ifelse(mateReverseStrand(align), 'R','F'), sep=":") 
+      if (reverseStrand(align) & !mateReverseStrand(align))
+        orient = ifelse( matePosition(align) < position(align), 'F:R', 'R:F') 
+      
       write( c( name(align), 
                 position(align), 
                 matePosition(align), 
@@ -64,7 +68,7 @@ for (bam in bam_files)
                 sum(alignQualVal(align)), 
                 mapQuality(align),
                 paste(paste(cd$Length, cd$Type, sep=":"), collapse=','),
-                paste(ifelse(reverseStrand(align), 'R','F'), ifelse(mateReverseStrand(align), 'R','F'), sep=":"),
+                orient,
                 ifelse(properPair(align), '1','0') ), 
              file=paste(current_dir, "paired_reads.txt", sep="/"), append=T, sep="\t", ncolumns=length(cols))
       }
