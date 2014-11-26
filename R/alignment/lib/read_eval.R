@@ -26,6 +26,8 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
   reads$cigar.total = cigar.len(reads$cigar)
   reads$orientation = as.character(reads$orientation)
   
+  summary[['orientation']] = table(reads$orientation)
+  
   summary[['total.reads']] = nrow(reads)
   
   summary[['cigar']] = summary(reads$cigar.total)
