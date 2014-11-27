@@ -26,8 +26,6 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
   reads$cigar.total = cigar.len(reads$cigar)
   reads$orientation = as.character(reads$orientation)
   
-  summary[['orientation']] = table(reads$orientation)
-  
   summary[['total.reads']] = nrow(reads)
   
   summary[['cigar']] = summary(reads$cigar.total)
@@ -40,6 +38,7 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
   reads = reads[reads$phred >= normal.phred,] ## from the original 'good' reads
 
   summary[['filtered.reads']] = nrow(reads)
+  summary[['orientation']] = table(reads$orientation)
   
   counts = log(reads$len)
   model = getMixtures(log(reads$len), "V")
@@ -61,6 +60,9 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
   right_mean = model$parameters$mean[rt]
   rv = model$parameters$variance$sigmasq[rt] 
   rightD = reads[ counts >= (right_mean-rv*3),]
+  
+  summary[['l.orientation']] = table(leftD$orientation)
+  summary[['r.orientation']] = table(rightD$orientation)
 
   summary[['l.kurtosis']] = kurtosis(log(leftD$len))
   summary[['r.kurtosis']] = kurtosis(log(rightD$len))
