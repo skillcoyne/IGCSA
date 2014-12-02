@@ -2,8 +2,32 @@ library('mclust')
 library('rbamtools')
 library('e1071')
 
+read.file<-function(file)
+  {
+  reads = NULL
+  tryCatch({
+    reads = read.table(file, header=T, sep="\t", comment.char="")
+    reads$cigar = as.character(reads$cigar)
+    reads$cigar.total = cigar.len(reads$cigar)
+    reads$orientation = as.character(reads$orientation)
+    return(reads) 
+  }, error = function(err) {
+    print(paste("Failed to read file", file))
+    warning(err)
+    cat(paste("Failed to read file", file), file="errors.txt", sep="\n", append=T)
+    cat(paste(err, collapse="\n"), file="errors.txt", append=T)
+  }, finally = {
+    return(reads)
+  })
+  }
+
 analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, savePlots=T, addToSummary = NULL)
   {
+  summary = list()
+  
+  ## Left mean should be near the mean of the normal distance
+  score_dist = TRUE
+  
   if (is.null(normal.mean) | is.null(normal.sd))
     stop("A normal mean and stdev is required for read-pair distance analysis")
   
@@ -11,27 +35,12 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
   name = basename(path)
   print(path)
   
-  summary = list()
-  reads = NULL
-  tryCatch({
-    reads = read.table(file, header=T, sep="\t", comment.char="")
-  }, error = function(err) {
-    print(paste("Failed to read file", file))
-    warning(err)
-    cat(paste("Failed to read file", file), file="errors.txt", sep="\n", append=T)
-    cat(paste(err, collapse="\n"), file="errors.txt", append=T)
-  })
-  
-  reads$cigar = as.character(reads$cigar)
-  reads$cigar.total = cigar.len(reads$cigar)
-  reads$orientation = as.character(reads$orientation)
+  reads = read.file(file)
   
   summary[['total.reads']] = nrow(reads)
   
   summary[['cigar']] = summary(reads$cigar.total)
   reads = reads[reads$cigar.total > 0,]
-  #reads = reads[reads$cigar.total >= mean(reads$cigar.total)+sd(reads$cigar.total),] ## not sure about this
-  
   
   summary[['distance']] = summary(reads$len)
   summary[['phred']] = summary(reads$phred)
@@ -41,39 +50,42 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
   summary[['orientation']] = table(reads$orientation)
   
   counts = log(reads$len)
-  model = getMixtures(log(reads$len), "V")
+  num_dist = find.distributions(counts, "V")
+  summary[['estimated.dist']] = num_dist
+  model = Mclust(log(reads$len), modelNames="V", G=num_dist)
+  #model = getMixtures(log(reads$len), "V")
 
-  model$parameters$mean
-  
-  rt = as.integer(which(model$parameters$mean == max(model$parameters$mean)))
-  lt =  as.integer(which(model$parameters$mean != max(model$parameters$mean)))
-
-  summary[['sum.l.prob']] = sum(model$z[,lt])
-  summary[['sum.r.prob']] = sum(model$z[,rt])
-  
-  left_mean = model$parameters$mean[lt]
-  ## Left mean should be near the mean of the normal distance
-  score_dist = TRUE
-  ## STOP RIGHT HERE
-  if (left_mean > log(normal.mean+normal.sd*4)) score_dist = FALSE
-  
-  lv = model$parameters$variance$sigmasq[lt] 
-  leftD = reads[ counts >= (left_mean-lv*2) & counts <= (left_mean+lv*2) ,]
-  
-  right_mean = model$parameters$mean[rt]
-  rv = model$parameters$variance$sigmasq[rt] 
-  rightD = reads[ counts >= (right_mean-rv*3),]
-  
-  summary[['l.orientation']] = table(leftD$orientation)
-  summary[['r.orientation']] = table(rightD$orientation)
-
-  summary[['l.kurtosis']] = kurtosis(log(leftD$len))
-  summary[['r.kurtosis']] = kurtosis(log(rightD$len))
-  
-  if (score_dist)
+  if (num_dist == 2)
     {
-    summary[['n.left.reads']] = nrow(leftD)
-    summary[['n.right.reads']] = nrow(rightD)
+    rt = as.integer(which(model$parameters$mean == max(model$parameters$mean)))
+    lt =  as.integer(which(model$parameters$mean != max(model$parameters$mean)))
+
+    summary[['sum.l.prob']] = sum(model$z[,lt])
+    summary[['sum.r.prob']] = sum(model$z[,rt])
+  
+    left_mean = model$parameters$mean[lt]
+    lv = model$parameters$variance$sigmasq[lt] 
+    
+    ## STOP RIGHT HERE
+    if (left_mean > log(normal.mean+normal.sd*4)) score_dist = FALSE
+    
+    right_mean = model$parameters$mean[rt]
+    rv = model$parameters$variance$sigmasq[rt] 
+    
+    leftD = reads[ counts >= (left_mean-lv*2) & counts <= (left_mean+lv*2) ,]
+    rightD = reads[ counts >= (right_mean-rv*3),]
+  
+    summary[['l.orientation']] = table(leftD$orientation)
+    summary[['r.orientation']] = table(rightD$orientation)
+
+    summary[['l.kurtosis']] = kurtosis(log(leftD$len))
+    summary[['r.kurtosis']] = kurtosis(log(rightD$len))
+  
+    if (score_dist)
+      {
+      summary[['n.left.reads']] = nrow(leftD)
+      summary[['n.right.reads']] = nrow(rightD)
+      }
     }
   
   if (savePlots)
@@ -82,53 +94,63 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
     print(png_file)
     png(filename=png_file, width=800, height=600)
     }
+
+    dens = densityMclust(counts, G=num_dist)
+    plotDensityMclust1(dens, data=counts, col='blue', lwd=2, hist.col = "lightblue",  breaks=100,xlab="log(read-pair distance)", main=name, sub=paste("Score?", score_dist))
+    
+  #hist(counts, breaks=100, col="lightblue", border=F, prob=T, xlim=c(min(counts),max(counts)), xlab="log(read-pair distance)", main=name, sub=paste("Score?", score_dist))
+    #d = density(counts, kernel="gaussian")
+  #lines(d, col="blue", lwd=2)
   
-    hist(counts, breaks=100, col="lightblue", border=F, prob=T, xlim=c(min(counts),max(counts)), xlab="log(read-pair distance)", main=name, sub=paste("Score?", score_dist))
-    d = density(counts, kernel="gaussian")
-    lines(d, col="blue", lwd=2)
-  
-    lrows = which(d$x < (right_mean + left_mean)/2)
-    rrows = which(d$x > (right_mean + left_mean)/2)
     #lrows = which(d$x >= (left_mean-lv) & d$x <= (left_mean+lv))
     #rrows = which(d$x >= (right_mean-rv) & d$x <= (right_mean+rv))
   
-    abline(0,0,v=log(normal.mean), col='red',lwd=2)
+    abline(v=log(normal.mean), col='red',lwd=2)
     text(log(normal.mean), max(d$y)/2+sd(d$y), labels=paste("Sampled normal mean:",round(log(normal.mean),2)), pos=4)
     for (i in 1:ncol(model$z))
       { 
       m = model$parameters$mean[i]
       v = model$parameters$variance$sigmasq[i] 
-      abline(0,0,v=m,lwd=2)
+      abline(v=m,lwd=2, col='blue')
       text(m, sd(d$y)+mean(d$y), labels=paste("mean:",round(m,2)), pos=2)
 
-      kt = ifelse (i == lt, kurtosis(log(leftD$len)), kurtosis(log(rightD$len)) )
-      text(m, (sd(d$y)/2)+mean(d$y), labels=paste("kurtosis:",round(kt, 3)), pos=2  )
+      if (num_dist == 2)
+        {
+        kt = ifelse (i == lt, kurtosis(log(leftD$len)), kurtosis(log(rightD$len)) )
+        text(m, (sd(d$y)/2)+mean(d$y), labels=paste("kurtosis:",round(kt, 3)), pos=2  )
+        }
       
       if (score_dist) text(m, mean(d$y), labels=paste("score:", round( mean(model$z[,i]),3 )), pos=2)
       }
     
     if (savePlots) dev.off()
 
-    #if (score_dist)
-      #{
-      #png_file=paste(path, "sub-dist-read-length.png", sep="/")
-      #png(filename=png_file, width=800, height=600)
-      #par(mfrow=(c(2,1)))
+  if (num_dist == 2)
+    {  
+    # can't use mclust density here because there are just too many observations, the standard density function compresses the data points
+    d = density(counts, kernel="gaussian")
     
-      #hist(leftD$len, breaks=20, main=paste("Left sub-distribution mean=", round(mean(leftD$len), 2), sep=""), xlab="Read insert-distance", col="lightgreen", border=F,sub=name)
-      #hist(rightD$len, breaks=20, main=paste("Right sub-distribution mean=", round(mean(rightD$len), 2), sep=""), xlab="Read insert-distance", col="lightgreen", border=F,sub=name)
-      #dev.off()
-      #}
-    #}
-  
-  summary[['l.dens']] = max(d$y[lrows])
-  summary[['l.shapiro']] = shapiro.test(d$x[lrows])
+    lrows = which(d$x >= (left_mean-lv) & d$x <= (left_mean+lv))
+    rrows = which(d$x >= (right_mean-rv) & d$x <= (right_mean+rv))
+    
+    summary[['l.dens']] = max(dens$density[lrows])
+    summary[['l.shapiro']] = shapiro.test(d$x[lrows])
 
-  summary[['r.dens']] = max(d$y[rrows])
-  summary[['r.shapiro']] = shapiro.test(d$x[rrows])
-  
-  summary[['score']] = ifelse (score_dist, round(mean(model$z[,rt]),4 ), 0) 
-  summary[['scored']] = score_dist
+    #ks.test(d$x[lrows], pnorm, mean(d$x[lrows]), sd(d$x[lrows]))
+    
+    summary[['r.dens']] = max(dens$density[rrows])
+    summary[['r.shapiro']] = shapiro.test(d$x[rrows])
+    
+    #ks.test(d$x[rrows], pnorm, mean(d$x[rrows]), sd(d$x[rrows]))
+    
+    summary[['score']] = ifelse (score_dist, round(mean(model$z[,rt]),4 ), 0) 
+    summary[['scored']] = score_dist
+    }
+  else
+    {
+    summary[['score']] = 0
+    summary[['scored']] = FALSE
+    }
   
   if ( !is.null(addToSummary) )
     {
@@ -184,17 +206,38 @@ right.param<-function(model)
   return(list('mean' = model$parameters$mean[[rightside]], 'variance' = model$parameters$variance$sigmasq[[rightside]]))
   }
 
-getMixtures<-function(vv, modelName="E")
+find.distributions<-function(dt, modelName="E")
   {
-  cutoff = (max(vv)-min(vv))/2
-  z = matrix(0,length(vv),2) 
-  z[,1] = as.numeric(vv >= cutoff)
-  z[,2] = as.numeric(vv < cutoff)
-  msEst = mstep(modelName, vv, z)
-  modelName = msEst$modelName
-  parameters = msEst$parameters
-  em(modelName, vv, parameters)
+  mod1 = Mclust( dt, modelNames=modelName )
+  
+  ## cheap way to find how many real distributions may be there, more than 2 is a problem
+  centers = list()
+  i = 1
+  repeat
+    {
+    if (i > length(mod1$parameters$mean)+1) break
+    m = mod1$parameters$mean[i]
+    items = which(mod1$parameters$mean >= m & mod1$parameters$mean < m + sd(mod1$data))
+    if (length(items) > 0)
+      centers[[i]] = mod1$parameters$mean[items]
+    
+    i = ifelse(length(items) > 0, max(items)+1, i+1)
+    }
+  g = length(which(lapply(centers, length) > 0))
+  return(g)
   }
+
+#getMixtures<-function(vv, modelName="E")
+#  {
+#  cutoff = (max(vv)-min(vv))/2
+#  z = matrix(0,length(vv),2) 
+#  z[,1] = as.numeric(vv >= cutoff)
+#  z[,2] = as.numeric(vv < cutoff)
+#  msEst = mstep(modelName, vv, z)
+#  modelName = msEst$modelName
+#  parameters = msEst$parameters
+#  em(modelName, vv, parameters)
+#  }
 
 cigar.len<-function(cv)
   {
