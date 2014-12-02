@@ -14,7 +14,7 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
   summary = list()
   reads = NULL
   tryCatch({
-  reads = read.table(file, header=T, sep="\t", comment.char="")
+    reads = read.table(file, header=T, sep="\t", comment.char="")
   }, error = function(err) {
     print(paste("Failed to read file", file))
     warning(err)
@@ -47,6 +47,9 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
   
   rt = as.integer(which(model$parameters$mean == max(model$parameters$mean)))
   lt =  as.integer(which(model$parameters$mean != max(model$parameters$mean)))
+
+  summary[['sum.l.prob']] = sum(model$z[,lt])
+  summary[['sum.r.prob']] = sum(model$z[,rt])
   
   left_mean = model$parameters$mean[lt]
   ## Left mean should be near the mean of the normal distance
@@ -83,10 +86,14 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
     hist(counts, breaks=100, col="lightblue", border=F, prob=T, xlim=c(min(counts),max(counts)), xlab="log(read-pair distance)", main=name, sub=paste("Score?", score_dist))
     d = density(counts, kernel="gaussian")
     lines(d, col="blue", lwd=2)
-
+  
+    lrows = which(d$x < (right_mean + left_mean)/2)
+    rrows = which(d$x > (right_mean + left_mean)/2)
+    #lrows = which(d$x >= (left_mean-lv) & d$x <= (left_mean+lv))
+    #rrows = which(d$x >= (right_mean-rv) & d$x <= (right_mean+rv))
+  
     abline(0,0,v=log(normal.mean), col='red',lwd=2)
     text(log(normal.mean), max(d$y)/2+sd(d$y), labels=paste("Sampled normal mean:",round(log(normal.mean),2)), pos=4)
-  
     for (i in 1:ncol(model$z))
       { 
       m = model$parameters$mean[i]
@@ -114,12 +121,9 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
       #}
     #}
   
-  d = density(counts, kernel="gaussian")
-  lrows = which(d$x >= (left_mean-lv) & d$x <= (left_mean+lv))
   summary[['l.dens']] = max(d$y[lrows])
   summary[['l.shapiro']] = shapiro.test(d$x[lrows])
 
-  rrows = which(d$x >= (right_mean-rv) & d$x <= (right_mean+rv))
   summary[['r.dens']] = max(d$y[rrows])
   summary[['r.shapiro']] = shapiro.test(d$x[rrows])
   
