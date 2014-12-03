@@ -24,7 +24,8 @@ read.file<-function(file)
 analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, savePlots=T, addToSummary = NULL)
   {
   summary = list()
-  
+  summary[['score']] = 0
+
   ## Left mean should be near the mean of the normal distance
   score_dist = TRUE
   
@@ -33,6 +34,7 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
   
   path = dirname(file)
   name = basename(path)
+  summary[['name']] = name
   print(path)
   
   reads = read.file(file)
@@ -51,8 +53,10 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
   
   counts = log(reads$len)
   num_dist = find.distributions(counts, "V")
+  if (num_dist != 2) score_dist = FALSE
+  
   summary[['estimated.dist']] = num_dist
-  model = Mclust(log(reads$len), modelNames="V", G=num_dist)
+  model = Mclust(counts, modelNames="V", G=num_dist)
   #model = getMixtures(log(reads$len), "V")
 
   if (num_dist == 2)
@@ -88,6 +92,7 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
       }
     }
   
+  
   if (savePlots)
     {
     png_file=paste(path, "read_pair_distance.png", sep="/")
@@ -95,32 +100,34 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
     png(filename=png_file, width=800, height=600)
     }
 
-    dens = densityMclust(counts, G=num_dist)
-    plotDensityMclust1(dens, data=counts, col='blue', lwd=2, hist.col = "lightblue",  breaks=100,xlab="log(read-pair distance)", main=name, sub=paste("Score?", score_dist))
-    
+  
   #hist(counts, breaks=100, col="lightblue", border=F, prob=T, xlim=c(min(counts),max(counts)), xlab="log(read-pair distance)", main=name, sub=paste("Score?", score_dist))
     #d = density(counts, kernel="gaussian")
   #lines(d, col="blue", lwd=2)
   
     #lrows = which(d$x >= (left_mean-lv) & d$x <= (left_mean+lv))
     #rrows = which(d$x >= (right_mean-rv) & d$x <= (right_mean+rv))
+
+    dens = densityMclust(counts, G=num_dist)
+    plotDensityMclust1(dens, data=counts, col='blue', lwd=2, hist.col = "lightblue",  breaks=100, xlab="log(read-pair distance)")
+    title(name,sub=paste("Score?", score_dist))
   
     abline(v=log(normal.mean), col='red',lwd=2)
-    text(log(normal.mean), max(d$y)/2+sd(d$y), labels=paste("Sampled normal mean:",round(log(normal.mean),2)), pos=4)
+    text(log(normal.mean), max(dens$density)/3, labels=paste("Sampled normal mean:",round(log(normal.mean),2)), pos=4)
     for (i in 1:ncol(model$z))
       { 
       m = model$parameters$mean[i]
       v = model$parameters$variance$sigmasq[i] 
       abline(v=m,lwd=2, col='blue')
-      text(m, sd(d$y)+mean(d$y), labels=paste("mean:",round(m,2)), pos=2)
+      text(m, sd(dens$density)+mean(dens$density), labels=paste("mean:",round(m,2)), pos=2)
 
       if (num_dist == 2)
         {
         kt = ifelse (i == lt, kurtosis(log(leftD$len)), kurtosis(log(rightD$len)) )
-        text(m, (sd(d$y)/2)+mean(d$y), labels=paste("kurtosis:",round(kt, 3)), pos=2  )
+        text(m, (sd(dens$density)/2)+mean(dens$density), labels=paste("kurtosis:",round(kt, 3)), pos=2  )
         }
       
-      if (score_dist) text(m, mean(d$y), labels=paste("score:", round( mean(model$z[,i]),3 )), pos=2)
+      if (score_dist) text(m, mean(dens$density), labels=paste("score:", round( mean(model$z[,i]),3 )), pos=2)
       }
     
     if (savePlots) dev.off()
@@ -146,20 +153,13 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
     summary[['score']] = ifelse (score_dist, round(mean(model$z[,rt]),4 ), 0) 
     summary[['scored']] = score_dist
     }
-  else
-    {
-    summary[['score']] = 0
-    summary[['scored']] = FALSE
-    }
   
   if ( !is.null(addToSummary) )
     {
     if ( length(grep('model', addToSummary)) > 0) summary[['model']] = model
     if ( length(grep('reads', addToSummary)) > 0) summary[['reads']] = reads
     }
-  
-  write.table(summary[['score']], file=paste(path, "score.txt", sep="/"), quote=F, col.name=F, row.name=F)
-  save(model, summary, file=paste(path, "summary.Rdata", sep="/"))
+  summary[['scored']] = score_dist
   
   print(summary[['score']])
   return(summary)
