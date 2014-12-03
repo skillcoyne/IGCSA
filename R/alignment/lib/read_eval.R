@@ -134,7 +134,7 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
     title(name,sub=paste("Score?", score_dist))
   
     abline(v=log(normal.mean), col='red',lwd=2)
-    text(log(normal.mean), max(dens$density)/3, labels=paste("Sampled normal mean:",round(log(normal.mean),2)), pos=4)
+    text(log(normal.mean), max(model$density)/3, labels=paste("Sampled normal mean:",round(log(normal.mean),2)), pos=4)
     for (i in 1:ncol(model$z))
       { 
       m = model$parameters$mean[i]
@@ -230,7 +230,7 @@ right.param<-function(model)
 find.distributions<-function(dt, modelName="V")
   {
   ## cheap way to find how many real distributions may be there, more than 2 is a problem
-  mod1 = densityMclust(counts, kernel="gaussian", modelNames=modelName)
+  mod1 = densityMclust(dt, kernel="gaussian", modelNames=modelName)
   #g = 2
   #repeat
   #  {
