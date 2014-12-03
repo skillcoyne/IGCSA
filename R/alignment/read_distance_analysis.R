@@ -32,7 +32,16 @@ summary = analyze.reads(
                         file=paste(args[1],read_file,sep="/"), 
                         normal.mean=318.5, 
                         normal.sd=92.8, 
-                        normal.phred=3097 )
+                        normal.phred=3097,
+                        savePlots=F,
+                        addToSummary = c('model')
+                        )
+
+write.table(summary$score, file=paste(args[1], "score.txt", sep="/"), quote=F, col.name=F, row.name=F)
+save(summary, file=paste(args[1], "summary.Rdata", sep="/"))
+
+
+
 
 
 #summary = analyze.reads(file=paste(args[1],read_file,sep="/") , normal.mean=mean(distances), normal.sd=sd(distances), normal.phred=mean(phred), savePlots=F )
