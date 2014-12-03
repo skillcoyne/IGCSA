@@ -34,21 +34,21 @@ for (bam in bam_files)
   bai = paste(bam, "bai", sep=".")
   print(paste("Reading bam ", bam, sep=""))
   reader = bamReader(bam)
-  load.index(reader, bai)
+  loadIndex(reader, bai)
   
   referenceData = getRefData(reader)
-  print(isOpen(reader))
-  current_dir = dirname(bam)
 
-  chrRef = referenceData[1,]
-  
-  range = bamRange(reader, c(chrRef$ID, 1, chrRef$LN) )
-  rewind(range)
-  
   current_dir = dirname(bam)
   cols = c('readID', 'pos','mate.pos','len','phred','mapq','cigar','orientation','ppair')
 
   write(cols, file=paste(current_dir, "paired_reads.txt", sep="/"), append=F, sep="\t", ncolumns=length(cols)) 
+  
+  if (nrow(referenceData) <= 0)
+	stop(paste("No reads in bam file:",bam))
+
+  chrRef = referenceData[1,]
+  range = bamRange(reader, c(chrRef$ID, 1, chrRef$LN) )
+  rewind(range)
   nreads = 1
   align = getNextAlign(range)
   while(!is.null(align))
