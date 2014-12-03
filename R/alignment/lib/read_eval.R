@@ -2,6 +2,16 @@ library('mclust')
 library('rbamtools')
 library('e1071')
 
+kmeansAIC = function(fit)
+{
+  m = ncol(fit$centers)
+  n = length(fit$cluster)
+  k = nrow(fit$centers)
+  D = fit$tot.withinss
+  return(D + 2*m*k)
+}
+
+
 read.file<-function(file)
   {
   reads = NULL
@@ -21,9 +31,20 @@ read.file<-function(file)
   })
   }
 
-analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, savePlots=T, addToSummary = NULL)
+create.summary.obj<-function()
   {
   summary = list()
+  for (n in c("name", "score", 'scored', 'total.reads', "cigar", "distance", "phred", "filtered.reads", "orientation", "estimated.dist", 
+              "sum.l.prob", "sum.r.prob", "l.orientation", "r.orientation", "l.kurtosis", "r.kurtosis", "n.left.reads", "n.right.reads",
+              "l.dens","r.dens",'l.shapiro', 'r.shapiro'))
+    summary[[n]] = NA
+  
+  return(summary)
+  }
+
+analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, savePlots=T, addToSummary = NULL)
+  {
+  summary = create.summary.obj()
   summary[['score']] = 0
 
   ## Left mean should be near the mean of the normal distance
@@ -52,14 +73,14 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
   summary[['orientation']] = table(reads$orientation)
   
   counts = log(reads$len)
-  num_dist = find.distributions(counts, "V")
-  if (num_dist != 2) score_dist = FALSE
+  model = find.distributions(counts, "V")
+  if (model$G != 2) score_dist = FALSE
   
-  summary[['estimated.dist']] = num_dist
-  model = Mclust(counts, modelNames="V", G=num_dist)
+  summary[['estimated.dist']] = model$G
+  #model = Mclust(counts, modelNames="V", G=num_dist)
   #model = getMixtures(log(reads$len), "V")
 
-  if (num_dist == 2)
+  if (model$G == 2)
     {
     rt = as.integer(which(model$parameters$mean == max(model$parameters$mean)))
     lt =  as.integer(which(model$parameters$mean != max(model$parameters$mean)))
@@ -108,8 +129,8 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
     #lrows = which(d$x >= (left_mean-lv) & d$x <= (left_mean+lv))
     #rrows = which(d$x >= (right_mean-rv) & d$x <= (right_mean+rv))
 
-    dens = densityMclust(counts, G=num_dist)
-    plotDensityMclust1(dens, data=counts, col='blue', lwd=2, hist.col = "lightblue",  breaks=100, xlab="log(read-pair distance)")
+    #dens = densityMclust(counts, G=num_dist)
+    plotDensityMclust1(model, data=counts, col='blue', lwd=2, hist.col = "lightblue",  breaks=100, xlab="log(read-pair distance)")
     title(name,sub=paste("Score?", score_dist))
   
     abline(v=log(normal.mean), col='red',lwd=2)
@@ -119,20 +140,20 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
       m = model$parameters$mean[i]
       v = model$parameters$variance$sigmasq[i] 
       abline(v=m,lwd=2, col='blue')
-      text(m, sd(dens$density)+mean(dens$density), labels=paste("mean:",round(m,2)), pos=2)
+      text(m, sd(model$density)+mean(model$density), labels=paste("mean:",round(m,2)), pos=2)
 
-      if (num_dist == 2)
+      if (model$G == 2)
         {
         kt = ifelse (i == lt, kurtosis(log(leftD$len)), kurtosis(log(rightD$len)) )
-        text(m, (sd(dens$density)/2)+mean(dens$density), labels=paste("kurtosis:",round(kt, 3)), pos=2  )
+        text(m, (sd(model$density)/2)+mean(model$density), labels=paste("kurtosis:",round(kt, 3)), pos=2  )
         }
       
-      if (score_dist) text(m, mean(dens$density), labels=paste("score:", round( mean(model$z[,i]),3 )), pos=2)
+      if (score_dist) text(m, mean(model$density), labels=paste("score:", round( mean(model$z[,i]),3 )), pos=2)
       }
     
     if (savePlots) dev.off()
 
-  if (num_dist == 2)
+  if (model$G == 2)
     {  
     # can't use mclust density here because there are just too many observations, the standard density function compresses the data points
     d = density(counts, kernel="gaussian")
@@ -140,12 +161,12 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
     lrows = which(d$x >= (left_mean-lv) & d$x <= (left_mean+lv))
     rrows = which(d$x >= (right_mean-rv) & d$x <= (right_mean+rv))
     
-    summary[['l.dens']] = max(dens$density[lrows])
+    summary[['l.dens']] = max(model$density[lrows])
     summary[['l.shapiro']] = shapiro.test(d$x[lrows])
 
     #ks.test(d$x[lrows], pnorm, mean(d$x[lrows]), sd(d$x[lrows]))
     
-    summary[['r.dens']] = max(dens$density[rrows])
+    summary[['r.dens']] = max(model$density[rrows])
     summary[['r.shapiro']] = shapiro.test(d$x[rrows])
     
     #ks.test(d$x[rrows], pnorm, mean(d$x[rrows]), sd(d$x[rrows]))
@@ -206,25 +227,34 @@ right.param<-function(model)
   return(list('mean' = model$parameters$mean[[rightside]], 'variance' = model$parameters$variance$sigmasq[[rightside]]))
   }
 
-find.distributions<-function(dt, modelName="E")
+find.distributions<-function(dt, modelName="V")
   {
-  mod1 = Mclust( dt, modelNames=modelName )
-  
   ## cheap way to find how many real distributions may be there, more than 2 is a problem
-  centers = list()
-  i = 1
-  repeat
-    {
-    if (i > length(mod1$parameters$mean)+1) break
-    m = mod1$parameters$mean[i]
-    items = which(mod1$parameters$mean >= m & mod1$parameters$mean < m + sd(mod1$data))
-    if (length(items) > 0)
-      centers[[i]] = mod1$parameters$mean[items]
+  mod1 = densityMclust(counts, kernel="gaussian", modelNames=modelName)
+  #g = 2
+  #repeat
+  #  {
+    centers = list()
+    i = 1
+  #  print(mod1$G)    
     
-    i = ifelse(length(items) > 0, max(items)+1, i+1)
-    }
-  g = length(which(lapply(centers, length) > 0))
-  return(g)
+    repeat
+      {
+      if (i > length(mod1$parameters$mean)+1) break
+      m = mod1$parameters$mean[i]
+      items = which(mod1$parameters$mean >= m - sd(mod1$data) & mod1$parameters$mean < m + sd(mod1$data))
+      if (length(items) > 0)
+        centers[[i]] = mod1$parameters$mean[items]
+      i = ifelse(length(items) > 0, max(items)+1, i+1)
+      }
+    g = length(which(lapply(centers, length) > 0))
+    #if (mod1$G == g | mod1$G == 1) break
+    #print(g)    
+    
+    mod1 = densityMclust(counts, kernel="gaussian", G=g)
+    #}
+  
+  return(mod1)
   }
 
 #getMixtures<-function(vv, modelName="E")

@@ -12,7 +12,6 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 2)
   stop("Missing required arguments: <directory to read in> <original aligned bam: OPTIONAL>")
 
-
 #if (!is.null(args[2]))
 #  {
 #  orig = sampleReadLengths(args[2])
@@ -26,6 +25,7 @@ if (length(args) < 2)
 #  barplot(orig$orientation)
 #  }
 
+
 read_file = list.files(path=args[1], pattern="*paired_reads.txt", recursive=T)
 #summary = analyze.reads(paste(args[1],read_file,sep="/") , mean(distances), sd(distances), mean(phred) )
 summary = analyze.reads(
@@ -33,15 +33,10 @@ summary = analyze.reads(
                         normal.mean=318.5, 
                         normal.sd=92.8, 
                         normal.phred=3097,
-                        savePlots=F,
+                        savePlots=T,
                         addToSummary = c('model')
                         )
 
 write.table(summary$score, file=paste(args[1], "score.txt", sep="/"), quote=F, col.name=F, row.name=F)
 save(summary, file=paste(args[1], "summary.Rdata", sep="/"))
 
-
-
-
-
-#summary = analyze.reads(file=paste(args[1],read_file,sep="/") , normal.mean=mean(distances), normal.sd=sd(distances), normal.phred=mean(phred), savePlots=F )
