@@ -251,7 +251,7 @@ find.distributions<-function(dt, modelName="V")
     #if (mod1$G == g | mod1$G == 1) break
     #print(g)    
     
-    mod1 = densityMclust(counts, kernel="gaussian", G=g)
+    mod1 = densityMclust(dt, kernel="gaussian", G=g)
     #}
   
   return(mod1)
@@ -295,8 +295,8 @@ sampleReadLengths<-function(bam, sample_size=10000)
   load.index(reader, bai)
   
   referenceData = getRefData(reader)
-  referenceData = referenceData[ referenceData$SN %in% c(1:22,'X','Y'),]
-  
+  referenceData = referenceData[grepl("[0-9]+|X|Y", ref$SN),]
+    
   phred = vector(length=0,mode='numeric')
   distances = vector(length=0, mode='numeric')
   mapq = vector(length=0, mode='numeric')
