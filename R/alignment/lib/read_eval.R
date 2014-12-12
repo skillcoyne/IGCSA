@@ -295,7 +295,7 @@ sampleReadLengths<-function(bam, sample_size=10000)
   load.index(reader, bai)
   
   referenceData = getRefData(reader)
-  referenceData = referenceData[grepl("[0-9]+|X|Y", ref$SN),]
+  referenceData = referenceData[grepl("[0-9]+|X|Y", referenceData$SN),]
     
   phred = vector(length=0,mode='numeric')
   distances = vector(length=0, mode='numeric')

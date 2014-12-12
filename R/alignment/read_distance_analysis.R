@@ -17,35 +17,28 @@ read_file = list.files(path=args[1], pattern="*paired_reads.txt", recursive=T)
 #summary = analyze.reads(paste(args[1],read_file,sep="/") , mean(distances), sd(distances), mean(phred) )
 summary=NULL
 
-if (is.na(args[2]))
- {  print("foo") } else
-{ print("bar") }
 
-
-if (is.na(args[2]))
-  {
+if (is.na(args[2])) {
   # Good for HCC1954 only
+  print("HCC1954...")
   summary = analyze.reads(
     file=paste(args[1],read_file,sep="/"),
     normal.mean=318.5,
     normal.sd=92.8,
     normal.phred=3097,
     savePlots=T,
-    addToSummary = c('model')
-  )
-  }
-else
-  {
-  orig = sampleReadLengths(args[2])
-  distances = orig$dist
-  phred = orig$phred
-  mapq = orig$mapq
-  cigar = orig$cigar
+    addToSummary = c('model') )
+  } else {
+    print(args[2])
+    orig = sampleReadLengths(args[2])
+    distances = orig$dist
+    phred = orig$phred
+    mapq = orig$mapq
+    cigar = orig$cigar
     
-  print(summary(distances))
-  distances = distances[which(distances < median(distances)*2)]
-  #  barplot(orig$orientation)
-  summary = analyze.reads(paste(args[1],read_file,sep="/") , mean(distances), sd(distances), mean(phred) )
+    print(summary(distances))
+    distances = distances[which(distances < median(distances)*2)]
+    summary = analyze.reads(paste(args[1],read_file,sep="/") , mean(distances), sd(distances), mean(phred) )
   }
 
 write.table(summary$score, file=paste(args[1], "score.txt", sep="/"), quote=F, col.name=F, row.name=F)

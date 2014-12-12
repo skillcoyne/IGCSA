@@ -32,6 +32,7 @@ public class CandidateUtils
     }
 
   /*
+  Normalized Compression Distance
   NCD = ( C(xy) - min{C(x), C(y)} ) / max{C(x), C(y)}
    */
   public static double getNCD(KaryotypeCandidate c1, KaryotypeCandidate c2)
