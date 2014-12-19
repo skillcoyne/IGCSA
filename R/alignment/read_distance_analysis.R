@@ -6,7 +6,11 @@ args <- commandArgs(trailingOnly = TRUE)
 #args[1] = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/GA/HCC1954.G31860/6p23-12q13"
 #args[1] = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/Random2/HCC1954.G31860/3p21-10p15"
 #args[1] = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/Random/HCC1954.G31860/10q21-15p12"
+#args[1] = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/SH-SYS5/SH-SY5Y/2p15-9q34"
+
 #args[2] = "/Volumes/exHD-Killcoyne/TCGA/sequence/cell_lines/HCC1954.G31860/G31860.HCC1954.6.bam"
+
+
 
 #args[2] = "/Volumes/exHD-Killcoyne/TCGA/sequence/patients/c2047dc9-9361-47e4-90d2-abc17efba81f/TC#GA-AB-2977-03A-01D-0739-09_whole.bam"
 

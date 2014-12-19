@@ -1,4 +1,5 @@
 library('rbamtools')
+source("~/workspace/IGCSA/R/alignment/lib/read_eval.R")
 
 load_files<-function(files, dir)
 {
@@ -34,12 +35,12 @@ for (bam in bam_files)
   bai = paste(bam, "bai", sep=".")
   print(paste("Reading bam ", bam, sep=""))
   reader = bamReader(bam)
-  loadIndex(reader, bai)
+  load.index(reader, bai)
   
   referenceData = getRefData(reader)
 
   current_dir = dirname(bam)
-  cols = c('readID', 'pos','mate.pos','len','phred','mapq','cigar','orientation','ppair')
+  cols = c('readID', 'pos','mate.pos','len','phred','mapq','cigar', 'cigar.total', 'orientation','ppair')
 
   write(cols, file=paste(current_dir, "paired_reads.txt", sep="/"), append=F, sep="\t", ncolumns=length(cols)) 
   
@@ -56,7 +57,11 @@ for (bam in bam_files)
     if (nreads %% 10000 == 0) print(paste(nreads, "reads"))
     if ( !unmapped(align) & !mateUnmapped(align) & abs(insertSize(align)) > 0)
       {
+      align = getNextAlign(range)
       cd = cigarData(align)
+      cd = paste(paste(cd$Length, cd$Type, sep=":"), collapse=',')
+      cig_len = cigar.len(cd)
+      
       orient = paste(ifelse(reverseStrand(align), 'R','F'), ifelse(mateReverseStrand(align), 'R','F'), sep=":") 
       if (reverseStrand(align) & !mateReverseStrand(align))
         orient = ifelse( matePosition(align) < position(align), 'F:R', 'R:F') 
@@ -67,9 +72,10 @@ for (bam in bam_files)
                 abs(insertSize(align)),
                 sum(alignQualVal(align)), 
                 mapQuality(align),
-                paste(paste(cd$Length, cd$Type, sep=":"), collapse=','),
+                cd, 
+                cig_len,
                 orient,
-                ifelse(properPair(align), '1','0') ), 
+                properPair(align) ), 
              file=paste(current_dir, "paired_reads.txt", sep="/"), append=T, sep="\t", ncolumns=length(cols))
       }
     align = getNextAlign(range)

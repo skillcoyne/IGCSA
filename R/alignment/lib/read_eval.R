@@ -1,25 +1,30 @@
 library('mclust')
 library('rbamtools')
 library('e1071')
+library('data.table')
 
 kmeansAIC = function(fit)
-{
+  {
   m = ncol(fit$centers)
   n = length(fit$cluster)
   k = nrow(fit$centers)
   D = fit$tot.withinss
   return(D + 2*m*k)
-}
+  }
 
 
 read.file<-function(file)
   {
   reads = NULL
   tryCatch({
-    reads = read.table(file, header=T, sep="\t", comment.char="")
-    reads$cigar = as.character(reads$cigar)
-    reads$cigar.total = cigar.len(reads$cigar)
-    reads$orientation = as.character(reads$orientation)
+    reads = fread(file,  header=T, sep="\t", showProgress=T, stringsAsFactors=F)
+    #reads = read.table(file, header=T, sep="\t", comment.char="", colClasses=classes, stringsAsFactors=F)
+    #reads$orientation = as.character(reads$orientation)
+    #reads$cigar = as.character(reads$cigar)
+    
+    if ( is.na(colnames(reads)['cigar.total']) )
+      reads$cigar.total = cigar.len(reads$cigar)
+    
     return(reads) 
   }, error = function(err) {
     print(paste("Failed to read file", file))
