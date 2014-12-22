@@ -24,7 +24,6 @@ print(args)
 
 bam_files = list.files(path=args[1], recursive=T, pattern="bam$", full.names=T)
 
-
 if (length(bam_files) <= 0)
   stop(paste("No bam files found in path:", args[1]))
 
@@ -47,17 +46,15 @@ for (bam in bam_files)
   if (nrow(referenceData) <= 0)
 	stop(paste("No reads in bam file:",bam))
 
-  chrRef = referenceData[1,]
-  range = bamRange(reader, c(chrRef$ID, 1, chrRef$LN) )
-  rewind(range)
+  #range = bamRange(reader, c(chrRef$ID, start, start+window) )
   nreads = 1
-  align = getNextAlign(range)
+  #align = getNextAlign(range)
+  align = getNextAlign(reader)
   while(!is.null(align))
     {
     if (nreads %% 10000 == 0) print(paste(nreads, "reads"))
     if ( !unmapped(align) & !mateUnmapped(align) & abs(insertSize(align)) > 0)
       {
-      align = getNextAlign(range)
       cd = cigarData(align)
       cd = paste(paste(cd$Length, cd$Type, sep=":"), collapse=',')
       cig_len = cigar.len(cd)
@@ -78,7 +75,8 @@ for (bam in bam_files)
                 properPair(align) ), 
              file=paste(current_dir, "paired_reads.txt", sep="/"), append=T, sep="\t", ncolumns=length(cols))
       }
-    align = getNextAlign(range)
+    align = getNextAlign(reader) #getNextAlign(range)
+      
     nreads = nreads + 1
     }
   print(paste("Total reads:", nreads))
