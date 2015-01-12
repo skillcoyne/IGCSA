@@ -152,17 +152,17 @@ end
 
 reader = FASTQReader.new(dir)
 
-puts "Selecting #{num_reads} reads from #{max_reads}"
-rds = Hash.new
-random = Random.new
-while rds.length <= num_reads
-  rds[random.rand(reader.rd_idx.length)] = 0
-
-  print "." if rds.length % 100 == 0
-  puts ".#{rds.length}" if rds.length % 10000 == 0
-end
-
-rds = rds.keys.sort
+# puts "Selecting #{num_reads} reads from #{max_reads}"
+# rds = Hash.new
+# random = Random.new
+# while rds.length <= num_reads
+#   rds[random.rand(reader.rd_idx.length)] = 0
+#
+#   print "." if rds.length % 100 == 0
+#   puts ".#{rds.length}" if rds.length % 10000 == 0
+# end
+#
+# rds = rds.keys.sort
 
 outdir = "#{File.dirname(dir)}/part"
 if File.exists?outdir
@@ -176,14 +176,22 @@ end
 puts "Write to #{outdir}"
 
 writer = FASTQWriter.new(outdir)
-rds.each_with_index do |rd, i|
+
+i = 0
+while i < num_reads
+#rds.each_with_index do |rd, i|
 
   #puts "Read #{rd}"
-  reads =  reader.get_read_number(rd)
+  reads =  reader.get_read_number(i)
   #puts YAML::dump reads
   writer.write(reads[1], reads[2]) unless reads.nil?
 
   writer.flush if i % 100 == 0
+
+  print "." if i % 100 == 0
+  puts "#{i} reads written to #{outdir}" if i % 10000 == 0
+
+  i += 1
 end
 
 writer.close
