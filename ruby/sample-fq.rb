@@ -27,6 +27,7 @@ class FASTQReader
     @f2 = File.open(@file2, 'r')
   end
 
+
   def get_read_number(rd)
 
     line_no = @rd_idx[rd-1]
@@ -51,7 +52,6 @@ class FASTQReader
     @f2.close
   end
 
-  :private
   def get_read
     curr_rd1 = FQRead.new
     curr_rd2 = FQRead.new
@@ -182,7 +182,8 @@ while i <= num_reads
 #rds.each_with_index do |rd, i|
 
   #puts "Read #{rd}"
-  reads =  reader.get_read_number(i)
+  #reads =  reader.get_read_number(i)
+  reads = reader.get_read
   #puts YAML::dump reads
   writer.write(reads[1], reads[2]) unless reads.nil?
 
