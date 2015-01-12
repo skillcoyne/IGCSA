@@ -72,22 +72,27 @@ end
 class FQRead
   attr_accessor :num, :name, :read, :qual
 
-  def add(str)
-    return if (str.eql?"+")
+  def initialize
+    @str = Array.new
+  end
 
-    if (str =~ /^(.*)\/([1|2])$/)
+  def add(s)
+    @str << s
+
+    if @str.length.eql?4
+      @str[0]  =~ /^(.*)\/([1|2])$/
       @name = $1
       @num = $2
-    elsif (str =~ /^[A|T|G|C|N]+$/)
-      @read = str
-    else
-      @qual = str
+
+      @read = @str[1]
+      @qual = @str[3]
+
+      @str.clear
     end
   end
 
   def to_s
-    str = "#{@name}/#{@num}\n#{@read}\n+\n#{@qual}\n"
-    return str
+    return "#{@name}/#{@num}\n#{@read}\n+\n#{@qual}\n"
   end
 end
 
