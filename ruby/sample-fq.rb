@@ -29,7 +29,7 @@ class FASTQReader
 
   def get_read_number(rd)
 
-    line_no = @rd_idx[rd]
+    line_no = @rd_idx[rd-1]
     #puts "Read #{rd} at line number #{line_no}"
     #puts @rd_idx.length
 
@@ -177,8 +177,8 @@ puts "Write to #{outdir}"
 
 writer = FASTQWriter.new(outdir)
 
-i = 0
-while i < num_reads
+i = 1
+while i <= num_reads
 #rds.each_with_index do |rd, i|
 
   #puts "Read #{rd}"
