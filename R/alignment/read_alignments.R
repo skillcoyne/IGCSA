@@ -41,7 +41,9 @@ for (bam in bam_files)
   current_dir = dirname(bam)
   cols = c('readID', 'pos','mate.pos','len','phred','mapq','cigar', 'cigar.total', 'orientation','ppair')
 
-  write(cols, file=paste(current_dir, "paired_reads.txt", sep="/"), append=F, sep="\t", ncolumns=length(cols)) 
+  fout = file(paste(current_dir, "paired_reads.txt", sep="/"), "w")
+  writeLines(paste(cols, collapse="\t"), fout)
+  #write(cols, file=paste(current_dir, "paired_reads.txt", sep="/"), append=F, sep="\t", ncolumns=length(cols)) 
   
   if (nrow(referenceData) <= 0)
 	stop(paste("No reads in bam file:",bam))
@@ -52,7 +54,11 @@ for (bam in bam_files)
   align = getNextAlign(reader)
   while(!is.null(align))
     {
-    if (nreads %% 10000 == 0) print(paste(nreads, "reads"))
+    if (nreads %% 10000 == 0) 
+	{
+	flush(fout)	
+	print(paste(nreads, "reads"))
+	}
     if ( !unmapped(align) & !mateUnmapped(align) & abs(insertSize(align)) > 0)
       {
       cd = cigarData(align)
@@ -63,7 +69,7 @@ for (bam in bam_files)
       if (reverseStrand(align) & !mateReverseStrand(align))
         orient = ifelse( matePosition(align) < position(align), 'F:R', 'R:F') 
       
-      write( c( name(align), 
+      writeLines( paste( c( name(align), 
                 position(align), 
                 matePosition(align), 
                 abs(insertSize(align)),
@@ -72,12 +78,13 @@ for (bam in bam_files)
                 cd, 
                 cig_len,
                 orient,
-                properPair(align) ), 
-             file=paste(current_dir, "paired_reads.txt", sep="/"), append=T, sep="\t", ncolumns=length(cols))
+                properPair(align) ), collapse="\t"), fout ) 
       }
     align = getNextAlign(reader) #getNextAlign(range)
       
     nreads = nreads + 1
     }
-  print(paste("Total reads:", nreads))
+  flush(fout)
+  close(fout)
+  print(paste(bam, "total reads:", nreads))
   }

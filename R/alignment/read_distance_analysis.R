@@ -34,15 +34,22 @@ if (is.na(args[2])) {
     addToSummary = c('model') )
   } else {
     print(args[2])
-    orig = sampleReadLengths(args[2])
-    distances = orig$dist
-    phred = orig$phred
-    mapq = orig$mapq
-    cigar = orig$cigar
-    
-    print(summary(distances))
-    distances = distances[which(distances < median(distances)*2)]
-    summary = analyze.reads(paste(args[1],read_file,sep="/") , mean(distances), sd(distances), mean(phred) )
+#    orig = sampleReadLengths(args[2])
+#    distances = orig$dist
+#    phred = orig$phred
+#    mapq = orig$mapq
+#    cigar = orig$cigar
+ 
+    normal = read.table(args[2], header=F, row.names=1)   
+   
+#    print(summary(distances))
+#    distances = distances[which(distances < median(distances)*2)]
+    summary = analyze.reads(paste(args[1],read_file,sep="/") , 
+			    normal['mean.dist',], 
+			    normal['sd.dist',], 
+			    normal['mean.phred',],
+			    savePlots=T,
+			    addToSummary = c('model','reads') )
   }
 
 write.table(summary$score, file=paste(args[1], "score.txt", sep="/"), quote=F, col.name=F, row.name=F)
