@@ -24,6 +24,15 @@ print(args)
 
 bam_files = list.files(path=args[1], recursive=T, pattern="bam$", full.names=T)
 
+if (length(args) < 2)
+  stop("Missing required arguments: <bam> <normal.txt>")
+
+normal = read.table(args[2], header=F, row.names=1)   
+mean.phred = normal['mean.phred',]
+read_len = normal['read.len']
+#normal['mean.dist',]
+#normal['sd.dist',]
+
 if (length(bam_files) <= 0)
   stop(paste("No bam files found in path:", args[1]))
 
@@ -39,31 +48,32 @@ for (bam in bam_files)
   referenceData = getRefData(reader)
 
   current_dir = dirname(bam)
-  cols = c('readID', 'pos','mate.pos','len','phred','mapq','cigar', 'cigar.total', 'orientation','ppair')
+  cols = c('readID', 'pos','mate.pos','len','phred','mapq','cigar', 'cigar.identity', 'orientation','ppair')
 
   fout = file(paste(current_dir, "paired_reads.txt", sep="/"), "w")
   writeLines(paste(cols, collapse="\t"), fout)
   #write(cols, file=paste(current_dir, "paired_reads.txt", sep="/"), append=F, sep="\t", ncolumns=length(cols)) 
   
   if (nrow(referenceData) <= 0)
-	stop(paste("No reads in bam file:",bam))
+  	stop(paste("No reads in bam file:",bam))
 
-  #range = bamRange(reader, c(chrRef$ID, start, start+window) )
+  
   nreads = 1
-  #align = getNextAlign(range)
   align = getNextAlign(reader)
   while(!is.null(align))
     {
     if (nreads %% 10000 == 0) 
-	{
-	flush(fout)	
-	print(paste(nreads, "reads"))
-	}
-    if ( !unmapped(align) & !mateUnmapped(align) & abs(insertSize(align)) > 0)
+	    {
+	    flush(fout)	
+	    print(paste(nreads, "reads"))
+	    }
+    # If read is aligned, and the Phred score is equal or greater than the mean normal
+    if ( !unmapped(align) & !mateUnmapped(align) & abs(insertSize(align)) > 0 &  sum(alignQualVal(align)) >= mean.phred )
       {
       cd = cigarData(align)
       cd = paste(paste(cd$Length, cd$Type, sep=":"), collapse=',')
-      cig_len = cigar.len(cd)
+      #cig_len = cigar.len(cd)
+      identity = percent.identity(cd, read_len)
       
       orient = paste(ifelse(reverseStrand(align), 'R','F'), ifelse(mateReverseStrand(align), 'R','F'), sep=":") 
       if (reverseStrand(align) & !mateReverseStrand(align))
@@ -76,7 +86,7 @@ for (bam in bam_files)
                 sum(alignQualVal(align)), 
                 mapQuality(align),
                 cd, 
-                cig_len,
+                identity,
                 orient,
                 properPair(align) ), collapse="\t"), fout ) 
       }

@@ -30,6 +30,7 @@ if (is.na(args[2])) {
     normal.mean=318.5,
     normal.sd=92.8,
     normal.phred=3097,
+    read.len=50,
     savePlots=T,
     addToSummary = c('model') )
   } else {
@@ -48,6 +49,7 @@ if (is.na(args[2])) {
 			    normal['mean.dist',], 
 			    normal['sd.dist',], 
 			    normal['mean.phred',],
+          normal['read.len'],
 			    savePlots=T,
 			    addToSummary = c('model','reads') )
   }

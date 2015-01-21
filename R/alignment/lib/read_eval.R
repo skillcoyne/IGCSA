@@ -49,7 +49,7 @@ create.summary.obj<-function()
   return(summary)
   }
 
-analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, savePlots=T, addToSummary = NULL)
+analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, read.len=NULL, savePlots=T, addToSummary = NULL)
   {
   summary = create.summary.obj()
   summary[['score']] = 0
@@ -67,10 +67,14 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
   
   reads = read.file(file)
   
+  if (is.null(reads$cigar.identity))
+    reads$cigar.identity =  percent.identity(reads$cigar, read.len)
+  
   summary[['total.reads']] = nrow(reads)
   
-  summary[['cigar']] = summary(reads$cigar.total)
-  reads = reads[reads$cigar.total > 0,]
+  summary[['cigar']] = summary(reads$cigar.identity)
+  #reads = reads[reads$cigar.total > 0,]
+  reads = reads[reads$cigar.identity >= 0.5,]
   
   summary[['distance']] = summary(reads$len)
   summary[['phred']] = summary(reads$phred)
@@ -257,6 +261,13 @@ find.distributions<-function(dt, modelName="V")
 #  parameters = msEst$parameters
 #  em(modelName, vv, parameters)
 #  }
+
+percent.identity<-function(cigar, length)
+  {
+  length = (length*2)+1
+  return (unlist(lapply(cigar, function(xs) (length + sum(unlist(
+    lapply(strsplit(unlist(strsplit(xs, ",")), ":"), function(x) ifelse(grepl("S|D", x[2]), as.integer(x[1])*-1, 0)))))/length )))
+  }
 
 cigar.len<-function(cv)
   {
