@@ -17,14 +17,16 @@ read.file<-function(file)
   {
   reads = NULL
   tryCatch({
-    reads = fread(file,  header=T, sep="\t", showProgress=T, stringsAsFactors=F)
-    #reads = read.table(file, header=T, sep="\t", comment.char="", colClasses=classes, stringsAsFactors=F)
+    if (file.info(file)$size > 1000000000) {
+      reads = fread(file,  header=T, sep="\t", showProgress=T, stringsAsFactors=F) } else {
+        reads = read.table(file, header=T, sep="\t", comment.char="", stringsAsFactors=F)
+      }
     #reads$orientation = as.character(reads$orientation)
     #reads$cigar = as.character(reads$cigar)
     
-    if ( is.na(colnames(reads)['cigar.total']) )
+    if ( length(which(colnames(reads) == 'cigar.total')) == 0 )
       reads$cigar.total = cigar.len(reads$cigar)
-    
+  
     return(reads) 
   }, error = function(err) {
     print(paste("Failed to read file", file))
@@ -213,24 +215,6 @@ row.gen<-function(df)
   return(row)
   }
 
-right.dist<-function(model)
-  {
-  rightside = as.integer(which(model$parameters$mean == max(model$parameters$mean)))
-  mean(model$z[, rightside]) 
-  }
-
-sub.dist.means<-function(model)
-  {
-  v = sort(model$parameters$mean)
-  names(v) = c('left','right')
-  return(v)
-  }
-
-right.param<-function(model)
-  {
-  rightside = as.integer(which(model$parameters$mean == max(model$parameters$mean)))
-  return(list('mean' = model$parameters$mean[[rightside]], 'variance' = model$parameters$variance$sigmasq[[rightside]]))
-  }
 
 find.distributions<-function(dt, modelName="V")
   {
@@ -306,8 +290,10 @@ sampleReadLengths<-function(bam, sample_size=10000)
   distances = vector(length=0, mode='numeric')
   mapq = vector(length=0, mode='numeric')
   cigar = vector(length=0, mode='numeric')
+  read_lens = vector(length=0,mode='numeric')
   orientation = vector(length=4,mode='numeric')
   names(orientation) = c('F:F','F:R','R:F','R:R')
+  
   n = 0
   while (n < sample_size)
     {
@@ -323,6 +309,8 @@ sampleReadLengths<-function(bam, sample_size=10000)
         distances = c(distances, abs(insertSize(align)))
         phred = c(phred, sum(alignQualVal(align)))
         mapq = c(mapq, mapQuality(align))
+        read_lens = c(read_lens, length(unlist(strsplit(alignSeq(align), "")))/2)
+        
         cd = cigarData(align)
         cigar = c(cigar, cigar.len(paste(paste(cd$Length, cd$Type, sep=":"), collapse=',')))
         
@@ -339,7 +327,7 @@ sampleReadLengths<-function(bam, sample_size=10000)
     }
   bamClose(reader)
   
-  return(list("dist"=distances, "phred"=phred, "mapq"=mapq, "cigar"=cigar, "orientation"=orientation))
+  return(list("dist"=distances, "phred"=phred, "mapq"=mapq, "cigar"=cigar, "orientation"=orientation, "reads"=read_lens))
   }
 
 
