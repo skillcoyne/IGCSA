@@ -3,16 +3,12 @@ source("~/workspace/IGCSA/R/alignment/lib/read_eval.R")
 args <- commandArgs(trailingOnly = TRUE)
 
 #args[1] = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/GA/HCC1954.G31860/3q12-8p11"
-#args[1] = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/GA/HCC1954.G31860/6p23-12q13"
-#args[1] = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/Random2/HCC1954.G31860/3p21-10p15"
 #args[1] = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/Random/HCC1954.G31860/10q21-15p12"
 #args[1] = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/SH-SYS5/SH-SY5Y/2p15-9q34"
 
-#args[2] = "/Volumes/exHD-Killcoyne/TCGA/sequence/cell_lines/HCC1954.G31860/G31860.HCC1954.6.bam"
-
-
-
-#args[2] = "/Volumes/exHD-Killcoyne/TCGA/sequence/patients/c2047dc9-9361-47e4-90d2-abc17efba81f/TC#GA-AB-2977-03A-01D-0739-09_whole.bam"
+testDir = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments"
+args[1] = paste(testDir, "PatientBPs/KIRC-Patient/10p14-9q21", sep="/")
+args[2] = paste(testDir, "PatientBPs/KIRC-Patient/normal.txt", sep="/")
 
 if (length(args) < 1)
   stop("Missing required arguments: <directory to read in> <original aligned bam: OPTIONAL>")
@@ -35,21 +31,17 @@ if (is.na(args[2])) {
     addToSummary = c('model') )
   } else {
     print(args[2])
-#    orig = sampleReadLengths(args[2])
-#    distances = orig$dist
-#    phred = orig$phred
-#    mapq = orig$mapq
-#    cigar = orig$cigar
  
     normal = read.table(args[2], header=F, row.names=1)   
    
 #    print(summary(distances))
 #    distances = distances[which(distances < median(distances)*2)]
-    summary = analyze.reads(paste(args[1],read_file,sep="/") , 
-			    normal['mean.dist',], 
-			    normal['sd.dist',], 
-			    normal['mean.phred',],
-          normal['read.len'],
+    summary = analyze.reads(
+          file=paste(args[1],read_file,sep="/"), 
+			    normal.mean=normal['mean.dist',], 
+			    normal.sd=normal['sd.dist',], 
+			    normal.phred=normal['mean.phred',],
+          read.len=normal['read.len',],
 			    savePlots=T,
 			    addToSummary = c('model','reads') )
   }

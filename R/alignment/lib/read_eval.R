@@ -67,8 +67,14 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
   
   reads = read.file(file)
   
-  if (is.null(reads$cigar.identity))
+  #if (is.null(reads$cigar.identity))
     reads$cigar.identity =  percent.identity(reads$cigar, read.len)
+  
+  # adjust to get rid of low quality alignments where they are "correct"
+  reads = reads[-which(reads$ppair & reads$mapq < 30),]
+  reads = reads[-which(reads$len <= normal.mean+normal.sd*2 & reads$mapq < 30),]
+  
+  #reads = reads[-which(counts < 10 & grepl('10p14',reads$readID)),]
   
   summary[['total.reads']] = nrow(reads)
   
@@ -103,7 +109,7 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
     lv = model$parameters$variance$sigmasq[lt] 
     
     ## STOP RIGHT HERE
-    if (left_mean > log(normal.mean+normal.sd*4)) score_dist = FALSE
+    #if (left_mean > log(normal.mean+normal.sd*4)) score_dist = FALSE
     
     right_mean = model$parameters$mean[rt]
     rv = model$parameters$variance$sigmasq[rt] 
@@ -264,7 +270,7 @@ find.distributions<-function(dt, modelName="V")
 
 percent.identity<-function(cigar, length)
   {
-  length = (length*2)+1
+  length = (length)+1
   return (unlist(lapply(cigar, function(xs) (length + sum(unlist(
     lapply(strsplit(unlist(strsplit(xs, ",")), ":"), function(x) ifelse(grepl("S|D", x[2]), as.integer(x[1])*-1, 0)))))/length )))
   }
@@ -341,4 +347,9 @@ sampleReadLengths<-function(bam, sample_size=10000)
   return(list("dist"=distances, "phred"=phred, "mapq"=mapq, "cigar"=cigar, "orientation"=orientation, "reads"=read_lens))
   }
 
-
+score.phred<-function(str)
+{
+  strtoi(charToRaw("A"), 16L)
+  unlist(lapply(unlist(strsplit(str,"")), charToRaw))
+  unlist(lapply(unlist(strsplit(str, "")), utf8ToInt)) 
+}

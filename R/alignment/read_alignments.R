@@ -40,10 +40,10 @@ if (length(bam_files) <= 0)
 
 for (bam in bam_files)
   {
-  bai = paste(bam, "bai", sep=".")
+  #bai = paste(bam, "bai", sep=".")
+  #load.index(reader, bai)
   print(paste("Reading bam ", bam, sep=""))
   reader = bamReader(bam)
-  load.index(reader, bai)
   
   referenceData = getRefData(reader)
 
@@ -68,7 +68,7 @@ for (bam in bam_files)
 	    print(paste(nreads, "reads"))
 	    }
     # If read is aligned, and the Phred score is equal or greater than the mean normal
-    if ( !unmapped(align) & !mateUnmapped(align) & abs(insertSize(align)) > 0 &  sum(alignQualVal(align)) >= mean.phred )
+    if ( !unmapped(align) & !mateUnmapped(align) & abs(insertSize(align)) > 0 & !secondaryAlign(align) ) # &  sum(alignQualVal(align)) >= mean.phred )
       {
       cd = cigarData(align)
       cd = paste(paste(cd$Length, cd$Type, sep=":"), collapse=',')
