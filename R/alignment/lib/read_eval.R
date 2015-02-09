@@ -89,6 +89,8 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
   summary[['filtered.reads']] = nrow(reads)
   summary[['orientation']] = table(reads$orientation)
   
+  reads = reads[-which(duplicated(reads$readID)),]
+  
   counts = log(reads$len)
   model = find.distributions(counts, "V")
   if (model$G != 2) score_dist = FALSE
@@ -225,23 +227,27 @@ row.gen<-function(df)
   return(row)
   }
 
-
+## HERE IS THE PROBLEM -- I'm not sure I'm determining the clusters correctly.  Should I instead take everthing that is > 4sd from the mean and call it??  
+## That would change the scoring function pretty drastically.  I also clearly can't just assume 2 clusters, but I also can't dismiss those that have more than 2
 find.distributions<-function(dt, modelName="V")
   {
   ## cheap way to find how many real distributions may be there, more than 2 is a problem
   mod1 = densityMclust(dt, kernel="gaussian", modelNames=modelName)
+  plotDensityMclust1(mod1, data=dt, col='blue', lwd=2, hist.col = "lightblue",  breaks=100, xlab="log(read-pair distance)")
   #g = 2
   #repeat
   #  {
     centers = list()
     i = 1
   #  print(mod1$G)    
-    
+    stdev = sd(mod1$parameters$mean)
     repeat
       {
-      if (i > length(mod1$parameters$mean)+1) break
+      if (i >= mod1$G) break
       m = mod1$parameters$mean[i]
-      items = which(mod1$parameters$mean >= m - sd(mod1$data) & mod1$parameters$mean < m + sd(mod1$data))
+      items = which(mod1$parameters$mean >= m - sd(mod1$data)/2 & mod1$parameters$mean < m + sd(mod1$data)/2)
+      items = as.integer(names(which(items >= i)))
+      #items = which(mod1$parameters$mean >= m - stdev & mod1$parameters$mean < m + stdev)
       if (length(items) > 0)
         centers[[i]] = mod1$parameters$mean[items]
       i = ifelse(length(items) > 0, max(items)+1, i+1)
@@ -252,6 +258,17 @@ find.distributions<-function(dt, modelName="V")
     
     mod1 = densityMclust(dt, kernel="gaussian", G=g)
     #}
+  
+  means = round(mod1$parameters$mean)
+  x = vector(mode="numeric")
+  for (i in 1:(mod1$G-1))
+    {
+    x[i] = means[i]
+    if (means[i]+1 == means[i+1])
+      i = i+1
+    }
+  
+  
   
   return(mod1)
   }

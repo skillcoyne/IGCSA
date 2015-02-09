@@ -8,7 +8,7 @@ args <- commandArgs(trailingOnly = TRUE)
 
 testDir = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments"
 args[1] = paste(testDir, "PatientBPs/KIRC-Patient/10p14-9q21", sep="/")
-args[2] = paste(testDir, "PatientBPs/KIRC-Patient/normal.txt", sep="/")
+args[2] = paste(testDir, "PatientBPs/KIRC-Patient/kirc.normal.txt", sep="/")
 
 if (length(args) < 1)
   stop("Missing required arguments: <directory to read in> <original aligned bam: OPTIONAL>")
@@ -42,7 +42,7 @@ if (is.na(args[2])) {
 			    normal.sd=normal['sd.dist',], 
 			    normal.phred=normal['mean.phred',],
           read.len=normal['read.len',],
-			    savePlots=T,
+			    savePlots=F,
 			    addToSummary = c('model','reads') )
   }
 
