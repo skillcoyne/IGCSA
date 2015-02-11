@@ -49,16 +49,20 @@ create.summary.obj<-function()
   return(summary)
   }
 
-analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, read.len=NULL, savePlots=T, addToSummary = NULL)
+analyze.reads<-function(file, normal, savePlots=T, addToSummary = NULL)
   {
+  if (is.null(file))
+    stop("Missing read file.")
+  
+  '%nin%' = Negate(`%in%`)
+  if (is.null(normal) || c("mean.dist","sd.dist","mean.phred","sd.phred","read.len") %nin% colnames(normal) )
+    stop("Missing object that includes normal values: mean.dist, sd.dist, mean.phred, sd.phred, read.len")
+  
   summary = create.summary.obj()
   summary[['score']] = 0
 
   ## Left mean should be near the mean of the normal distance
   score_dist = TRUE
-  
-  if (is.null(normal.mean) | is.null(normal.sd))
-    stop("A normal mean and stdev is required for read-pair distance analysis")
   
   path = dirname(file)
   name = basename(path)
@@ -66,33 +70,34 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
   print(path)
   
   reads = read.file(file)
-  
-  #if (is.null(reads$cigar.identity))
-    reads$cigar.identity =  percent.identity(reads$cigar, read.len)
+  dupd = which(duplicated(reads$readID))
+  if (length(dupd) > 0)
+    {
+    reads = reads[-dupd,]
+    rm(dupd)
+    }
   
   # adjust to get rid of low quality alignments where they are "correct"
   reads = reads[-which(reads$ppair & reads$mapq < 30),]
-  reads = reads[-which(reads$len <= normal.mean+normal.sd*2 & reads$mapq < 30),]
-  
-  #reads = reads[-which(counts < 10 & grepl('10p14',reads$readID)),]
+  reads = reads[-which(reads$len <= normal$mean.dist+normal$sd.dist*2 & reads$mapq < 30),]
   
   summary[['total.reads']] = nrow(reads)
   
-  summary[['cigar']] = summary(reads$cigar.identity)
-  #reads = reads[reads$cigar.total > 0,]
-  reads = reads[reads$cigar.identity >= 0.5,]
-  
   summary[['distance']] = summary(reads$len)
   summary[['phred']] = summary(reads$phred)
-  reads = reads[reads$phred >= normal.phred,] ## from the original 'good' reads
+  reads = reads[reads$phred >= (normal$mean.phred-normal$sd.phred),] ## from the original 'good' reads
+  
+  #if (is.null(reads$cigar.identity))
+  reads$cigar.identity =  percent.identity(reads$cigar, normal$read.len)
+  reads = reads[reads$cigar.identity >= 0.5,]
 
   summary[['filtered.reads']] = nrow(reads)
   summary[['orientation']] = table(reads$orientation)
   
-  reads = reads[-which(duplicated(reads$readID)),]
-  
   counts = log(reads$len)
-  model = find.distributions(counts, "V")
+  model = find.distributions(counts, log(normal$mean.dist+normal$sd.dist*4), "V")
+  #model = densityMclust(counts, kernel="gaussian", modelNames="V", G=2)
+  
   if (model$G != 2) score_dist = FALSE
   
   summary[['estimated.dist']] = model$G
@@ -132,7 +137,6 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
       }
     }
   
-  
   if (savePlots)
     {
     png_file=paste(path, "read_pair_distance.png", sep="/")
@@ -140,20 +144,11 @@ analyze.reads<-function(file, normal.mean=NULL, normal.sd=NULL, normal.phred=0, 
     png(filename=png_file, width=800, height=600)
     }
 
-  
-  #hist(counts, breaks=100, col="lightblue", border=F, prob=T, xlim=c(min(counts),max(counts)), xlab="log(read-pair distance)", main=name, sub=paste("Score?", score_dist))
-    #d = density(counts, kernel="gaussian")
-  #lines(d, col="blue", lwd=2)
-  
-    #lrows = which(d$x >= (left_mean-lv) & d$x <= (left_mean+lv))
-    #rrows = which(d$x >= (right_mean-rv) & d$x <= (right_mean+rv))
-
-    #dens = densityMclust(counts, G=num_dist)
     plotDensityMclust1(model, data=counts, col='blue', lwd=2, hist.col = "lightblue",  breaks=100, xlab="log(read-pair distance)")
     title(name,sub=paste("Score?", score_dist))
   
-    abline(v=log(normal.mean), col='red',lwd=2)
-    text(log(normal.mean), max(model$density)/3, labels=paste("Sampled normal mean:",round(log(normal.mean),2)), pos=4)
+    abline(v=log(normal$mean.dist), col='red',lwd=2)
+    text(log(normal$mean.dist), max(model$density)/3, labels=paste("Sampled normal mean:",round(log(normal$mean.dist),2)), pos=4)
     for (i in 1:ncol(model$z))
       { 
       m = model$parameters$mean[i]
@@ -229,46 +224,32 @@ row.gen<-function(df)
 
 ## HERE IS THE PROBLEM -- I'm not sure I'm determining the clusters correctly.  Should I instead take everthing that is > 4sd from the mean and call it??  
 ## That would change the scoring function pretty drastically.  I also clearly can't just assume 2 clusters, but I also can't dismiss those that have more than 2
-find.distributions<-function(dt, modelName="V")
+find.distributions<-function(dt, disc, modelName="V")
   {
   ## cheap way to find how many real distributions may be there, more than 2 is a problem
   mod1 = densityMclust(dt, kernel="gaussian", modelNames=modelName)
-  plotDensityMclust1(mod1, data=dt, col='blue', lwd=2, hist.col = "lightblue",  breaks=100, xlab="log(read-pair distance)")
-  #g = 2
-  #repeat
-  #  {
-    centers = list()
-    i = 1
-  #  print(mod1$G)    
-    stdev = sd(mod1$parameters$mean)
+  #plotDensityMclust1(mod1, data=dt, col='blue', lwd=2, hist.col = "lightblue",  breaks=100, xlab="log(read-pair distance)")
+  
+  centers=list()
+  ## First distribution should fall below the definition for discordant reads
+  centers[[1]] = mod1$parameters$mean[mod1$parameters$mean < disc]
+  i = length(centers[[1]])+1
+  
     repeat
       {
       if (i >= mod1$G) break
       m = mod1$parameters$mean[i]
-      items = which(mod1$parameters$mean >= m - sd(mod1$data)/2 & mod1$parameters$mean < m + sd(mod1$data)/2)
+      items = which(mod1$parameters$mean >= m - sd(mod1$data) & mod1$parameters$mean < m + sd(mod1$data))
       items = as.integer(names(which(items >= i)))
-      #items = which(mod1$parameters$mean >= m - stdev & mod1$parameters$mean < m + stdev)
+
       if (length(items) > 0)
         centers[[i]] = mod1$parameters$mean[items]
       i = ifelse(length(items) > 0, max(items)+1, i+1)
       }
     g = length(which(lapply(centers, length) > 0))
-    #if (mod1$G == g | mod1$G == 1) break
-    #print(g)    
+    print(g)    
     
     mod1 = densityMclust(dt, kernel="gaussian", G=g)
-    #}
-  
-  means = round(mod1$parameters$mean)
-  x = vector(mode="numeric")
-  for (i in 1:(mod1$G-1))
-    {
-    x[i] = means[i]
-    if (means[i]+1 == means[i+1])
-      i = i+1
-    }
-  
-  
   
   return(mod1)
   }
@@ -343,7 +324,7 @@ sampleReadLengths<-function(bam, sample_size=10000)
         distances = c(distances, abs(insertSize(align)))
         phred = c(phred, sum(alignQualVal(align)))
         mapq = c(mapq, mapQuality(align))
-        read_lens = c(read_lens, length(unlist(strsplit(alignSeq(align), "")))/2)
+        read_lens = c(read_lens, length(unlist(strsplit(alignSeq(align), ""))))
         
         cd = cigarData(align)
         cigar = c(cigar, cigar.len(paste(paste(cd$Length, cd$Type, sep=":"), collapse=',')))

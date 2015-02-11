@@ -6,43 +6,42 @@ args <- commandArgs(trailingOnly = TRUE)
 #args[1] = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/Random/HCC1954.G31860/10q21-15p12"
 #args[1] = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/SH-SYS5/SH-SY5Y/2p15-9q34"
 
-testDir = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments"
-args[1] = paste(testDir, "PatientBPs/KIRC-Patient/10p14-9q21", sep="/")
-args[2] = paste(testDir, "PatientBPs/KIRC-Patient/kirc.normal.txt", sep="/")
+#band_pair="8q21-15q15"
+#band_pair = "10p14-9q21"
+#band_pair = "2p23-4p16"
+#band_pair = "4q22-Xq21"
+testDir = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/PatientBPs"
+#args[1] = paste(testDir, "KIRC-No-Sim", band_pair, sep="/")
+#args[1] = paste(testDir, "KIRC-Patient", band_pair, sep="/")
+#args[1] = paste(testDir, "BRCA-Patient", band_pair, sep="/")
 
-if (length(args) < 1)
-  stop("Missing required arguments: <directory to read in> <original aligned bam: OPTIONAL>")
+#args[2] = paste(testDir, "KIRC-Patient/kirc.normal.txt", sep="/")
+#args[2] = paste(testDir, "BRCA-Patient/brca.normal.txt", sep="/")
 
-read_file = list.files(path=args[1], pattern="*paired_reads.txt", recursive=T)
+if (length(args) < 2)
+  stop("Missing required arguments: <directory to read in> <normal txt file>")
+
+read_file = list.files(path=args[1], pattern="*paired_reads.txt", recursive=T, full.names=T)
+if (length(read_file) <= 0)
+  stop("No paired_reads.txt file")
 #summary = analyze.reads(paste(args[1],read_file,sep="/") , mean(distances), sd(distances), mean(phred) )
 summary=NULL
 
+print(args)
 
 if (is.na(args[2])) {
   # Good for HCC1954 only
   print("HCC1954...")
   summary = analyze.reads(
-    file=paste(args[1],read_file,sep="/"),
-    normal.mean=318.5,
-    normal.sd=92.8,
-    normal.phred=3097,
-    read.len=50,
+    file=read_file,
+    normal = as.data.frame(t(matrix(c(318.5, 92.8, 3097, 300, 50), dimnames=list( c('normal.mean','normal.sd','normal.phred','sd.phred', 'read.len')))))
     savePlots=T,
     addToSummary = c('model') )
   } else {
-    print(args[2])
- 
-    normal = read.table(args[2], header=F, row.names=1)   
-   
-#    print(summary(distances))
-#    distances = distances[which(distances < median(distances)*2)]
     summary = analyze.reads(
-          file=paste(args[1],read_file,sep="/"), 
-			    normal.mean=normal['mean.dist',], 
-			    normal.sd=normal['sd.dist',], 
-			    normal.phred=normal['mean.phred',],
-          read.len=normal['read.len',],
-			    savePlots=F,
+          file=list.files(path=args[1], pattern="*paired_reads.txt", recursive=T, full.names=T), 
+          normal=as.data.frame(t(read.table(args[2], header=F, row.names=1))),
+			    savePlots=T,
 			    addToSummary = c('model','reads') )
   }
 
