@@ -10,7 +10,7 @@ args <- commandArgs(trailingOnly = TRUE)
 #band_pair = "10p14-9q21"
 #band_pair = "2p23-4p16"
 #band_pair = "4q22-Xq21"
-testDir = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/PatientBPs"
+#testDir = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/PatientBPs"
 #args[1] = paste(testDir, "KIRC-No-Sim", band_pair, sep="/")
 #args[1] = paste(testDir, "KIRC-Patient", band_pair, sep="/")
 #args[1] = paste(testDir, "BRCA-Patient", band_pair, sep="/")
@@ -34,7 +34,7 @@ if (is.na(args[2])) {
   print("HCC1954...")
   summary = analyze.reads(
     file=read_file,
-    normal = as.data.frame(t(matrix(c(318.5, 92.8, 3097, 300, 50), dimnames=list( c('normal.mean','normal.sd','normal.phred','sd.phred', 'read.len')))))
+    normal = as.data.frame(t(matrix(c(318.5, 92.8, 3097, 300, 50), dimnames=list( c('normal.mean','normal.sd','normal.phred','sd.phred', 'read.len'))))),
     savePlots=T,
     addToSummary = c('model') )
   } else {

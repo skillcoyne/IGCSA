@@ -67,7 +67,7 @@ analyze.reads<-function(file, normal, savePlots=T, addToSummary = NULL)
   path = dirname(file)
   name = basename(path)
   summary[['name']] = name
-  print(path)
+  #print(path)
   
   reads = read.file(file)
   dupd = which(duplicated(reads$readID))
@@ -76,6 +76,7 @@ analyze.reads<-function(file, normal, savePlots=T, addToSummary = NULL)
     reads = reads[-dupd,]
     rm(dupd)
     }
+  print(nrow(reads))
   
   # adjust to get rid of low quality alignments where they are "correct"
   reads = reads[-which(reads$ppair & reads$mapq < 30),]
@@ -95,8 +96,8 @@ analyze.reads<-function(file, normal, savePlots=T, addToSummary = NULL)
   summary[['orientation']] = table(reads$orientation)
   
   counts = log(reads$len)
-  model = find.distributions(counts, log(normal$mean.dist+normal$sd.dist*4), "V")
-  #model = densityMclust(counts, kernel="gaussian", modelNames="V", G=2)
+  #model = find.distributions(counts, log(normal$mean.dist+normal$sd.dist*4), "V")  # this isn't working so well
+  model = densityMclust(counts, kernel="gaussian", modelNames="V", G=2)
   
   if (model$G != 2) score_dist = FALSE
   
@@ -231,25 +232,30 @@ find.distributions<-function(dt, disc, modelName="V")
   #plotDensityMclust1(mod1, data=dt, col='blue', lwd=2, hist.col = "lightblue",  breaks=100, xlab="log(read-pair distance)")
   
   centers=list()
+  means = mod1$parameters$mean
   ## First distribution should fall below the definition for discordant reads
-  centers[[1]] = mod1$parameters$mean[mod1$parameters$mean < disc]
+  centers[[1]] = means[means < disc]
   i = length(centers[[1]])+1
   
-    repeat
-      {
-      if (i >= mod1$G) break
-      m = mod1$parameters$mean[i]
-      items = which(mod1$parameters$mean >= m - sd(mod1$data) & mod1$parameters$mean < m + sd(mod1$data))
-      items = as.integer(names(which(items >= i)))
+  #max_i = which(round(mod1$parameters$mean) > round(max(mod1$data)-sd(mod1$data)/2))
+  
+  repeat
+    {
+    if (i >= mod1$G ) break
+    m = mod1$parameters$mean[i]
+    items = which(mod1$parameters$mean >= m - sd(mod1$data) & mod1$parameters$mean < m + sd(mod1$data))
+    #items = items[-which(items == max_i)]
+    #items = as.integer(names(which(items >= i)))
 
-      if (length(items) > 0)
-        centers[[i]] = mod1$parameters$mean[items]
-      i = ifelse(length(items) > 0, max(items)+1, i+1)
-      }
-    g = length(which(lapply(centers, length) > 0))
-    print(g)    
-    
-    mod1 = densityMclust(dt, kernel="gaussian", G=g)
+    if (length(items) > 0)
+      centers[[i]] = mod1$parameters$mean[items]
+    i = ifelse(length(items) > 0, max(items)+1, i+1)
+    centers
+    }
+  g = length(which(lapply(centers, length) > 0))
+  print(g)    
+
+  mod1 = densityMclust(dt, kernel="gaussian", G=g)
   
   return(mod1)
   }
