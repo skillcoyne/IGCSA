@@ -55,7 +55,8 @@ analyze.reads<-function(file, normal, savePlots=T, addToSummary = NULL)
     stop("Missing read file.")
   
   '%nin%' = Negate(`%in%`)
-  if (is.null(normal) || c("mean.dist","sd.dist","mean.phred","sd.phred","read.len") %nin% colnames(normal) )
+  if (is.null(normal) || 
+        length(which(c("mean.dist","sd.dist","mean.phred","sd.phred","read.len") %nin% colnames(normal))) > 0 )
     stop("Missing object that includes normal values: mean.dist, sd.dist, mean.phred, sd.phred, read.len")
   
   summary = create.summary.obj()
