@@ -12,6 +12,29 @@ kmeansAIC = function(fit)
   return(D + 2*m*k)
   }
 
+window.cluster<-function(reads, minLength = 12)
+  {
+  high = reads[ which(log(reads$len) > minLength),  ]
+  
+  slide = 500
+  window = 1000
+  start = high[1, 'pos']
+  
+  windows = list()
+  while( start < high[nrow(high), 'pos'] )
+  {
+    rows = which(high$pos >= start & high$pos < start+window)
+    start = start+slide
+    
+    if (length(rows) > 0)
+      windows[[ paste(start, start+window, sep="-")  ]] = rows
+  }
+  
+  winC = unlist(lapply(windows, length))
+  return(winC)
+  }
+
+
 
 read.file<-function(file)
   {
@@ -197,6 +220,14 @@ analyze.reads<-function(file, normal, savePlots=T, addToSummary = NULL)
     if ( length(grep('reads', addToSummary)) > 0) summary[['reads']] = reads
     }
   summary[['scored']] = score_dist
+  
+  clus = window.cluster(reads, log(normal$mean.dist+normal$sd.dist*4))
+  summary[['pos.cluster']] = clus
+  #error = qpois(0.975*
+  
+#  d <- dist(clus, method = "euclidean") # distance matrix
+#  fit <- hclust(d, method="ward") 
+#  plot(fit) # display dendogram
   
   print(summary[['score']])
   return(summary)
