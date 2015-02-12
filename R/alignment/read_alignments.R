@@ -29,7 +29,7 @@ if (length(args) < 2)
 
 normal = read.table(args[2], header=F, row.names=1)   
 mean.phred = normal['mean.phred',]
-read_len = normal['read.len']
+read_len = normal['read.len',]
 #normal['mean.dist',]
 #normal['sd.dist',]
 
