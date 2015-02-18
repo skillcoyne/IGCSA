@@ -1,8 +1,9 @@
 library('rbamtools')
 source("~/workspace/IGCSA/R/alignment/lib/read_eval.R")
+source("~/workspace/IGCSA/R/alignment/lib/utils.R")
 
 load_files<-function(files, dir)
-{
+  {
   for (f in files)
   {
     f = paste(dir, f, sep="/")
@@ -20,23 +21,20 @@ load_files<-function(files, dir)
 
 args <- commandArgs(trailingOnly = TRUE)
 print(args)
-#args[1] = "/Volumes/exHD-Killcoyne/Insilico/runs/alignments/Random/HCC1954.G31860"
+#args[1] = "/Volumes/exHD-Killcoyne/IGCSA/runs/alignments/PatientBPs/10-9/10p14-9q21"
+#args[2] = "/Volumes/exHD-Killcoyne/IGCSA/runs/alignments/PatientBPs/KIRC-Patient/kirc.normal.txt"
+#args[1] = "/Volumes/exHD-Killcoyne/IGCSA/runs/alignments/Random/HCC1954.G31860"
+
 
 bam_files = list.files(path=args[1], recursive=T, pattern="bam$", full.names=T)
 
 if (length(args) < 2)
   stop("Missing required arguments: <bam> <normal.txt>")
 
-normal = read.table(args[2], header=F, row.names=1)   
-mean.phred = normal['mean.phred',]
-read_len = normal['read.len',]
-#normal['mean.dist',]
-#normal['sd.dist',]
+normal = read.normal.txt(args[2], c("mean.dist","sd.dist","mean.phred","sd.phred","read.len"))
 
 if (length(bam_files) <= 0)
   stop(paste("No bam files found in path:", args[1]))
-
-`%nin%` <- Negate(`%in%`) 
 
 for (bam in bam_files)
   {
@@ -56,7 +54,6 @@ for (bam in bam_files)
   
   if (nrow(referenceData) <= 0)
   	stop(paste("No reads in bam file:",bam))
-
   
   nreads = 1
   align = getNextAlign(reader)
@@ -73,7 +70,7 @@ for (bam in bam_files)
       cd = cigarData(align)
       cd = paste(paste(cd$Length, cd$Type, sep=":"), collapse=',')
       #cig_len = cigar.len(cd)
-      identity = percent.identity(cd, read_len)
+      identity = percent.identity(cd, normal$read.len)
       
       orient = paste(ifelse(reverseStrand(align), 'R','F'), ifelse(mateReverseStrand(align), 'R','F'), sep=":") 
       if (reverseStrand(align) & !mateReverseStrand(align))
