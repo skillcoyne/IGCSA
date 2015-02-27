@@ -15,16 +15,14 @@ read.file<-function(file)
   {
   reads = NULL
   tryCatch({
-    if (file.info(file)$size > 1000000000) {
+    if (file.info(file)$size > 1000000000/2) {
       require('data.table')
       reads = fread(file,  header=T, sep="\t", showProgress=T, stringsAsFactors=F) } else {
         reads = read.table(file, header=T, sep="\t", comment.char="", stringsAsFactors=F)
       }
+    print(paste(nrow(reads), "loaded"))
     #reads$orientation = as.character(reads$orientation)
     #reads$cigar = as.character(reads$cigar)
-    
-    if ( length(which(colnames(reads) == 'cigar.total')) == 0 )
-      reads$cigar.total = cigar.len(reads$cigar)
     
     return(reads) 
   }, error = function(err) {

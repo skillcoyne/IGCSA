@@ -30,7 +30,7 @@ create.matrix<-function(dir, bands)
     for (c in cols)
       {
       className = class(summary[[c]])
-      print(className)
+      #print(className)
       
       if (is.null(summary[[c]]))
         m[name,c] = NA
@@ -60,6 +60,13 @@ create.matrix<-function(dir, bands)
   #m = m[-which(m$l.shapiro <= 0.1),]
   m = m[m$estimated.dist == 2,]  # not an issue anymore as I'm only looking for 2 distributions
   
+  m$name = rownames(m)
+  rownames(m) = c(1:nrow(m))
+  
+  m$estimated.dist = NULL
+  m$l.shapiro = NULL
+  m$r.shapiro = NULL
+  
   return(m)
   }
 
@@ -72,80 +79,114 @@ open.pngs<-function(df, dir)
   }
 }
 
-score.adjust<-function(s)
-  {
-  # gene density
-  #g = ( log(x[['gene.count']])^3/x[['bp']])
-  g =  log2(s[['gene.count']]) / s[['bp']]
-  
-  gdx = g *1E6
-  score = s[['score']]
-  (gdx*score)
-  }
-
-args <- commandArgs(trailingOnly = TRUE)
-
-testDir = "/Volumes/exHD-Killcoyne/IGCSA/runs/alignments"
-args[1] = paste(testDir, "GA/KIRC-Patient", sep="/")
-
-
 bands = read.table("~/Analysis/band_genes.txt", header=T)
 bands$len = bands$end-bands$start
 bands$name = paste(bands$chr, bands$band, sep="")
 bands = bands[,c('name','len','gene.count')]
 
-b = create.matrix(args[1],bands)
-b = b[b$prob.sum > 0,]
-b$estimated.dist = NULL
 
-a = create.matrix(paste(testDir, "PatientBPs/KIRC-Patient", sep="/"), bands)
-a$estimated.dist=NULL
+#args <- commandArgs(trailingOnly = TRUE)
 
-x = rbind(b,a)
+testDir = "/Volumes/exHD-Killcoyne/IGCSA/runs/alignments"
 
-#x = x[x$l.shapiro > 0.1,]
-#x = x[x$score >= 0.4,]
+a = create.matrix(paste(testDir, "Random/8-15", sep="/"), bands)
+#a = create.matrix(paste(testDir, "Random/10-9", sep="/"), bands)
+#a = create.matrix(paste(testDir, "Random/KIRC-Patient", sep="/"), bands)
+#a = create.matrix(paste(testDir, "Random/BRCA-Patient", sep="/"), bands)
+a$type='Random'
 
-x$gcs = apply(x, 1, score.adjust)
+b = create.matrix(paste(testDir, "PatientBPs/8-15", sep="/"), bands)
+#b = create.matrix(paste(testDir, "PatientBPs/10-9", sep="/"), bands)
+#b = create.matrix(paste(testDir, "GA/KIRC-Patient", sep="/"), bands)
+b$type='Simulated'
+#b$type="DE"
 
-x = x[order(-x$gcs),]
+#c = create.matrix(paste(testDir, "PatientBPs/KIRC-Patient", sep="/"), bands)
+#c = create.matrix(paste(testDir, "PatientBPs/BRCA-Patient", sep="/"), bands)
+c$type="Patient"
+
+x = rbind(a,b)
+x$type=as.factor(x$type)
+
 head(x)
+nrow(x)
 
-plot(x$gcs, ylim=c(0,max(x$gcs)), type='o',col='black')
-
-sims = which(rownames(x) %in% rownames(a) )
-points(sims, x$gcs[sims], col='red', pch=19) 
-
-points(x$prob.sum*2,col='blue',pch=16)
-points(sims, x$prob.sum[sims]*2,col='red',pch=16)
-
-points(x$right.ratio*2,col='purple',pch=17)
-points(sims, x$right.ratio[sims]*2,col='red',pch=17)
-
-points(x$max.pos.reads/1000,col='orange',pch=18)
-points(sims, x$max.pos.reads[sims]/1000,col='red',pch=18)
-
-points(x$max.pos.prob*6, col='blue', pch=16)
-points(sims, x$max.pos.prob[sims]*6, col='red', pch=16)
+#cr = which(x$name %in% c$name)
+cr = which(x$name == '8q21-15q15')
+#cr = which(x$name == '10p14-9q21')
+#sims = which(x$type == 'Simulated')
+rand = which(x$type == 'Random')
 
 
-y = x
+palette(rainbow(length(table(x$type))))
+par(mfrow=c(4,4))
+for (c in colnames(x))
+  {
+  if (c %in% c("name", 'gene.count','bp', 'type')) next
+  
+  plot( (x[[c]]), col=x$type, pch=21, ylab=c,lwd=2)
+  points(cr, x[[c]][cr], pch=20,col='purple')
+  }
+plot.new()
+par(xpd=TRUE)
+legend(x = "center", legend = c(levels(x$type), 'Correct'), 
+       col=c(palette(), 'purple'), pch=c(21,21,20), horiz = F)
 
-y$score = y$score/y$max.pos.prob/100
+x$sum.r.prob^x$score
+x[cr, c('sum.r.prob','score','n.right.reads', 'max.pos.reads')]
 
-y$score = y$max.pos.reads/1000 + y$score
-y$gcs = apply(y, 1, score.adjust)
+dev.off()
+par(mfrow=c(2,2))
+plot(x$max.pos.reads/x$total.reads, col=x$type)
+points(cr, x$max.pos.reads[cr]/x$total.reads[cr], pch=20,col='purple')
 
-points(y$gcs, col='green',pch=21)
-points(sims, y$gcs[sims], col='red',pch=19)
+plot(x$score, col=x$type)
+points(cr, x$score[cr], pch=20,col='purple')
+
+plot(x$max.pos.reads/x$n.right.reads, col=x$type)
+points(cr, x$max.pos.reads[cr]/x$n.right.reads[cr], pch=20,col='purple')
+
+plot(x$score+(x$max.pos.reads/x$n.right.reads)*10, col=x$type)
+points(cr, x$score[cr]+(x$max.pos.reads[cr]/x$n.right.reads[cr])*10, col='purple',pch=20)
 
 
-y = x
+zz = x$score+(x$max.pos.reads/x$n.right.reads)*10
+x$score = zz
 
-y$score = y$score/y$prob.sum^.5   
+dev.off()
+par(mfrow=c(2,2))
+plot(x$score, col=x$type)
+points(cr, x$score[cr], col='purple',pch=20)
 
-y$gcs=apply(y,1,score.adjust)
+score.adjust<-function(s)
+  {
+  # gene density
+  #g = s[['gene.count']])/s[['bp']]
+  g =  log(s[['gene.count']]) / s[['bp']]
+  
+  #g = log(s[['gene.count']])/log(s[['bp']])
+  
+  gdx = g *1E6
+  score = s[['score']]
+  #((gdx^2)*score)
+  (gdx^2)+score
+  }
 
-lines(y$gcs/2,type='o',col='green',pch=19,lwd=2)
+x$gcs = score.adjust(x)
+
+plot(x$gcs, col=x$type)
+points(cr, x$gcs[cr], pch=20,col='purple')
+
+
+## distance measure?
+
+t.test((abs(unlist(lapply(x$score, function(d){
+  x$score-d
+})))),
+
+(abs(unlist(lapply(x$gcs, function(d){
+  x$gcs-d
+})))))
+
 
 

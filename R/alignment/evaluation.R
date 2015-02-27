@@ -46,6 +46,8 @@ rRight = rAll
 #rSpan = rAll
 
 emmodel = list()
+for 
+
 for (file in read_files)
 	{
   print(file)
@@ -136,7 +138,7 @@ for (file in read_files)
   })
   
   }
-save(rAll, rLeft, rRight, rSpan, emmodel, file='reads.Rdata')
+save(rAll, rLeft, rRight, emmodel, file='reads.Rdata')
 
 subdist_means = as.data.frame(t(sapply(emmodel, sub.dist.means)))
 
@@ -179,8 +181,8 @@ text(km$center, labels=round(km$centers, 3), pos=4)
 dev.off()
 
 write.table(top_pairs, quote=F, sep="\t", col.name=F, file="top_pair_scores.txt")
-top = rSpan[names(top_pairs),]
-print(top_pairs)
+#top = rSpan[names(top_pairs),]
+#print(top_pairs)
 
 ## Only shows up in the lowest clusters so can be safely ignored
 km$cluster[rownames(subdist_means[which(subdist_means$left >= log(mean(distances))),])]

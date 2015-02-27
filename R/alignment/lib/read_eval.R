@@ -11,9 +11,10 @@ kmeansAIC = function(fit)
   return(D + 2*m*k)
   }
 
-window.cluster<-function(rds, minLength = 12)
+window.cluster<-function(reads, minLength = 12)
   {
-  high = rds[ which(log(rds$len) > minLength),  ]
+  reads = as.data.frame(reads)
+  high = reads[ which(log(reads$len) > minLength),  ]
   if (nrow(high) <= 0)
     stop("Cluster error")
   
@@ -61,7 +62,7 @@ filter.reads<-function(rds, maxLen, minMapq, minPhred)
   return(rds)
 }
 
-analyze.reads<-function(file, normal, savePlots=T, addToSummary = NULL)
+analyze.reads<-function(file, normal, savePlots=T, simReads=F, addToSummary = NULL)
   {
   if (is.null(file))
     stop("Missing read file.")
@@ -95,16 +96,33 @@ analyze.reads<-function(file, normal, savePlots=T, addToSummary = NULL)
   
   reads = filter.reads(reads, maxLen=(normal$mean.dist+normal$sd.dist*4), minMapq=30, minPhred=(normal$mean.phred-normal$sd.phred) )
   
-  #if (is.null(reads$cigar.identity))
-  reads$cigar.identity =  percent.identity(reads$cigar, normal$read.len)
+  if (is.null(reads$cigar.identity) | length(which(is.na(reads$cigar.identity))) > 0)
+    reads$cigar.identity =  percent.identity(reads$cigar, normal$read.len)
   reads = reads[reads$cigar.identity >= 0.5,]
+  
+  if (nrow(reads) <= 0)
+    stop("All reads had low cigar")
 
   summary[['filtered.reads']] = nrow(reads)
   summary[['orientation']] = table(reads$orientation)
   
+  # The other ones I tested both from patient and the cell line were no more than 15%
+  if (simReads)
+    {
+    print("Sampling simulated reads")
+    norm_rows = which( reads$len <= normal$mean.dist+normal$sd.dist*4 & reads$len >= normal$mean.dist-normal$sd.dist*2 ) 
+    if (length(norm_rows)/nrow(reads) > 0.15)
+      {
+      remove = norm_rows[-sample(norm_rows, 0.15*nrow(reads))]
+      reads = reads[-remove,]
+      }
+    }
   counts = log(reads$len)
-  #model = find.distributions(counts, log(normal$mean.dist+normal$sd.dist*4), "V")  # this isn't working so well
+  #model = find.distributions(counts, log(normal$mean.dist+normal$sd.dist*4), "E")  # this isn't working so well
   model = densityMclust(counts, kernel="gaussian", modelNames="V", G=2)
+  if ( min(model$parameters$mean) >= log(normal$mean.dist+normal$sd.dist*4)  )
+    model = densityMclust(counts, kernel="gaussian", modelNames="E", G=2)
+  
   print(model$parameters$mean)
   
   if (model$G != 2) score_dist = FALSE
@@ -135,6 +153,8 @@ analyze.reads<-function(file, normal, savePlots=T, addToSummary = NULL)
   
   summary = top.position.clusters(reads, minLength=log(normal$mean.dist+normal$sd.dist*4), summaryObj=summary)
   
+  summary[['score']] = summary[['emr']]+(summary[['max.pos.reads']]/summary[['n.right.reads']])*10
+  
   print(summary[['score']])
   return(summary)
   }
@@ -148,46 +168,37 @@ dist.eval<-function(model, rds, summaryObj)
   summaryObj[['sum.r.prob']] = sum(model$z[,rt])
   
   left_mean = model$parameters$mean[lt]
-  lv = model$parameters$variance$sigmasq[lt] 
-  
-  ## STOP RIGHT HERE
-  #if (left_mean > log(normal.mean+normal.sd*4)) score_dist = FALSE
-  
+  lv = ifelse (model$modelName == "V", model$parameters$variance$sigmasq[lt], model$parameters$variance$sigmasq)
+    
   right_mean = model$parameters$mean[rt]
-  rv = model$parameters$variance$sigmasq[rt] 
+  rv = ifelse (model$modelName == "V", model$parameters$variance$sigmasq[rt], model$parameters$variance$sigmasq)
   
-  leftD = rds[ model$data >= (left_mean-lv*2) & model$data <= (left_mean+lv*2) ,]
-  rightD = rds[ model$data >= (right_mean-rv*3),]
+  ## Reads which pretty unambiguously fit in either 1st or 2nd distribution
+  leftD = which(model$z[,lt] > 0.98)
+  rightD = which(model$z[,rt] > 0.98)
   
-  summaryObj[['l.orientation']] = table(leftD$orientation)
-  summaryObj[['r.orientation']] = table(rightD$orientation)
+  summaryObj[['l.orientation']] = table(rds[leftD,]$orientation)
+  summaryObj[['r.orientation']] = table(rds[rightD,]$orientation)
   
-  summaryObj[['l.kurtosis']] = kurtosis(log(leftD$len))
-  summaryObj[['r.kurtosis']] = kurtosis(log(rightD$len))
+  summaryObj[['l.kurtosis']] = kurtosis(model$data[leftD])
+  summaryObj[['r.kurtosis']] = kurtosis(model$data[rightD])
   
   #if (score_dist)
     {
-    summaryObj[['n.left.reads']] = nrow(leftD)
-    summaryObj[['n.right.reads']] = nrow(rightD)
+    summaryObj[['n.left.reads']] = length(leftD)
+    summaryObj[['n.right.reads']] = length(rightD)
     }
   
+  summaryObj[['l.dens']] = max(model$density[leftD])
+  max = ifelse(length(leftD) > 5000, 5000, length(leftD))
+  summaryObj[['l.shapiro']] = shapiro.test(model$data[sample(leftD, max)])
   
-  lrows = which(model$data >= (model$parameters$mean[lt] - model$parameters$variance$sigmasq[lt]) &
-    model$data <= (model$parameters$mean[lt] + model$parameters$variance$sigmasq[lt]))
-
-  rrows = which(model$data >= (model$parameters$mean[rt] - model$parameters$variance$sigmasq[rt]) &
-                         model$data <= (model$parameters$mean[rt] + model$parameters$variance$sigmasq[rt]))
+  summaryObj[['r.dens']] = max(model$density[rightD])
+  max = ifelse(length(rightD) > 5000, 5000, length(rightD))
+  summaryObj[['r.shapiro']] = shapiro.test(model$data[sample(rightD, max)])
   
-  summaryObj[['l.dens']] = max(model$density[lrows])
-  max = ifelse(length(lrows) > 5000, 5000, length(lrows))
-  summaryObj[['l.shapiro']] = shapiro.test(model$data[sample(lrows, max)])
-  
-  summaryObj[['r.dens']] = max(model$density[rrows])
-  max = ifelse(length(rrows) > 5000, 5000, length(rrows))
-  summaryObj[['r.shapiro']] = shapiro.test(model$data[sample(rrows, max)])
-  
-  #summaryObj[['score']] = ifelse (score_dist, round(mean(model$z[,rt]),4 ), 0) 
-  summaryObj[['score']] = round(mean(model$z[,rt]),4 )
+  #summaryObj[['emr']] = ifelse (score_dist, round(mean(model$z[,rt]),4 ), 0) 
+  summaryObj[['emr']] = round(mean(model$z[,rt]),4 )
   
   return(summaryObj)
   }
@@ -210,6 +221,8 @@ top.position.clusters<-function(reads, minLength, summaryObj)
   
   summaryObj[['pos.cluster']] = clusters
   summaryObj[['top.pos.clusters']] =  clusters[clusters$ct >= min_ct, ]
+  
+  summaryObj[['max.pos.reads']] = max(summaryObj[['top.pos.clusters']]$ct)
   
   return(summaryObj)
   }
@@ -236,14 +249,14 @@ plot.mclust<-function(model, data, normal, summaryObj)
   rt = as.integer(which(model$parameters$mean == max(model$parameters$mean)))
   lt =  as.integer(which(model$parameters$mean != max(model$parameters$mean)))
   
-  plotDensityMclust1(model, data=data, col='blue', lwd=2, hist.col = "lightblue",  breaks=100, xlab="log(read-pair distance)")
+  plotDensityMclust1(model, data=data,  col='blue', lwd=2, hist.col = "lightblue",  breaks=100, xlab="log(read-pair distance)")
   
   abline(v=log(normal$mean.dist), col='red',lwd=2)
   text(log(normal$mean.dist), max(model$density)/3, labels=paste("Sampled normal mean:",round(log(normal$mean.dist),2)), pos=4)
   for (i in 1:ncol(model$z))
     { 
     m = model$parameters$mean[i]
-    v = model$parameters$variance$sigmasq[i] 
+    v = ifelse (model$modelName == "V", model$parameters$variance$sigmasq[i], model$parameters$variance$sigmasq)
     abline(v=m,lwd=2, col='blue')
     text(m, sd(model$density)+mean(model$density), labels=paste("mean:",round(m,2)), pos=2)
     
