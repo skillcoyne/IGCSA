@@ -21,10 +21,6 @@ load_files<-function(files, dir)
 
 args <- commandArgs(trailingOnly = TRUE)
 print(args)
-#args[1] = "/Volumes/exHD-Killcoyne/IGCSA/runs/alignments/PatientBPs/10-9/10p14-9q21"
-#args[2] = "/Volumes/exHD-Killcoyne/IGCSA/runs/alignments/PatientBPs/KIRC-Patient/kirc.normal.txt"
-#args[1] = "/Volumes/exHD-Killcoyne/IGCSA/runs/alignments/Random/HCC1954.G31860"
-
 
 bam_files = list.files(path=args[1], recursive=T, pattern="bam$", full.names=T)
 
@@ -38,19 +34,19 @@ if (length(bam_files) <= 0)
 
 for (bam in bam_files)
   {
-  #bai = paste(bam, "bai", sep=".")
-  #load.index(reader, bai)
   print(paste("Reading bam ", bam, sep=""))
   reader = bamReader(bam)
   
   referenceData = getRefData(reader)
 
   current_dir = dirname(bam)
+  outdir = paste("/tmp", basename(dirname(current_dir)), basename(current_dir), sep="/")
+  dir.create(outdir, recursive=T)
   cols = c('readID', 'pos','mate.pos','len','phred','mapq','cigar', 'cigar.identity', 'orientation','ppair')
 
-  fout = file(paste(current_dir, "paired_reads.txt", sep="/"), "w")
+  tmp_file = paste(outdir, "paired_reads.txt", sep="/")
+  fout = file(tmp_file, "w")
   writeLines(paste(cols, collapse="\t"), fout)
-  #write(cols, file=paste(current_dir, "paired_reads.txt", sep="/"), append=F, sep="\t", ncolumns=length(cols)) 
   
   if (nrow(referenceData) <= 0)
   	stop(paste("No reads in bam file:",bam))
@@ -69,7 +65,6 @@ for (bam in bam_files)
       {
       cd = cigarData(align)
       cd = paste(paste(cd$Length, cd$Type, sep=":"), collapse=',')
-      #cig_len = cigar.len(cd)
       identity = percent.identity(cd, normal$read.len)
       
       orient = paste(ifelse(reverseStrand(align), 'R','F'), ifelse(mateReverseStrand(align), 'R','F'), sep=":") 
@@ -91,7 +86,14 @@ for (bam in bam_files)
       
     nreads = nreads + 1
     }
+  bamClose(reader)
   flush(fout)
   close(fout)
+  copied = file.copy(tmp_file, paste(current_dir, "paired_reads.txt", sep="/"), overwrite=T)
+  if (!copied)
+    stop(paste("Failed to write or move", tmp_file)
+
+  file.remove(tmp_file)
   print(paste(bam, "total reads:", nreads))
   }
+
