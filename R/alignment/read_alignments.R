@@ -91,7 +91,7 @@ for (bam in bam_files)
   close(fout)
   copied = file.copy(tmp_file, paste(current_dir, "paired_reads.txt", sep="/"), overwrite=T)
   if (!copied)
-    stop(paste("Failed to write or move", tmp_file)
+    stop(paste("Failed to write or move", tmp_file))
 
   file.remove(tmp_file)
   print(paste(bam, "total reads:", nreads))
