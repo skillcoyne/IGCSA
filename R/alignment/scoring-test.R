@@ -1,5 +1,21 @@
 source("~/workspace/IGCSA/R/alignment/lib/utils.R")
 
+score.adjust<-function(s)
+{
+  # gene density
+  #g = s[['gene.count']])/s[['bp']]
+  g =  log(s[['gene.count']]) / s[['bp']]
+  
+  #g = log(s[['gene.count']])/log(s[['bp']])
+  
+  gdx = g *1E6
+  score = s[['score']]
+  #((gdx^2)*score)
+  (gdx^2)+score
+}
+
+
+
 create.matrix<-function(dir, bands)
   {
   if (is.null(bands) | length(bands) <= 0)
@@ -22,10 +38,19 @@ create.matrix<-function(dir, bands)
   
   for (i in 1:length(files))
     {
-    load(file=paste(dir, files[i], sep="/"))
-    print(files[i])
+    load(file=paste(dir, files[i],sep="/"))
+    print(paste(dir, files[i], sep="/"))
     
     name = dirname(files[i])
+    
+    if (is.null(summary[['max.pos.reads']]))
+      summary[['max.pos.reads']] = max(summary[['top.pos.clusters']]$ct)
+
+    if (is.null(summary[['emr']]))
+      {
+      summary[['emr']] = summary[['score']]
+      summary[['score']] = summary[['emr']]+(summary[['max.pos.reads']]/summary[['n.right.reads']])*10
+      }
     
     for (c in cols)
       {
@@ -44,12 +69,13 @@ create.matrix<-function(dir, bands)
 
       m[name,'prob.sum'] = sum(summary$top.pos.clusters$prob)
       m[name,'right.ratio'] = sum(summary$top.pos.cluster$ct)/summary$n.right.reads
-      m[name,'max.pos.reads'] = max(summary$top.pos.cluster$ct)
-      m[name,'max.pos.prob'] = max(summary$top.pos.cluster$prob)
+      if (is.null(m[name,'max.pos.reads']))
+          m[name, 'max.pos.reads'] = max(summary$top.pos.cluster$ct)
+      
+        m[name,'max.pos.prob'] = max(summary$top.pos.cluster$prob)
     
     if(!is.null(summary$r.orientation))  
       or[i,] = cbind(summary$r.orientation)
-    
     }
   m = as.data.frame(m)
   
@@ -79,6 +105,87 @@ open.pngs<-function(df, dir)
   }
 }
 
+plot.all<-function(df, points=list(), colors=list())
+  {
+  par(mfrow=c(4,4))
+  for (col in colnames(df))
+    {
+    if (col %in% c("name", 'gene.count','bp', 'type', 'total.reads')) next
+    
+    plot( (df[[col]]), col=df$type, pch=20, ylab=col,lwd=2, cex.lab=2, cex.main=2, cex.axis=2,cex=2)
+      
+    for (name in names(points))
+      {
+      rows = points[[name]]
+      points(rows, df[[col]][rows], pch=21,col=colors[[name]], cex=2)
+      }
+    }
+  plot.new()
+  par(xpd=TRUE)
+  legend("center", legend = c(levels(df$type), names(points)), 
+         col=c(palette(), unlist(colors)), pch=c(rep(20, length(levels(df$type))),rep(21, length(points))), horiz = F, cex=2)
+  }
+
+plot.scores<-function(df,points=list(), colors=list())
+  {
+  #par(mfrow=c(2,1))
+  
+  #plot(df$score, col=df$type, lwd=2, main=paste("Scores"), pch=20)
+  #for (name in names(points))
+  #  {
+  #  rows = points[[name]]
+  #  points(rows, df[[col]][rows], pch=21,col=colors[[name]], cex=2)
+  #  }
+  #legend("topleft", legend = c(levels(df$type), names(points)), 
+  #       col=c(palette(), unlist(colors)), pch=c(rep(20, length(levels(df$type))),rep(21, length(points))), horiz = F)
+  
+  plot(df$score[order(df$score)], ylab='score', xlab='', col=df$type[order(df$score)], main="Sorted Scores", pch=20)
+  for (name in names(points))
+    {
+    rows = points[[name]]
+    text(x=which(order(df$score) %in% rows), y=df$score[order(df$score)][which(order(df$score) %in% rows)], 
+         labels=df[order(df$score),][which(order(df$score) %in% rows) , 'name'], pos=2)
+    #points(which(order(df$score) %in% rows), df$score[order(df$score)][which(order(df$score) %in% rows)], pch=21,col=colors[[name]], cex=2)
+    }
+  abline(h=mean(df$score), col='blue', lty=3, lwd=2)
+  text(x=40,y=mean(df$score), labels=paste("mean", round(mean(df$score),2)), pos=3)
+  
+  legend("topleft", legend = c(levels(df$type)), 
+         col=c(palette(), unlist(colors)), pch=c(rep(20, length(levels(df$type)))), horiz = F)
+  }
+
+gene.density.plots<-function(df,points=list(), colors=list())
+  {
+  df$gcs = score.adjust(df)
+  
+  par(mfrow=c(2,2))
+  plot(log(df$gene.count)/df$bp, col=df$type, main="Gene Density", pch=20)
+  for (name in names(points))
+    {
+    rows = points[[name]]
+    points(rows, log(df$gene.count[rows])/df$bp[rows], pch=21,col=colors[[name]])
+    }
+  
+  plot(df$score, col=df$type,  main="Score", pch=20)
+  for (name in names(points))
+    {
+    rows = points[[name]]
+    points(rows, df$score[rows], pch=21, col=colors[[name]])
+    }
+  
+  plot(df$gcs, col=df$type,  main="GD Adjusted score", pch=20)
+  for (name in names(points))
+    {
+    rows = points[[name]]
+    points(rows, df$gcs[rows], pch=21,col=colors[[name]])
+    }
+  
+  plot.new()
+  par(xpd=TRUE)
+  legend("center", legend = c(levels(df$type), names(points)), 
+         col=c(palette(), unlist(colors)), pch=c(rep(20, length(levels(df$type))),rep(21, length(points))), horiz = F, cex=2)
+  }
+
 bands = read.table("~/Analysis/band_genes.txt", header=T)
 bands$len = bands$end-bands$start
 bands$name = paste(bands$chr, bands$band, sep="")
@@ -86,107 +193,97 @@ bands = bands[,c('name','len','gene.count')]
 
 
 #args <- commandArgs(trailingOnly = TRUE)
+top10=list()
 
 testDir = "/Volumes/exHD-Killcoyne/IGCSA/runs/alignments"
 
-a = create.matrix(paste(testDir, "Random/8-15", sep="/"), bands)
-#a = create.matrix(paste(testDir, "Random/10-9", sep="/"), bands)
-#a = create.matrix(paste(testDir, "Random/KIRC-Patient", sep="/"), bands)
-#a = create.matrix(paste(testDir, "Random/BRCA-Patient", sep="/"), bands)
-a$type='Random'
-
-b = create.matrix(paste(testDir, "PatientBPs/8-15", sep="/"), bands)
-#b = create.matrix(paste(testDir, "PatientBPs/10-9", sep="/"), bands)
-#b = create.matrix(paste(testDir, "GA/KIRC-Patient", sep="/"), bands)
-b$type='Simulated'
-#b$type="DE"
-
-#c = create.matrix(paste(testDir, "PatientBPs/KIRC-Patient", sep="/"), bands)
-#c = create.matrix(paste(testDir, "PatientBPs/BRCA-Patient", sep="/"), bands)
-c$type="Patient"
-
-x = rbind(a,b)
-x$type=as.factor(x$type)
-
-head(x)
-nrow(x)
-
-#cr = which(x$name %in% c$name)
-cr = which(x$name == '8q21-15q15')
-#cr = which(x$name == '10p14-9q21')
-#sims = which(x$type == 'Simulated')
-rand = which(x$type == 'Random')
+samples = c('8-15','HCC1954.G31860','GBM', 'BRCA','OV','KIRC', 'LAML','LUAD', 'COAD')
+wilcox=matrix(ncol=1,nrow=length(samples),dimnames=list(samples, c('p.value')))
 
 
-palette(rainbow(length(table(x$type))))
-par(mfrow=c(4,4))
-for (c in colnames(x))
+for (sample in samples)
   {
-  if (c %in% c("name", 'gene.count','bp', 'type')) next
+  patient = ifelse (!sample %in% c('8-15', 'HCC1954.G31860'), paste(sample, "Patient",sep="-"), sample)
+
+  random = create.matrix(paste(testDir, "Random", patient, sep="/"), bands) 
+  random$type='Random'
+
+  patients = create.matrix(paste(testDir, "PatientBPs", patient, sep="/"), bands)
+  patients$type="KnownBP"
+  if (sample=='8-15') patients$type="Random"
+
+  x = rbind(random,patients)
+  pt = which(x$type == "KnownBP")
   
-  plot( (x[[c]]), col=x$type, pch=21, ylab=c,lwd=2)
-  points(cr, x[[c]][cr], pch=20,col='purple')
-  }
-plot.new()
-par(xpd=TRUE)
-legend(x = "center", legend = c(levels(x$type), 'Correct'), 
-       col=c(palette(), 'purple'), pch=c(21,21,20), horiz = F)
-
-x$sum.r.prob^x$score
-x[cr, c('sum.r.prob','score','n.right.reads', 'max.pos.reads')]
-
-dev.off()
-par(mfrow=c(2,2))
-plot(x$max.pos.reads/x$total.reads, col=x$type)
-points(cr, x$max.pos.reads[cr]/x$total.reads[cr], pch=20,col='purple')
-
-plot(x$score, col=x$type)
-points(cr, x$score[cr], pch=20,col='purple')
-
-plot(x$max.pos.reads/x$n.right.reads, col=x$type)
-points(cr, x$max.pos.reads[cr]/x$n.right.reads[cr], pch=20,col='purple')
-
-plot(x$score+(x$max.pos.reads/x$n.right.reads)*10, col=x$type)
-points(cr, x$score[cr]+(x$max.pos.reads[cr]/x$n.right.reads[cr])*10, col='purple',pch=20)
-
-
-zz = x$score+(x$max.pos.reads/x$n.right.reads)*10
-x$score = zz
-
-dev.off()
-par(mfrow=c(2,2))
-plot(x$score, col=x$type)
-points(cr, x$score[cr], col='purple',pch=20)
-
-score.adjust<-function(s)
-  {
-  # gene density
-  #g = s[['gene.count']])/s[['bp']]
-  g =  log(s[['gene.count']]) / s[['bp']]
+  nrow(x)
   
-  #g = log(s[['gene.count']])/log(s[['bp']])
+  points=list()
+  colors=list()
+
+  palette(c('red', 'green'))
   
-  gdx = g *1E6
-  score = s[['score']]
-  #((gdx^2)*score)
-  (gdx^2)+score
+  if (sample=="8-15")
+    {
+    pt = which(x$name == "8q21-15q15")
+    x[pt, 'type'] = "KnownBP"
+    points=list("Correct"=pt)
+    colors=list("Correct"='blue')
+    }
+  rand = which(x$type == 'Random')
+
+  wilcox[sample, 'p.value'] = wilcox.test(x$score[-pt], x$score[pt])$p.value
+
+  x$type=as.factor(x$type)
+
+  png(filename=paste("~/Desktop/Simulated", paste(patient, "all.png", sep="_"), sep="/"), width=1600, height=1200, units="px")
+  plot.all(x, points, colors)
+  dev.off()
+
+  png(filename=paste("~/Desktop/Simulated", paste(patient, "score.png", sep="_"), sep="/"), width=800, height=600, units="px")
+  plot.scores(x,points,colors)
+  title(sub=paste("p.value=", round(wilcox[sample,], 3) ))
+  dev.off()
+
+  png(filename=paste("~/Desktop/Simulated", paste(patient, "gene_density.png", sep="_"), sep="/"), width=800, height=600, units="px")
+  gene.density.plots(x,points,colors)
+  dev.off()
+
+  top10[[patient]] = x[order(-x$score),][1:10,]
+
+  rm(x,random,patients)
+  print(patient)
   }
 
-x$gcs = score.adjust(x)
 
-plot(x$gcs, col=x$type)
-points(cr, x$gcs[cr], pch=20,col='purple')
+lapply(top10, function(x) {
+  max(x[['score']])
+})
+
+lapply(top10, function(x){
+  c(max(x[['score']]), range(x[which(x[['type']] == 'KnownBP'), 'score']))
+})
 
 
-## distance measure?
 
-t.test((abs(unlist(lapply(x$score, function(d){
-  x$score-d
-})))),
+lapply(top10, function(x) length(which(x[['type']] == 'Patient')))
 
-(abs(unlist(lapply(x$gcs, function(d){
-  x$gcs-d
-})))))
+merged = NULL
+topPairs = lapply(top10, function(x) x[,c('name','score','type')])
+for (n in names(topPairs))
+  {
+  topPairs[[n]]$set = n
+  merged = rbind(merged, topPairs[[n]])
+  }
+
+
+spiked = list.files(path=paste(testDir, "PatientBPs", "KIRC-Patient", sep="/"), pattern="-")
+
+repeats = merged[which(duplicated(merged$name)), 'name']
+repeats = repeats[-which(repeats %in% spiked)]
+
+m = merged[which(merged$name %in% repeats),]
+m[order(m$name),]
+
 
 
 

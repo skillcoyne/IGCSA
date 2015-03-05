@@ -40,7 +40,7 @@ create.summary.obj<-function()
   summary = list()
   for (n in c("name", "score", 'scored', 'total.reads', "cigar", "distance", "phred", "filtered.reads", "orientation", "estimated.dist", 
               "sum.l.prob", "sum.r.prob", "l.orientation", "r.orientation", "l.kurtosis", "r.kurtosis", "n.left.reads", "n.right.reads",
-              "l.dens","r.dens",'l.shapiro', 'r.shapiro'))
+              "l.dens","r.dens",'l.shapiro', 'r.shapiro', 'emr'))
     summary[[n]] = NA
   
   return(summary)
