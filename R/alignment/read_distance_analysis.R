@@ -1,6 +1,6 @@
 source("~/workspace/IGCSA/R/alignment/lib/utils.R")
 source("~/workspace/IGCSA/R/alignment/lib/read_eval.R")
-
+source("~/workspace/IGCSA/R/alignment/lib/bam_funcs.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 
@@ -29,6 +29,9 @@ if (length(args) < 2)
 read_file = list.files(path=args[1], pattern="*paired_reads.txt", recursive=T, full.names=T)
 if (length(read_file) <= 0)
   stop(paste("No paired_reads.txt file in", args[1]))
+
+bam_file = list.files(path=args[1], pattern="*.bam$", recursive=T, full.names=T)
+
 #summary = analyze.reads(paste(args[1],read_file,sep="/") , mean(distances), sd(distances), mean(phred) )
 summary=NULL
 
@@ -48,7 +51,8 @@ if (is.na(args[2])) {
     
       summary = analyze.reads(
             file=list.files(path=args[1], pattern="*paired_reads.txt", recursive=T, full.names=T), 
-            normal=read.normal.txt(args[2], c("mean.dist","sd.dist","mean.phred","sd.phred","read.len")),
+            bam=bam_file,
+						normal=read.normal.txt(args[2], c("mean.dist","sd.dist","mean.phred","sd.phred","read.len")),
             simReads = simd,
   			    savePlots=T,
   			    addToSummary = c('model','reads') )

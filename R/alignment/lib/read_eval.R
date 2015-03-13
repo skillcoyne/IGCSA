@@ -62,7 +62,7 @@ filter.reads<-function(rds, maxLen, minMapq, minPhred)
   return(rds)
 }
 
-analyze.reads<-function(file, normal, savePlots=T, simReads=F, addToSummary = NULL)
+analyze.reads<-function(file, normal, savePlots=T, bam=NULL, simReads=F, addToSummary = NULL)
   {
   if (is.null(file))
     stop("Missing read file.")
@@ -73,6 +73,9 @@ analyze.reads<-function(file, normal, savePlots=T, simReads=F, addToSummary = NU
   summary = create.summary.obj()
   summary[['score']] = 0
 
+  summary[['breakpoint']] = getBreakpointLoc(bam)
+ 
+print(summary[['breakpoint']]) 
   ## Left mean should be near the mean of the normal distance
   score_dist = TRUE
   
@@ -176,6 +179,14 @@ dist.eval<-function(model, rds, summaryObj)
   ## Reads which pretty unambiguously fit in either 1st or 2nd distribution
   leftD = which(model$z[,lt] > 0.98)
   rightD = which(model$z[,rt] > 0.98)
+  
+  bp = summaryObj[['breakpoint']]
+  if (!is.null(bp))
+    {
+    span = which(rds$pos <= bp & rds$mate.pos >= bp)
+    summaryObj[['span']] = length(span)
+    summaryObj[['right.in.span']] = length(which(rightD %in% span))
+    }
   
   summaryObj[['l.orientation']] = table(rds[leftD,]$orientation)
   summaryObj[['r.orientation']] = table(rds[rightD,]$orientation)

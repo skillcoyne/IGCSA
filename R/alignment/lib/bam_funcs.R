@@ -1,5 +1,23 @@
 library('rbamtools')
 
+getBreakpointLoc<-function(bam)
+  {
+  reader = bamReader(bam)
+  header = getHeader(reader)
+  rs = refSeqDict(getHeaderText(header))
+  items = unlist(strsplit(getHeaderText(rs), ","))
+  if (length(items) < 2) stop("bam file does not include a breakpoint definition")
+
+print(items[2])
+  bp = regexpr("=(\\d+)\t", items[2], perl=T)
+  st = as.numeric(attr(bp,'capture.start'))
+  len = as.numeric(attr(bp,'capture.length'))
+	print(substr(items[2],st,st+len))
+  return(as.numeric(substr(items[2], st, st+len)))
+  }
+
+
+
 sampleReadLengths<-function(bam, sample_size=10000)
   {
   bai = paste(bam, "bai", sep=".")
