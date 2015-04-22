@@ -1,4 +1,4 @@
-library('rbamtools')
+source("~/workspace/IGCSA/R/alignment/lib/bam_funcs.R")
 source("~/workspace/IGCSA/R/alignment/lib/read_eval.R")
 source("~/workspace/IGCSA/R/alignment/lib/utils.R")
 
@@ -34,6 +34,8 @@ if (length(bam_files) <= 0)
 
 for (bam in bam_files)
   {
+  breakpoint = getBreakpointLoc(bam)
+  
   print(paste("Reading bam ", bam, sep=""))
   reader = bamReader(bam)
   
@@ -46,6 +48,7 @@ for (bam in bam_files)
 
   tmp_file = paste(outdir, "paired_reads.txt", sep="/")
   fout = file(tmp_file, "w")
+  writeLines(paste("#breakpoint=",breakpoint,sep="/"))
   writeLines(paste(cols, collapse="\t"), fout)
   
   if (nrow(referenceData) <= 0)

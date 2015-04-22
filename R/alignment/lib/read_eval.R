@@ -2,14 +2,6 @@ library('mclust')
 library('e1071')
 
 
-kmeansAIC = function(fit)
-  {
-  m = ncol(fit$centers)
-  n = length(fit$cluster)
-  k = nrow(fit$centers)
-  D = fit$tot.withinss
-  return(D + 2*m*k)
-  }
 
 window.cluster<-function(reads, minLength = 12)
   {
@@ -73,9 +65,8 @@ analyze.reads<-function(file, normal, savePlots=T, bam=NULL, simReads=F, addToSu
   summary = create.summary.obj()
   summary[['score']] = 0
 
-  summary[['breakpoint']] = getBreakpointLoc(bam)
  
-print(summary[['breakpoint']]) 
+  print(summary[['breakpoint']]) 
   ## Left mean should be near the mean of the normal distance
   score_dist = TRUE
   
@@ -83,6 +74,11 @@ print(summary[['breakpoint']])
   name = basename(path)
   summary[['name']] = name
   #print(path)
+  
+  breakpoint = readLines(file, n=1)
+  if (grepl("#breakpoint", breakpoint)) summary[['breakpoint']] = as.numeric(sub("#breakpoint=","", breakpoint))
+  
+  if (is.null(summary[['breakpoint']]) & !is.null(bam)) summary[['breakpoint']] = getBreakpointLoc(bam)
   
   reads = read.file(file)
   dupd = which(duplicated(reads$readID))

@@ -17,11 +17,10 @@ testDir = "/Volumes/exHD-Killcoyne/IGCSA/runs/alignments/PatientBPs"
 #args[1] = paste(testDir, "KIRC-Patient", band_pair, sep="/")
 #args[1] = paste(testDir, "BRCA-Patient", band_pair, sep="/")
 #args[1] = paste(testDir, "8-15", band_pair, sep="/")
-#args[1] = "/Volumes/exHD-Killcoyne/IGCSA/runs/alignments/SH-SYS5/SH-SY5Y/1q11-1q44"
 
 #args[2] = paste(testDir, "KIRC-Patient/kirc.normal.txt", sep="/")
 #args[2] = paste(testDir, "BRCA-Patient/brca.normal.txt", sep="/")
-#args[2] = "/Volumes/exHD-Killcoyne/IGCSA/runs/alignments/SH-SYS5/SH-SY5Y/sh-sy5y-normal.txt"
+
 
 if (length(args) < 2)
   stop("Missing required arguments: <directory to read in> <normal txt file>")
@@ -30,7 +29,8 @@ read_file = list.files(path=args[1], pattern="*paired_reads.txt", recursive=T, f
 if (length(read_file) <= 0)
   stop(paste("No paired_reads.txt file in", args[1]))
 
-bam_file = list.files(path=args[1], pattern="*.bam$", recursive=T, full.names=T)
+bam_file = list.files(path=args[1], pattern="*.bam$", recursive=T, full.names=T) 
+if (length(bam_file) <= 0) bam_file = NULL
 
 #summary = analyze.reads(paste(args[1],read_file,sep="/") , mean(distances), sd(distances), mean(phred) )
 summary=NULL
