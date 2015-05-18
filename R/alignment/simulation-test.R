@@ -112,8 +112,6 @@ bands = bands[,c('name','len','gene.count')]
 
 testDir = "/Volumes/exHD-Killcoyne/IGCSA/runs/alignments"
 
-#full_sim = grep("[0-9]+-[0-9]+", list.files(paste(testDir, 'GA',sep="/")), value=T)
-
 patient_sim = grep("(.*-Patient|HCC1954.G31860)$", list.files(paste(testDir,'Random',sep="/")), value=T)
 
 samples = patient_sim
@@ -152,6 +150,7 @@ for (sample in samples)
 all_samples$sample = as.factor(all_samples$sample)
 save(all_samples, file=paste(testDir, 'PatientBPs', 'all_samples.Rdata', sep="/"))
 
+par(mfrow=c(2,4))
 wilcox=matrix(ncol=3,nrow=length(samples),dimnames=list(samples, c('p.value', 'top.count','known.cluster')))
 load(file=paste(testDir, 'PatientBPs', 'all_samples.Rdata', sep="/"))
 for (sample in levels(all_samples$sample))
@@ -171,14 +170,15 @@ for (sample in levels(all_samples$sample))
   x$type=as.factor(x$type)
   x$test = log(100*(x$max.pos.reads/x$n.right.reads))*x$emr
 
+  x$score = x$test
+  #x$score = log2(x$emr + (x$max.pos.reads/x$n.right.reads)*100)
+  #x$score = (x$emr + (x$max.pos.reads/x$n.right.reads)*10)
   
   png(filename=paste("~/Desktop/Simulated", paste(sample, "all.png", sep="_"), sep="/"), width=1600, height=1200, units="px")
   palette(c('red', 'green'))
   plot.all(x, points, colors)
   dev.off()
 
-  x$score = x$test
-  x$score = x$emr + (x$max.pos.reads/x$n.right.reads)*10
   
   stdev=sd(x$score)
   km = tryCatch({
@@ -187,12 +187,12 @@ for (sample in levels(all_samples$sample))
   if (is.null(km))
     km = kmeans(x$score, c(mean(x$score)-stdev*1.5, mean(x$score), mean(x$score)+stdev*1.5))
 
-  png(filename=paste("~/Desktop/Simulated", paste(sample, "score.png", sep="_"), sep="/"), width=800, height=600, units="px")
+  #png(filename=paste("~/Desktop/Simulated", paste(sample, "score.png", sep="_"), sep="/"), width=800, height=600, units="px")
   palette(c('green', 'cyan','blue','purple'))
   plot(x$score, col=km$cluster, pch=19, main=sample, sub=paste("p.value=", round(wilcox[sample,], 3) ))
   points(pt, x$score[pt], pch=21, lwd=2, col='red', cex=2)
   text(pt,x$score[pt], labels=x$name[pt], pos=2)
-  dev.off()
+  #dev.off()
   
   wilcox[sample, 'top.count'] = km$size[which.max(km$centers)]
   }

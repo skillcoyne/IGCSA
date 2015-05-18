@@ -14,94 +14,6 @@ score.adjust<-function(s)
   (gdx^2)+score
 }
 
-create.matrix<-function(dir, type, bands)
-  {
-  if (is.null(bands) | length(bands) <= 0)
-    stop("bands required")
-  
-  files = list.files(path=dir, pattern="summary.Rdata", recursive=T)
-  files = files[grep(".*_\\d+/", files, value=F, invert=T)]
-
-  if (length(files) == 0)
-    {
-    warning(paste("No files found in", dir))
-    return(NULL)
-    }
-  
-  if (length(files) > 300)
-    files = sample(files, 300)
-  
-  print(length(files))
-  
-  cols = names(create.summary.obj())
-  cols = c(cols[-which(cols %in% c('name', 'orientation', 'cigar', 'distance','phred', 'l.orientation','r.orientation', 'scored'))], 
-           'prob.sum','right.ratio','max.pos.reads', 'max.pos.prob', 'span','right.in.span')  
-
-  m = matrix(ncol=length(cols), nrow=length(files), dimnames=list(gsub("/.*", "", files), cols), data=0)
-  or = matrix(ncol=4, nrow=length(files), dimnames=list(gsub("/.*", "", files), c('F:F','F:R','R:F','R:R')))
-  
-  for (i in 1:length(files))
-    {
-    load(file=paste(dir, files[i],sep="/"))
-    print(paste(dir, files[i], sep="/"))
-    
-    name = dirname(files[i])
-    
-    if (is.null(summary[['max.pos.reads']]))
-      summary[['max.pos.reads']] = max(summary[['top.pos.clusters']]$ct)
-
-    if (is.null(summary[['emr']]))
-      {
-      summary[['emr']] = summary[['score']]
-      summary[['score']] = summary[['emr']]+(summary[['max.pos.reads']]/summary[['n.right.reads']])*10
-      }
-    
-    for (c in cols)
-      {
-      className = class(summary[[c]])
-      #print(paste(c,className, sep="="))
-      
-      if (is.null(summary[[c]]))
-        m[name,c] = NA
-      else if (className %in% c('numeric', 'integer'))
-        m[name,c] = round(summary[[c]], 4)
-      else if (className == 'htest')
-        m[name,c] = round(summary[[c]]$p.value, 4)
-      else
-        print(paste(c, summary[[c]], sep=":"))
-      }
-
-      m[name,'prob.sum'] = sum(summary$top.pos.clusters$prob)
-      m[name,'right.ratio'] = sum(summary$top.pos.cluster$ct)/summary$n.right.reads
-      if (is.null(m[name,'max.pos.reads']))
-          m[name, 'max.pos.reads'] = max(summary$top.pos.cluster$ct)
-      
-        m[name,'max.pos.prob'] = max(summary$top.pos.cluster$prob)
-    
-    if(!is.null(summary$r.orientation))  
-      or[i,] = cbind(summary$r.orientation)
-    }
-  m = as.data.frame(m)
-  
-  m$bp = unlist(lapply(rownames(m), function(x) sum(bands[which(bands$name %in% unlist(strsplit(x, "-"))), 'len'])  ))
-  m$gene.count = unlist(lapply(rownames(m), function(x) sum(bands[which(bands$name %in% unlist(strsplit(x, "-"))), 'gene.count'])  ))
-  
-  # Below 0.1 can be discarded as not normal, the rest might be normal (though a lot cleary are not)
-  #m = m[-which(m$l.shapiro <= 0.1),]
-  m = m[m$estimated.dist == 2,]  # not an issue anymore as I'm only looking for 2 distributions
-  
-  m$name = rownames(m)
-  rownames(m) = c(1:nrow(m))
-  
-  m$estimated.dist = NULL
-  m$l.shapiro = NULL
-  m$r.shapiro = NULL
-  
-  m$type = type
-  
-  return(m)
-  }
-
 open.pngs<-function(df, dir)
   {
   for (n in rownames(df))
@@ -205,122 +117,149 @@ bands = bands[,c('name','len','gene.count')]
 
 
 #args <- commandArgs(trailingOnly = TRUE)
-top10=list()
 
 testDir = "/Volumes/exHD-Killcoyne/IGCSA/runs/alignments"
 
-samples = c('8-15','HCC1954.G31860','GBM', 'BRCA','OV','KIRC', 'LAML','LUAD', 'COAD')
+full_sim = c("2-4","10-9","4-X","8-15")
+
+samples = c(full_sim, c('HCC1954.G31860','GBM', 'BRCA','OV','KIRC', 'LAML','LUAD', 'COAD'))
 wilcox=matrix(ncol=1,nrow=length(samples),dimnames=list(samples, c('p.value')))
+
+sim_fpr = matrix(ncol=length(full_sim), nrow=2, data=0, dimnames=list(c('3','4'), full_sim))
+spike_ins = vector(mode='numeric', length(samples))
+names(spike_ins) = samples
 
 sample_scores_dir = paste("~/Dropbox/Work/score_analysis", sep="")
 dir.create(paste("~/Dropbox/Work/score_analysis", sep=""), recursive=T)
-
+cluster_spikein = list()
 for (sample in samples)
   {
   print(sample)
-  patient = ifelse (!sample %in% c('8-15', 'HCC1954.G31860'), paste(sample, "Patient",sep="-"), sample)
+  patient = ifelse (!sample %in% c(full_sim, 'HCC1954.G31860'), paste(sample, "Patient",sep="-"), sample)
 
-  random = create.matrix(dir=paste(testDir, "Random", patient, sep="/"), "Random", bands) 
+  random = create.score.matrix(dir=paste(testDir, "Random", patient, sep="/"), "Random", bands) 
   
-  patients = create.matrix(paste(testDir, "PatientBPs", patient, sep="/"), "KnownBP", bands)
-  if (sample=='8-15') patients$type="Random"
+  patients = create.score.matrix(paste(testDir, "PatientBPs", patient, sep="/"), "KnownBP", bands)
+  if (sample %in% full_sim) patients$type="Random"
 
   x = rbind(random,patients)
-  pt = which(x$type == "KnownBP")
+
+  total = nrow(x)
+  
+  ## NEW TEST
+  if (!is.null(x$right.in.span)) 
+    x$score[which(x$right.in.span == 0)] = 0
+  
+  x = x[which(x$score > 0),]
   
   nrow(x)
+  pt = which(x$type == "KnownBP")
   
   points=list("Known"=pt)
   colors=list("Known"="blue")
 
   palette(c('red', 'green'))
-  
-  if (sample=="8-15")
+  if (sample %in% full_sim)
     {
-    pt = which(x$name == "8q21-15q15")
+    if (sample == '8-15') {
+      pt = which(x$name == "8q21-15q15")
+    } else if (sample == '2-4') {
+      pt = which(x$name == '2p23-4p16')
+    } else if (sample == '4-X') {
+      pt = which(x$name == '4q22-Xq21')
+    } else if (sample == '10-9') {
+      pt = which(x$name == '10p14-9q21')
+    }
+    
     x[pt, 'type'] = "KnownBP"
     points=list("Correct"=pt)
     colors=list("Correct"='blue')
     }
   rand = which(x$type == 'Random')
 
-  ## NEW TEST
-  if (!is.null(x$right.in.span)) 
-    x$score[which(x$right.in.span == 0)] = 0
-  
   wilcox[sample, 'p.value'] = wilcox.test(x$score[-pt], x$score[pt])$p.value
-
   x$type=as.factor(x$type)
+  
+  #plot(x$right.in.span,x$n.right.reads,col=x$type)
+  #plot(x$score,col=x$type)
 
   png(filename=paste("~/Desktop/Simulated", paste(patient, "all.png", sep="_"), sep="/"), width=1600, height=1200, units="px")
   plot.all(x, points, colors)
   dev.off()
 
   png(filename=paste("~/Desktop/Simulated", paste(patient, "score.png", sep="_"), sep="/"), width=800, height=600, units="px")
-  plot.scores(x,points,colors,min=min(x$score[x$score > 0]))
+  #plot.scores(x,points,colors)
+  plot.scores(x,points,colors,min=0.8)
   title(main=paste(sample,"Scores"), sub=paste("p.value=", round(wilcox[sample,], 3) ))
   dev.off()
 
-  #png(filename=paste("~/Desktop/Simulated", paste(patient, "gene_density.png", sep="_"), sep="/"), width=800, height=600, units="px")
-  #gene.density.plots(x,points,colors)
-  #dev.off()
-
-  #plot(x$score,(x$right.in.span/x$n.right.reads))
-  #points(x$score[pt], x$right.in.span[pt]/x$n.right.reads[pt], col='red',pch=19)
-  
-  xs = x[,c(1:(ncol(x)-2))]
-  pc = prcomp(xs)
-  group = as.numeric(x$type)
-  pdf(file=paste("~/Desktop/Simulated", paste(patient, "pca.pdf", sep="_"), sep="/"), onefile=T)
-  for (col in 1:ncol(pc$x))
-    {
-    for (j in 1:ncol(pc$x))
-      {
-      if (j == col) next
-      plot(pc$x[,col], pc$x[,j], main="PCA", xlab=col, ylab=j, col=group,pch=20)
-      }
-    }
-  dev.off()
-  
-  
-  top10[[patient]] = x[order(-x$score),][1:10,]
-  
-  save(x, pt, points, colors, file=paste(sample_scores_dir, paste(sample, ".Rdata", sep=""), sep="/"))
-  
-  rm(x,random,patients)
-  }
-
-
-lapply(top10, function(x) {
-  max(x[['score']])
-})
-
-lapply(top10, function(x){
-  c(max(x[['score']]), range(x[which(x[['type']] == 'KnownBP'), 'score']))
-})
-
-
-
-lapply(top10, function(x) length(which(x[['type']] == 'Patient')))
-
-merged = NULL
-topPairs = lapply(top10, function(x) x[,c('name','score','type')])
-for (n in names(topPairs))
+  par(mfrow=c(2,4))
+  for (sample in levels(all_samples$sample))
   {
-  topPairs[[n]]$set = n
-  merged = rbind(merged, topPairs[[n]])
+  x = all_samples[all_samples$sample == sample,]
+  
+  stdev = sd(x$score)
+  if (!sample %in% full_sim)
+    {
+    x = x[order(x$score),]
+    pt = which(x$type == 'KnownBP')
+    centers = c(mean(x$score)-stdev*2,  mean(x$score)-stdev, mean(x$score)+stdev, mean(x$score)+stdev*2)
+    if (shapiro.test(x$score)$p.value < 0.05) centers = quantile(x$score, probs=seq(0,1,0.33)) 
+      
+    km = kmeans(x$score, centers, iter.max=50)
+    top = x[which(km$cluster == which.max(km$centers)),]
+    spike_ins[sample] = length(which(top$type == 'KnownBP'))
+  
+    cluster_spikein[[sample]] = km$cluster[which(x$type == 'KnownBP')]
+    
+    palette(c('green','orange', 'purple','blue'))
+    
+    plot(x$score, col=km$cluster, pch=19, main=sample, sub="k-means clusters", ylab="Scores", xlab="")
+    points(pt, x$score[pt], col='red', lwd=4, pch=21, cex=1.5)
+    legend('topleft', legend=c(order(km$centers), 'Known'), col=c(palette(), 'red'), pch=c(rep(19,4), 21))
+    }
+  }
+  
+  ##???maybe
+  if (sample %in% full_sim)
+    {
+    fpr<-function(a,total) {
+      return ((a-1)/(a-1+total-1))
+    }
+    km = kmeans(x$score, c(mean(x$score)-stdev*1.5, mean(x$score), mean(x$score)+stdev*1.5))
+    top = length(which(km$cluster==which.max(km$centers)))
+    sim_fpr['3', sample] = fpr(top,total)
+    
+    km = kmeans(x$score, c(mean(x$score)-stdev*2,  mean(x$score)-stdev, mean(x$score)+stdev, mean(x$score)+stdev*2))
+    top = length(which(km$cluster==which.max(km$centers)))
+    sim_fpr['4',sample] = fpr(top,total)      
+    }
+  
+  
+  x$sample = sample
+  if (!exists('all_samples')) {
+    all_samples = x
+  } else {
+    all_samples = rbind(all_samples,x)
+  }
   }
 
-
-spiked = list.files(path=paste(testDir, "PatientBPs", "KIRC-Patient", sep="/"), pattern="-")
-
-repeats = merged[which(duplicated(merged$name)), 'name']
-repeats = repeats[-which(repeats %in% spiked)]
-
-m = merged[which(merged$name %in% repeats),]
-m[order(m$name),]
+save(all_samples, file=paste(testDir, 'PatientBPs', 'all_samples.Rdata', sep="/"))
 
 
+write.table(round(wilcox[sort(rownames(wilcox)),],3), quote=F, sep="\t", file="~/Desktop/Simulated/wilcox.txt"))
 
+#pc = prcomp(xs)
+#group = as.numeric(all_samples$type)
+#pdf(file=paste("~/Desktop/Simulated", "all_pca.pdf", sep="/"), onefile=T)
+#for (col in 1:ncol(pc$x))
+#  {
+#  for (j in 1:ncol(pc$x))
+#    {
+#    if (j == col) next
+#    plot(pc$x[,col], pc$x[,j], main="PCA", xlab=col, ylab=j, col=group,pch=20)
+#    }
+#  }
+#dev.off()
 
 

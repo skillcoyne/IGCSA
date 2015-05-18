@@ -1,0 +1,12 @@
+These Rscripts read and analyze the BAM files generated from the de novo reference alignment. See the run_analysis.sh script for example of how to run these scripts.
+
+
+LIBRARIES REQUIRED
+
+R v.3.0.1
+data.table v.1.9.2
+rbamtools  v.2.9.14
+mclust     v.4.4
+e1071      v.1.6-4
+
+

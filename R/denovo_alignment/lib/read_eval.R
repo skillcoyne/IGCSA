@@ -65,7 +65,6 @@ analyze.reads<-function(file, normal, savePlots=T, bam=NULL, simReads=F, addToSu
   summary = create.summary.obj()
   summary[['score']] = 0
 
- 
   print(summary[['breakpoint']]) 
   ## Left mean should be near the mean of the normal distance
   score_dist = TRUE

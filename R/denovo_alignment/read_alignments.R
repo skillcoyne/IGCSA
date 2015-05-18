@@ -1,6 +1,6 @@
-source("~/workspace/IGCSA/R/alignment/lib/bam_funcs.R")
-source("~/workspace/IGCSA/R/alignment/lib/read_eval.R")
-source("~/workspace/IGCSA/R/alignment/lib/utils.R")
+source("lib/bam_funcs.R")
+source("lib/read_eval.R")
+source("lib/utils.R")
 
 load_files<-function(files, dir)
   {
