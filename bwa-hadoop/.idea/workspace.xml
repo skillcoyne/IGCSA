@@ -4,6 +4,7 @@
     <list default="true" id="7b495f04-e455-4d1e-87b6-671a34127379" name="Default" comment="" />
     <ignored path="bwa-hadoop.iws" />
     <ignored path=".idea/workspace.xml" />
+    <ignored path=".idea/dataSources.local.xml" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -18,6 +19,7 @@
     <SUITE FILE_PATH="coverage/bwa-hadoop@sy5y_bandgen.coverage" NAME="sy5y-bandgen Coverage Results" MODIFIED="1417082972100" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="bwa-hadoop" />
     <SUITE FILE_PATH="coverage/bwa-hadoop@streaming_score.coverage" NAME="streaming-score Coverage Results" MODIFIED="1414502843982" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="bwa-hadoop" />
     <SUITE FILE_PATH="coverage/bwa-hadoop@run_bwa.coverage" NAME="run-bwa Coverage Results" MODIFIED="1391429011643" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="bwa-hadoop" />
+    <SUITE FILE_PATH="coverage/bwa-hadoop@breakpoint_gen.coverage" NAME="breakpoint-gen Coverage Results" MODIFIED="1429096955568" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="bwa-hadoop" />
     <SUITE FILE_PATH="coverage/bwa-hadoop@random_set.coverage" NAME="random_set Coverage Results" MODIFIED="1416382249968" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="bwa-hadoop" />
     <SUITE FILE_PATH="coverage/bwa-hadoop@read_bam.coverage" NAME="read-bam Coverage Results" MODIFIED="1406016803476" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="bwa-hadoop" />
     <SUITE FILE_PATH="coverage/bwa-hadoop@mapper.coverage" NAME="mapper Coverage Results" MODIFIED="1389692582174" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="bwa-hadoop" />
@@ -36,21 +38,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="random-bandgen.rb" pinned="false" current-in-tab="true">
+      <file leaf-file-name="random-bandgen.rb" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/random-bandgen.rb">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.455684" vertical-offset="907" max-vertical-offset="2010">
-              <caret line="92" column="20" selection-start-line="92" selection-start-column="20" selection-end-line="92" selection-end-column="20" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ga-generator.rb" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/ga-generator.rb">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="75" max-vertical-offset="780">
-              <caret line="5" column="19" selection-start-line="5" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="1275" max-vertical-offset="2010">
+              <caret line="93" column="1" selection-start-line="93" selection-start-column="1" selection-end-line="93" selection-end-column="1" />
               <folding />
             </state>
           </provider>
@@ -59,18 +51,28 @@
       <file leaf-file-name="sy5y-bandgen.rb" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/sy5y-bandgen.rb">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="885" max-vertical-offset="1035">
-              <caret line="59" column="0" selection-start-line="41" selection-start-column="0" selection-end-line="59" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="360" max-vertical-offset="1035">
+              <caret line="56" column="0" selection-start-line="51" selection-start-column="0" selection-end-line="56" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="optparse.rb" pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/.rvm/rubies/ruby-2.0.0-p481/lib/ruby/2.0.0/optparse.rb">
+      <file leaf-file-name="breakpoint-gen.rb" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/breakpoint-gen.rb">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="19548" max-vertical-offset="29610">
-              <caret line="1317" column="0" selection-start-line="1317" selection-start-column="0" selection-end-line="1317" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.085632734" vertical-offset="0" max-vertical-offset="1051">
+              <caret line="6" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="streaming.rb" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/streaming.rb">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0" vertical-offset="30" max-vertical-offset="765">
+              <caret line="2" column="49" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="49" />
               <folding />
             </state>
           </provider>
@@ -80,7 +82,7 @@
         <entry file="file://$PROJECT_DIR$/art-mapper.rb">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0" vertical-offset="12" max-vertical-offset="1065">
-              <caret line="36" column="11" selection-start-line="36" selection-start-column="11" selection-end-line="36" selection-end-column="11" />
+              <caret line="39" column="33" selection-start-line="39" selection-start-column="9" selection-end-line="39" selection-end-column="33" />
               <folding />
             </state>
           </provider>
@@ -102,6 +104,13 @@
     <FindUsagesManager>
       <setting name="OPEN_NEW_TAB" value="false" />
     </FindUsagesManager>
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/breakpoint-gen.rb" />
+      </list>
+    </option>
   </component>
   <component name="JsGulpfileManager">
     <detection-done>true</detection-done>
@@ -186,31 +195,7 @@
     <property name="FullScreen" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/../ruby" />
   </component>
-  <component name="RunManager" selected="Ruby.random-bandgen">
-    <configuration default="false" name="create_aws_job" type="RubyRunConfigurationType" factoryName="Ruby" temporary="true">
-      <module name="bwa-hadoop" />
-      <RUBY_RUN_CONFIG NAME="RUBY_ARGS" VALUE="-e $stdout.sync=true;$stderr.sync=true;load($0=ARGV.shift)" />
-      <RUBY_RUN_CONFIG NAME="WORK DIR" VALUE="$MODULE_DIR$" />
-      <RUBY_RUN_CONFIG NAME="SHOULD_USE_SDK" VALUE="false" />
-      <RUBY_RUN_CONFIG NAME="ALTERN_SDK_NAME" VALUE="" />
-      <RUBY_RUN_CONFIG NAME="myPassParentEnvs" VALUE="true" />
-      <envs />
-      <EXTENSION ID="BundlerRunConfigurationExtension" bundleExecEnabled="false" />
-      <EXTENSION ID="JRubyRunConfigurationExtension" NailgunExecEnabled="false" />
-      <EXTENSION ID="RubyCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" track_test_folders="true" runner="rcov">
-        <COVERAGE_PATTERN ENABLED="true">
-          <PATTERN REGEXPS="/.rvm/" INCLUDED="false" />
-        </COVERAGE_PATTERN>
-      </EXTENSION>
-      <EXTENSION ID="org.jetbrains.plugins.ruby.motion.run.MotionSimulatorRunExtension" />
-      <RUBY_RUN_CONFIG NAME="SCRIPT_PATH" VALUE="$MODULE_DIR$/create_aws_job.rb" />
-      <RUBY_RUN_CONFIG NAME="SCRIPT_ARGS" VALUE="5,8 12,1" />
-      <RunnerSettings RunnerId="RubyDebugRunner" />
-      <RunnerSettings RunnerId="RubyRunner" />
-      <ConfigurationWrapper RunnerId="RubyDebugRunner" />
-      <ConfigurationWrapper RunnerId="RubyRunner" />
-      <method />
-    </configuration>
+  <component name="RunManager" selected="Ruby.breakpoint-gen">
     <configuration default="false" name="random-bandgen" type="RubyRunConfigurationType" factoryName="Ruby" temporary="true">
       <module name="bwa-hadoop" />
       <RUBY_RUN_CONFIG NAME="RUBY_ARGS" VALUE="-e $stdout.sync=true;$stderr.sync=true;load($0=ARGV.shift)" />
@@ -301,6 +286,39 @@
       <ConfigurationWrapper RunnerId="RubyRunner" />
       <method />
     </configuration>
+    <configuration default="false" name="breakpoint-gen" type="RubyRunConfigurationType" factoryName="Ruby" temporary="true">
+      <module name="bwa-hadoop" />
+      <RUBY_RUN_CONFIG NAME="RUBY_ARGS" VALUE="-e $stdout.sync=true;$stderr.sync=true;load($0=ARGV.shift)" />
+      <RUBY_RUN_CONFIG NAME="WORK DIR" VALUE="$MODULE_DIR$" />
+      <RUBY_RUN_CONFIG NAME="SHOULD_USE_SDK" VALUE="false" />
+      <RUBY_RUN_CONFIG NAME="ALTERN_SDK_NAME" VALUE="" />
+      <RUBY_RUN_CONFIG NAME="myPassParentEnvs" VALUE="true" />
+      <envs />
+      <EXTENSION ID="BundlerRunConfigurationExtension" bundleExecEnabled="false" />
+      <EXTENSION ID="JRubyRunConfigurationExtension" NailgunExecEnabled="false" />
+      <EXTENSION ID="RubyCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" track_test_folders="true" runner="rcov">
+        <COVERAGE_PATTERN ENABLED="true">
+          <PATTERN REGEXPS="/.rvm/" INCLUDED="false" />
+        </COVERAGE_PATTERN>
+      </EXTENSION>
+      <EXTENSION ID="org.jetbrains.plugins.ruby.motion.run.MotionSimulatorRunExtension" />
+      <RUBY_RUN_CONFIG NAME="SCRIPT_PATH" VALUE="$MODULE_DIR$/breakpoint-gen.rb" />
+      <RUBY_RUN_CONFIG NAME="SCRIPT_ARGS" VALUE="" />
+      <RunnerSettings RunnerId="RubyRunner" />
+      <ConfigurationWrapper RunnerId="RubyRunner" />
+      <method />
+    </configuration>
+    <configuration default="true" type="BashConfigurationType" factoryName="Bash">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="INTERPRETER_PATH" value="/bin/bash" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="PARAMETERS" value="" />
+      <module name="" />
+      <envs />
+      <method />
+    </configuration>
     <configuration default="true" type="RSpecRunConfigurationType" factoryName="RSpec">
       <predefined_log_file id="RUBY_RSPEC" enabled="true" />
       <module name="" />
@@ -384,20 +402,29 @@
       <RTEST_RUN_CONFIG_SETTINGS_ID NAME="RUNNER_OPTIONS" VALUE="" />
       <method />
     </configuration>
+    <configuration default="true" type="js.build_tools.gulp" factoryName="Gulp.js">
+      <node-options />
+      <gulpfile />
+      <tasks />
+      <arguments />
+      <pass-parent-envs>true</pass-parent-envs>
+      <envs />
+      <method />
+    </configuration>
     <list size="5">
-      <item index="0" class="java.lang.String" itemvalue="Ruby.create_aws_job" />
-      <item index="1" class="java.lang.String" itemvalue="Ruby.random-bandgen" />
-      <item index="2" class="java.lang.String" itemvalue="Ruby.random_set" />
-      <item index="3" class="java.lang.String" itemvalue="Ruby.sy5y-bandgen" />
-      <item index="4" class="java.lang.String" itemvalue="Ruby.ga-generator" />
+      <item index="0" class="java.lang.String" itemvalue="Ruby.random-bandgen" />
+      <item index="1" class="java.lang.String" itemvalue="Ruby.random_set" />
+      <item index="2" class="java.lang.String" itemvalue="Ruby.sy5y-bandgen" />
+      <item index="3" class="java.lang.String" itemvalue="Ruby.ga-generator" />
+      <item index="4" class="java.lang.String" itemvalue="Ruby.breakpoint-gen" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Ruby.ga-generator" />
-        <item index="1" class="java.lang.String" itemvalue="Ruby.sy5y-bandgen" />
-        <item index="2" class="java.lang.String" itemvalue="Ruby.random_set" />
-        <item index="3" class="java.lang.String" itemvalue="Ruby.random-bandgen" />
-        <item index="4" class="java.lang.String" itemvalue="Ruby.create_aws_job" />
+        <item index="0" class="java.lang.String" itemvalue="Ruby.breakpoint-gen" />
+        <item index="1" class="java.lang.String" itemvalue="Ruby.ga-generator" />
+        <item index="2" class="java.lang.String" itemvalue="Ruby.sy5y-bandgen" />
+        <item index="3" class="java.lang.String" itemvalue="Ruby.random_set" />
+        <item index="4" class="java.lang.String" itemvalue="Ruby.random-bandgen" />
       </list>
     </recent_temporary>
   </component>
@@ -423,8 +450,8 @@
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3684771" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.37593183" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -454,6 +481,9 @@
     <option name="myTodoPanelSettings">
       <TodoPanelSettings />
     </option>
+    <ignored-roots>
+      <path value="$PROJECT_DIR$/.." />
+    </ignored-roots>
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -463,20 +493,17 @@
           <line>31</line>
           <option name="timeStamp" value="36" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="ruby-line">
+          <url>file://$PROJECT_DIR$/breakpoint-gen.rb</url>
+          <line>8</line>
+          <option name="timeStamp" value="48" />
+        </line-breakpoint>
       </breakpoints>
-      <option name="time" value="48" />
+      <option name="time" value="49" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/lib/fastq_to_tsv.rb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="192" max-vertical-offset="1245">
-          <caret line="39" column="33" selection-start-line="39" selection-start-column="0" selection-end-line="39" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/run-bwa.rb">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2925">
@@ -696,24 +723,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib/hadoop_commands.rb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.5542636" vertical-offset="726" max-vertical-offset="1500">
-          <caret line="77" column="74" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/interactive.sh">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.27723736" vertical-offset="0" max-vertical-offset="1028">
           <caret line="19" column="26" selection-start-line="19" selection-start-column="0" selection-end-line="19" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/streaming.rb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="765">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
         </state>
       </provider>
     </entry>
@@ -766,13 +779,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/bwa-mapper.rb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.25641027" vertical-offset="0" max-vertical-offset="1053">
-          <caret line="131" column="63" selection-start-line="131" selection-start-column="0" selection-end-line="131" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/.rvm/gems/ruby-2.0.0-p481/gems/ruby-debug-ide-0.4.23.beta1/lib/ruby-debug-ide.rb">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.20394088" vertical-offset="1113" max-vertical-offset="2625">
@@ -788,45 +794,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/create_aws_job.rb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.14450867" vertical-offset="0" max-vertical-offset="1038">
-          <caret line="10" column="23" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/ga-generator.rb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="780">
-          <caret line="5" column="19" selection-start-line="5" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/sy5y-bandgen.rb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1035">
-          <caret line="59" column="0" selection-start-line="41" selection-start-column="0" selection-end-line="59" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.rvm/rubies/ruby-2.0.0-p481/lib/ruby/2.0.0/optparse.rb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="19548" max-vertical-offset="29610">
-          <caret line="1317" column="0" selection-start-line="1317" selection-start-column="0" selection-end-line="1317" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/art-mapper.rb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="12" max-vertical-offset="1065">
-          <caret line="36" column="11" selection-start-line="36" selection-start-column="11" selection-end-line="36" selection-end-column="11" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/lib/fastq_to_tsv.rb">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="192" max-vertical-offset="1245">
@@ -835,10 +802,77 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$USER_HOME$/.rvm/rubies/ruby-2.0.0-p481/lib/ruby/2.0.0/optparse.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.6146527" vertical-offset="28559" max-vertical-offset="29610">
+          <caret line="1947" column="0" selection-start-line="1947" selection-start-column="0" selection-end-line="1947" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/art-mapper.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="12" max-vertical-offset="1065">
+          <caret line="39" column="33" selection-start-line="39" selection-start-column="9" selection-end-line="39" selection-end-column="33" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/hadoop_commands.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.4360465" vertical-offset="0" max-vertical-offset="1500">
+          <caret line="20" column="36" selection-start-line="20" selection-start-column="24" selection-end-line="20" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/bwa-mapper.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.5843023" vertical-offset="933" max-vertical-offset="2730">
+          <caret line="89" column="77" selection-start-line="89" selection-start-column="58" selection-end-line="89" selection-end-column="58" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/create_aws_job.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.5777778" vertical-offset="240" max-vertical-offset="915">
+          <caret line="42" column="25" selection-start-line="42" selection-start-column="25" selection-end-line="42" selection-end-column="25" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/streaming.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="765">
+          <caret line="2" column="49" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="49" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ga-generator.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.5777778" vertical-offset="0" max-vertical-offset="780">
+          <caret line="26" column="34" selection-start-line="26" selection-start-column="3" selection-end-line="26" selection-end-column="3" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/random-bandgen.rb">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.455684" vertical-offset="907" max-vertical-offset="2010">
-          <caret line="92" column="20" selection-start-line="92" selection-start-column="20" selection-end-line="92" selection-end-column="20" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="1275" max-vertical-offset="2010">
+          <caret line="93" column="1" selection-start-line="93" selection-start-column="1" selection-end-line="93" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/sy5y-bandgen.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="360" max-vertical-offset="1035">
+          <caret line="56" column="0" selection-start-line="51" selection-start-column="0" selection-end-line="56" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/breakpoint-gen.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.085632734" vertical-offset="0" max-vertical-offset="1051">
+          <caret line="6" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
           <folding />
         </state>
       </provider>

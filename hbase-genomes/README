@@ -1,0 +1,56 @@
+
+REQUIREMENTS
+
+Hadoop 1.2.1
+HBase 0.94
+
+INFORMATION
+
+HBase-Genomes provides methods to run a number of different utilities. With Hadoop running a full listing of available utilities is output with:
+
+hadoop jar HBase-Genomes-1.2.jar <options>
+
+Valid program names are:
+  align: Align TSV reads
+  chrpair: Generate/index bands for the given pair of chromosomes.
+  fastaload: Loads a genome into the HBase database from the provided FASTA files. Args: -g [genome name] -f [hdfs path to FASTA file directory]
+  gasearch: Run GA generate/index/align/score pipeline.
+  gennormal: Generate FASTA files for a normal genome. Args: -g [genome name, ex. GRCh37] -o [hdfs output path for FASTA files]
+  hbaseutil: Import/Export HBase tables from/to hdfs or s3. Args: -d [hdfs directory for read/write] -c [IMPORT|EXPORT] -t [comma separated list of tables OPTIONAL]
+  index: Index FASTA file
+  localsearch: Run generate/index/align/score pipeline.
+  minichr: Generate mini FASTA files for the provided bands or chromosome locations.
+  mutate: Generate genome with small-scale mutations. Args: -p [reference genome, ex. GRCh37] -m [new genome name]
+
+
+
+LOAD GENOME
+In order to run anything else a genome needs to be loaded into HBase. There are two methods to do this.
+
+1.a. Load all FASTA files for each chromosome into HDFS:  hadoop dfs -copyFromLocal <source dir> <hdfs destination>
+  b. Index FASTA sequences into HBase (this is a long process): hadoop jar HBase-Genomes-1.2.jar fastaload -g MyGenome -f <hdfs location for FASTA>
+2. Download the HBase tables, load into a HDFS path (see 1a) for GRCh37 and load directly from HDFS:
+    hadoop jar HBase-Genomes-1.2.jar hbaseutil -d <hdfs location for HBase tables> -c IMPORT
+
+
+GENERATE/INDEX REFERENCES
+From HBase-Genomes references can be generated in several ways.
+
+1. Use 'gasearch' to both run the optimization search algorithm for selecting regions, creating the de novo references, and indexing them.
+    hadoop jar HBase-Genomes-1.2.jar gasearch <opts>
+     -b,--bwa-path <arg>      bwa archive location in HDFS
+     -g,--genome <arg>        parent genome name for sequence generation in HBase
+     -o,--output <arg>        output path in HDFS
+     -s,--size <arg>          population size, no less than 10 DEFAULT: 50
+     -t,--generations <arg>   number of generations DEFAULT: 1000
+
+2. Generate the list of references you want to create, either with band names or chromosomal locations and run 'minichr' to create and index a reference.
+    hadoop jar HBase-Genomes-1.2.jar minichr <opts>
+     -b,--bwa <arg>        bwa archive location in HDFS
+     -g,--genome <arg>     parent genome name for sequence generation in HBase
+     -n,--name <arg>       Directory name for mini chromosomes in HDFS
+     -o,--output <arg>     output directory e.g. /tmp
+     -d,--band <arg>       Bands, at least two are required (use either -l OR -d).  Ex: -band 1q32 -band 5p11
+     -l,--location <arg>   Locations, at least two are necessary (use either -l OR -d).  Ex: -l 1:32-10000  -l 4:3990-50298
+
+These indexes can be used to align directly using the 'align' program and sequence reads. Alternately, they can be copied out of HDFS and used to align in a separate environment.

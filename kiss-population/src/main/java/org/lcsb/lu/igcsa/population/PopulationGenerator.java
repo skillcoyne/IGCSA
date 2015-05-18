@@ -49,7 +49,8 @@ public class PopulationGenerator
 
   public static void main(String[] args) throws Exception
     {
-    new PopulationGenerator().run(1000, 200);
+    PopulationGenerator pg = new PopulationGenerator();
+    log.info(pg.run(1000, 200));
     }
 
 

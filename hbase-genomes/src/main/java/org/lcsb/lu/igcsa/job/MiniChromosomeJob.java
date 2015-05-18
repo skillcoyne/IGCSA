@@ -8,10 +8,7 @@
 
 package org.lcsb.lu.igcsa.job;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionGroup;
+import org.apache.commons.cli.*;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -66,11 +63,11 @@ public class MiniChromosomeJob extends JobIGCSA
 
   private void setOpts()
     {
-    Option m = new Option("l", "location", true, "Locations, at least two are necessary.  Ex: -l 1:32-10000  -l 4:3990-50298");
+    Option m = new Option("l", "location", true, "Locations, at least two are necessary (use either -l OR -d).  Ex: -l 1:32-10000  -l 4:3990-50298");
     m.setRequired(false);
     this.addOptions(m);
 
-    m = new Option("d", "band", true, "Bands, at least two are required.  Ex: -band 1q32 -band 5p11");
+    m = new Option("d", "band", true, "Bands, at least two are required (use either -l OR -d).  Ex: -band 1q32 -band 5p11");
     m.setRequired(false);
     this.addOptions(m);
 
@@ -97,7 +94,7 @@ public class MiniChromosomeJob extends JobIGCSA
   private void usage()
     {
     HelpFormatter hf = new HelpFormatter();
-    hf.printHelp(this.getClass().getSimpleName() + " -l OR -d", this.options);
+    hf.printHelp(this.getClass().getSimpleName(), this.options);
     System.exit(-1);
     }
 
@@ -114,7 +111,16 @@ public class MiniChromosomeJob extends JobIGCSA
   public int run(String[] args) throws Exception
     {
     GenericOptionsParser gop = this.parseHadoopOpts(args);
-    CommandLine cl = this.parseOptions(args, this.getClass());
+    CommandLine cl = null;
+    try
+      {
+      cl = this.parseOptions(args, this.getClass());
+      }
+     catch (ParseException pe)
+       {
+       this.usage();
+       }
+
     //CommandLine cl = this.parser.parse(this.options, gop.getRemainingArgs(), false);
     //CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs(), this.options, this.getClass());
     //CommandLine cl = this.parser.parseOptions(gop.getRemainingArgs(), this.getClass());

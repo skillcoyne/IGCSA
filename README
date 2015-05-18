@@ -3,9 +3,11 @@ Disclaimer:
 
 This software is under development and provided as-is. We cannot guarantee that it is free of bugs,
 nor has it been tested on all systems.
-
 -----------------------------------------------------------------------------------------------
 
+* hbase-genomes module provides all utilities for uploading genomes, generating and indexing references, and alignment if desired.
+* figg module creates small (<1kb) mutations, see http://www.biomedcentral.com/1471-2105/15/149
+* kiss-population provides the optimization code for selecting cytogenetic bands to combine. This is incorporated into hbase-genomes 'gasearch' but can be used as a stand-alone by a script. This module does not require Hadoop.
+* derby-db and kiss-derby are not recommended for use. These create the derby databases used by figg and kiss, but are not prepared for separate packaging.
 
-
-See hbase-genomes module.  At this time the software is developed to use HBase and Hadoop Map/Reduce. See http://insilicogenome.sourceforge.net for instructions on setup and runs.
+At this time the software is developed to use HBase and Hadoop Map/Reduce. See http://insilicogenome.sourceforge.net for instructions.

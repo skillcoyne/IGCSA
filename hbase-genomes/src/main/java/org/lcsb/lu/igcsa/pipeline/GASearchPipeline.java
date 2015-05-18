@@ -39,7 +39,7 @@ public class GASearchPipeline extends SearchPipeline
     options.addOption(new Option("b", "bwa-path", true, "bwa archive location"));
     options.addOption(new Option("o", "output", true, "output path"));
     options.addOption(new Option("g", "genome", true, "parent genome name for sequence generation"));
-    options.addOption(new Option("r", "reads", true, "read path for tsv"));
+    //options.addOption(new Option("r", "reads", true, "read path for tsv"));
     options.addOption(new Option("s", "size", true, "population size, no less than 10 DEFAULT: 50"));
     options.addOption(new Option("t", "generations", true, "number of generations DEFAULT: 1000"));
     }
@@ -114,13 +114,13 @@ public class GASearchPipeline extends SearchPipeline
             "-n", "mini", "-o", cl.getOptionValue("o")}, bands.toArray(new String[bands.size()])));
         log.info(mcj.getIndexPath().toString());
 
-        String alignPath = alignReads(mcj.getIndexPath().toString(), mcj.getName());
-        log.info(alignPath);
+        //String alignPath = alignReads(mcj.getIndexPath().toString(), mcj.getName());
+        //log.info(alignPath);
         }
       catch (Exception e)
         {
-        log.info("ERROR: Failed to finish generate/index/align for " + abr.getBands() + e);
-        log.error("Failed to finish generate/index/align for " + abr.getBands() + e);
+        log.info("ERROR: Failed to finish generate/index for " + abr.getBands() + e);
+        log.error("Failed to finish generate/index for " + abr.getBands() + e);
         }
 
       }
