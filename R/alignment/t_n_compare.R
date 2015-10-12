@@ -1,6 +1,22 @@
-source("~/workspace/IGCSA/R/alignment/lib/utils.R")
+source("~/workspace/IGCSA/R/denovo_alignment/lib/utils.R")
 library('VennDiagram')
 
+
+filled.km.plot<-function(scores, fit)
+  {
+  plot(scores, col=fit$cluster, pch=19, xlab="", ylab='score', type='h')
+  
+  colors = palette()
+  for (i in order(-fit$center))
+    {
+    xx = c(which(fit$cluster == i), rev(which(fit$cluster == i)))
+    yy = c(rep(0, fit$size[i]), rev(scores[which(fit$cluster == i)]))
+    
+    polygon(x=xx, y=yy, col= colors[i], border=NA  )  
+    }
+  legend('topleft', legend=paste(seq(1,4,1), " (", fit$size[order(-fit$center)], ")", sep=""), fill=colors[order(-fit$center)], border=NA)
+  }
+  
 km.aic<-function(x)
   {
   aic = vector(mode="numeric")
@@ -34,19 +50,19 @@ norm.plot<-function(score)
     }
   }
 
-load.files<-function(dirs,type,bands)
+load.files<-function(dirs,type,bands,weight=10)
   {
   all_scores = NULL
   for (dir in dirs)
     {
     print(dir)
-    curr_n = create.score.matrix(dir, type, bands)
+    curr_n = create.score.matrix(dir, type, bands, weight)
     if (is.null(curr_n)) next
     
     if (!is.null(curr_n$right.in.span)) 
-      curr_n$score[which(curr_n$right.in.span == 0)] = 0
+      curr_n$score[which(curr_n$right.in.span == 0)] = NA
     
-    curr_n = curr_n[curr_n$score > 0,]
+    #curr_n = curr_n[curr_n$score > 0,]
     mean(curr_n$score)
     
     curr_n$sample = basename(dir)
@@ -68,23 +84,30 @@ bands$name = paste(bands$chr, bands$band, sep="")
 #norm_bd = read.breakdancer(bdx[1], bands)
 #tumor_bd = read.breakdancer(bdx[2], bands)
 
+
+## BRCA TEST
+vol = "/Volumes/exHD-Killcoyne/IGCSA/runs/alignments/BRCA-4q13"
+
+extra_pst = load.files(grep("*P(S|B)T", list.files(vol,full.names=T), value=T), "PST",bands)
+extra_nt = load.files(grep("*N(B|T)", list.files(vol,full.names=T), value=T), "NT",bands)
+
 vol="/Volumes/exHD-Killcoyne/IGCSA/runs/alignments/GA"
 load(paste(vol,"all.Rdata", sep="/"))
 
 for (f in grep("*P(S|B)T", list.files(vol,full.names=T), value=T))
-  print(paste(f, length(list.files(f))))
+  print(paste(f, length(grep('*Rdata', list.files(f, recursive=T), value=T))))
 
 for (f in grep("*N(B|T)", list.files(vol,full.names=T), value=T))
-  print(paste(f, length(list.files(f))))
+  print(paste(f, length(grep('*Rdata', list.files(f, recursive=T), value=T))))
   
 if (!exists('all_c'))
+  {
   all_c = load.files(grep("*P(S|B)T", list.files(vol,full.names=T), value=T), "PST", bands)
-
-if (!exists('all_n'))
   all_n = load.files(grep("*N(B|T)", list.files(vol,full.names=T), value=T), "NT", bands)
-
-save(all_c,all_n,file=paste(vol,"all.Rdata",sep="/"))
-save(all_c,all_n,file="~/Dropbox/Private/all.Rdata")
+  
+  save(all_c,all_n,file=paste(vol,"all.Rdata",sep="/"))
+  save(all_c,all_n,file="~/Dropbox/Private/all.Rdata")
+  }
 
 all_c$sample= as.factor(as.character(all_c$sample))
 all_n$sample= as.factor(as.character(all_n$sample))
@@ -101,65 +124,59 @@ for (i in 1:length(cancer))
   print(names(cancer)[i])
   pst = all_c[all_c$sample == names(cancer)[i],]
   if (is.null(pst) | nrow(pst) <= 0) next
+  pst = pst[order(pst$score),]
   rownames(pst) = c(1:nrow(pst))
 
   nt = all_n[all_n$sample == names(normal)[i],]
+  nt = nt[order(nt$score),]
   rownames(nt) = c(1:nrow(nt))
 
   nrow(pst)
   nrow(nt)
-  if (nrow(nt) > nrow(pst))
-    nt = nt[sample.int(nrow(nt), nrow(pst)),]
+  #if (nrow(nt) > nrow(pst))
+  #  nt = nt[sample.int(nrow(nt), nrow(pst)),]
   
   #print(wilcox.test(pst$score, nt$score)$p.value)
-  
-  sd.km<-function(score)
-    {
-    stdev=sd(score)
-    
-    km = tryCatch({
-      #kmeans(score,  c(mean(score)-stdev*1.5,  mean(score)-stdev, mean(score)+stdev, mean(score)+stdev*1.5), iter.max=100)
-      kmeans(score,  c(mean(score)-stdev*1.5,  mean(score)-stdev, mean(score)+stdev, mean(score)+stdev*1.5), iter.max=100)
-    }, error = function(err) {
-      kmeans(score, quantile(score, seq(0,1,0.3)), iter.max=100)
-      #kmeans(score, quantile(score, seq(0,1,0.5)), iter.max=100)
-    })
-    
-    return( km )
-    }
-
   cols = c('name','score','type')
-  stdev=sd(pst$score)
   km = sd.km(pst$score)
-  #km = kmeans(pst$score, quantile(pst$score, probs=seq(0,1,0.3)))
-  #km = kmeans(pst$score, 4)
   top_c = pst[which(km$cluster == which.max(km$centers)), cols]
 
   #palette(c('green','orange', 'purple','blue'))
   par(mfrow=c(2,1))
-  plot(pst$score, col=km$cluster, pch=19, main=names(cancer)[i], sub="k-means clusters", ylab="Scores", xlab="")
-  legend('topright', legend=c(order(km$centers)), col=palette(), pch=c(rep(19,4)))
+  filled.km.plot(pst$score, km)
+  title(main=names(cancer)[i])
   
-  #km = kmeans(nt$score, quantile(nt$score, probs=seq(0,1,0.3)))
-  #km = kmeans(nt$score, quantile(nt$score, probs=seq(0,1,0.3)), iter.max=100)
   km = sd.km(nt$score)
+  
+  filled.km.plot(nt$score, km)
+  title(main=names(normal)[i])
+
+  #probs = -log(dnorm( nt$score, mean(nt$score), sd(nt$score)))
+  #top = nt[which( probs >= mean(probs)+sd(probs)*2 ), cols]
+  
   top_n = nt[which(km$cluster == which.max(km$centers)), cols]
-
-  plot(nt$score, col=km$cluster, pch=19, main=names(normal)[i], sub="k-means clusters", ylab="Scores", xlab="")
-  legend('topright', legend=c(order(km$centers)), col=palette(), pch=c(rep(19,4)))
-
+  
   nrow(top_c)
   nrow(top_n)
+  
+  cols=c('name','score')
+  g = merge(pst[,cols], nt[,cols], by='name')
+  plot(sort(g$score.x-g$score.y))
+  km = sd.km(g$score.x-g$score.y)
+  g[which(km$cluster == 4),]
+  
+  
+  
   write.table(setdiff(top_c$name,top_n$name), quote=F,sep="\t", row.names=F)
 
   cnc_type = sub("-N(B|T)", "", names(normal)[i])
   cancer_regions[[cnc_type]] = setdiff(top_c$name,top_n$name)
 
-#plot.new()
-#draw.pairwise.venn(nrow(top_c),nrow(top_n),length(intersect(top_c$name,top_n$name)), category=c('Tumor', 'Germline'), 
-#                   cat.pos=c(45,45), cex = rep(2,3), cat.cex=2, 
-#                   fill=c('blue','red'), col=c('blue','red'))
-#title(main=sub("-N(B|T)", "", names(normal)[i]))
+plot.new()
+draw.pairwise.venn(nrow(top_c),nrow(top_n),length(intersect(top_c$name,top_n$name)), category=c('Tumor', 'Germline'), 
+                   cat.pos=c(45,45), cex = rep(2,3), cat.cex=2, 
+                   fill=c('blue','red'), col=c('blue','red'))
+title(main=sub("-N(B|T)", "", names(normal)[i]))
 
   }
 

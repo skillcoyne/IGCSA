@@ -16,7 +16,7 @@ source("lib/varplots.R")
 data_dir = "~/Data/VariationNormal"
 
 
-plot=TRUE
+plot=F
 
 ens_dir = paste(data_dir, "Frequencies/1000/Ensembl", sep="/")
 var_files = list.files(path=ens_dir, pattern=".txt")  
@@ -133,7 +133,7 @@ if(plot)
 if (plot)
   {
   app=F
-  png(filename=paste(out_dir, "var-ktests.png", sep="/"), bg="white", height=900, width=900)
+#  png(filename=paste(out_dir, "var-ktests.png", sep="/"), bg="white", height=900, width=900)
   par(mfrow=c(5,5))
   for (chr in names(var_tests))
     {
@@ -151,10 +151,24 @@ if (plot)
   # cheap way to get a legend
   plot(0:2, axes=F, ann=F, type='n')
   legend("topleft", legend=colnames(var_tests[[chr]]), col=c('blue', 'red'), fill=c('blue', 'red'), bty='n')
-  dev.off()
+#  dev.off()
   }
 
 
+
+lapply(var_tests, function(x){
+  
+  
+})
+
+
+colors=rainbow(length(var_tests))
+plot(var_tests$chr1$norm, ann=F,ylim=c(0,1), main="FF", type='n')
+lapply(var_tests, function(x, colors){
+  
+  #lines(x[['norm']], type='p', col=colors)
+#  lines(x[['norm']])
+})
 
 
 

@@ -61,7 +61,7 @@ while line1 = f1in.gets and line2 = f2in.gets
 
     # 50gb                       21474836480
     #if (File.size(f1outname) >= 53687091200)
-    if (File.size(f1outname) >= 21237)
+    if (File.size(f1outname) >= 236450617)
       f1out.close
       f2out.close
 

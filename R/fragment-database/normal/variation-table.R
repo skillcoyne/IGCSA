@@ -7,7 +7,7 @@ simpleCap<-function(x)
         sep="", collapse="")
   }
 
-data_dir =  "~/Data/Ensembl/Variation/chromosomes"
+data_dir =  "~/Data/Ensembl/Variation/current/Normal/chromosomes"
 files = list.files(path=data_dir, pattern="chr*")  
 
 out_dir = "~/Analysis/Database/normal"
@@ -41,9 +41,8 @@ for (chr in names(var_per_chr))
   colnames(temp_m) = colnames(chr_var_m)
   temp_m[,1] = chr
   for (i in 1:length(vars))
-    {
     temp_m[i,2] = which( variations == vars[i] ) 
-    }
+
   chr_var_m = rbind(chr_var_m, temp_m)
   }
 

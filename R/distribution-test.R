@@ -4,7 +4,7 @@
 # with modeling I applied a Mann-Whitney against the distributions of the number of variations of a given type per fragments of 1kb in size.
 #
 rm(list=ls())
-source("lib/gc_functions.R")
+source("~/workspace/IGCSA/R/lib/gc_functions.R")
 
 
 dir = "~/Data"
@@ -40,13 +40,13 @@ for (var in variations)
   i=i+2
   }
 colnames(pvalues) = columns  
-rownames(pvalues) = c(1:22)
+rownames(pvalues) = c(1:22, 'X','Y')
 
 # Variation & gc files
 for (file in var_files)
   {
   chr = sub(".txt", "", file)
-  if (chr == 'chrX' || chr == 'chrY') next
+  #if (chr == 'chrX' || chr == 'chrY') next
   print(chr)
   var_file = paste(ens_dir, file, sep="/")
   gc_file = paste(gc_dir, "/", chr, "-gc.txt", sep="")

@@ -91,6 +91,10 @@ class FQRead
     end
   end
 
+  def phred_score
+    return(@qual.split("").inject(0){|sum, e| sum + (e.ord - 33)  })
+  end
+
   def to_s
     return "#{@name}/#{@num}\n#{@read}\n+\n#{@qual}\n"
   end
@@ -137,14 +141,14 @@ end
 
 if ARGV.length < 2
   $stderr.puts "Usage #{$0} <FASTQ directory> <number of reads>"
-  exit(1)
+#  exit(1)
 end
 
-#dir = "/tmp/PatientBPs/10p14-9q13/FASTQ"
-#num_reads = 1000
+dir = "/tmp/PatientBPs/10p14-9q13/FASTQ"
+num_reads = 1000
 
-dir = ARGV[0]
-num_reads = ARGV[1].to_i
+#dir = ARGV[0]
+#num_reads = ARGV[1].to_i
 
 
 fq = Dir["#{dir}/*.fq"]

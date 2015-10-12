@@ -133,11 +133,11 @@ analyze.reads<-function(file, normal, savePlots=T, bam=NULL, simReads=F, addToSu
     {
     png_file=paste(path, "read_pair_distance.png", sep="/")
     print(png_file)
-    png(filename=png_file, width=800, height=600)
+    png(filename=png_file, width=1000, height=800, units="px")
     }
 
-  plot.mclust(model,counts,normal,summary)
-  title(name)
+  plot.mclust(model,counts,normal,summary, cex=1.5,cex.lab=1.5,cex.axis=2)
+  title(main=name)
       
   if (savePlots) dev.off()
 
@@ -250,7 +250,7 @@ cigar.len<-function(cv)
   }
 
 
-plot.mclust<-function(model, data, normal, summaryObj)
+plot.mclust<-function(model, data, normal, summaryObj, ...)
   {
   rt = as.integer(which(model$parameters$mean == max(model$parameters$mean)))
   lt =  as.integer(which(model$parameters$mean != max(model$parameters$mean)))
@@ -258,21 +258,21 @@ plot.mclust<-function(model, data, normal, summaryObj)
   plotDensityMclust1(model, data=data,  col='blue', lwd=2, hist.col = "lightblue",  breaks=100, xlab="log(read-pair distance)")
   
   abline(v=log(normal$mean.dist), col='red',lwd=2)
-  text(log(normal$mean.dist), max(model$density)/3, labels=paste("Sampled normal mean:",round(log(normal$mean.dist),2)), pos=4)
+  text(log(normal$mean.dist), max(model$density)/3, labels=paste("Sampled normal mean:",round(log(normal$mean.dist),2)), pos=4, ...)
   for (i in 1:ncol(model$z))
     { 
     m = model$parameters$mean[i]
     v = ifelse (model$modelName == "V", model$parameters$variance$sigmasq[i], model$parameters$variance$sigmasq)
     abline(v=m,lwd=2, col='blue')
-    text(m, sd(model$density)+mean(model$density), labels=paste("mean:",round(m,2)), pos=2)
+    text(m, sd(model$density)+mean(model$density), labels=paste("mean:",round(m,2)), pos=2, ...)
     
     if (!is.null(summaryObj))
       {
       kt = ifelse (i == lt, summaryObj[['l.kurtosis']], summaryObj[['r.kurtosis']] )
-      text(m, (sd(model$density)/2)+mean(model$density), labels=paste("kurtosis:",round(kt, 3)), pos=2  )
+      #text(m, (sd(model$density)/2)+mean(model$density), labels=paste("kurtosis:",round(kt, 3)), pos=2  )
       }
     
-    text(m, mean(model$density), labels=paste("score:", round( mean(model$z[,i]),3 )), pos=2)
+    text(m, mean(model$density), labels=paste("score:", round( mean(model$z[,i]),3 )), pos=2, ...)
     }
   }
 

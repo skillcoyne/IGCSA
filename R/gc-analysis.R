@@ -5,7 +5,7 @@
 
 rm(list=ls())
 
-source("lib/gc_functions.R")
+source("~/workspace/IGCSA/R/lib/gc_functions.R")
 
 ens_dir = "~/Data/VariationNormal/Frequencies/1000/Ensembl"
 var_files = list.files(path=ens_dir, pattern="*.txt")
@@ -18,7 +18,7 @@ pvalues = as.data.frame(matrix(nrow=0, ncol=3))
 colnames(pvalues) = c('p.value', 'sampled.p.value', 'gc')
 # Does correlation tests against the two tops of the variation distribution (0 ~15)
 # on each chromosome
-file="chr19.txt"
+file="chr17.txt"
 for (i in 1:length(var_files))
   {
   file = var_files[i]
@@ -38,9 +38,16 @@ for (i in 1:length(var_files))
   # Extreme values still cause problems
   gdvd = cbind(vd, gd)
   
+  hist( gdvd$SNV, col='blue',breaks=50, main=paste("SNV Frequency", chr), xlab="SNV")
+  hist( gdvd$SNV[gdvd$GCRatio >= 0.6], col='red',breaks=50,add=T)
+  hist( gdvd$SNV[gdvd$GCRatio <= 0.3], col='green',breaks=50,add=T)
+  legend('topright',legend=c('All', 'GC >= 60%', 'GC <= 30%'), fill=c('blue','red', 'green'))
+  
   snvCutoff = 1
   snvCutoffUpper = 29
   snvBump = gdvd[gdvd$SNV > snvCutoff & gdvd$SNV < snvCutoffUpper ,]
+  
+  cor.test(gdvd$SNV,gdvd$GCRatio,methods='pearson')
   
   low = gdvd[gdvd$GCRatio <= 0.3,]  
   cor.test(low$SNV, low$GCRatio, methods="pearson")
@@ -57,10 +64,10 @@ for (i in 1:length(var_files))
   
   
   # Random pvalue test
-  rand1 = sample( gdvd$GCRatio, 5000 )
-  rand2 = sample( gdvd$SNV, 5000 )
-  t.test(rand1[1:2500], rand1[2501:5000])
-  t.test(rand1[1:2500], rand2[1:2500])
+  #rand1 = sample( gdvd$GCRatio, 5000 )
+  #rand2 = sample( gdvd$SNV, 5000 )
+  #t.test(rand1[1:2500], rand1[2501:5000])
+  #t.test(rand1[1:2500], rand2[1:2500])
   #rt = cor.test(quantile(rand[1:2500]), quantile(rand[2501:5000]), method="pearson" )
   #rt = cor.test(rand[1:2500], rand[2501:5000], method="pearson" )
   #pvalues[chr, 'sampled.p.value'] = format.pval(rt$p.value, digits=3)

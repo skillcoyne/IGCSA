@@ -1,5 +1,20 @@
 require('data.table')
 
+
+
+sd.km<-function(score)
+  {
+  stdev=sd(score)
+  
+  km = tryCatch({
+    kmeans(score,  c(mean(score)-stdev*1.5,  mean(score)-stdev, mean(score)+stdev, mean(score)+stdev*1.5), iter.max=100)
+  }, error = function(err) {
+    kmeans(score, c(min(score)+stdev*2,  mean(score)-stdev, mean(score)+stdev, max(score)-stdev*2), iter.max=100)
+  })
+  
+  return( km )
+  }
+
 kmeansAIC = function(fit)
   {
   m = ncol(fit$centers)
@@ -58,7 +73,7 @@ create.summary.obj<-function()
 
 
 
-create.score.matrix<-function(dir, type, bands)
+create.score.matrix<-function(dir, type, bands, weight=10)
   {
   if (is.null(bands) | length(bands) <= 0)
     stop("bands required")
@@ -94,15 +109,13 @@ create.score.matrix<-function(dir, type, bands)
     if (is.null(summary[['emr']]))
       {
       summary[['emr']] = summary[['score']]
-      summary[['score']] = summary[['emr']]+(summary[['max.pos.reads']]/summary[['n.right.reads']])*10
+      summary[['score']] = summary[['emr']]+(summary[['max.pos.reads']]/summary[['n.right.reads']])*weight
       }
-    #x[['emr']]+(x[['max.pos.reads']]/x[['n.right.reads']])*100
-    #summary[['score']] = summary[['emr']]+(summary[['max.pos.reads']]/summary[['n.right.reads']])*100
+    summary[['score']] = summary[['emr']]+(summary[['max.pos.reads']]/summary[['n.right.reads']])*weight
     
     for (c in cols)
       {
       className = class(summary[[c]])
-      #print(paste(c,className, sep="="))
       
       if (is.null(summary[[c]]))
         m[name,c] = NA
@@ -129,6 +142,9 @@ create.score.matrix<-function(dir, type, bands)
   m$bp = unlist(lapply(rownames(m), function(x) sum(bands[which(bands$name %in% unlist(strsplit(x, "-"))), 'len'])  ))
   m$gene.count = unlist(lapply(rownames(m), function(x) sum(bands[which(bands$name %in% unlist(strsplit(x, "-"))), 'gene.count'])  ))
   
+  if (!is.null(m$right.in.span)) 
+    m$score[which(m$right.in.span == 0)] = NA
+  
   # Below 0.1 can be discarded as not normal, the rest might be normal (though a lot cleary are not)
   #m = m[-which(m$l.shapiro <= 0.1),]
   #m = m[m$estimated.dist == 2,]  # not an issue anymore as I'm only looking for 2 distributions
@@ -142,6 +158,7 @@ create.score.matrix<-function(dir, type, bands)
   
   m$type = type
   
+  #m = m[m$score > 0,]
   m = m[order(-m$score),]
   
   return(m)

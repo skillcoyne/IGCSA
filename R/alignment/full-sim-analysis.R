@@ -1,4 +1,4 @@
-source("~/workspace/IGCSA/R/alignment/lib/utils.R")
+source("~/workspace/IGCSA/R/denovo_alignment/lib/utils.R")
 
 
 plot.scores<-function(df,points=list(), colors=list(), min=0)
@@ -55,22 +55,27 @@ km.fpr<-function(df, centers=NULL)
     {
     stdev = sd(df$score)
     centers = list( 
-      "2" = c(mean(x$score)-stdev*1.5, mean(x$score)+stdev*1.5),
-      "3" = c(mean(x$score)-stdev*1.5, mean(x$score), mean(x$score)+stdev*1.5),
-      "4" = c(mean(x$score)-stdev*2,  mean(x$score)-stdev, mean(x$score)+stdev, mean(x$score)+stdev*2),
-      "5" = c(mean(x$score)-stdev*2,  mean(x$score)-stdev, mean(x$score), mean(x$score)+stdev, mean(x$score)+stdev*2) )
+      "2" = c(mean(df$score)-stdev*1.5, mean(df$score)+stdev*1.5),
+      "3" = c(mean(df$score)-stdev*1.5, mean(df$score), mean(df$score)+stdev*1.5),
+      "4" = c(mean(df$score)-stdev*2,  mean(df$score)-stdev, mean(df$score)+stdev, mean(df$score)+stdev*2),
+      "5" = c(mean(df$score)-stdev*2,  mean(df$score)-stdev, mean(df$score), mean(df$score)+stdev, mean(df$score)+stdev*2) )
     }
   f = rep(NA, length(centers))
   names(f) = c(paste('km',names(centers),sep=""))
+  
+  fit = list()
   
   for (center in centers) 
     {
     km = tryCatch({
       kmeans(df$score, center, iter.max=100)
     }, error = function(e) {
+      kmeans(df$score, length(center), iter.max=100)
       warning(paste("km", length(center), "failed"))
-      NULL
+      #NULL
     })
+    
+    fit[[length(center)]] = km
     
     if (!is.null(km))
       {
@@ -79,7 +84,7 @@ km.fpr<-function(df, centers=NULL)
         f[paste('km',length(center), sep='')] = fpr(nrow(top), nrow(df))
       }
     }
-  return(list(f, centers))
+  return(list(f, fit))
   }
 
 calculate.fpr<-function(df)
@@ -100,18 +105,22 @@ bands = bands[,c('name','len','gene.count')]
 
 testDir = "/Volumes/exHD-Killcoyne/IGCSA/runs/alignments"
 
-#full_sim = grep("[0-9]+-[0-9]+", list.files(paste(testDir, 'GA',sep="/")), value=T)
 
-test = "Test01"
+#full_sim = grep("[0-9]+-[0-9]+", list.files(paste(testDir, 'GA', test, sep="/")), value=T)
+
+test = "Test02"
 samples = grep("[0-9]+-[0-9]+", list.files(paste(testDir, 'PatientBPs', test ,sep="/")), value=T)
+names(samples) = samples
+
+samples = unlist(lapply(samples, function(s) length(list.files(path=paste(testDir, "GA", test, s, sep="/"), recursive=T, pattern="*.Rdata"))))
+samples = samples[samples > 0]
 
 all_samples = NULL
 for (i in 1:length(samples))
   {
-  sample=samples[i]
+  sample=names(samples[i])
   print(sample)
-  
-  #if (length(list.files(paste(testDir, "GA", test, sample, sep="/"))) <= 0) next
+  if (sample == "19-2") next
   
   random = create.score.matrix(dir=paste(testDir, "GA", test, sample, sep="/"), "Random", bands) 
   patients = create.score.matrix(paste(testDir, "PatientBPs",test, sample, sep="/"), "KnownBP", bands)
@@ -136,21 +145,26 @@ for (i in 1:length(samples))
   if (is.null(all_samples)) all_samples = x  else  all_samples = rbind(all_samples,x ) 
   }
 
-#save(all_samples, file=paste(testDir, "full_sim.Rdata", sep="/"))
+#save(all_samples, file=paste(testDir, paste(test,"full_sim.Rdata", sep="-"), sep="/"))
 
-#load(file=paste(testDir, "full_sim.Rdata", sep="/"))
+#load(file=paste(testDir, paste(test,"full_sim.Rdata", sep="-"), sep="/"))
+unlist(lapply(table(all_samples$sample), function(x) x <=24))
+
 all_samples$sample = as.factor(all_samples$sample)
-table(all_samples$sample)
-fpr_rows = c(paste('nlog',c(1,1.5,2,2.5,3),'SD',sep=""), paste('km',c(2:5),sep=''))
-sim_fpr = matrix(ncol=length(samples), nrow=length(fpr_rows), data=0, dimnames=list(fpr_rows, samples))
 
+fpr_rows = c(paste('nlog',c(1,1.5,2,2.5,3),'SD',sep=""), paste('km',c(2:5),sep=''))
+sim_fpr = matrix(ncol=length(table(all_samples$sample)), nrow=length(fpr_rows), data=0, dimnames=list(fpr_rows, levels(all_samples$sample)))
+
+par(mfrow=c(2,2))
 for (sample in levels(all_samples$sample))
   {
   print(sample)
   x = all_samples[which(all_samples$sample == sample),]
   
   #TEST
-  #x$score = (10*(x$max.pos.reads/x$n.right.reads))+x$emr
+  #x$score = x$emr+(x$max.pos.reads/x$n.right.reads)*1000
+  
+  x = x[order(x$score),]
   
   points=list()
   colors=list()
@@ -169,28 +183,28 @@ for (sample in levels(all_samples$sample))
   if (!is.na(kfpr[[1]]['km4']))
     {
     #km = km = kmeans(x$score, kfpr[[2]][[which.min(kfpr[[1]])]])
-    km = kmeans(x$score, kfpr[[2]][['4']])
+    km = kfpr[[2]][[4]]
     palette(rainbow(length(km$centers)))
     
     filled.km.plot<-function(scores, fit)
       {
-      plot(scores, col=fit$cluster, pch=19, xlab="", ylab='score', type='h')
+      plot(scores, col=fit$cluster, pch=19, type='h',cex.axis=1.5, xlab="",ylab="")
       
       colors = palette()
-      for (i in 1:length(km$centers))
+      for (i in order(-fit$center))
         {
         xx = c(which(fit$cluster == i), rev(which(fit$cluster == i)))
         yy = c(rep(0, fit$size[i]), rev(scores[which(fit$cluster == i)]))
         
         polygon(x=xx, y=yy, col= colors[i], border=NA  )  
         }
-      legend('topleft', legend=paste(seq(1,4,1), " (", rev(fit$size), ")", sep=""), fill=rev(colors), border=NA)
+      legend('topleft', legend=paste(seq(1,4,1), " (", fit$size[order(-fit$center)], ")", sep=""), fill=colors[order(-fit$center)], border=NA)
     }
     
-    png(filename=paste("~/Desktop/FullSim", paste(sample, "score.png", sep="_"), sep="/"), width=800, height=600, units="px")
+    #png(filename=paste("~/Desktop/FullSim", paste(sample, "score.png", sep="_"), sep="/"), width=800, height=600, units="px")
     filled.km.plot(x$score, km)
-    title(main=sample, sub=paste("fpr=", round(kfpr[[1]][which.min(kfpr[[1]])], 3)))
-    dev.off()
+    title(main=sample, sub=paste("fpr=", round(kfpr[[1]][which.min(kfpr[[1]])], 3)), xlab="index", ylab='Score', cex.lab=1.5, cex.sub=1.5, cex.main=1.5)
+    #dev.off()
     #points(pt, x$score[pt], pch=21, col='red', cex=2, lwd=2)
     #text(pt, x$score[pt], pch=21, col='black', labels=x[pt,'name'], pos=2)
     }
@@ -203,9 +217,14 @@ for (sample in levels(all_samples$sample))
 
 nrow(all_samples)
 (table(all_samples$sample))
-sim_fpr = sim_fpr[which(grepl("km", rownames(sim_fpr))),]
 
-boxplot(t(sim_fpr), ylim=c(-0.02,max(sim_fpr, na.rm=T)), ylab="FPR", border='blue',col='lightblue', pch=19, lwd=2)
+km_fpr = sim_fpr[which(grepl("km", rownames(sim_fpr))),]
+boxplot(t(km_fpr), ylim=c(0,max(km_fpr, na.rm=T)), border='blue',col='lightblue', pch=19, lwd=2,  cex.axis=1.5)
+title(main="K-means FPR", xlab="centroids", ylab="FPR", cex.lab=1.5, cex.main=1.5)
+abline(h=0.1, col='red',lwd=2,lty=3)
 
+sd_fpr = sim_fpr[which(grepl("SD", rownames(sim_fpr))),]
+boxplot(t(sd_fpr), ylim=c(-0.01,max(sd_fpr, na.rm=T)), ylab="FPR", border='blue',col='lightblue', pch=19, lwd=2, main="SD FPR")
+abline(h=0.1, col='red', lty=2)
 
 

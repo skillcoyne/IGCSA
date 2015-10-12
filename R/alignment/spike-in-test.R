@@ -1,18 +1,19 @@
 source("~/workspace/IGCSA/R/alignment/lib/utils.R")
 
-score.adjust<-function(s)
-{
-  # gene density
-  #g = s[['gene.count']])/s[['bp']]
-  g =  log(s[['gene.count']]) / s[['bp']]
-  
-  #g = log(s[['gene.count']])/log(s[['bp']])
-  
-  gdx = g *1E6
-  score = s[['score']]
-  #((gdx^2)*score)
-  (gdx^2)+score
-}
+km.fit<-function(df)
+  {
+  stdev = sd(df$score)
+  center = c(mean(df$score)-stdev*2,  mean(df$score)-stdev, mean(df$score)+stdev, mean(df$score)+stdev*2)
+  km = tryCatch({
+    kmeans(df$score, center, iter.max=100)
+  }, error = function(e) {
+    kmeans(df$score, length(center), iter.max=100)
+    #warning(paste("km", length(center), "failed"))
+    #NULL
+  })
+  return(km)
+  }
+
 
 plot.all<-function(df, points=list(), colors=list())
   {
@@ -148,7 +149,7 @@ for (sample in samples)
   }
   }
 all_samples$sample = as.factor(all_samples$sample)
-save(all_samples, file=paste(testDir, 'PatientBPs', 'all_samples.Rdata', sep="/"))
+#save(all_samples, file=paste(testDir, 'PatientBPs', 'all_samples.Rdata', sep="/"))
 
 par(mfrow=c(2,4))
 wilcox=matrix(ncol=3,nrow=length(samples),dimnames=list(samples, c('p.value', 'top.count','known.cluster')))
@@ -157,6 +158,8 @@ for (sample in levels(all_samples$sample))
   {
   x = all_samples[all_samples$sample == sample,]
   total = nrow(x)
+  
+  #x$score = (x$emr + (x$max.pos.reads/x$n.right.reads)*30)
   
   x = x[order(x$score),]
   pt = which(x$type == "KnownBP")
@@ -168,28 +171,13 @@ for (sample in levels(all_samples$sample))
   if (nrow(x[pt,]) > 0) wilcox[sample, 'p.value'] = wilcox.test(x$score[-pt], x$score[pt])$p.value
 
   x$type=as.factor(x$type)
-  x$test = log(100*(x$max.pos.reads/x$n.right.reads))*x$emr
-
-  x$score = x$test
-  #x$score = log2(x$emr + (x$max.pos.reads/x$n.right.reads)*100)
-  #x$score = (x$emr + (x$max.pos.reads/x$n.right.reads)*10)
-  
-  png(filename=paste("~/Desktop/Simulated", paste(sample, "all.png", sep="_"), sep="/"), width=1600, height=1200, units="px")
-  palette(c('red', 'green'))
-  plot.all(x, points, colors)
-  dev.off()
-
-  
-  stdev=sd(x$score)
-  km = tryCatch({
-    kmeans(x$score, 3)
-  })
+  km = km.fit(x)
   if (is.null(km))
     km = kmeans(x$score, c(mean(x$score)-stdev*1.5, mean(x$score), mean(x$score)+stdev*1.5))
 
   #png(filename=paste("~/Desktop/Simulated", paste(sample, "score.png", sep="_"), sep="/"), width=800, height=600, units="px")
   palette(c('green', 'cyan','blue','purple'))
-  plot(x$score, col=km$cluster, pch=19, main=sample, sub=paste("p.value=", round(wilcox[sample,], 3) ))
+  plot(x$score, col=km$cluster, pch=19, main=sample, sub="Factor 3x" ,xlab="")
   points(pt, x$score[pt], pch=21, lwd=2, col='red', cex=2)
   text(pt,x$score[pt], labels=x$name[pt], pos=2)
   #dev.off()
